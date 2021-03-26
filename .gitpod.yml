@@ -1,0 +1,7 @@
+image: fpco/stack-build
+
+tasks:
+  - init: |
+      stack build
+    command: |
+      stack test
