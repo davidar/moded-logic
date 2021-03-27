@@ -97,3 +97,8 @@ constraints p r = [term v p | v <- Set.toList (locals p r)] ++ case extract p (b
             [Picologic.Neg (Picologic.Conj (term u p) (term v p))]
     Pred name vars | Rule rname rvars _ <- r, name == rname ->
         [Picologic.Iff (term u p) (term v []) | (u,v) <- zip vars rvars]
+
+mode :: [Picologic.Expr] -> Rule -> Rule
+mode soln (Rule name vars goal) = Rule name (f <$> vars) goal
+    where f v | term v [] `elem` soln = v ++".out"
+              | Picologic.Neg (term v []) `elem` soln = v ++".in"

@@ -1,4 +1,5 @@
 import Lib
+import Control.Monad
 import qualified Picologic
 
 rule = Rule "append" ["A", "B", "C"] $ Disj
@@ -17,4 +18,7 @@ main = do
   print . variables $ body rule
   let p = constraints' rule
   print p
-  Picologic.solveProp p >>= putStrLn . Picologic.ppSolutions
+  Picologic.Solutions solns <- Picologic.solveProp p
+  putStrLn . Picologic.ppSolutions $ Picologic.Solutions solns
+  forM_ solns $ \soln -> do
+    print $ mode soln rule
