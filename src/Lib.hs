@@ -1,5 +1,6 @@
 module Lib where
 
+import Data.Graph
 import Data.List
 import qualified Data.Set as Set
 import Data.Set (Set)
@@ -20,13 +21,15 @@ data Rule = Rule Name [Var] Goal
 type Path = [Int]
 
 instance Show Goal where
+    show (Unif x y) | ".o" `isSuffixOf` y = y ++" = "++ x
     show (Unif x y) = x ++" = "++ y
-    show (Func "[|]" [x,y] var) = var ++" = ["++ x ++" | "++ y ++"]"
-    show (Func name [] var) = var ++" = "++ name
-    show (Func name vars var) = var ++" = "++ name ++"("++ intercalate ", " vars ++")"
+    show (Func name vars@(v:_) var) | ".o" `isSuffixOf` v = show (Pred name vars) ++" = "++ var
+    show (Func name vars var) = var ++" = "++ show (Pred name vars)
+    show (Pred name []) = name
+    show (Pred "[|]" [x,y]) = "["++ x ++" | "++ y ++"]"
     show (Pred name vars) = name ++"("++ intercalate ", " vars ++")"
     show (Conj goals) = intercalate ", " $ show <$> goals
-    show (Disj goals) = "("++ (intercalate "; " $ show <$> goals) ++")"
+    show (Disj goals) = "(\n\t"++ (intercalate ";\n\t" $ show <$> goals) ++"\n)"
     show (Soft if_ then_ else_) = show if_ ++" -> "++ show then_ ++"; "++ show else_
 
 instance Show Rule where
@@ -99,6 +102,27 @@ constraints p r = [term v p | v <- Set.toList (locals p r)] ++ case extract p (b
         [Picologic.Iff (term u p) (term v []) | (u,v) <- zip vars rvars]
 
 mode :: [Picologic.Expr] -> Rule -> Rule
-mode soln (Rule name vars goal) = Rule name (f <$> vars) goal
-    where f v | term v [] `elem` soln = v ++".out"
-              | Picologic.Neg (term v []) `elem` soln = v ++".in"
+mode soln (Rule name vars goal) = Rule name (annotate [] <$> vars) (go [] goal)
+    where annotate p v | term v p `elem` soln = v ++".o"
+                       | Picologic.Neg (term v p) `elem` soln = v ++".i"
+          go p (Unif u v) = Unif (annotate p u) (annotate p v)
+          go p (Func name vs u) = Func name (annotate p <$> vs) (annotate p u)
+          go p (Pred name vs) = Pred name (annotate p <$> vs)
+          go p (Conj gs) = Conj $ sortConj [go (p ++ [i]) g | (i,g) <- zip [0..] gs]
+          go p (Disj gs) = Disj [go (p ++ [i]) g | (i,g) <- zip [0..] gs]
+          go p (Soft if_ then_ else_) = Soft (go (p ++ [0]) if_) (go (p ++ [1]) then_) (go (p ++ [2]) else_)
+
+unSCC :: SCC a -> a
+unSCC (AcyclicSCC v) = v
+unSCC (CyclicSCC _) = error "cyclic dependency"
+
+sortConj :: [Goal] -> [Goal]
+sortConj gs = map unSCC . stronglyConnComp $ do
+    let ins  = [Set.fromList [take (length v - 2) v
+                             | v <- Set.toList (variables g), ".i" `isSuffixOf` v] | g <- gs]
+        outs = [Set.fromList [take (length v - 2) v
+                             | v <- Set.toList (variables g), ".o" `isSuffixOf` v] | g <- gs]
+    (i,g) <- zip [0..] gs
+    let js = [j | j <- take (length gs) [0..]
+                , not . Set.null $ Set.intersection (ins !! i) (outs !! j)]
+    return (g, i, js)
