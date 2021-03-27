@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cbc07049047c9bd7a2ec3470c9954c7e851026ac0ecde29c4d8372099054ab22
+-- hash: 4ff0b7b6bc05f21f01854f65d495425b1029a2fb4d540bba8f58b5e150720a09
 
 name:           moded-logic
 version:        0.1.0.0
@@ -35,6 +35,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , picologic
   default-language: Haskell2010
 
 executable moded-logic-exe
@@ -48,6 +49,7 @@ executable moded-logic-exe
       base >=4.7 && <5
     , containers
     , moded-logic
+    , picologic
   default-language: Haskell2010
 
 test-suite moded-logic-test
@@ -62,4 +64,5 @@ test-suite moded-logic-test
       base >=4.7 && <5
     , containers
     , moded-logic
+    , picologic
   default-language: Haskell2010

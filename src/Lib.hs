@@ -3,6 +3,7 @@ module Lib where
 import Data.List
 import qualified Data.Set as Set
 import Data.Set (Set)
+import qualified Picologic
 
 type Name = String
 type Var = String
@@ -18,13 +19,6 @@ data Rule = Rule Name [Var] Goal
 
 type Path = [Int]
 
-data Constraint = Term Var Path
-                | Neg Constraint
-                | Iff Constraint Constraint
-                | CConj [Constraint]
-                | CDisj [Constraint]
-                deriving (Eq, Ord)
-
 instance Show Goal where
     show (Unif x y) = x ++" = "++ y
     show (Func "[|]" [x,y] var) = var ++" = ["++ x ++" | "++ y ++"]"
@@ -37,13 +31,6 @@ instance Show Goal where
 
 instance Show Rule where
     show (Rule name vars goal) = name ++"("++ intercalate ", " vars ++") :- "++ show goal ++"."
-
-instance Show Constraint where
-    show (Term v p) = v ++ show p
-    show (Neg c) = "~"++ show c
-    show (Iff v v') = "("++ show v ++" <-> "++ show v' ++")"
-    show (CConj cs) = "("++ (intercalate " & " $ show <$> cs) ++")"
-    show (CDisj cs) = "("++ (intercalate " | " $ show <$> cs) ++")"
 
 dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
@@ -82,25 +69,31 @@ nonlocals p r = (variables . extract p $ body r) `Set.intersection` outside' p r
 locals :: Path -> Rule -> Set Var
 locals p r = (variables . extract p $ body r) Set.\\ outside' p r
 
-constraints :: Path -> Rule -> [Constraint]
-constraints p r = [Term v p | v <- Set.toList (locals p r)] ++ case extract p (body r) of
+term :: Var -> Path -> Picologic.Expr
+term v p = Picologic.Var . Picologic.Ident $ v ++ show p
+
+constraints' :: Rule -> Picologic.Expr
+constraints' = foldr1 Picologic.Conj . constraints []
+
+constraints :: Path -> Rule -> [Picologic.Expr]
+constraints p r = [term v p | v <- Set.toList (locals p r)] ++ case extract p (body r) of
     Disj goals -> do
         d <- take (length goals) [0..]
         let p' = p ++ [d]
-        [Iff (Term v p) (Term v p') | v <- Set.toList (nonlocals p r)] ++
+        [Picologic.Iff (term v p) (term v p') | v <- Set.toList (nonlocals p r)] ++
             constraints p' r
     Conj goals -> (do
         v <- Set.toList (variables (Conj goals))
-        let terms = [Term v (p ++ [c]) | (c,g) <- zip [0..] goals, Set.member v (variables g)]
-        [Iff (Term v p) (CDisj terms)] ++
-            [Neg (CConj [s,t]) | s <- terms, t <- terms, s < t]) ++
+        let terms = [term v (p ++ [c]) | (c,g) <- zip [0..] goals, Set.member v (variables g)]
+        [Picologic.Iff (term v p) (foldr1 Picologic.Disj terms)] ++
+            [Picologic.Neg (Picologic.Conj s t) | s <- terms, t <- terms, s < t]) ++
             concat [constraints (p ++ [c]) r | (c,g) <- zip [0..] goals]
-    Unif u v -> [Neg (CConj [Term u p, Term v p])]
+    Unif u v -> [Picologic.Neg (Picologic.Conj (term u p) (term v p))]
     Func _ [] u -> []
     Func _ [v] u ->
-        [Neg (CConj [Term u p, Term v p])]
+        [Picologic.Neg (Picologic.Conj (term u p) (term v p))]
     Func _ (v:vs) u ->
-        [Iff (Term v p) (Term v' p) | v' <- vs] ++
-            [Neg (CConj [Term u p, Term v p])]
+        [Picologic.Iff (term v p) (term v' p) | v' <- vs] ++
+            [Picologic.Neg (Picologic.Conj (term u p) (term v p))]
     Pred name vars | Rule rname rvars _ <- r, name == rname ->
-        [Iff (Term u p) (Term v []) | (u,v) <- zip vars rvars]
+        [Picologic.Iff (term u p) (term v []) | (u,v) <- zip vars rvars]

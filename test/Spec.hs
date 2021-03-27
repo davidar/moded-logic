@@ -1,4 +1,5 @@
 import Lib
+import qualified Picologic
 
 rule = Rule "append" ["A", "B", "C"] $ Disj
   [ Conj [Func "[]" [] "A", Unif "B" "C"]
@@ -14,4 +15,6 @@ main :: IO ()
 main = do
   print rule
   print . variables $ body rule
-  print $ constraints [] rule
+  let p = constraints' rule
+  print p
+  Picologic.solveProp p >>= putStrLn . Picologic.ppSolutions
