@@ -5,8 +5,8 @@ import qualified Picologic
 rule = Rule "append" ["A", "B", "C"] $ Disj
   [ Conj [Func "[]" [] "A", Unif "B" "C"]
   , Conj
-    [ Func "[|]" ["AH", "AT"] "A"
-    , Func "[|]" ["CH", "CT"] "C"
+    [ Func ":" ["AH", "AT"] "A"
+    , Func ":" ["CH", "CT"] "C"
     , Unif "AH" "CH"
     , Pred "append" ["AT", "B", "CT"]
     ]
@@ -14,8 +14,6 @@ rule = Rule "append" ["A", "B", "C"] $ Disj
 
 main :: IO ()
 main = do
-  print rule
-  print . variables $ body rule
   let p = constraints' rule
   print p
   Picologic.Solutions solns <- Picologic.solveProp p

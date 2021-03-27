@@ -1,5 +1,6 @@
 module Lib where
 
+import Data.Char
 import Data.Graph
 import Data.List
 import qualified Data.Set as Set
@@ -20,20 +21,34 @@ data Rule = Rule Name [Var] Goal
 
 type Path = [Int]
 
+showVar :: Var -> String
+showVar v = toLower <$> take (length v - 2) v
+
+showFunc :: Name -> [Var] -> String
+showFunc name [] = name
+showFunc ":" [u,v] = "("++ showVar u ++":"++ showVar v ++")"
+
+showPred :: Name -> [Var] -> (String,String)
+showPred name vs =
+    ( "("++ intercalate "," [showVar v | v <- vs, ".o" `isSuffixOf` v] ++")"
+    , name ++"_"++ (last <$> vs) ++" "++ intercalate " " [showVar v | v <- vs, ".i" `isSuffixOf` v])
+
 instance Show Goal where
-    show (Unif x y) | ".o" `isSuffixOf` y = y ++" = "++ x
-    show (Unif x y) = x ++" = "++ y
-    show (Func name vars@(v:_) var) | ".o" `isSuffixOf` v = show (Pred name vars) ++" = "++ var
-    show (Func name vars var) = var ++" = "++ show (Pred name vars)
-    show (Pred name []) = name
-    show (Pred "[|]" [x,y]) = "["++ x ++" | "++ y ++"]"
-    show (Pred name vars) = name ++"("++ intercalate ", " vars ++")"
-    show (Conj goals) = intercalate ", " $ show <$> goals
-    show (Disj goals) = "(\n\t"++ (intercalate ";\n\t" $ show <$> goals) ++"\n)"
-    show (Soft if_ then_ else_) = show if_ ++" -> "++ show then_ ++"; "++ show else_
+    show (Unif u v) | ".o" `isSuffixOf` v = showVar v ++" <- pure "++ showVar u
+                    | ".o" `isSuffixOf` u = showVar u ++" <- pure "++ showVar v
+                    | otherwise = "guard $ "++ showVar u ++" == "++ showVar v
+    show (Func name vs u)
+        | (v:_) <- vs, ".o" `isSuffixOf` v = showFunc name vs ++" <- pure "++ showVar u
+        | ".o" `isSuffixOf` u = showVar u ++" <- pure "++ showFunc name vs
+        | otherwise = "guard $ "++ showVar u ++" == "++ showFunc name vs
+    show (Pred name vars) = lhs ++" <- "++ rhs
+        where (lhs,rhs) = showPred name vars
+    show (Conj goals) = "do\n\t"++ (intercalate "\n\t" $ show <$> goals)
 
 instance Show Rule where
-    show (Rule name vars goal) = name ++"("++ intercalate ", " vars ++") :- "++ show goal ++"."
+    show (Rule name vars (Disj goals)) = rhs ++" = ("++ (intercalate ("\n\t"++ ret ++"\n ) <|> (") $ show <$> goals) ++"\n\t"++ ret ++"\n )"
+        where (lhs,rhs) = showPred name vars
+              ret = "pure "++ lhs
 
 dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
