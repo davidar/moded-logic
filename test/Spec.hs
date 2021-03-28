@@ -2,10 +2,9 @@ import Lib
 import Control.Monad
 import qualified Picologic
 
-rule = Rule "append" ["A", "B", "C"] $ Disj
-  [ Conj [Func "[]" [] "A", Unif "B" "C"]
-  , Conj
-    [ Func ":" ["AH", "AT"] "A"
+rule = Rule "append" ["A", "B", "C"]
+  [ [Func "[]" [] "A", Unif "B" "C"]
+  , [ Func ":" ["AH", "AT"] "A"
     , Func ":" ["CH", "CT"] "C"
     , Unif "AH" "CH"
     , Pred "append" ["AT", "B", "CT"]
@@ -14,7 +13,7 @@ rule = Rule "append" ["A", "B", "C"] $ Disj
 
 main :: IO ()
 main = do
-  let p = constraints' rule
+  let p = constraints rule
   print p
   Picologic.Solutions solns <- Picologic.solveProp p
   putStrLn . Picologic.ppSolutions $ Picologic.Solutions solns
