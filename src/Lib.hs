@@ -70,7 +70,7 @@ cComp :: Path -> Rule -> Constraints
 cComp p r = cGen p r ++ cGoal p r
 cGen p r = cLocal p r
 cLocal [] (Rule _ vars disj) = do
-    let inside = do
+    let inside = nub $ do
             conj <- disj
             conj >>= variables
         outside = vars
