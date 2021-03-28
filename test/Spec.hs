@@ -1,6 +1,7 @@
 import Lib
 import Control.Monad
 import qualified Picologic
+import qualified Data.Set as Set
 
 rule = Rule "append" ["A", "B", "C"]
   [ [Func "[]" [] "A", Unif "B" "C"]
@@ -13,9 +14,10 @@ rule = Rule "append" ["A", "B", "C"]
 
 main :: IO ()
 main = do
-  let p = constraints rule
-  print p
-  Picologic.Solutions solns <- Picologic.solveProp p
-  putStrLn . Picologic.ppSolutions $ Picologic.Solutions solns
+  let constraints = cComp [] rule
+  print constraints
+  Picologic.Solutions solns <- Picologic.solveProp . foldr1 Picologic.Conj $ Set.elems constraints
   forM_ solns $ \soln -> do
-    print $ mode soln rule
+    let s = Set.fromList soln
+    print s
+    print $ mode s rule
