@@ -23,7 +23,9 @@ dependencies:
 - base >= 4.7 && < 5
 - containers
 - hspec
+- neat-interpolation
 - picologic
+- text
 
 library:
   source-dirs: src

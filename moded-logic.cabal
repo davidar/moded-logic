@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ab6b30455e7fcadafdd5050b6e131638134081f6904888534f6269fc4bc6a072
+-- hash: 645703c8d34604cfc7082388e3146bd23297c2379761932aeb668b8003cef2b6
 
 name:           moded-logic
 version:        0.1.0.0
@@ -36,7 +36,9 @@ library
       base >=4.7 && <5
     , containers
     , hspec
+    , neat-interpolation
     , picologic
+    , text
   default-language: Haskell2010
 
 executable moded-logic-exe
@@ -51,7 +53,9 @@ executable moded-logic-exe
     , containers
     , hspec
     , moded-logic
+    , neat-interpolation
     , picologic
+    , text
   default-language: Haskell2010
 
 test-suite moded-logic-test
@@ -67,5 +71,7 @@ test-suite moded-logic-test
     , containers
     , hspec
     , moded-logic
+    , neat-interpolation
     , picologic
+    , text
   default-language: Haskell2010

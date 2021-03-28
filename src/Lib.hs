@@ -1,78 +1,60 @@
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, OverloadedStrings, QuasiQuotes #-}
 module Lib where
 
-import Data.Char
 import Data.Graph
+import Data.Foldable
 import Data.List
+import Data.Monoid
 import qualified Data.Set as Set
 import Data.Set (Set)
+import NeatInterpolation
 import qualified Picologic
+import qualified Data.Text as T
+import Data.Text (Text)
 
 type Name = String
 type Var = String
 
-data Goal = Unif Var Var
-          | Func Name [Var] Var
-          | Pred Name [Var]
+data Goal v = Unif v v
+            | Func Name [v] v
+            | Pred Name [v]
+            deriving (Functor, Foldable)
 
-data Rule = Rule Name [Var] [[Goal]]
+data Rule v = Rule Name [v] [[Goal v]]
 
 type Path = [Int]
 
 type Constraints = Set Picologic.Expr
 
-showVar :: Var -> String
-showVar v = toLower <$> take (length v - 2) v
-
-showFunc :: Name -> [Var] -> String
-showFunc name [] = name
-showFunc ":" [u,v] = "("++ showVar u ++":"++ showVar v ++")"
-
-showPred :: Name -> [Var] -> (String,String)
-showPred name vs =
-    ( "("++ intercalate "," [showVar v | v <- vs, ".o" `isSuffixOf` v] ++")"
-    , name ++"_"++ (last <$> vs) ++" "++ intercalate " " [showVar v | v <- vs, ".i" `isSuffixOf` v])
-
-instance Show Goal where
-    show (Unif u v) | ".o" `isSuffixOf` v = showVar v ++" <- pure "++ showVar u
-                    | ".o" `isSuffixOf` u = showVar u ++" <- pure "++ showVar v
-                    | otherwise = "guard $ "++ showVar u ++" == "++ showVar v
-    show (Func name vs u)
-        | (v:_) <- vs, ".o" `isSuffixOf` v = showFunc name vs ++" <- pure "++ showVar u
-        | ".o" `isSuffixOf` u = showVar u ++" <- pure "++ showFunc name vs
-        | otherwise = "guard $ "++ showVar u ++" == "++ showFunc name vs
-    show (Pred name vars) = lhs ++" <- "++ rhs
-        where (lhs,rhs) = showPred name vars
-
-instance Show Rule where
-    show (Rule name vars disj) = rhs ++" = ("++ (intercalate ("\n\t"++ ret ++"\n ) <|> (") ["do\n\t"++ (intercalate "\n\t" $ show <$> conj) | conj <- disj]) ++"\n\t"++ ret ++"\n )"
-        where (lhs,rhs) = showPred name vars
-              ret = "pure "++ lhs
+data ModedVar = In Var | Out Var
 
 dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
-    where (h, t) = splitAt i xs
+  where (h, t) = splitAt i xs
 
-body :: Rule -> [[Goal]]
+body :: Rule v -> [[Goal v]]
 body (Rule _ _ goal) = goal
 
-variables :: Goal -> [Var]
-variables (Unif x y) = [x, y]
-variables (Func _ vars var) = (var : vars)
-variables (Pred _ vars) = vars
+stripMode :: ModedVar -> Var
+stripMode (In v) = v
+stripMode (Out v) = v
+
+variables :: Goal v -> [v]
+variables = toList
 
 term :: Path -> Var -> Picologic.Expr
 term p v = Picologic.Var . Picologic.Ident $ v ++ show p
 
 -- | Complete set of constraints (sec 5.2.2)
-cComp :: Path -> Rule -> Constraints
+cComp :: Path -> Rule Var -> Constraints
 cComp p r = cGen p r `Set.union` cGoal p r
 
 -- | General constraints (sec 5.2.2)
-cGen :: Path -> Rule -> Constraints
+cGen :: Path -> Rule Var -> Constraints
 cGen p r = cLocal p r `Set.union` cExt p r
 
 -- | Local constraints (sec 5.2.2)
-cLocal :: Path -> Rule -> Constraints
+cLocal :: Path -> Rule Var -> Constraints
 cLocal [] (Rule _ vars disj) =
     let inside = Set.fromList $ do
             conj <- disj
@@ -101,7 +83,7 @@ cLocal [d,c] (Rule _ vars disj) =
 cExt _ _ = Set.empty
 
 -- | Disjunction constraints (sec 5.2.3)
-cDisj :: Rule -> Constraints
+cDisj :: Rule Var -> Constraints
 cDisj (Rule _ vars disj) = Set.unions $ do
     (d, conj) <- zip [0..] disj
     let inside = Set.fromList $ conj >>= variables
@@ -112,7 +94,7 @@ cDisj (Rule _ vars disj) = Set.unions $ do
     pure $ Set.map (\v -> term [] v `Picologic.Iff` term [d] v) nonlocals
 
 -- | Conjunction constraints (sec 5.2.3)
-cConj :: Int -> [Goal] -> Constraints
+cConj :: Int -> [Goal Var] -> Constraints
 cConj d conj = Set.fromList $ do
     v <- nub $ conj >>= variables
     let terms = [term [d,c] v | (c,g) <- zip [0..] conj, v `elem` variables g]
@@ -124,7 +106,7 @@ nand :: Path -> Var -> Var -> Picologic.Expr
 nand p u v = Picologic.Neg (Picologic.Conj (term p u) (term p v))
 
 -- | Goal-specific constraints
-cGoal :: Path -> Rule -> Constraints
+cGoal :: Path -> Rule Var -> Constraints
 cGoal [] r = Set.unions $ cDisj r : [cComp [d] r | d <- take (length disj) [0..]]
     where disj = body r
 cGoal [d] r = Set.unions $ cConj d conj : [cComp [d,c] r | c <- take (length conj) [0..]]
@@ -140,26 +122,64 @@ cGoal p@[d,c] r = case body r !! d !! c of
         (u,v) <- zip vars rvars
         pure $ term p u `Picologic.Iff` term [] v
 
-mode :: Constraints -> Rule -> Rule
-mode soln (Rule name vars disj) = Rule name (annotate [] <$> vars)
-    [sortConj [go [d,c] g | (c,g) <- zip [0..] conj] | (d,conj) <- zip [0..] disj]
-    where annotate p v | term p v `Set.member` soln = v ++".o"
-                       | Picologic.Neg (term p v) `Set.member` soln = v ++".i"
-          go p (Unif u v) = Unif (annotate p u) (annotate p v)
-          go p (Func name vs u) = Func name (annotate p <$> vs) (annotate p u)
-          go p (Pred name vs) = Pred name (annotate p <$> vs)
+solveConstraints :: Rule Var -> IO (Set Constraints)
+solveConstraints rule = do
+    Picologic.Solutions solutions <- Picologic.solveProp . foldr1 Picologic.Conj . Set.elems $ cComp [] rule
+    return . Set.fromList $ Set.fromList <$> solutions
+
+mode :: Constraints -> Rule Var -> Rule ModedVar
+mode soln (Rule name vars disj) = Rule name (annotate [] <$> vars) $ do
+    (d,conj) <- zip [0..] disj
+    pure $ sortConj [annotate [d,c] <$> g | (c,g) <- zip [0..] conj]
+  where annotate p v | term p v `Set.member` soln = Out v
+                     | Picologic.Neg (term p v) `Set.member` soln = In v
 
 unSCC :: SCC a -> a
 unSCC (AcyclicSCC v) = v
 unSCC (CyclicSCC _) = error "cyclic dependency"
 
-sortConj :: [Goal] -> [Goal]
+sortConj :: [Goal ModedVar] -> [Goal ModedVar]
 sortConj gs = map unSCC . stronglyConnComp $ do
-    let ins  = [Set.fromList [take (length v - 2) v
-                             | v <- variables g, ".i" `isSuffixOf` v] | g <- gs]
-        outs = [Set.fromList [take (length v - 2) v
-                             | v <- variables g, ".o" `isSuffixOf` v] | g <- gs]
+    let ins  = [Set.fromList [v | In  v <- variables g] | g <- gs]
+        outs = [Set.fromList [v | Out v <- variables g] | g <- gs]
     (i,g) <- zip [0..] gs
     let js = [j | j <- take (length gs) [0..]
                 , not . Set.null $ Set.intersection (ins !! i) (outs !! j)]
     return (g, i, js)
+
+mv :: ModedVar -> Text
+mv = T.pack . stripMode
+
+cgFunc :: Name -> [ModedVar] -> Text
+cgFunc name [] = T.pack name
+cgFunc ":" [u,v] = "(" <> mv u <> ":" <> mv v <> ")"
+
+cgPred :: Name -> [ModedVar] -> (Text, Text)
+cgPred name vs =
+    ( "(" <> T.intercalate "," [T.pack v | Out v <- vs] <> ")"
+    , T.pack name <> "_" <> T.pack (modes vs) <> " " <> T.intercalate " " [T.pack v | In v <- vs])
+  where modes [] = ""
+        modes (In  _:vs) = 'i' : modes vs
+        modes (Out _:vs) = 'o' : modes vs
+
+cgGoal :: Goal ModedVar -> Text
+cgGoal (Unif (Out u) v) = T.pack u <> " <- pure " <> mv v
+cgGoal (Unif u (Out v)) = T.pack v <> " <- pure " <> mv u
+cgGoal (Unif u v) = "guard $ " <> mv u <> " == " <> mv v
+cgGoal (Func name vs@(Out v:_) u) = cgFunc name vs <> " <- pure " <> mv u
+cgGoal (Func name vs (Out u)) = T.pack u <> " <- pure " <> cgFunc name vs
+cgGoal (Func name vs u) = "guard $ " <> mv u <> " == " <> cgFunc name vs
+cgGoal (Pred name vars) = lhs <> " <- " <> rhs
+  where (lhs,rhs) = cgPred name vars
+
+cgRule :: Rule ModedVar -> Text
+cgRule (Rule name vars disj) = ((rhs <>" = ")<>) . T.intercalate " <|> " $ do
+    conj <- disj
+    let body = T.unlines $ cgGoal <$> conj
+    pure [text|
+        (do
+          $body
+          pure $lhs
+         )
+     |]
+  where (lhs,rhs) = cgPred name vars
