@@ -11,21 +11,13 @@ import qualified Data.Text.IO as TIO
 import Test.Hspec
 import NeatInterpolation
 import Append
-
-appendRule = Rule "append" ["a", "b", "c"]
-    [[ Func "[]" [] "a"
-     , Unif "b" "c"
-     ]
-    ,[ Func ":" ["ah", "at"] "a"
-     , Func ":" ["ch", "ct"] "c"
-     , Unif "ah" "ch"
-     , Pred "append" ["at", "b", "ct"]
-     ]
-    ]
+import Control.Monad.Logic.Parse
+import Text.Parsec
 
 main :: IO ()
 main = hspec $ do
     describe "append" $ do
+        let Right appendRule = parse rule "<stdin>" "append(A,B,C) :- A = [], B = C; A = [AH | AT], C = [CH | CT], AH = CH, append(AT, B, CT)."
         it "cComp" $ do
             expect <- T.strip <$> TIO.readFile "test/append.constraints"
             (`shouldBe` expect) $

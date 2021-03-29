@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cea01660050b1d21da43e7160b35b4aa45df79916d769acbc209443fdba473c0
+-- hash: b8f5a15b06726947067ac229d4f071fed03de2b9b43aaaef016c123cdb95eb72
 
 name:           moded-logic
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Control.Monad.Logic.Moded
+      Control.Monad.Logic.Parse
   other-modules:
       Paths_moded_logic
   hs-source-dirs:
@@ -38,6 +39,7 @@ library
     , hspec
     , logict
     , neat-interpolation
+    , parsec
     , picologic
     , text
   default-language: Haskell2010
@@ -56,6 +58,7 @@ executable moded-logic-exe
     , logict
     , moded-logic
     , neat-interpolation
+    , parsec
     , picologic
     , text
   default-language: Haskell2010
@@ -76,6 +79,7 @@ test-suite moded-logic-test
     , logict
     , moded-logic
     , neat-interpolation
+    , parsec
     , picologic
     , text
   default-language: Haskell2010

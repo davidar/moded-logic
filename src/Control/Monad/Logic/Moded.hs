@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, FlexibleInstances, OverloadedStrings, QuasiQuotes #-}
 module Control.Monad.Logic.Moded where
 
 import Control.Monad
@@ -31,6 +31,16 @@ type Constraints = Set Picologic.Expr
 data ModedVar = In Var | Out Var
 
 type Prog v = [Rule v]
+
+instance Show (Goal Var) where
+    show (Unif u v) = u ++" = "++ v
+    show (Func name vs u) = u ++" = "++ show (Pred name vs)
+    show (Pred ":" [u,v]) = "["++ u ++" | "++ v ++"]"
+    show (Pred name []) = name
+    show (Pred name vs) = name ++"("++ intercalate ", " vs ++")"
+
+instance Show (Rule Var) where
+    show (Rule name vars disj) = name ++"("++ intercalate ", " vars ++") :-\n\t"++ (intercalate ";\n\t" $ intercalate ", " . map show <$> disj) ++"."
 
 dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
