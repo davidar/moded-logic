@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, OverloadedStrings, QuasiQuotes #-}
 module Control.Monad.Logic.Moded where
 
+import Control.Monad
 import Data.Graph
 import Data.Foldable
 import Data.List
@@ -11,6 +12,7 @@ import NeatInterpolation
 import qualified Picologic
 import qualified Data.Text as T
 import Data.Text (Text)
+import System.IO.Unsafe
 
 type Name = String
 type Var = String
@@ -27,6 +29,8 @@ type Path = [Int]
 type Constraints = Set Picologic.Expr
 
 data ModedVar = In Var | Out Var
+
+type Prog v = [Rule v]
 
 dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
@@ -127,6 +131,9 @@ solveConstraints rule = do
     Picologic.Solutions solutions <- Picologic.solveProp . foldr1 Picologic.Conj . Set.elems $ cComp [] rule
     return . Set.fromList $ Set.fromList <$> solutions
 
+unsafeSolveConstraints :: Rule Var -> Set Constraints
+unsafeSolveConstraints = unsafePerformIO . solveConstraints
+
 mode :: Constraints -> Rule Var -> Rule ModedVar
 mode soln (Rule name vars disj) = Rule name (annotate [] <$> vars) $ do
     (d,conj) <- zip [0..] disj
@@ -183,3 +190,15 @@ cgRule (Rule name vars disj) = ((rhs <>" = ")<>) . T.intercalate " <|> " $ do
          )
      |]
   where (lhs,rhs) = cgPred name vars
+
+compile :: Prog Var -> Text
+compile rules = [text|
+    import Control.Applicative
+    import Control.Monad.Logic
+
+    $code
+  |]
+  where code = T.unlines $ do
+            rule <- rules
+            map (\soln -> cgRule $ mode soln rule) . Set.elems $
+                unsafeSolveConstraints rule

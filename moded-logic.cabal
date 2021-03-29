@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b66aaedae3bd7dd1d4643aaeb5aa0f2508417e70d24d6045435254eefc63c8be
+-- hash: cea01660050b1d21da43e7160b35b4aa45df79916d769acbc209443fdba473c0
 
 name:           moded-logic
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       base >=4.7 && <5
     , containers
     , hspec
+    , logict
     , neat-interpolation
     , picologic
     , text
@@ -52,6 +53,7 @@ executable moded-logic-exe
       base >=4.7 && <5
     , containers
     , hspec
+    , logict
     , moded-logic
     , neat-interpolation
     , picologic
@@ -62,6 +64,7 @@ test-suite moded-logic-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Append
       Paths_moded_logic
   hs-source-dirs:
       test
@@ -70,6 +73,7 @@ test-suite moded-logic-test
       base >=4.7 && <5
     , containers
     , hspec
+    , logict
     , moded-logic
     , neat-interpolation
     , picologic

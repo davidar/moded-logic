@@ -1,3 +1,7 @@
+module Append where
+import Control.Applicative
+import Control.Monad.Logic
+
 append_ooi c = (do
   b <- pure c
   a <- pure []
