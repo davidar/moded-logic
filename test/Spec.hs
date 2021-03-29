@@ -1,5 +1,5 @@
 {-#LANGUAGE QuasiQuotes #-}
-import Lib
+import Control.Monad.Logic.Moded
 import Control.Monad
 import qualified Data.List as List
 import qualified Picologic

@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, OverloadedStrings, QuasiQuotes #-}
-module Lib where
+module Control.Monad.Logic.Moded where
 
 import Data.Graph
 import Data.Foldable
