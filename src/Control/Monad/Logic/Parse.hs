@@ -1,7 +1,6 @@
 module Control.Monad.Logic.Parse where
 
 import Control.Monad.Logic.Moded
-import Data.Char
 import Text.Parsec
 import qualified Text.Parsec.Token as P
 import Text.Parsec.Language (haskellDef)
@@ -15,46 +14,25 @@ reserved    = P.reserved lexer
 reservedOp  = P.reservedOp lexer
 commaSep    = P.commaSep lexer
 semiSep     = P.semiSep lexer
-lexeme      = P.lexeme lexer
-
-atom = lexeme $ do
-    c <- lower <|> char '['
-    cs <- many $ alphaNum <|> char ']'
-    pure (c:cs)
-
-variable = lexeme $ do
-    c <- upper
-    cs <- many alphaNum
-    pure $ toLower <$> (c:cs)
-
-func = try (do
-    reservedOp "["
-    u <- variable
-    reservedOp "|"
-    v <- variable
-    reservedOp "]"
-    pure (":", [u, v])
-  ) <|> (do
-    name <- atom
-    try (do
-        vs <- parens (commaSep variable)
-        pure (name, vs)
-      ) <|> pure (name, [])
-  ) 
 
 unify = do
-    u <- variable
+    lhs <- identifier
     reservedOp "="
     try (do
-        v <- variable
-        pure $ Unif u v
+        u <- identifier
+        reservedOp ":"
+        v <- identifier
+        pure $ Func ":" [u, v] lhs
       ) <|> (do
-        (name, vs) <- func
-        pure $ Func name vs u
+        reserved "[]"
+        pure $ Func "[]" [] lhs
+      )  <|> (do
+        v <- identifier
+        pure $ Unif lhs v
       )
 
 predicate = do
-    (name, vs) <- func
+    (name:vs) <- many1 identifier
     return $ Pred name vs
 
 goal = try unify <|> predicate
@@ -64,10 +42,10 @@ conj = commaSep goal
 disj = semiSep conj
 
 rule = do
-    (name, vars) <- func
+    (name:vars) <- many1 identifier
     reservedOp ":-"
     body <- disj
     reservedOp "."
     pure $ Rule name vars body
 
-rules = many rule
+rules = many1 rule

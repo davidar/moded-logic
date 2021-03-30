@@ -37,13 +37,13 @@ type CState = [Rule ModedVar]
 
 instance Show (Goal Var) where
     show (Unif u v) = u ++" = "++ v
-    show (Func name vs u) = u ++" = "++ show (Pred name vs)
-    show (Pred ":" [u,v]) = "["++ u ++" | "++ v ++"]"
+    show (Func ":" [h,t] u) = u ++" = "++ h ++" : "++ t
+    show (Func name vs u) = u ++" = "++ unwords (name : vs)
     show (Pred name []) = name
-    show (Pred name vs) = name ++"("++ intercalate ", " vs ++")"
+    show (Pred name vs) = unwords (name : vs)
 
 instance Show (Rule Var) where
-    show (Rule name vars disj) = name ++"("++ intercalate ", " vars ++") :-\n\t"++ (intercalate ";\n\t" $ intercalate ", " . map show <$> disj) ++"."
+    show (Rule name vars disj) = unwords (name : vars) ++" :-\n\t"++ (intercalate ";\n\t" $ intercalate ", " . map show <$> disj) ++"."
 
 dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
