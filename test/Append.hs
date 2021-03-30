@@ -66,3 +66,57 @@ append_iii a b c = (do
   () <- append_iii at b ct
   pure ()
  )
+
+append_oooi abc = (do
+  (ab,c) <- append_ooi abc
+  (a,b) <- append_ooi ab
+  pure (a,b,c)
+ )
+
+append_ooii c abc = (do
+  (ab) <- append_oii c abc
+  (a,b) <- append_ooi ab
+  pure (a,b)
+ )
+
+append_oioi b abc = (do
+  (ab,c) <- append_ooi abc
+  (a) <- append_oii b ab
+  pure (a,c)
+ )
+
+append_oiii b c abc = (do
+  (ab) <- append_oii c abc
+  (a) <- append_oii b ab
+  pure (a)
+ )
+
+append_iiio a b c = (do
+  (ab) <- append_iio a b
+  (abc) <- append_iio ab c
+  pure (abc)
+ )
+
+append_iioi a b abc = (do
+  (ab) <- append_iio a b
+  (c) <- append_ioi ab abc
+  pure (c)
+ )
+
+append_iiii a b c abc = (do
+  (ab) <- append_iio a b
+  () <- append_iii ab c abc
+  pure ()
+ )
+
+append_iooi a abc = (do
+  (ab,c) <- append_ooi abc
+  (b) <- append_ioi a ab
+  pure (b,c)
+ )
+
+append_ioii a c abc = (do
+  (ab) <- append_oii c abc
+  (b) <- append_ioi a ab
+  pure (b)
+ )

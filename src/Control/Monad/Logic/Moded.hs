@@ -6,6 +6,7 @@ import Data.Graph
 import Data.Foldable
 import Data.List
 import Data.Monoid
+import Data.Ord
 import qualified Data.Set as Set
 import Data.Set (Set)
 import NeatInterpolation
@@ -31,6 +32,8 @@ type Constraints = Set Picologic.Expr
 data ModedVar = In Var | Out Var
 
 type Prog v = [Rule v]
+
+type CState = [Rule ModedVar]
 
 instance Show (Goal Var) where
     show (Unif u v) = u ++" = "++ v
@@ -60,8 +63,8 @@ term :: Path -> Var -> Picologic.Expr
 term p v = Picologic.Var . Picologic.Ident $ v ++ show p
 
 -- | Complete set of constraints (sec 5.2.2)
-cComp :: Path -> Rule Var -> Constraints
-cComp p r = cGen p r `Set.union` cGoal p r
+cComp :: CState -> Path -> Rule Var -> Constraints
+cComp procs p r = cGen p r `Set.union` cGoal procs p r
 
 -- | General constraints (sec 5.2.2)
 cGen :: Path -> Rule Var -> Constraints
@@ -120,36 +123,54 @@ nand :: Path -> Var -> Var -> Picologic.Expr
 nand p u v = Picologic.Neg (Picologic.Conj (term p u) (term p v))
 
 -- | Goal-specific constraints
-cGoal :: Path -> Rule Var -> Constraints
-cGoal [] r = Set.unions $ cDisj r : [cComp [d] r | d <- take (length disj) [0..]]
+cGoal :: CState -> Path -> Rule Var -> Constraints
+cGoal procs [] r = Set.unions $ cDisj r : [cComp procs [d] r | d <- take (length disj) [0..]]
     where disj = body r
-cGoal [d] r = Set.unions $ cConj d conj : [cComp [d,c] r | c <- take (length conj) [0..]]
+cGoal procs [d] r = Set.unions $ cConj d conj : [cComp procs [d,c] r | c <- take (length conj) [0..]]
     where conj = body r !! d
 -- Atomic goals (sec 5.2.4)
-cGoal p@[d,c] r = case body r !! d !! c of
+cGoal procs p@[d,c] r = case body r !! d !! c of
     Unif u v -> Set.singleton $ nand p u v
     Func _ [] _ -> Set.empty
     Func _ [v] u -> Set.singleton $ nand p u v
     Func _ (v:vs) u -> Set.fromList $
         nand p u v : [term p v `Picologic.Iff` term p v' | v' <- vs]
-    Pred name vars | Rule rname rvars _ <- r, name == rname -> Set.fromList $ do
+    Pred name vars
+      | Rule rname rvars _ <- r, name == rname, length vars == length rvars -> Set.fromList $ do
         (u,v) <- zip vars rvars
         pure $ term p u `Picologic.Iff` term [] v
+      | procs' <- filterRules name (length vars) procs, not (null procs') ->
+        Set.singleton . foldr1 Picologic.Disj $ do
+            (Rule _ mvars _) <- procs'
+            pure . foldr1 Picologic.Conj $ do
+                (v,mv) <- zip vars mvars
+                let t = term p v
+                pure $ case mv of
+                    In _ -> Picologic.Neg t
+                    Out _ -> t
+      | otherwise -> error $ "unknown predicate "++ name ++"/"++ show (length vars)
 
-solveConstraints :: Rule Var -> IO (Set Constraints)
-solveConstraints rule = do
-    Picologic.Solutions solutions <- Picologic.solveProp . foldr1 Picologic.Conj . Set.elems $ cComp [] rule
+filterRules :: Name -> Int -> Prog v -> Prog v
+filterRules name arity = filter $ \(Rule s vs _) -> name == s && arity == length vs
+
+solveConstraints :: CState -> Rule Var -> IO (Set Constraints)
+solveConstraints procs rule = do
+    Picologic.Solutions solutions <- Picologic.solveProp . foldr1 Picologic.Conj . Set.elems $ cComp procs [] rule
     return . Set.fromList $ Set.fromList <$> solutions
 
-unsafeSolveConstraints :: Rule Var -> Set Constraints
-unsafeSolveConstraints = unsafePerformIO . solveConstraints
+unsafeSolveConstraints :: CState -> Rule Var -> Set Constraints
+unsafeSolveConstraints procs = unsafePerformIO . solveConstraints procs
 
-mode :: Constraints -> Rule Var -> Rule ModedVar
-mode soln (Rule name vars disj) = Rule name (annotate [] <$> vars) $ do
+mode :: Rule Var -> Constraints -> Rule ModedVar
+mode (Rule name vars disj) soln = Rule name (annotate [] <$> vars) $ do
     (d,conj) <- zip [0..] disj
     pure $ sortConj [annotate [d,c] <$> g | (c,g) <- zip [0..] conj]
   where annotate p v | term p v `Set.member` soln = Out v
                      | Picologic.Neg (term p v) `Set.member` soln = In v
+
+mode' :: CState -> Rule Var -> CState
+mode' procs rule = procs ++
+    (mode rule <$> Set.elems (unsafeSolveConstraints procs rule))
 
 unSCC :: SCC a -> a
 unSCC (AcyclicSCC v) = v
@@ -208,7 +229,6 @@ compile rules = [text|
 
     $code
   |]
-  where code = T.unlines $ do
-            rule <- rules
-            map (\soln -> cgRule $ mode soln rule) . Set.elems $
-                unsafeSolveConstraints rule
+  where procs = foldl mode' [] rules
+        funcs = nubBy (\a b -> comparing (head . T.words) a b == EQ) $ cgRule <$> procs
+        code = T.unlines funcs
