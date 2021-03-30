@@ -69,3 +69,5 @@ rule = do
     body <- disj
     reservedOp "."
     pure $ Rule name vars body
+
+rules = many rule

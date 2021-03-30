@@ -120,3 +120,45 @@ append_ioii a c abc = (do
   (b) <- append_ioi a ab
   pure (b)
  )
+
+reverse_oi l = (do
+  guard $ l == []
+  a <- pure []
+  pure (a)
+ )
+ <|> (do
+  (r,s) <- append_ooi l
+  (h:n) <- pure s
+  guard $ n == []
+  (t) <- reverse_oi r
+  a <- pure (h:t)
+  pure (a)
+ )
+
+reverse_io a = (do
+  l <- pure []
+  guard $ a == []
+  pure (l)
+ )
+ <|> (do
+  n <- pure []
+  (h:t) <- pure a
+  (r) <- reverse_io t
+  s <- pure (h:n)
+  (l) <- append_iio r s
+  pure (l)
+ )
+
+reverse_ii a l = (do
+  guard $ l == []
+  guard $ a == []
+  pure ()
+ )
+ <|> (do
+  n <- pure []
+  (h:t) <- pure a
+  s <- pure (h:n)
+  (r) <- append_oii s l
+  () <- reverse_ii t r
+  pure ()
+ )

@@ -2,6 +2,7 @@
 import Control.Monad
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded
+import Data.Either
 import qualified Data.List as List
 import Data.Monoid
 import qualified Picologic
@@ -13,20 +14,24 @@ import NeatInterpolation
 import Append
 import Control.Monad.Logic.Parse
 import Text.Parsec
+import System.IO
 
 main :: IO ()
-main = hspec $ do
-    describe "append" $ do
-        let Right appendRule = parse rule "<stdin>" "append(A,B,C) :- A = [], B = C; A = [AH | AT], C = [CH | CT], AH = CH, append(AT, B, CT)."
-            Right append3Rule = parse rule "<stdin>" "append(A,B,C,ABC) :- append(A,B,AB), append(AB,C,ABC)."
+main = do
+    lp <- readFile "test/append.lp"
+    let program = either (error . show) id $ parse rules "test/append.lp" lp
+    --putStrLn . unlines $ show <$> program
+    hspec $ do
+      describe "append" $ do
         it "constraints" $ do
             expect <- T.strip <$> TIO.readFile "test/append.constraints"
             (`shouldBe` expect) $
-                T.unwords . map (T.pack . show) . Set.elems $ cComp [] [] appendRule
+                T.unwords . map (T.pack . show) . Set.elems $ cComp [] [] (program !! 0)
         it "compile" $ do
+            let code = T.strip $ T.pack "module Append where\n" <> compile program
+            --TIO.putStrLn code
             expect <- T.strip <$> TIO.readFile "test/Append.hs"
-            (`shouldBe` expect) . T.strip $
-                T.pack "module Append where\n" <> compile [appendRule, append3Rule]
+            code `shouldBe` expect
         it "iio" $ do
             observeAll (append_iio [1..3] [4..6]) `shouldBe` [[1..6]]
         it "ooi" $ do
@@ -40,3 +45,8 @@ main = hspec $ do
                 j <- [0..length bc]
                 let (b,c) = splitAt j bc
                 pure (a,b,c)
+        it "reverse" $ do
+            observeAll (reverse_oi [0..9]) `shouldBe` [[9,8..0]]
+            observeAll (reverse_io [0..9]) `shouldBe` [[9,8..0]]
+            observeAll (reverse_ii [0..9] [9,8..0]) `shouldBe` [()]
+            observeAll (reverse_ii [0..9] [9,8..1]) `shouldBe` []
