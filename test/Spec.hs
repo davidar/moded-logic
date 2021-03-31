@@ -13,13 +13,13 @@ import Test.Hspec
 import NeatInterpolation
 import Append
 import Control.Monad.Logic.Parse
-import Text.Parsec
+import Text.Megaparsec
 import System.IO
 
 main :: IO ()
 main = do
     lp <- readFile "test/append.lp"
-    let program = either (error . show) id $ parse rules "test/append.lp" lp
+    let program = either (error . parseErrorPretty) id $ parse rules "test/append.lp" lp
     --putStrLn . unlines $ show <$> program
     hspec $ do
       describe "append" $ do

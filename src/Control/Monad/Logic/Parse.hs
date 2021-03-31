@@ -1,30 +1,35 @@
 module Control.Monad.Logic.Parse where
 
 import Control.Monad.Logic.Moded
-import Text.Parsec
-import qualified Text.Parsec.Token as P
-import Text.Parsec.Language (haskellDef)
+import Data.Functor
+import Text.Megaparsec
+import Text.Megaparsec.String
+import qualified Text.Megaparsec.Lexer as L
 
-lexer       = P.makeTokenParser haskellDef
+sc :: Parser ()
+sc = L.space (void spaceChar) lineComment blockComment
+  where lineComment  = L.skipLineComment "--"
+        blockComment = L.skipBlockComment "{-" "-}"
 
-parens      = P.parens lexer
-braces      = P.braces lexer
-identifier  = P.identifier lexer
-reserved    = P.reserved lexer
-reservedOp  = P.reservedOp lexer
-commaSep    = P.commaSep lexer
-semiSep     = P.semiSep lexer
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme sc
+
+symbol :: String -> Parser String
+symbol = L.symbol sc
+
+identifier :: Parser String
+identifier = lexeme $ (:) <$> letterChar <*> many alphaNumChar
 
 unify = do
     lhs <- identifier
-    reservedOp "="
+    symbol "="
     try (do
         u <- identifier
-        reservedOp ":"
+        symbol ":"
         v <- identifier
         pure $ Func ":" [u, v] lhs
       ) <|> (do
-        reserved "[]"
+        symbol "[]"
         pure $ Func "[]" [] lhs
       )  <|> (do
         v <- identifier
@@ -32,20 +37,20 @@ unify = do
       )
 
 predicate = do
-    (name:vs) <- many1 identifier
+    (name:vs) <- some identifier
     return $ Pred name vs
 
 goal = try unify <|> predicate
 
-conj = commaSep goal
+conj = goal `sepBy` symbol ","
 
-disj = semiSep conj
+disj = conj `sepBy` symbol ";"
 
 rule = do
-    (name:vars) <- many1 identifier
-    reservedOp ":-"
+    (name:vars) <- some identifier
+    symbol ":-"
     body <- disj
-    reservedOp "."
+    symbol "."
     pure $ Rule name vars body
 
-rules = many1 rule
+rules = some rule

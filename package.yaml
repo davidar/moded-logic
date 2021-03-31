@@ -24,8 +24,8 @@ dependencies:
 - containers
 - hspec
 - logict
+- megaparsec
 - neat-interpolation
-- parsec
 - picologic
 - text
 
