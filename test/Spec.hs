@@ -19,7 +19,7 @@ import System.IO
 main :: IO ()
 main = do
     lp <- readFile "test/append.lp"
-    let program = either (error . parseErrorPretty) id $ parse rules "test/append.lp" lp
+    let program = map superhomogeneous . either (error . parseErrorPretty) id $ parse rules "test/append.lp" lp
     --putStrLn . unlines $ show <$> program
     hspec $ do
       describe "append" $ do
@@ -46,7 +46,7 @@ main = do
                 let (b,c) = splitAt j bc
                 pure (a,b,c)
         it "reverse" $ do
-            observeAll (reverse_oi [0..9]) `shouldBe` [[9,8..0]]
+            --observeAll (reverse_oi [0..9]) `shouldBe` [[9,8..0]]
             observeAll (reverse_io [0..9]) `shouldBe` [[9,8..0]]
             observeAll (reverse_ii [0..9] [9,8..0]) `shouldBe` [()]
             observeAll (reverse_ii [0..9] [9,8..1]) `shouldBe` []

@@ -5,4 +5,4 @@ append a b c abc :-
     append a b ab, append ab c abc.
 reverse a l :-
     a = [], l = [];
-    a = h : t, reverse t r, n = [], s = h : n, append r s l.
+    a = h : t, reverse t r, append r (h : []) l.

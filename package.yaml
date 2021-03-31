@@ -25,6 +25,7 @@ dependencies:
 - hspec
 - logict
 - megaparsec
+- mtl
 - neat-interpolation
 - picologic
 - text

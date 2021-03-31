@@ -17,27 +17,38 @@ lexeme = L.lexeme sc
 symbol :: String -> Parser String
 symbol = L.symbol sc
 
+parens = symbol "(" `between` symbol ")"
+
 identifier :: Parser String
 identifier = lexeme $ (:) <$> letterChar <*> many alphaNumChar
 
+variable :: Parser Val
+variable = Var <$> identifier
+
+value :: Parser Val
+value = parens value <|> try (do
+    u <- variable
+    symbol ":"
+    v <- value
+    pure $ Cons ":" [u,v]
+  ) <|> (do
+    symbol "[]"
+    pure $ Cons "[]" []
+  ) <|> (do
+    v <- identifier
+    pure $ Var v
+  )
+
+
 unify = do
-    lhs <- identifier
+    lhs <- variable
     symbol "="
-    try (do
-        u <- identifier
-        symbol ":"
-        v <- identifier
-        pure $ Func ":" [u, v] lhs
-      ) <|> (do
-        symbol "[]"
-        pure $ Func "[]" [] lhs
-      )  <|> (do
-        v <- identifier
-        pure $ Unif lhs v
-      )
+    rhs <- value
+    pure $ Unif lhs rhs
 
 predicate = do
-    (name:vs) <- some identifier
+    name <- identifier
+    vs <- many value
     return $ Pred name vs
 
 goal = try unify <|> predicate
@@ -47,7 +58,8 @@ conj = goal `sepBy` symbol ","
 disj = conj `sepBy` symbol ";"
 
 rule = do
-    (name:vars) <- some identifier
+    name <- identifier
+    vars <- many variable
     symbol ":-"
     body <- disj
     symbol "."

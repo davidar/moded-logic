@@ -4,10 +4,10 @@ Haskell implementation of [Constraint-Based Mode Analysis of Mercury](https://la
 
 ## Input
 
-```prolog
-append(A,B,C) :-
-  A = [], B = C;
-  A = [AH | AT], C = [CH | CT], AH = CH, append(AT, B, CT).
+```hs
+append a b c :-
+  a = [], b = c;
+  a = ah : at, c = ch : ct, ah = ch, append at b ct.
 ```
 
 ## Output

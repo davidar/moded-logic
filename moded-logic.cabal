@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 05e6b3041807933906241d2757881bbb41bfa72b7d36a28c8859ef1f345a8c97
+-- hash: 10008dcc8e97a552b7338b4ebf8c9e62aa8afe8474ca78c438e7ae7634176d6e
 
 name:           moded-logic
 version:        0.1.0.0
@@ -39,6 +39,7 @@ library
     , hspec
     , logict
     , megaparsec
+    , mtl
     , neat-interpolation
     , picologic
     , text
@@ -58,6 +59,7 @@ executable moded-logic-exe
     , logict
     , megaparsec
     , moded-logic
+    , mtl
     , neat-interpolation
     , picologic
     , text
@@ -79,6 +81,7 @@ test-suite moded-logic-test
     , logict
     , megaparsec
     , moded-logic
+    , mtl
     , neat-interpolation
     , picologic
     , text

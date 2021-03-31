@@ -2,6 +2,7 @@
 module Control.Monad.Logic.Moded where
 
 import Control.Monad
+import Control.Monad.State
 import Data.Graph
 import Data.Foldable
 import Data.List
@@ -35,15 +36,22 @@ type Prog v = [Rule v]
 
 type CState = [Rule ModedVar]
 
-instance Show (Goal Var) where
-    show (Unif u v) = u ++" = "++ v
-    show (Func ":" [h,t] u) = u ++" = "++ h ++" : "++ t
-    show (Func name vs u) = u ++" = "++ unwords (name : vs)
-    show (Pred name []) = name
-    show (Pred name vs) = unwords (name : vs)
+data Val = Var Var
+         | Cons Name [Val]
 
-instance Show (Rule Var) where
-    show (Rule name vars disj) = unwords (name : vars) ++" :-\n\t"++ (intercalate ";\n\t" $ intercalate ", " . map show <$> disj) ++"."
+instance (Show v) => Show (Goal v) where
+    show (Unif u v) = show u ++" = "++ show v
+    show (Func ":" [h,t] u) = show u ++" = "++ show h ++" : "++ show t
+    show (Func name vs u) = show u ++" = "++ unwords (name : map show vs)
+    show (Pred name []) = name
+    show (Pred name vs) = unwords (name : map show vs)
+
+instance (Show v) => Show (Rule v) where
+    show (Rule name vars disj) = unwords (name : map show vars) ++" :-\n\t"++ (intercalate ";\n\t" $ intercalate ", " . map show <$> disj) ++"."
+
+instance Show Val where
+    show (Var v) = v
+    show (Cons name vs) = unwords (name : map show vs)
 
 dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
@@ -232,3 +240,32 @@ compile rules = [text|
   where procs = foldl mode' [] rules
         funcs = nubBy (\a b -> comparing (head . T.words) a b == EQ) $ cgRule <$> procs
         code = T.unlines funcs
+
+superhomogeneous :: Rule Val -> Rule Var
+superhomogeneous (Rule name args disj) = Rule name vars disj'
+  where (vars, argbody) = runState (mapM tVal args) []
+        disj' :: [[Goal Var]]
+        disj' = do
+            conj <- disj
+            let (conj', body) = runState (mapM tGoal conj) argbody
+            pure $ body ++ conj'
+        tVal :: Val -> State [Goal Var] Var
+        tVal (Var v) = return v
+        tVal (Cons name vs) = do
+            vs' <- mapM tVal vs
+            body <- get
+            let u = "x" ++ show (length body)
+            put $ body ++ [Func name vs' u]
+            return u
+        tGoal :: Goal Val -> State [Goal Var] (Goal Var)
+        tGoal (Unif (Var u) (Var v)) = return $ Unif u v
+        tGoal (Unif (Var u) (Cons name vs)) = do
+            vs' <- mapM tVal vs
+            return $ Func name vs' u
+        tGoal (Unif u v) = error . show $ Unif u v
+        tGoal (Func name vs u) = do
+            (u':vs') <- mapM tVal (u:vs)
+            return $ Func name vs' u'
+        tGoal (Pred name vs) = do
+            vs' <- mapM tVal vs
+            return $ Pred name vs'
