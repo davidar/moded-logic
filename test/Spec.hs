@@ -18,21 +18,15 @@ import System.IO
 
 main :: IO ()
 main = do
-    lp <- readFile "test/append.lp"
-    let program = distinctFuncVars <$> parseProg "test/append.lp" lp
+    lp <- readFile "test/Append.lp"
+    let program = distinctFuncVars <$> parseProg "test/Append.lp" lp
     --putStrLn . unlines $ show <$> program
     hspec $ do
       describe "append" $ do
-        it "constraints" $ do
-            let [appendRule] = parseProg "" "append a b c :- a = [], b = c; a = ah : at, c = ch : ct, ah = ch, append at b ct."
-                appendConstraints = T.unwords . map (T.pack . show) . Set.elems $
-                    cComp [] [] appendRule
-            expect <- T.strip <$> TIO.readFile "test/append.constraints"
-            appendConstraints `shouldBe` expect
         it "compile" $ do
             let code = T.pack "module Append where\n" <> compile program
             --TIO.writeFile "test/Append.hs" code
-            expect <- T.strip <$> TIO.readFile "test/Append.hs"
+            expect <- TIO.readFile "test/Append.hs"
             code `shouldBe` expect
         it "iio" $ do
             observeAll (append_iio [1..3] [4..6]) `shouldBe` [[1..6]]

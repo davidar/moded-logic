@@ -39,7 +39,7 @@ data ModedVar = In String | Out String
 
 type Prog v = [Rule v]
 
-type CState = [Rule ModedVar]
+type CState = [((Name, Int), (Constraints, [Rule ModedVar]))]
 
 data Val = Var Var
          | Cons Name [Val]
@@ -163,7 +163,7 @@ cGoal procs p@[d,c] r = case body r !! d !! c of
       | Rule rname rvars _ <- r, name == rname, length vars == length rvars -> Set.fromList $ do
         (u,v) <- zip vars rvars
         pure $ term p u `Picologic.Iff` term [] v
-      | procs' <- filterRules name (length vars) procs, not (null procs') ->
+      | Just (_, procs') <- lookup (name, length vars) procs ->
         Set.singleton . foldr1 Picologic.Disj $ do
             (Rule _ mvars _) <- procs'
             pure . foldr1 Picologic.Conj $ do
@@ -173,9 +173,6 @@ cGoal procs p@[d,c] r = case body r !! d !! c of
                     In _ -> Picologic.Neg t
                     Out _ -> t
       | otherwise -> error $ "unknown predicate "++ name ++"/"++ show (length vars)
-
-filterRules :: Name -> Int -> Prog v -> Prog v
-filterRules name arity = filter $ \(Rule s vs _) -> name == s && arity == length vs
 
 solveConstraints :: CState -> Rule Var -> IO (Set Constraints)
 solveConstraints procs rule = do
@@ -194,8 +191,8 @@ mode (Rule name vars disj) soln = Rule name (annotate [] <$> vars) $ do
                          | Picologic.Neg (term p (V v)) `Set.member` soln = In v
 
 mode' :: CState -> Rule Var -> CState
-mode' procs rule = procs ++
-    (mode rule <$> Set.elems (unsafeSolveConstraints procs rule))
+mode' procs rule@(Rule name vars _) = procs ++
+    [((name, length vars), (cComp procs [] rule, mode rule <$> Set.elems (unsafeSolveConstraints procs rule)))]
 
 sortConj :: [Goal ModedVar] -> [Goal ModedVar]
 sortConj gs = map unDepNode . either (const $ error "cyclic dependency") id $
@@ -253,8 +250,14 @@ compile rules = [text|
 
     $code
   |]
-  where procs = foldl mode' [] rules
-        funcs = nubBy (\a b -> comparing (head . T.words) a b == EQ) $ cgRule <$> procs
+  where cstate = foldl mode' [] rules
+        funcs = do
+            ((name, arity), (constraints, procs)) <- cstate
+            let doc = "{- "++ name ++"/"++ show arity ++"\nconstraints:\n"++ (unlines . map show $ Set.elems constraints) ++"-}"
+                defs = do
+                    (def:defs) <- groupBy (\a b -> comparing (head . T.words) a b == EQ) . sort $ cgRule <$> procs
+                    def : (T.unlines . map ("--" <>) . T.lines <$> defs)
+            T.pack doc : defs
         code = T.unlines funcs
 
 combineDefs :: Prog Val -> Prog Val
