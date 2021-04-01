@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fe0a0d402ca8d1c6f66a90f44761ae434b36555a364d468c106bef6c11405b4f
+-- hash: d795f63bb3aa8bf9dc59f611679b39eb279232b6a2018b3e628fbf824f908383
 
 name:           moded-logic
 version:        0.1.0.0
@@ -28,10 +28,8 @@ source-repository head
 library
   exposed-modules:
       Control.Monad.Logic.Moded
+      Control.Monad.Logic.Moded.Solver
       Control.Monad.Logic.Parse
-      Picologic.AST
-      Picologic.Pretty
-      Picologic.Solver
   other-modules:
       Paths_moded_logic
   hs-source-dirs:
@@ -47,7 +45,6 @@ library
     , mtl
     , neat-interpolation
     , picosat
-    , pretty
     , text
   default-language: Haskell2010
 
@@ -70,7 +67,6 @@ executable moded-logic-exe
     , mtl
     , neat-interpolation
     , picosat
-    , pretty
     , text
   default-language: Haskell2010
 
@@ -95,6 +91,5 @@ test-suite moded-logic-test
     , mtl
     , neat-interpolation
     , picosat
-    , pretty
     , text
   default-language: Haskell2010

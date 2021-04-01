@@ -2,6 +2,9 @@ image: fpco/stack-build
 
 tasks:
   - init: |
+      mkdir -p /workspace/.stack/
+      ln -sv /workspace/.stack/ ~/.stack
       stack build
     command: |
+      ln -sv /workspace/.stack/ ~/.stack
       stack test

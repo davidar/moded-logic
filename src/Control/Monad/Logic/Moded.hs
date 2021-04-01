@@ -12,8 +12,7 @@ import Data.Ord
 import qualified Data.Set as Set
 import Data.Set (Set)
 import NeatInterpolation
-import qualified Picologic.AST as Picologic
-import Picologic.Solver
+import qualified Control.Monad.Logic.Moded.Solver as Sat
 import qualified Data.Text as T
 import Data.Text (Text)
 import System.IO.Unsafe
@@ -32,7 +31,7 @@ data Rule v = Rule Name [v] [[Goal v]]
 
 type Path = [Int]
 
-type Constraints = Set Picologic.Expr
+type Constraints = Set Sat.Expr
 
 data ModedVar = In String | Out String
               deriving (Eq, Ord)
@@ -83,8 +82,8 @@ unDepNode (DepNode _ g) = g
 variables :: Goal v -> [v]
 variables = toList
 
-term :: Path -> Var -> Picologic.Expr
-term p (V v) = Picologic.Var . Picologic.Ident $ v ++ show p
+term :: Path -> Var -> Sat.Expr
+term p (V v) = Sat.Var . Sat.Ident $ v ++ show p
 
 -- | Complete set of constraints (sec 5.2.2)
 cComp :: CState -> Path -> Rule Var -> Constraints
@@ -132,19 +131,19 @@ cDisj (Rule _ vars disj) = Set.unions $ do
             conj' <- dropIndex d disj
             conj' >>= variables
         nonlocals = inside `Set.intersection` outside
-    pure $ Set.map (\v -> term [] v `Picologic.Iff` term [d] v) nonlocals
+    pure $ Set.map (\v -> term [] v `Sat.Iff` term [d] v) nonlocals
 
 -- | Conjunction constraints (sec 5.2.3)
 cConj :: Int -> [Goal Var] -> Constraints
 cConj d conj = Set.fromList $ do
     v <- nub $ conj >>= variables
     let terms = [term [d,c] v | (c,g) <- zip [0..] conj, v `elem` variables g]
-        c = term [d] v `Picologic.Iff` foldr1 Picologic.Disj terms
-        cs = [Picologic.Neg (Picologic.Conj s t) | s <- terms, t <- terms, s < t]
+        c = term [d] v `Sat.Iff` foldr1 Sat.Disj terms
+        cs = [Sat.Neg (Sat.Conj s t) | s <- terms, t <- terms, s < t]
     (c:cs)
 
-nand :: Path -> Var -> Var -> Picologic.Expr
-nand p u v = Picologic.Neg (Picologic.Conj (term p u) (term p v))
+nand :: Path -> Var -> Var -> Sat.Expr
+nand p u v = Sat.Neg (Sat.Conj (term p u) (term p v))
 
 -- | Goal-specific constraints
 cGoal :: CState -> Path -> Rule Var -> Constraints
@@ -158,26 +157,26 @@ cGoal procs p@[d,c] r = case body r !! d !! c of
     Func _ [] _ -> Set.empty
     Func _ [v] u -> Set.singleton $ nand p u v
     Func _ (v:vs) u -> Set.fromList $
-        nand p u v : [term p v `Picologic.Iff` term p v' | v' <- vs]
+        nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
     Pred name vars
       | Rule rname rvars _ <- r, name == rname, length vars == length rvars -> Set.fromList $ do
         (u,v) <- zip vars rvars
-        pure $ term p u `Picologic.Iff` term [] v
+        pure $ term p u `Sat.Iff` term [] v
       | Just (_, procs') <- lookup (name, length vars) procs ->
-        Set.singleton . foldr1 Picologic.Disj . nub . sort $ do
+        Set.singleton . foldr1 Sat.Disj . nub . sort $ do
             (Rule _ mvars _) <- procs'
-            pure . foldr1 Picologic.Conj $ do
+            pure . foldr1 Sat.Conj $ do
                 (v,mv) <- zip vars mvars
                 let t = term p v
                 pure $ case mv of
-                    In _ -> Picologic.Neg t
+                    In _ -> Sat.Neg t
                     Out _ -> t
       | otherwise -> error $ "unknown predicate "++ name ++"/"++ show (length vars)
 
 solveConstraints :: CState -> Rule Var -> IO (Set Constraints)
 solveConstraints procs rule = do
     let cs = cComp procs [] rule
-    Picologic.Solutions solutions <- solveProp . foldr1 Picologic.Conj $ Set.elems cs
+    Sat.Solutions solutions <- Sat.solveProp . foldr1 Sat.Conj $ Set.elems cs
     return . Set.fromList $ Set.fromList <$> solutions
 
 unsafeSolveConstraints :: CState -> Rule Var -> Set Constraints
@@ -188,7 +187,7 @@ mode (Rule name vars disj) soln = Rule name (annotate [] <$> vars) $ do
     (d,conj) <- zip [0..] disj
     pure $ sortConj [annotate [d,c] <$> g | (c,g) <- zip [0..] conj]
   where annotate p (V v) | term p (V v) `Set.member` soln = Out v
-                         | Picologic.Neg (term p (V v)) `Set.member` soln = In v
+                         | Sat.Neg (term p (V v)) `Set.member` soln = In v
 
 mode' :: CState -> Rule Var -> CState
 mode' procs rule@(Rule name vars _) = procs ++

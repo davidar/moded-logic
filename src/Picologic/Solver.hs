@@ -1,1 +1,0 @@
-../../picologic/src/Picologic/Solver.hs

@@ -30,7 +30,6 @@ dependencies:
 - mtl
 - neat-interpolation
 - picosat
-- pretty
 - text
 
 library:
