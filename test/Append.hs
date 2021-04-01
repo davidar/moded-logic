@@ -99,144 +99,200 @@ appendLong_ooi c = (do
  )
 {- append/3
 constraints:
-ah[1]
-ah[]
-at[1]
-at[]
-b[1]
 b[]
-ch[1]
-ch[]
-ct[1]
-ct[]
-xs[0]
-xs[]
-~(a1[1,0] & ah[1,0])
-~(a2[0,1] & xs[0,1])
-~(a2[1,1] & b[1,1])
-~(a3[0,2] & xs[0,2])
-~(a3[1,2] & ch[1,2])
-~(ah[1,0] & ah[1,3])
-~(ah[1,3] & ch[1,3])
-~(at[1,0] & at[1,4])
-~(b[1,1] & b[1,4])
-~(ch[1,2] & ch[1,3])
-~(ct[1,2] & ct[1,4])
-~(xs[0,1] & xs[0,2])
+h0[1]
+h0[]
+h1[1]
+h1[]
+h[1]
+h[]
+t[1]
+t[]
+tb[1]
+tb[]
+~(a1[1,2] & h0[1,2])
+~(a2[0,1] & b[0,1])
+~(a2[1,3] & b[1,3])
+~(a3[0,2] & b[0,2])
+~(a3[1,4] & h1[1,4])
+~(b[0,1] & b[0,2])
+~(b[1,3] & b[1,5])
+~(h0[1,0] & h0[1,2])
+~(h0[1,0] & h[1,0])
+~(h1[1,1] & h1[1,4])
+~(h1[1,1] & h[1,1])
+~(h[1,0] & h[1,1])
+~(t[1,2] & t[1,5])
+~(tb[1,4] & tb[1,5])
 (a1[0] <-> a1[0,0])
-(a1[1] <-> a1[1,0])
+(a1[1] <-> a1[1,2])
 (a1[] <-> a1[0])
 (a1[] <-> a1[1])
 (a2[0] <-> a2[0,1])
-(a2[1] <-> a2[1,1])
+(a2[1] <-> a2[1,3])
 (a2[] <-> a2[0])
 (a2[] <-> a2[1])
 (a3[0] <-> a3[0,2])
-(a3[1] <-> a3[1,2])
+(a3[1] <-> a3[1,4])
 (a3[] <-> a3[0])
 (a3[] <-> a3[1])
-(ah[1,0] <-> at[1,0])
-(ah[1] <-> (ah[1,0] | ah[1,3]))
-(at[1,4] <-> a1[])
-(at[1] <-> (at[1,0] | at[1,4]))
-(b[1,4] <-> a2[])
-(b[1] <-> (b[1,1] | b[1,4]))
-(ch[1,2] <-> ct[1,2])
-(ch[1] <-> (ch[1,2] | ch[1,3]))
-(ct[1,4] <-> a3[])
-(ct[1] <-> (ct[1,2] | ct[1,4]))
-(xs[0] <-> (xs[0,1] | xs[0,2]))
+(b[0] <-> (b[0,1] | b[0,2]))
+(b[1,5] <-> a2[])
+(b[1] <-> (b[1,3] | b[1,5]))
+(b[] <-> b[0])
+(b[] <-> b[1])
+(h0[1,2] <-> t[1,2])
+(h0[1] <-> (h0[1,0] | h0[1,2]))
+(h1[1,4] <-> tb[1,4])
+(h1[1] <-> (h1[1,1] | h1[1,4]))
+(h[1] <-> (h[1,0] | h[1,1]))
+(t[1,5] <-> a1[])
+(t[1] <-> (t[1,2] | t[1,5]))
+(tb[1,5] <-> a3[])
+(tb[1] <-> (tb[1,4] | tb[1,5]))
 -}
 append_iii a1 a2 a3 = (do
   guard $ a1 == []
-  xs <- pure a2
-  guard $ a3 == xs
+  b <- pure a2
+  guard $ a3 == b
   pure ()
  ) <|> (do
-  (ah:at) <- pure a1
+  (h0:t) <- pure a1
   b <- pure a2
-  (ch:ct) <- pure a3
-  guard $ ah == ch
-  () <- append_iii at b ct
+  (h1:tb) <- pure a3
+  h <- pure h1
+  guard $ h0 == h
+  () <- append_iii t b tb
   pure ()
  )
 --append_iii a1 a2 a3 = (do
 --  guard $ a1 == []
---  xs <- pure a3
---  guard $ a2 == xs
+--  b <- pure a2
+--  guard $ a3 == b
 --  pure ()
 -- ) <|> (do
---  (ah:at) <- pure a1
+--  (h0:t) <- pure a1
+--  h <- pure h0
 --  b <- pure a2
---  (ch:ct) <- pure a3
---  guard $ ah == ch
---  () <- append_iii at b ct
+--  (h1:tb) <- pure a3
+--  guard $ h1 == h
+--  () <- append_iii t b tb
+--  pure ()
+-- )
+
+--append_iii a1 a2 a3 = (do
+--  guard $ a1 == []
+--  b <- pure a3
+--  guard $ a2 == b
+--  pure ()
+-- ) <|> (do
+--  (h0:t) <- pure a1
+--  b <- pure a2
+--  (h1:tb) <- pure a3
+--  h <- pure h1
+--  guard $ h0 == h
+--  () <- append_iii t b tb
+--  pure ()
+-- )
+
+--append_iii a1 a2 a3 = (do
+--  guard $ a1 == []
+--  b <- pure a3
+--  guard $ a2 == b
+--  pure ()
+-- ) <|> (do
+--  (h0:t) <- pure a1
+--  h <- pure h0
+--  b <- pure a2
+--  (h1:tb) <- pure a3
+--  guard $ h1 == h
+--  () <- append_iii t b tb
 --  pure ()
 -- )
 
 append_iio a1 a2 = (do
   guard $ a1 == []
-  xs <- pure a2
-  a3 <- pure xs
+  b <- pure a2
+  a3 <- pure b
   pure (a3)
  ) <|> (do
-  (ah:at) <- pure a1
+  (h0:t) <- pure a1
+  h <- pure h0
+  h1 <- pure h
   b <- pure a2
-  ch <- pure ah
-  (ct) <- append_iio at b
-  a3 <- pure (ch:ct)
+  (tb) <- append_iio t b
+  a3 <- pure (h1:tb)
   pure (a3)
  )
 append_ioi a1 a3 = (do
   guard $ a1 == []
-  xs <- pure a3
-  a2 <- pure xs
+  b <- pure a3
+  a2 <- pure b
   pure (a2)
  ) <|> (do
-  (ah:at) <- pure a1
-  (ch:ct) <- pure a3
-  guard $ ah == ch
-  (b) <- append_ioi at ct
+  (h0:t) <- pure a1
+  (h1:tb) <- pure a3
+  h <- pure h1
+  guard $ h0 == h
+  (b) <- append_ioi t tb
   a2 <- pure b
   pure (a2)
  )
+--append_ioi a1 a3 = (do
+--  guard $ a1 == []
+--  b <- pure a3
+--  a2 <- pure b
+--  pure (a2)
+-- ) <|> (do
+--  (h0:t) <- pure a1
+--  h <- pure h0
+--  (h1:tb) <- pure a3
+--  guard $ h1 == h
+--  (b) <- append_ioi t tb
+--  a2 <- pure b
+--  pure (a2)
+-- )
+
 append_oii a2 a3 = (do
   a1 <- pure []
-  xs <- pure a2
-  guard $ a3 == xs
+  b <- pure a2
+  guard $ a3 == b
   pure (a1)
  ) <|> (do
   b <- pure a2
-  (ch:ct) <- pure a3
-  ah <- pure ch
-  (at) <- append_oii b ct
-  a1 <- pure (ah:at)
+  (h1:tb) <- pure a3
+  h <- pure h1
+  h0 <- pure h
+  (t) <- append_oii b tb
+  a1 <- pure (h0:t)
   pure (a1)
  )
 --append_oii a2 a3 = (do
 --  a1 <- pure []
---  xs <- pure a3
---  guard $ a2 == xs
+--  b <- pure a3
+--  guard $ a2 == b
 --  pure (a1)
 -- ) <|> (do
 --  b <- pure a2
---  (ch:ct) <- pure a3
---  ah <- pure ch
---  (at) <- append_oii b ct
---  a1 <- pure (ah:at)
+--  (h1:tb) <- pure a3
+--  h <- pure h1
+--  h0 <- pure h
+--  (t) <- append_oii b tb
+--  a1 <- pure (h0:t)
 --  pure (a1)
 -- )
 
 append_ooi a3 = (do
   a1 <- pure []
-  xs <- pure a3
-  a2 <- pure xs
+  b <- pure a3
+  a2 <- pure b
   pure (a1,a2)
  ) <|> (do
-  (ch:ct) <- pure a3
-  ah <- pure ch
-  (at,b) <- append_ooi ct
-  a1 <- pure (ah:at)
+  (h1:tb) <- pure a3
+  h <- pure h1
+  h0 <- pure h
+  (t,b) <- append_ooi tb
+  a1 <- pure (h0:t)
   a2 <- pure b
   pure (a1,a2)
  )
@@ -245,8 +301,8 @@ constraints:
 ab[0]
 ab[]
 ~(ab[0,0] & ab[0,1])
-((a[0,0] & (b[0,0] & ~ab[0,0])) | ((a[0,0] & (~b[0,0] & ~ab[0,0])) | ((a[0,0] & (~b[0,0] & ~ab[0,0])) | ((~a[0,0] & (b[0,0] & ~ab[0,0])) | ((~a[0,0] & (~b[0,0] & ab[0,0])) | ((~a[0,0] & (~b[0,0] & ~ab[0,0])) | (~a[0,0] & (~b[0,0] & ~ab[0,0]))))))))
-((ab[0,1] & (c[0,1] & ~abc[0,1])) | ((ab[0,1] & (~c[0,1] & ~abc[0,1])) | ((ab[0,1] & (~c[0,1] & ~abc[0,1])) | ((~ab[0,1] & (c[0,1] & ~abc[0,1])) | ((~ab[0,1] & (~c[0,1] & abc[0,1])) | ((~ab[0,1] & (~c[0,1] & ~abc[0,1])) | (~ab[0,1] & (~c[0,1] & ~abc[0,1]))))))))
+((a[0,0] & (b[0,0] & ~ab[0,0])) | ((a[0,0] & (~b[0,0] & ~ab[0,0])) | ((~a[0,0] & (b[0,0] & ~ab[0,0])) | ((~a[0,0] & (~b[0,0] & ab[0,0])) | (~a[0,0] & (~b[0,0] & ~ab[0,0]))))))
+((ab[0,1] & (c[0,1] & ~abc[0,1])) | ((ab[0,1] & (~c[0,1] & ~abc[0,1])) | ((~ab[0,1] & (c[0,1] & ~abc[0,1])) | ((~ab[0,1] & (~c[0,1] & abc[0,1])) | (~ab[0,1] & (~c[0,1] & ~abc[0,1]))))))
 (a[0] <-> a[0,0])
 (a[] <-> a[0])
 (ab[0] <-> (ab[0,0] | ab[0,1]))
@@ -345,7 +401,7 @@ x1[]
 ~(x0[1,2] & x0[1,3])
 ~(x1[1,3] & h0[1,3])
 ~(x1[1,3] & x1[1,7])
-((r[1,7] & (x1[1,7] & ~l[1,7])) | ((r[1,7] & (~x1[1,7] & ~l[1,7])) | ((r[1,7] & (~x1[1,7] & ~l[1,7])) | ((~r[1,7] & (x1[1,7] & ~l[1,7])) | ((~r[1,7] & (~x1[1,7] & l[1,7])) | ((~r[1,7] & (~x1[1,7] & ~l[1,7])) | (~r[1,7] & (~x1[1,7] & ~l[1,7]))))))))
+((r[1,7] & (x1[1,7] & ~l[1,7])) | ((r[1,7] & (~x1[1,7] & ~l[1,7])) | ((~r[1,7] & (x1[1,7] & ~l[1,7])) | ((~r[1,7] & (~x1[1,7] & l[1,7])) | (~r[1,7] & (~x1[1,7] & ~l[1,7]))))))
 (a1[0] <-> a1[0,0])
 (a1[1] <-> a1[1,4])
 (a1[] <-> a1[0])

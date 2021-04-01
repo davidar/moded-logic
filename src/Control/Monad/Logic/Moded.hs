@@ -164,7 +164,7 @@ cGoal procs p@[d,c] r = case body r !! d !! c of
         (u,v) <- zip vars rvars
         pure $ term p u `Picologic.Iff` term [] v
       | Just (_, procs') <- lookup (name, length vars) procs ->
-        Set.singleton . foldr1 Picologic.Disj $ do
+        Set.singleton . foldr1 Picologic.Disj . nub . sort $ do
             (Rule _ mvars _) <- procs'
             pure . foldr1 Picologic.Conj $ do
                 (v,mv) <- zip vars mvars

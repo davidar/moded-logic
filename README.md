@@ -5,66 +5,55 @@ Haskell implementation of [Constraint-Based Mode Analysis of Mercury](https://la
 ## Input
 
 ```hs
-append [] xs xs.
-append (ah : at) b (ch : ct) :- ah = ch, append at b ct.
+append [] b b.
+append (h:t) b (h:tb) :- append t b tb.
 ```
 
 ## Output
 
 ```hs
-append_oii b c = (do
-  guard $ b == c
-  a <- pure []
-  pure (a)
- ) <|> (do
-  (ch:ct) <- pure c
-  ah <- pure ch
-  (at) <- append_oii b ct
-  a <- pure (ah:at)
-  pure (a)
- )
-append_ooi c = (do
-  b <- pure c
-  a <- pure []
-  pure (a,b)
- ) <|> (do
-  (ch:ct) <- pure c
-  ah <- pure ch
-  (at,b) <- append_ooi ct
-  a <- pure (ah:at)
-  pure (a,b)
- )
-append_ioi a c = (do
-  b <- pure c
-  guard $ a == []
-  pure (b)
- ) <|> (do
-  (ch:ct) <- pure c
-  (ah:at) <- pure a
-  guard $ ah == ch
-  (b) <- append_ioi at ct
-  pure (b)
- )
-append_iii a b c = (do
-  guard $ b == c
-  guard $ a == []
+append_iii a1 a2 a3 = (do
+  guard $ a1 == []
+  b <- pure a2
+  guard $ a3 == b
   pure ()
  ) <|> (do
-  (ch:ct) <- pure c
-  (ah:at) <- pure a
-  guard $ ah == ch
-  () <- append_iii at b ct
+  (h0:t) <- pure a1
+  b <- pure a2
+  (h1:tb) <- pure a3
+  h <- pure h1
+  guard $ h0 == h
+  () <- append_iii t b tb
   pure ()
  )
-append_iio a b = (do
-  c <- pure b
-  guard $ a == []
-  pure (c)
+
+append_iio a1 a2 = (do
+  guard $ a1 == []
+  b <- pure a2
+  a3 <- pure b
+  pure (a3)
  ) <|> (do
-  (ah:at) <- pure a
-  ch <- pure ah
-  (ct) <- append_iio at b
-  c <- pure (ch:ct)
-  pure (c)
+  (h0:t) <- pure a1
+  h <- pure h0
+  h1 <- pure h
+  b <- pure a2
+  (tb) <- append_iio t b
+  a3 <- pure (h1:tb)
+  pure (a3)
+ )
+
+append_ooi a3 = (do
+  a1 <- pure []
+  b <- pure a3
+  a2 <- pure b
+  pure (a1,a2)
+ ) <|> (do
+  (h1:tb) <- pure a3
+  h <- pure h1
+  h0 <- pure h
+  (t,b) <- append_ooi tb
+  a1 <- pure (h0:t)
+  a2 <- pure b
+  pure (a1,a2)
  )
 ```
