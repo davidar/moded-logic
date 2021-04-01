@@ -1,9 +1,10 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, FlexibleInstances, OverloadedStrings, QuasiQuotes #-}
 module Control.Monad.Logic.Moded where
 
+import Algebra.Graph.AdjacencyMap
+import Algebra.Graph.AdjacencyMap.Algorithm
 import Control.Monad
 import Control.Monad.State
-import Data.Graph
 import Data.Foldable
 import Data.List
 import Data.Monoid
@@ -11,7 +12,8 @@ import Data.Ord
 import qualified Data.Set as Set
 import Data.Set (Set)
 import NeatInterpolation
-import qualified Picologic
+import qualified Picologic.AST as Picologic
+import Picologic.Solver
 import qualified Data.Text as T
 import Data.Text (Text)
 import System.IO.Unsafe
@@ -22,7 +24,7 @@ type Var = String
 data Goal v = Unif v v
             | Func Name [v] v
             | Pred Name [v]
-            deriving (Functor, Foldable)
+            deriving (Eq, Ord, Functor, Foldable)
 
 data Rule v = Rule Name [v] [[Goal v]]
 
@@ -31,6 +33,7 @@ type Path = [Int]
 type Constraints = Set Picologic.Expr
 
 data ModedVar = In Var | Out Var
+              deriving (Eq, Ord)
 
 type Prog v = [Rule v]
 
@@ -38,6 +41,9 @@ type CState = [Rule ModedVar]
 
 data Val = Var Var
          | Cons Name [Val]
+
+data DepNode = DepNode Int (Goal ModedVar)
+             deriving (Eq, Ord)
 
 instance (Show v) => Show (Goal v) where
     show (Unif u v) = show u ++" = "++ show v
@@ -63,6 +69,9 @@ body (Rule _ _ goal) = goal
 stripMode :: ModedVar -> Var
 stripMode (In v) = v
 stripMode (Out v) = v
+
+unDepNode :: DepNode -> Goal ModedVar
+unDepNode (DepNode _ g) = g
 
 variables :: Goal v -> [v]
 variables = toList
@@ -163,7 +172,7 @@ filterRules name arity = filter $ \(Rule s vs _) -> name == s && arity == length
 
 solveConstraints :: CState -> Rule Var -> IO (Set Constraints)
 solveConstraints procs rule = do
-    Picologic.Solutions solutions <- Picologic.solveProp . foldr1 Picologic.Conj . Set.elems $ cComp procs [] rule
+    Picologic.Solutions solutions <- solveProp . foldr1 Picologic.Conj . Set.elems $ cComp procs [] rule
     return . Set.fromList $ Set.fromList <$> solutions
 
 unsafeSolveConstraints :: CState -> Rule Var -> Set Constraints
@@ -180,18 +189,17 @@ mode' :: CState -> Rule Var -> CState
 mode' procs rule = procs ++
     (mode rule <$> Set.elems (unsafeSolveConstraints procs rule))
 
-unSCC :: SCC a -> a
-unSCC (AcyclicSCC v) = v
-unSCC (CyclicSCC _) = error "cyclic dependency"
-
 sortConj :: [Goal ModedVar] -> [Goal ModedVar]
-sortConj gs = map unSCC . stronglyConnComp $ do
-    let ins  = [Set.fromList [v | In  v <- variables g] | g <- gs]
-        outs = [Set.fromList [v | Out v <- variables g] | g <- gs]
-    (i,g) <- zip [0..] gs
-    let js = [j | j <- take (length gs) [0..]
-                , not . Set.null $ Set.intersection (ins !! i) (outs !! j)]
-    return (g, i, js)
+sortConj gs = map unDepNode . either (const $ error "cyclic dependency") id $
+    topSort $ overlay vs es
+  where vs = vertices $ zipWith DepNode [0..] gs
+        es = edges $ do
+            let ins  = [Set.fromList [v | In  v <- variables g] | g <- gs]
+                outs = [Set.fromList [v | Out v <- variables g] | g <- gs]
+            (i,g) <- zip [0..] gs
+            (j,h) <- zip [0..] gs
+            guard . not . Set.null $ Set.intersection (outs !! i) (ins !! j)
+            return (DepNode i g, DepNode j h)
 
 mv :: ModedVar -> Text
 mv = T.pack . stripMode
@@ -264,7 +272,8 @@ superhomogeneous (Rule name args disj) = Rule name vars disj'
             return $ Func name vs' u
         tGoal (Unif u v) = error . show $ Unif u v
         tGoal (Func name vs u) = do
-            (u':vs') <- mapM tVal (u:vs)
+            u' <- tVal u
+            vs' <- mapM tVal vs
             return $ Func name vs' u'
         tGoal (Pred name vs) = do
             vs' <- mapM tVal vs

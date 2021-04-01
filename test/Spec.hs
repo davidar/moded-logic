@@ -5,11 +5,11 @@ import Control.Monad.Logic.Moded
 import Data.Either
 import qualified Data.List as List
 import Data.Monoid
-import qualified Picologic
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import Test.Hspec
+import Test.Hspec (hspec, describe, it)
+import Test.Hspec.Expectations.Pretty
 import NeatInterpolation
 import Append
 import Control.Monad.Logic.Parse
@@ -19,7 +19,7 @@ import System.IO
 main :: IO ()
 main = do
     lp <- readFile "test/append.lp"
-    let program = map superhomogeneous . either (error . parseErrorPretty) id $ parse rules "test/append.lp" lp
+    let program = map superhomogeneous . either (error . errorBundlePretty) id $ parse rules "test/append.lp" lp
     --putStrLn . unlines $ show <$> program
     hspec $ do
       describe "append" $ do
@@ -46,7 +46,7 @@ main = do
                 let (b,c) = splitAt j bc
                 pure (a,b,c)
         it "reverse" $ do
-            --observeAll (reverse_oi [0..9]) `shouldBe` [[9,8..0]]
+            observeAll (reverse_oi [0..9]) `shouldBe` [[9,8..0]]
             observeAll (reverse_io [0..9]) `shouldBe` [[9,8..0]]
             observeAll (reverse_ii [0..9] [9,8..0]) `shouldBe` [()]
             observeAll (reverse_ii [0..9] [9,8..1]) `shouldBe` []

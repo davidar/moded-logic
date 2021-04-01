@@ -1,0 +1,3 @@
+[submodule "picologic"]
+	path = picologic
+	url = https://github.com/sdiehl/picologic.git

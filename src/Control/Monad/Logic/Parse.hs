@@ -2,9 +2,12 @@ module Control.Monad.Logic.Parse where
 
 import Control.Monad.Logic.Moded
 import Data.Functor
+import Data.Void
 import Text.Megaparsec
-import Text.Megaparsec.String
-import qualified Text.Megaparsec.Lexer as L
+import Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
+
+type Parser = Parsec Void String
 
 sc :: Parser ()
 sc = L.space (void spaceChar) lineComment blockComment

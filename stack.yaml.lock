@@ -5,15 +5,15 @@
 
 packages:
 - completed:
-    hackage: picologic-0.3.0@sha256:e89ef8a03720c391eefc8a47c6f947a1b7f4a37762393f45923854e696fcb59b,2493
+    hackage: picosat-0.1.6@sha256:7d3130af636c6c8a0b373446a090daa15511d6cb0b264f4b921fa5d4a81b59a3,2138
     pantry-tree:
-      size: 832
-      sha256: 4414188c8f67df4a19db55e3dcf2f86bbab28feebfcb39d41ed02ef41caef473
+      size: 541
+      sha256: 4cb3a66ee7b3ca57b680ebe41815a5965b0860d191cdf08787bb78d0e2fb650b
   original:
-    hackage: picologic-0.3.0
+    hackage: picosat-0.1.6
 snapshots:
 - completed:
-    size: 537200
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/9/20.yaml
-    sha256: 09915c1686a7b7b8c8d3b77d90892f559ebcd495a159548c0a6507e827f628fb
-  original: lts-9.20
+    size: 565720
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/8.yaml
+    sha256: 76bf8992ff8dfe6eda9c02f81866138c2369344d5011ab39ae403457c4448b03
+  original: lts-17.8
