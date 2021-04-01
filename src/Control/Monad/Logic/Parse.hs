@@ -26,7 +26,7 @@ identifier :: Parser String
 identifier = lexeme $ (:) <$> letterChar <*> many alphaNumChar
 
 variable :: Parser Val
-variable = Var <$> identifier
+variable = Var . V <$> identifier
 
 value :: Parser Val
 value = parens value <|> try (do
@@ -39,7 +39,7 @@ value = parens value <|> try (do
     pure $ Cons "[]" []
   ) <|> (do
     v <- identifier
-    pure $ Var v
+    pure $ Var (V v)
   )
 
 

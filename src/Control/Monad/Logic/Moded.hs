@@ -19,7 +19,9 @@ import Data.Text (Text)
 import System.IO.Unsafe
 
 type Name = String
-type Var = String
+
+newtype Var = V String
+            deriving (Eq, Ord)
 
 data Goal v = Unif v v
             | Func Name [v] v
@@ -32,7 +34,7 @@ type Path = [Int]
 
 type Constraints = Set Picologic.Expr
 
-data ModedVar = In Var | Out Var
+data ModedVar = In String | Out String
               deriving (Eq, Ord)
 
 type Prog v = [Rule v]
@@ -45,6 +47,9 @@ data Val = Var Var
 data DepNode = DepNode Int (Goal ModedVar)
              deriving (Eq, Ord)
 
+instance Show Var where
+    show (V v) = v
+
 instance (Show v) => Show (Goal v) where
     show (Unif u v) = show u ++" = "++ show v
     show (Func ":" [h,t] u) = show u ++" = "++ show h ++" : "++ show t
@@ -53,10 +58,12 @@ instance (Show v) => Show (Goal v) where
     show (Pred name vs) = unwords (name : map show vs)
 
 instance (Show v) => Show (Rule v) where
-    show (Rule name vars disj) = unwords (name : map show vars) ++" :-\n\t"++ (intercalate ";\n\t" $ intercalate ", " . map show <$> disj) ++"."
+    show (Rule name vars disj) =
+        unwords (name : map show vars) ++" :-\n  "++
+            (intercalate ";\n  " $ intercalate ", " . map show <$> disj) ++"."
 
 instance Show Val where
-    show (Var v) = v
+    show (Var v) = show v
     show (Cons name vs) = unwords (name : map show vs)
 
 dropIndex :: Int -> [a] -> [a]
@@ -67,8 +74,8 @@ body :: Rule v -> [[Goal v]]
 body (Rule _ _ goal) = goal
 
 stripMode :: ModedVar -> Var
-stripMode (In v) = v
-stripMode (Out v) = v
+stripMode (In v) = V v
+stripMode (Out v) = V v
 
 unDepNode :: DepNode -> Goal ModedVar
 unDepNode (DepNode _ g) = g
@@ -77,7 +84,7 @@ variables :: Goal v -> [v]
 variables = toList
 
 term :: Path -> Var -> Picologic.Expr
-term p v = Picologic.Var . Picologic.Ident $ v ++ show p
+term p (V v) = Picologic.Var . Picologic.Ident $ v ++ show p
 
 -- | Complete set of constraints (sec 5.2.2)
 cComp :: CState -> Path -> Rule Var -> Constraints
@@ -182,8 +189,8 @@ mode :: Rule Var -> Constraints -> Rule ModedVar
 mode (Rule name vars disj) soln = Rule name (annotate [] <$> vars) $ do
     (d,conj) <- zip [0..] disj
     pure $ sortConj [annotate [d,c] <$> g | (c,g) <- zip [0..] conj]
-  where annotate p v | term p v `Set.member` soln = Out v
-                     | Picologic.Neg (term p v) `Set.member` soln = In v
+  where annotate p (V v) | term p (V v) `Set.member` soln = Out v
+                         | Picologic.Neg (term p (V v)) `Set.member` soln = In v
 
 mode' :: CState -> Rule Var -> CState
 mode' procs rule = procs ++
@@ -202,7 +209,7 @@ sortConj gs = map unDepNode . either (const $ error "cyclic dependency") id $
             return (DepNode i g, DepNode j h)
 
 mv :: ModedVar -> Text
-mv = T.pack . stripMode
+mv = T.pack . show . stripMode
 
 cgFunc :: Name -> [ModedVar] -> Text
 cgFunc name [] = T.pack name
@@ -262,7 +269,7 @@ superhomogeneous (Rule name args disj) = Rule name vars disj'
         tVal (Cons name vs) = do
             vs' <- mapM tVal vs
             body <- get
-            let u = "x" ++ show (length body)
+            let u = V $ "x" ++ show (length body)
             put $ body ++ [Func name vs' u]
             return u
         tGoal :: Goal Val -> State [Goal Var] (Goal Var)
