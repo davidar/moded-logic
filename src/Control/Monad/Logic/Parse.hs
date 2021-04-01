@@ -35,8 +35,10 @@ value = parens value <|> try (do
     v <- value
     pure $ Cons ":" [u,v]
   ) <|> (do
-    symbol "[]"
-    pure $ Cons "[]" []
+    symbol "["
+    elems <- value `sepBy` symbol ","
+    symbol "]"
+    pure $ foldr (\u v -> Cons ":" [u,v]) (Cons "[]" []) elems
   ) <|> (do
     v <- identifier
     pure $ Var (V v)
