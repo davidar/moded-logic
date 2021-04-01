@@ -119,10 +119,12 @@ reverse_oi a2 = (do
  ) <|> (do
   l <- pure a2
   (r,x1) <- append_ooi l
-  (h:x0) <- pure x1
+  (h0:x0) <- pure x1
+  h <- pure h0
+  h1 <- pure h
   guard $ x0 == []
   (t) <- reverse_oi r
-  a1 <- pure (h:t)
+  a1 <- pure (h1:t)
   pure (a1)
  )
 reverse_io a1 = (do
@@ -131,8 +133,10 @@ reverse_io a1 = (do
   pure (a2)
  ) <|> (do
   x0 <- pure []
-  (h:t) <- pure a1
-  x1 <- pure (h:x0)
+  (h1:t) <- pure a1
+  h <- pure h1
+  h0 <- pure h
+  x1 <- pure (h0:x0)
   (r) <- reverse_io t
   (l) <- append_iio r x1
   a2 <- pure l
@@ -144,8 +148,10 @@ reverse_ii a1 a2 = (do
   pure ()
  ) <|> (do
   x0 <- pure []
-  (h:t) <- pure a1
-  x1 <- pure (h:x0)
+  (h1:t) <- pure a1
+  h <- pure h1
+  h0 <- pure h
+  x1 <- pure (h0:x0)
   l <- pure a2
   (r) <- append_oii x1 l
   () <- reverse_ii t r

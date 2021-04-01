@@ -19,7 +19,7 @@ import System.IO
 main :: IO ()
 main = do
     lp <- readFile "test/append.lp"
-    let program = parseProg "test/append.lp" lp
+    let program = distinctFuncVars <$> parseProg "test/append.lp" lp
     --putStrLn . unlines $ show <$> program
     hspec $ do
       describe "append" $ do
@@ -30,8 +30,8 @@ main = do
             expect <- T.strip <$> TIO.readFile "test/append.constraints"
             appendConstraints `shouldBe` expect
         it "compile" $ do
-            let code = T.strip $ T.pack "module Append where\n" <> compile program
-            --TIO.putStrLn code
+            let code = T.pack "module Append where\n" <> compile program
+            --TIO.writeFile "test/Append.hs" code
             expect <- T.strip <$> TIO.readFile "test/Append.hs"
             code `shouldBe` expect
         it "iio" $ do

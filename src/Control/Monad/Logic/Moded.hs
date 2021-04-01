@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, FlexibleInstances, OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, FlexibleContexts, FlexibleInstances, OverloadedStrings, QuasiQuotes #-}
 module Control.Monad.Logic.Moded where
 
 import Algebra.Graph.AdjacencyMap
@@ -179,7 +179,8 @@ filterRules name arity = filter $ \(Rule s vs _) -> name == s && arity == length
 
 solveConstraints :: CState -> Rule Var -> IO (Set Constraints)
 solveConstraints procs rule = do
-    Picologic.Solutions solutions <- solveProp . foldr1 Picologic.Conj . Set.elems $ cComp procs [] rule
+    let cs = cComp procs [] rule
+    Picologic.Solutions solutions <- solveProp . foldr1 Picologic.Conj $ Set.elems cs
     return . Set.fromList $ Set.fromList <$> solutions
 
 unsafeSolveConstraints :: CState -> Rule Var -> Set Constraints
@@ -290,11 +291,33 @@ superhomogeneous (Rule name args disj) = Rule name vars disj'
             vs' <- mapM tVal vs
             return $ Func name vs' u
         tGoal (Unif u v) = error $ "tGoal "++ show (Unif u v)
-        -- TODO handle duplicate arguments
         tGoal (Func name vs u) = do
             u' <- tVal u
             vs' <- mapM tVal vs
             return $ Func name vs' u'
         tGoal (Pred name vs) = do
             vs' <- mapM tVal vs
+            -- TODO explicitly unify duplicate args
             return $ Pred name vs'
+
+distinctFuncVars :: Rule Var -> Rule Var
+distinctFuncVars (Rule name args disj) = Rule name args $ do
+    conj <- disj
+    let vars = do
+            goal <- conj
+            case goal of
+                Func _ vs _ -> vs
+                _ -> []
+        dups = [(head l, length l) | l <- group (sort vars), length l > 1]
+        tVar (V v) | V v `elem` map fst dups = do
+            body <- get
+            let v' = v ++ show (length body)
+            put $ body ++ [Unif (V v') (V v)]
+            return (V v')
+        tVar v = return v
+        tGoal (Func name vs u) = do
+            vs' <- mapM tVar vs
+            return $ Func name vs' u
+        tGoal g = return g
+        (conj', body) = runState (mapM tGoal conj) []
+    pure $ body ++ conj'
