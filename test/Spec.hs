@@ -19,14 +19,16 @@ import System.IO
 main :: IO ()
 main = do
     lp <- readFile "test/append.lp"
-    let program = map superhomogeneous . either (error . errorBundlePretty) id $ parse rules "test/append.lp" lp
+    let program = parseProg "test/append.lp" lp
     --putStrLn . unlines $ show <$> program
     hspec $ do
       describe "append" $ do
         it "constraints" $ do
+            let [appendRule] = parseProg "" "append a b c :- a = [], b = c; a = ah : at, c = ch : ct, ah = ch, append at b ct."
+                appendConstraints = T.unwords . map (T.pack . show) . Set.elems $
+                    cComp [] [] appendRule
             expect <- T.strip <$> TIO.readFile "test/append.constraints"
-            (`shouldBe` expect) $
-                T.unwords . map (T.pack . show) . Set.elems $ cComp [] [] (program !! 0)
+            appendConstraints `shouldBe` expect
         it "compile" $ do
             let code = T.strip $ T.pack "module Append where\n" <> compile program
             --TIO.putStrLn code
@@ -38,6 +40,9 @@ main = do
             observeAll (append_ooi [1..6]) `shouldBe` [splitAt i [1..6] | i <- [0..6]]
         it "iiio" $ do
             observeAll (append_iiio [1,2] [3,4] [5,6]) `shouldBe` [[1..6]]
+        it "iiii" $ do
+            observeAll (append_iiii [1,2] [3,4] [5,6] [1..6]) `shouldBe` [()]
+            observeAll (append_iiii [1,2] [3,4] [5,6] [0..6]) `shouldBe` []
         it "oooi" $ do
             ((List.sort . observeAll $ append_oooi [1..6]) `shouldBe`) . List.sort $ do
                 i <- [0..6]

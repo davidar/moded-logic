@@ -256,6 +256,18 @@ compile rules = [text|
         funcs = nubBy (\a b -> comparing (head . T.words) a b == EQ) $ cgRule <$> procs
         code = T.unlines funcs
 
+combineDefs :: Prog Val -> Prog Val
+combineDefs rules = do
+    let p (Rule n vs _) (Rule n' vs' _) = n == n' && length vs == length vs'
+    defs <- groupBy p rules
+    if length defs == 1 then pure (head defs) else do
+        let Rule name vars _ = head defs
+            params = [Var . V $ "a" ++ show i | i <- [1..length vars]]
+            disj' = do
+                Rule _ vars disj <- defs
+                [zipWith Unif params vars ++ conj | conj <- disj]
+        pure $ Rule name params disj'
+
 superhomogeneous :: Rule Val -> Rule Var
 superhomogeneous (Rule name args disj) = Rule name vars disj'
   where (vars, argbody) = runState (mapM tVal args) []
@@ -277,7 +289,8 @@ superhomogeneous (Rule name args disj) = Rule name vars disj'
         tGoal (Unif (Var u) (Cons name vs)) = do
             vs' <- mapM tVal vs
             return $ Func name vs' u
-        tGoal (Unif u v) = error . show $ Unif u v
+        tGoal (Unif u v) = error $ "tGoal "++ show (Unif u v)
+        -- TODO handle duplicate arguments
         tGoal (Func name vs u) = do
             u' <- tVal u
             vs' <- mapM tVal vs

@@ -5,9 +5,8 @@ Haskell implementation of [Constraint-Based Mode Analysis of Mercury](https://la
 ## Input
 
 ```hs
-append a b c :-
-  a = [], b = c;
-  a = ah : at, c = ch : ct, ah = ch, append at b ct.
+append [] xs xs.
+append (ah : at) b (ch : ct) :- ah = ch, append at b ct.
 ```
 
 ## Output

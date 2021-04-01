@@ -2,57 +2,67 @@ module Append where
 import Control.Applicative
 import Control.Monad.Logic
 
-append_ooi c = (do
-  a <- pure []
-  b <- pure c
-  pure (a,b)
+append_ooi a3 = (do
+  a1 <- pure []
+  xs <- pure a3
+  a2 <- pure xs
+  pure (a1,a2)
  ) <|> (do
-  (ch:ct) <- pure c
+  (ch:ct) <- pure a3
   ah <- pure ch
   (at,b) <- append_ooi ct
-  a <- pure (ah:at)
-  pure (a,b)
+  a1 <- pure (ah:at)
+  a2 <- pure b
+  pure (a1,a2)
  )
-append_oii b c = (do
-  a <- pure []
-  guard $ b == c
-  pure (a)
+append_oii a2 a3 = (do
+  a1 <- pure []
+  xs <- pure a2
+  guard $ a3 == xs
+  pure (a1)
  ) <|> (do
-  (ch:ct) <- pure c
+  b <- pure a2
+  (ch:ct) <- pure a3
   ah <- pure ch
   (at) <- append_oii b ct
-  a <- pure (ah:at)
-  pure (a)
+  a1 <- pure (ah:at)
+  pure (a1)
  )
-append_ioi a c = (do
-  guard $ a == []
-  b <- pure c
-  pure (b)
+append_ioi a1 a3 = (do
+  guard $ a1 == []
+  xs <- pure a3
+  a2 <- pure xs
+  pure (a2)
  ) <|> (do
-  (ah:at) <- pure a
-  (ch:ct) <- pure c
+  (ah:at) <- pure a1
+  (ch:ct) <- pure a3
   guard $ ah == ch
   (b) <- append_ioi at ct
-  pure (b)
+  a2 <- pure b
+  pure (a2)
  )
-append_iio a b = (do
-  guard $ a == []
-  c <- pure b
-  pure (c)
+append_iio a1 a2 = (do
+  guard $ a1 == []
+  xs <- pure a2
+  a3 <- pure xs
+  pure (a3)
  ) <|> (do
-  (ah:at) <- pure a
+  (ah:at) <- pure a1
+  b <- pure a2
   ch <- pure ah
   (ct) <- append_iio at b
-  c <- pure (ch:ct)
-  pure (c)
+  a3 <- pure (ch:ct)
+  pure (a3)
  )
-append_iii a b c = (do
-  guard $ a == []
-  guard $ b == c
+append_iii a1 a2 a3 = (do
+  guard $ a1 == []
+  xs <- pure a2
+  guard $ a3 == xs
   pure ()
  ) <|> (do
-  (ah:at) <- pure a
-  (ch:ct) <- pure c
+  (ah:at) <- pure a1
+  b <- pure a2
+  (ch:ct) <- pure a3
   guard $ ah == ch
   () <- append_iii at b ct
   pure ()
@@ -102,38 +112,41 @@ append_ioii a c abc = (do
   (b) <- append_ioi a ab
   pure (b)
  )
-reverse_oi l = (do
-  a <- pure []
-  guard $ l == []
-  pure (a)
+reverse_oi a2 = (do
+  a1 <- pure []
+  guard $ a2 == []
+  pure (a1)
  ) <|> (do
+  l <- pure a2
   (r,x1) <- append_ooi l
   (h:x0) <- pure x1
   guard $ x0 == []
   (t) <- reverse_oi r
-  a <- pure (h:t)
-  pure (a)
+  a1 <- pure (h:t)
+  pure (a1)
  )
-reverse_io a = (do
-  guard $ a == []
-  l <- pure []
-  pure (l)
+reverse_io a1 = (do
+  guard $ a1 == []
+  a2 <- pure []
+  pure (a2)
  ) <|> (do
   x0 <- pure []
-  (h:t) <- pure a
+  (h:t) <- pure a1
   x1 <- pure (h:x0)
   (r) <- reverse_io t
   (l) <- append_iio r x1
-  pure (l)
+  a2 <- pure l
+  pure (a2)
  )
-reverse_ii a l = (do
-  guard $ a == []
-  guard $ l == []
+reverse_ii a1 a2 = (do
+  guard $ a1 == []
+  guard $ a2 == []
   pure ()
  ) <|> (do
   x0 <- pure []
-  (h:t) <- pure a
+  (h:t) <- pure a1
   x1 <- pure (h:x0)
+  l <- pure a2
   (r) <- append_oii x1 l
   () <- reverse_ii t r
   pure ()

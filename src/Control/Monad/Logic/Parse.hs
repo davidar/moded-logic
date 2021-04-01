@@ -52,7 +52,7 @@ unify = do
 predicate = do
     name <- identifier
     vs <- many value
-    return $ Pred name vs
+    pure $ Pred name vs
 
 goal = try unify <|> predicate
 
@@ -62,10 +62,15 @@ disj = conj `sepBy` symbol ";"
 
 rule = do
     name <- identifier
-    vars <- many variable
-    symbol ":-"
-    body <- disj
+    vars <- many value
+    body <- (symbol ":-" >> disj) <|> pure [[]]
     symbol "."
     pure $ Rule name vars body
 
 rules = some rule
+
+parseProg :: String -> String -> Prog Var
+parseProg fn lp = p3
+  where p1 = either (error . errorBundlePretty) id $ parse rules fn lp
+        p2 = combineDefs p1
+        p3 = map superhomogeneous p2
