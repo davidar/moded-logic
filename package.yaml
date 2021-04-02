@@ -20,13 +20,16 @@ extra-source-files:
 description:         Please see the README on GitHub at <https://github.com/davidar/moded-logic#readme>
 
 dependencies:
+- algebraic-graphs
 - base >= 4.7 && < 5
 - containers
 - hspec
+- hspec-expectations-pretty-diff
 - logict
 - megaparsec
+- mtl
 - neat-interpolation
-- picologic
+- picosat
 - text
 
 library:

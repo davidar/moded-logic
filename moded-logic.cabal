@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 05e6b3041807933906241d2757881bbb41bfa72b7d36a28c8859ef1f345a8c97
+-- hash: d795f63bb3aa8bf9dc59f611679b39eb279232b6a2018b3e628fbf824f908383
 
 name:           moded-logic
 version:        0.1.0.0
@@ -28,19 +28,23 @@ source-repository head
 library
   exposed-modules:
       Control.Monad.Logic.Moded
+      Control.Monad.Logic.Moded.Solver
       Control.Monad.Logic.Parse
   other-modules:
       Paths_moded_logic
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      algebraic-graphs
+    , base >=4.7 && <5
     , containers
     , hspec
+    , hspec-expectations-pretty-diff
     , logict
     , megaparsec
+    , mtl
     , neat-interpolation
-    , picologic
+    , picosat
     , text
   default-language: Haskell2010
 
@@ -52,14 +56,17 @@ executable moded-logic-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      algebraic-graphs
+    , base >=4.7 && <5
     , containers
     , hspec
+    , hspec-expectations-pretty-diff
     , logict
     , megaparsec
     , moded-logic
+    , mtl
     , neat-interpolation
-    , picologic
+    , picosat
     , text
   default-language: Haskell2010
 
@@ -73,13 +80,16 @@ test-suite moded-logic-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      algebraic-graphs
+    , base >=4.7 && <5
     , containers
     , hspec
+    , hspec-expectations-pretty-diff
     , logict
     , megaparsec
     , moded-logic
+    , mtl
     , neat-interpolation
-    , picologic
+    , picosat
     , text
   default-language: Haskell2010
