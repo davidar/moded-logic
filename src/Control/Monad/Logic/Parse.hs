@@ -72,7 +72,8 @@ rule = do
 rules = some rule
 
 parseProg :: String -> String -> Prog Var
-parseProg fn lp = p3
+parseProg fn lp = p4
   where p1 = either (error . errorBundlePretty) id $ parse rules fn lp
         p2 = combineDefs p1
         p3 = map superhomogeneous p2
+        p4 = map distinctFuncVars p3

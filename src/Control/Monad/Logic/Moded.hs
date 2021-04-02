@@ -38,16 +38,21 @@ data ModedVar = In String | Out String
 
 type Prog v = [Rule v]
 
-type CState = [((Name, Int), (Constraints, [Rule ModedVar]))]
+type CState = [((Name, Int), ((Rule Var, Constraints), [Either String (Rule ModedVar)]))]
 
 data Val = Var Var
          | Cons Name [Val]
 
+-- TODO prioritise Ord based on cardinality estimates
 data DepNode = DepNode Int (Goal ModedVar)
              deriving (Eq, Ord)
 
 instance Show Var where
     show (V v) = v
+
+instance Show ModedVar where
+    show (In v) = v ++"::in"
+    show (Out v) = v ++"::out"
 
 instance (Show v) => Show (Goal v) where
     show (Unif u v) = show u ++" = "++ show v
@@ -64,6 +69,9 @@ instance (Show v) => Show (Rule v) where
 instance Show Val where
     show (Var v) = show v
     show (Cons name vs) = unwords (name : map show vs)
+
+instance Show DepNode where
+    show (DepNode i g) = "["++ show i ++"] "++ show g
 
 dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
@@ -164,7 +172,7 @@ cGoal procs p@[d,c] r = case body r !! d !! c of
         pure $ term p u `Sat.Iff` term [] v
       | Just (_, procs') <- lookup (name, length vars) procs ->
         Set.singleton . foldr1 Sat.Disj . nub . sort $ do
-            (Rule _ mvars _) <- procs'
+            Right (Rule _ mvars _) <- procs'
             pure . foldr1 Sat.Conj $ do
                 (v,mv) <- zip vars mvars
                 let t = term p v
@@ -182,20 +190,23 @@ solveConstraints procs rule = do
 unsafeSolveConstraints :: CState -> Rule Var -> Set Constraints
 unsafeSolveConstraints procs = unsafePerformIO . solveConstraints procs
 
-mode :: Rule Var -> Constraints -> Rule ModedVar
-mode (Rule name vars disj) soln = Rule name (annotate [] <$> vars) $ do
-    (d,conj) <- zip [0..] disj
-    pure $ sortConj [annotate [d,c] <$> g | (c,g) <- zip [0..] conj]
+mode :: Rule Var -> Constraints -> Either String (Rule ModedVar)
+mode (Rule name vars disj) soln = case disj' of
+    Left cycle -> Left $ "mode ordering failure, cyclic dependency: "++
+                    intercalate " -> " (show <$> toList cycle)
+    Right r -> Right $ Rule name (annotate [] <$> vars) r
   where annotate p (V v) | term p (V v) `Set.member` soln = Out v
                          | Sat.Neg (term p (V v)) `Set.member` soln = In v
+        disj' = sequence $ do
+            (d,conj) <- zip [0..] disj
+            pure $ sortConj [annotate [d,c] <$> g | (c,g) <- zip [0..] conj]
 
 mode' :: CState -> Rule Var -> CState
 mode' procs rule@(Rule name vars _) = procs ++
-    [((name, length vars), (cComp procs [] rule, mode rule <$> Set.elems (unsafeSolveConstraints procs rule)))]
+    [((name, length vars), ((rule, cComp procs [] rule), mode rule <$> Set.elems (unsafeSolveConstraints procs rule)))]
 
-sortConj :: [Goal ModedVar] -> [Goal ModedVar]
-sortConj gs = map unDepNode . either (const $ error "cyclic dependency") id $
-    topSort $ overlay vs es
+sortConj :: [Goal ModedVar] -> Either (Cycle DepNode) [Goal ModedVar]
+sortConj gs = map unDepNode <$> topSort (overlay vs es)
   where vs = vertices $ zipWith DepNode [0..] gs
         es = edges $ do
             let ins  = [Set.fromList [v | In  v <- variables g] | g <- gs]
@@ -250,14 +261,24 @@ compile rules = [text|
     $code
   |]
   where cstate = foldl mode' [] rules
-        funcs = do
-            ((name, arity), (constraints, procs)) <- cstate
-            let doc = "{- "++ name ++"/"++ show arity ++"\nconstraints:\n"++ (unlines . map show $ Set.elems constraints) ++"-}"
+        code = T.unlines $ do
+            ((name, arity), ((rule, constraints), procs)) <- cstate
+            let doc = T.pack <$>
+                    [ "{- "++ name ++"/"++ show arity
+                    , show rule
+                    , "constraints:"
+                    ] ++ map show (Set.elems constraints)
+                      ++ ["-}"]
                 defs = do
-                    (def:defs) <- groupBy (\a b -> comparing (head . T.words) a b == EQ) . sort $ cgRule <$> procs
-                    def : (T.unlines . map ("--" <>) . T.lines <$> defs)
-            T.pack doc : defs
-        code = T.unlines funcs
+                    (def:defs) <- groupBy (\a b -> comparing (head . T.words) a b == EQ) . sort $ do
+                        p <- procs
+                        pure $ case p of
+                            Left e -> "-- " <> T.pack e
+                            Right r -> cgRule r
+                    def : (T.unlines . map commentLine . T.lines <$> defs)
+                commentLine l | "--" `T.isPrefixOf` l = l
+                              | otherwise = "--" <> l
+            doc ++ defs
 
 combineDefs :: Prog Val -> Prog Val
 combineDefs rules = do
@@ -265,7 +286,7 @@ combineDefs rules = do
     defs <- groupBy p rules
     if length defs == 1 then pure (head defs) else do
         let Rule name vars _ = head defs
-            params = [Var . V $ "a" ++ show i | i <- [1..length vars]]
+            params = [Var . V $ "arg" ++ show i | i <- [1..length vars]]
             disj' = do
                 Rule _ vars disj <- defs
                 [zipWith Unif params vars ++ conj | conj <- disj]
@@ -284,7 +305,7 @@ superhomogeneous (Rule name args disj) = Rule name vars disj'
         tVal (Cons name vs) = do
             vs' <- mapM tVal vs
             body <- get
-            let u = V $ "x" ++ show (length body)
+            let u = V $ "data" ++ show (length body)
             put $ body ++ [Func name vs' u]
             return u
         tGoal :: Goal Val -> State [Goal Var] (Goal Var)
@@ -299,7 +320,6 @@ superhomogeneous (Rule name args disj) = Rule name vars disj'
             return $ Func name vs' u'
         tGoal (Pred name vs) = do
             vs' <- mapM tVal vs
-            -- TODO explicitly unify duplicate args
             return $ Pred name vs'
 
 distinctFuncVars :: Rule Var -> Rule Var
@@ -310,16 +330,20 @@ distinctFuncVars (Rule name args disj) = Rule name args $ do
             case goal of
                 Func _ vs _ -> vs
                 _ -> []
-        dups = [(head l, length l) | l <- group (sort vars), length l > 1]
-        tVar (V v) | V v `elem` map fst dups = do
+        fdups = [(head l, length l) | l <- group (sort vars), length l > 1]
+        tVar dups (V v) | V v `elem` map fst dups = do
             body <- get
             let v' = v ++ show (length body)
             put $ body ++ [Unif (V v') (V v)]
             return (V v')
-        tVar v = return v
+        tVar _ v = return v
         tGoal (Func name vs u) = do
-            vs' <- mapM tVar vs
+            vs' <- mapM (tVar fdups) vs
             return $ Func name vs' u
+        tGoal (Pred name vs) = do
+            let pdups = [(head l, length l) | l <- group (sort vs), length l > 1]
+            vs' <- mapM (tVar pdups) vs
+            return $ Pred name vs'
         tGoal g = return g
         (conj', body) = runState (mapM tGoal conj) []
     pure $ body ++ conj'

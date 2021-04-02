@@ -19,7 +19,7 @@ import System.IO
 main :: IO ()
 main = do
     lp <- readFile "test/Append.lp"
-    let program = distinctFuncVars <$> parseProg "test/Append.lp" lp
+    let program = parseProg "test/Append.lp" lp
     --putStrLn . unlines $ show <$> program
     hspec $ do
       describe "append" $ do
@@ -49,3 +49,9 @@ main = do
             observeAll (reverse_io [0..9]) `shouldBe` [[9,8..0]]
             observeAll (reverse_ii [0..9] [9,8..0]) `shouldBe` [()]
             observeAll (reverse_ii [0..9] [9,8..1]) `shouldBe` []
+        it "palindrome" $ do
+            observeAll (palindrome_i [1,2,3,2,1]) `shouldBe` [()]
+            observeAll (palindrome_i [1,2,3,4,5]) `shouldBe` []
+        it "duplicate" $ do
+            observeAll (duplicate_oi [0,1,0,1]) `shouldBe` [[0,1]]
+            observeAll (duplicate_oi [0,1,2,3]) `shouldBe` []
