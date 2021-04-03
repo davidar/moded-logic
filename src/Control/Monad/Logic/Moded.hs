@@ -196,14 +196,19 @@ unsafeSolveConstraints :: CState -> Rule Var Var -> Set Constraints
 unsafeSolveConstraints procs = unsafePerformIO . solveConstraints procs
 
 mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
-mode r@(Rule name vars body) soln =
-    Right $ Rule name (annotate [] <$> vars) (walk [] body)
+mode r@(Rule name vars body) soln = case walk [] body of
+    Left cycle -> Left $ "mode ordering failure, cyclic dependency: "++
+                    intercalate " -> " (show <$> toList cycle)
+    Right body' -> Right $ Rule name (annotate [] <$> vars) body'
   where annotate p (V v) | term p (V v) `Set.member` soln = Out v
                          | Sat.Neg (term p (V v)) `Set.member` soln = In v
-        walk p (Disj disj) = Disj [walk (p ++ [d]) g | (d,g) <- zip [0..] disj]
-        walk p (Conj conj) = Conj . either (error . show) id $
-            sortConj [(walk (p ++ [c]) g, nonlocals (p ++ [c]) r) | (c,g) <- zip [0..] conj]
-        walk p (Atom a) = Atom $ annotate p <$> a
+        walk p (Disj disj) = Disj <$> sequence [walk (p ++ [d]) g | (d,g) <- zip [0..] disj]
+        walk p (Conj conj) = do
+            conj' <- sequence [walk (p ++ [c]) g | (c,g) <- zip [0..] conj]
+            conj'' <- sortConj [(g, nonlocals (p ++ [c]) r)
+                             | (c,g) <- zip [0..] conj']
+            pure $ Conj conj''
+        walk p (Atom a) = pure . Atom $ annotate p <$> a
 
 mode' :: CState -> Rule Var Var -> CState
 mode' procs rule@(Rule name vars _) = procs ++
@@ -214,7 +219,8 @@ sortConj gs = map unDepNode <$> topSort (overlay vs es)
   where vs = vertices $ zipWith DepNode [0..] (fst <$> gs)
         es = edges $ do
             let ins  = [Set.fromList [v | V v <- Set.elems nl
-                                        , In v `elem` variables g] | (g,nl) <- gs]
+                                        , In v `elem` variables g
+                                        , Out v `notElem` variables g] | (g,nl) <- gs]
                 outs = [Set.fromList [v | V v <- Set.elems nl
                                         , Out v `elem` variables g] | (g,nl) <- gs]
             (i,(g,_)) <- zip [0..] gs
@@ -348,30 +354,29 @@ superhomogeneous (Rule name args body) = Rule name args (tGoal body)
         tGoal (Atom a) = if null body then Atom a' else Conj $ Atom <$> a' : body
           where (a', body) = runState (tAtom a) []
 
-{-
 distinctVars :: Rule Var Var -> Rule Var Var
-distinctVars (Rule name args disj) = Rule name args $ do
-    conj <- disj
-    let vars = do
-            goal <- conj
-            case goal of
-                Func _ vs _ -> vs
-                _ -> []
-        fdups = [(head l, length l) | l <- group (sort vars), length l > 1]
+distinctVars (Rule name args body) = Rule name args (tGoal body)
+  where --vars = do
+        --    goal <- conj
+        --    case goal of
+        --        Func _ vs _ -> vs
+        --        _ -> []
+        --fdups = [(head l, length l) | l <- group (sort vars), length l > 1]
         tVar dups (V v) | V v `elem` map fst dups = do
             body <- get
             let v' = v ++ show (length body)
             put $ body ++ [Unif (V v') (V v)]
             return (V v')
         tVar _ v = return v
-        tGoal (Func name vs u) = do
-            vs' <- mapM (tVar fdups) vs
-            return $ Func name vs' u
-        tGoal (Pred name vs) = do
+        --tAtom (Func name vs u) = do
+        --    vs' <- mapM (tVar fdups) vs
+        --    return $ Func name vs' u
+        tAtom (Pred name vs) = do
             let pdups = [(head l, length l) | l <- group (sort vs), length l > 1]
             vs' <- mapM (tVar pdups) vs
             return $ Pred name vs'
-        tGoal g = return g
-        (conj', body) = runState (mapM tGoal conj) []
-    pure $ body ++ conj'
--}
+        tAtom a = return a
+        tGoal (Disj gs) = Disj $ tGoal <$> gs
+        tGoal (Conj gs) = Conj $ tGoal <$> gs
+        tGoal (Atom a) = if null body then Atom a' else Conj $ Atom <$> a' : body
+          where (a', body) = runState (tAtom a) []

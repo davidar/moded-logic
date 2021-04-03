@@ -52,8 +52,6 @@ main = do
         it "palindrome" $ do
             observeAll (palindrome_i [1,2,3,2,1]) `shouldBe` [()]
             observeAll (palindrome_i [1,2,3,4,5]) `shouldBe` []
-        {-
         it "duplicate" $ do
             observeAll (duplicate_oi [0,1,0,1]) `shouldBe` [[0,1]]
             observeAll (duplicate_oi [0,1,2,3]) `shouldBe` []
-        -}

@@ -891,25 +891,304 @@ reverse_oi arg2 = do
    )
   pure (arg1)
 {- palindrome/1
-palindrome arg1 :- ((arg1 = a, (reverse a a))).
+palindrome arg1 :- ((arg1 = a, ((reverse a0 a1, a0 = a, a1 = a)))).
 constraints:
+a0[0,1,0]
+a0[0,1]
+a0[0]
+a0[]
+a1[0,1,0]
+a1[0,1]
+a1[0]
+a1[]
 a[0]
 a[]
+~(a0[0,1,0,0] & a0[0,1,0,1])
+~(a0[0,1,0,1] & a[0,1,0,1])
+~(a1[0,1,0,0] & a1[0,1,0,2])
+~(a1[0,1,0,2] & a[0,1,0,2])
 ~(a[0,0] & a[0,1])
+~(a[0,1,0,1] & a[0,1,0,2])
 ~(arg1[0,0] & a[0,0])
-((a[0,1,0] & ~a[0,1,0]) | ((~a[0,1,0] & a[0,1,0]) | (~a[0,1,0] & ~a[0,1,0])))
+((a0[0,1,0,0] & ~a1[0,1,0,0]) | ((~a0[0,1,0,0] & a1[0,1,0,0]) | (~a0[0,1,0,0] & ~a1[0,1,0,0])))
+(a0[0,1,0] <-> (a0[0,1,0,0] | a0[0,1,0,1]))
+(a0[0,1] <-> a0[0,1,0])
+(a0[0] <-> a0[0,1])
+(a1[0,1,0] <-> (a1[0,1,0,0] | a1[0,1,0,2]))
+(a1[0,1] <-> a1[0,1,0])
+(a1[0] <-> a1[0,1])
+(a[0,1,0] <-> (a[0,1,0,1] | a[0,1,0,2]))
 (a[0,1] <-> a[0,1,0])
 (a[0] <-> (a[0,0] | a[0,1]))
 (arg1[0] <-> arg1[0,0])
 (arg1[] <-> arg1[0])
 -}
+-- mode ordering failure, cyclic dependency: [2] a1::in = a::out -> [1] a0::out = a::in -> [0] reverse a0::in a1::out
+-- mode ordering failure, cyclic dependency: [2] a1::in = a::out -> [1] a0::out = a::in -> [0] reverse a0::in a1::out
+
+-- mode ordering failure, cyclic dependency: [2] a1::out = a::in -> [0] reverse a0::out a1::in -> [1] a0::in = a::out
+
+-- mode ordering failure, cyclic dependency: [2] a1::out = a::in -> [0] reverse a0::out a1::in -> [1] a0::in = a::out
+
 palindrome_i arg1 = do
   () <- (do
     a <- pure arg1
     () <- (do
-      () <- reverse_ii a a
+      () <- (do
+        a0 <- pure a
+        (a1) <- reverse_io a0
+        guard $ a1 == a
+        pure ()
+       )
       pure ()
      )
     pure ()
    )
   pure ()
+--palindrome_i arg1 = do
+--  () <- (do
+--    a <- pure arg1
+--    () <- (do
+--      () <- (do
+--        a0 <- pure a
+--        a1 <- pure a
+--        () <- reverse_ii a0 a1
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--palindrome_i arg1 = do
+--  () <- (do
+--    a <- pure arg1
+--    () <- (do
+--      () <- (do
+--        a1 <- pure a
+--        (a0) <- reverse_oi a1
+--        guard $ a0 == a
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+{- duplicate/2
+duplicate arg1 arg2 :- ((arg1 = a, arg2 = b, ((append a0 a1 b, a0 = a, a1 = a)))).
+constraints:
+a0[0,2,0]
+a0[0,2]
+a0[0]
+a0[]
+a1[0,2,0]
+a1[0,2]
+a1[0]
+a1[]
+a[0]
+a[]
+b[0]
+b[]
+~(a0[0,2,0,0] & a0[0,2,0,1])
+~(a0[0,2,0,1] & a[0,2,0,1])
+~(a1[0,2,0,0] & a1[0,2,0,2])
+~(a1[0,2,0,2] & a[0,2,0,2])
+~(a[0,0] & a[0,2])
+~(a[0,2,0,1] & a[0,2,0,2])
+~(arg1[0,0] & a[0,0])
+~(arg2[0,1] & b[0,1])
+~(b[0,1] & b[0,2])
+((a0[0,2,0,0] & (a1[0,2,0,0] & ~b[0,2,0,0])) | ((a0[0,2,0,0] & (~a1[0,2,0,0] & ~b[0,2,0,0])) | ((~a0[0,2,0,0] & (a1[0,2,0,0] & ~b[0,2,0,0])) | ((~a0[0,2,0,0] & (~a1[0,2,0,0] & b[0,2,0,0])) | (~a0[0,2,0,0] & (~a1[0,2,0,0] & ~b[0,2,0,0]))))))
+(a0[0,2,0] <-> (a0[0,2,0,0] | a0[0,2,0,1]))
+(a0[0,2] <-> a0[0,2,0])
+(a0[0] <-> a0[0,2])
+(a1[0,2,0] <-> (a1[0,2,0,0] | a1[0,2,0,2]))
+(a1[0,2] <-> a1[0,2,0])
+(a1[0] <-> a1[0,2])
+(a[0,2,0] <-> (a[0,2,0,1] | a[0,2,0,2]))
+(a[0,2] <-> a[0,2,0])
+(a[0] <-> (a[0,0] | a[0,2]))
+(arg1[0] <-> arg1[0,0])
+(arg1[] <-> arg1[0])
+(arg2[0] <-> arg2[0,1])
+(arg2[] <-> arg2[0])
+(b[0,2,0] <-> b[0,2,0,0])
+(b[0,2] <-> b[0,2,0])
+(b[0] <-> (b[0,1] | b[0,2]))
+-}
+-- mode ordering failure, cyclic dependency: [2] a1::in = a::out -> [1] a0::out = a::in -> [0] append a0::in a1::out b::in
+-- mode ordering failure, cyclic dependency: [2] a1::in = a::out -> [1] a0::out = a::in -> [0] append a0::in a1::out b::in
+
+-- mode ordering failure, cyclic dependency: [2] a1::out = a::in -> [0] append a0::out a1::in b::in -> [1] a0::in = a::out
+
+-- mode ordering failure, cyclic dependency: [2] a1::out = a::in -> [0] append a0::out a1::in b::in -> [1] a0::in = a::out
+
+duplicate_ii arg1 arg2 = do
+  () <- (do
+    a <- pure arg1
+    (b) <- (do
+      (b) <- (do
+        a0 <- pure a
+        a1 <- pure a
+        (b) <- append_iio a0 a1
+        pure (b)
+       )
+      pure (b)
+     )
+    guard $ arg2 == b
+    pure ()
+   )
+  pure ()
+--duplicate_ii arg1 arg2 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    () <- (do
+--      () <- (do
+--        (a0,a1) <- append_ooi b
+--        guard $ a0 == a
+--        guard $ a1 == a
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--duplicate_ii arg1 arg2 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    () <- (do
+--      () <- (do
+--        a0 <- pure a
+--        (a1) <- append_ioi a0 b
+--        guard $ a1 == a
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--duplicate_ii arg1 arg2 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    () <- (do
+--      () <- (do
+--        a0 <- pure a
+--        a1 <- pure a
+--        () <- append_iii a0 a1 b
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--duplicate_ii arg1 arg2 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    () <- (do
+--      () <- (do
+--        a1 <- pure a
+--        (a0) <- append_oii a1 b
+--        guard $ a0 == a
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--duplicate_ii arg1 arg2 = do
+--  () <- (do
+--    b <- pure arg2
+--    (a) <- (do
+--      (a) <- (do
+--        (a0,a1) <- append_ooi b
+--        a <- pure a0
+--        guard $ a1 == a
+--        pure (a)
+--       )
+--      pure (a)
+--     )
+--    guard $ arg1 == a
+--    pure ()
+--   )
+--  pure ()
+
+--duplicate_ii arg1 arg2 = do
+--  () <- (do
+--    b <- pure arg2
+--    (a) <- (do
+--      (a) <- (do
+--        (a0,a1) <- append_ooi b
+--        a <- pure a1
+--        guard $ a0 == a
+--        pure (a)
+--       )
+--      pure (a)
+--     )
+--    guard $ arg1 == a
+--    pure ()
+--   )
+--  pure ()
+
+duplicate_io arg1 = do
+  (arg2) <- (do
+    a <- pure arg1
+    (b) <- (do
+      (b) <- (do
+        a0 <- pure a
+        a1 <- pure a
+        (b) <- append_iio a0 a1
+        pure (b)
+       )
+      pure (b)
+     )
+    arg2 <- pure b
+    pure (arg2)
+   )
+  pure (arg2)
+duplicate_oi arg2 = do
+  (arg1) <- (do
+    b <- pure arg2
+    (a) <- (do
+      (a) <- (do
+        (a0,a1) <- append_ooi b
+        a <- pure a0
+        guard $ a1 == a
+        pure (a)
+       )
+      pure (a)
+     )
+    arg1 <- pure a
+    pure (arg1)
+   )
+  pure (arg1)
+--duplicate_oi arg2 = do
+--  (arg1) <- (do
+--    b <- pure arg2
+--    (a) <- (do
+--      (a) <- (do
+--        (a0,a1) <- append_ooi b
+--        a <- pure a1
+--        guard $ a0 == a
+--        pure (a)
+--       )
+--      pure (a)
+--     )
+--    arg1 <- pure a
+--    pure (arg1)
+--   )
+--  pure (arg1)
