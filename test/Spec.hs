@@ -32,6 +32,7 @@ main = do
             observeAll (append_iio [1..3] [4..6]) `shouldBe` [[1..6]]
         it "ooi" $ do
             observeAll (append_ooi [1..6]) `shouldBe` [splitAt i [1..6] | i <- [0..6]]
+        {-
         it "iiio" $ do
             observeAll (append_iiio [1,2] [3,4] [5,6]) `shouldBe` [[1..6]]
         it "iiii" $ do
@@ -55,3 +56,4 @@ main = do
         it "duplicate" $ do
             observeAll (duplicate_oi [0,1,0,1]) `shouldBe` [[0,1]]
             observeAll (duplicate_oi [0,1,2,3]) `shouldBe` []
+        -}

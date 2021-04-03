@@ -56,24 +56,22 @@ predicate = do
     vs <- many value
     pure $ Pred name vs
 
-goal = try unify <|> predicate
+goal = Atom <$> (try unify <|> predicate)
 
-conj = goal `sepBy` symbol ","
-
-disj = conj `sepBy` symbol ";"
+conj = Conj <$> goal `sepBy` symbol ","
 
 rule = do
     name <- identifier
     vars <- many value
-    body <- (symbol ":-" >> disj) <|> pure [[]]
+    body <- (symbol ":-" >> conj) <|> pure (Conj [])
     symbol "."
     pure $ Rule name vars body
 
 rules = some rule
 
-parseProg :: String -> String -> Prog Var
-parseProg fn lp = p4
+parseProg :: String -> String -> Prog Var Var
+parseProg fn lp = p3
   where p1 = either (error . errorBundlePretty) id $ parse rules fn lp
         p2 = combineDefs p1
         p3 = map superhomogeneous p2
-        p4 = map distinctFuncVars p3
+        --p4 = map distinctVars p3

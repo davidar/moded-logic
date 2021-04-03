@@ -22,12 +22,17 @@ type Name = String
 newtype Var = V String
             deriving (Eq, Ord)
 
-data Goal v = Unif v v
+data Atom v = Unif v v
             | Func Name [v] v
             | Pred Name [v]
             deriving (Eq, Ord, Functor, Foldable)
 
-data Rule v = Rule Name [v] [[Goal v]]
+data Goal v = Atom (Atom v)
+            | Conj [Goal v]
+            | Disj [Goal v]
+            deriving (Eq, Ord, Functor, Foldable)
+
+data Rule u v = Rule Name [u] (Goal v)
 
 type Path = [Int]
 
@@ -36,9 +41,9 @@ type Constraints = Set Sat.Expr
 data ModedVar = In String | Out String
               deriving (Eq, Ord)
 
-type Prog v = [Rule v]
+type Prog u v = [Rule u v]
 
-type CState = [((Name, Int), ((Rule Var, Constraints), [Either String (Rule ModedVar)]))]
+type CState = [((Name, Int), ((Rule Var Var, Constraints), [Either String (Rule ModedVar ModedVar)]))]
 
 data Val = Var Var
          | Cons Name [Val]
@@ -54,17 +59,21 @@ instance Show ModedVar where
     show (In v) = v ++"::in"
     show (Out v) = v ++"::out"
 
-instance (Show v) => Show (Goal v) where
+instance (Show v) => Show (Atom v) where
     show (Unif u v) = show u ++" = "++ show v
     show (Func ":" [h,t] u) = show u ++" = "++ show h ++" : "++ show t
     show (Func name vs u) = show u ++" = "++ unwords (name : map show vs)
     show (Pred name []) = name
     show (Pred name vs) = unwords (name : map show vs)
 
-instance (Show v) => Show (Rule v) where
-    show (Rule name vars disj) =
-        unwords (name : map show vars) ++" :-\n  "++
-            (intercalate ";\n  " $ intercalate ", " . map show <$> disj) ++"."
+instance (Show v) => Show (Goal v) where
+    show (Atom a) = show a
+    show (Conj gs) = "("++ intercalate ", " (map show gs) ++")"
+    show (Disj gs) = "("++ intercalate "; " (map show gs) ++")"
+
+instance (Show u, Show v) => Show (Rule u v) where
+    show (Rule name vars g) =
+        unwords (name : map show vars) ++" :- "++ show g ++"."
 
 instance Show Val where
     show (Var v) = show v
@@ -77,7 +86,7 @@ dropIndex :: Int -> [a] -> [a]
 dropIndex i xs = h ++ drop 1 t
   where (h, t) = splitAt i xs
 
-body :: Rule v -> [[Goal v]]
+body :: Rule u v -> Goal v
 body (Rule _ _ goal) = goal
 
 stripMode :: ModedVar -> Var
@@ -90,63 +99,59 @@ unDepNode (DepNode _ g) = g
 variables :: Goal v -> [v]
 variables = toList
 
+nonlocals :: Path -> Rule Var Var -> Set Var
+nonlocals p r@(Rule _ vars body) = Set.fromList inside `Set.intersection` Set.fromList outside
+  where inside = variables (extract p body)
+        outside = vars ++ (variables body \\ inside)
+
+nonlocals' :: Path -> Rule ModedVar ModedVar -> Set Var
+nonlocals' p (Rule name vars body) = nonlocals p (Rule name (stripMode <$> vars) (stripMode <$> body))
+
+locals :: Path -> Rule Var Var -> Set Var
+locals p r@(Rule _ vars body) = Set.fromList inside Set.\\ Set.fromList outside
+  where inside = variables (extract p body)
+        outside = vars ++ (variables body \\ inside)
+
+subgoals :: Goal v -> [Goal v]
+subgoals (Conj gs) = gs
+subgoals (Disj gs) = gs
+
+extract :: Path -> Goal v -> Goal v
+extract [] g = g
+extract (p:ps) g = extract ps $ subgoals g !! p
+
 term :: Path -> Var -> Sat.Expr
 term p (V v) = Sat.Var . Sat.Ident $ v ++ show p
 
 -- | Complete set of constraints (sec 5.2.2)
-cComp :: CState -> Path -> Rule Var -> Constraints
+cComp :: CState -> Path -> Rule Var Var -> Constraints
 cComp procs p r = cGen p r `Set.union` cGoal procs p r
 
 -- | General constraints (sec 5.2.2)
-cGen :: Path -> Rule Var -> Constraints
+cGen :: Path -> Rule Var Var -> Constraints
 cGen p r = cLocal p r `Set.union` cExt p r
 
 -- | Local constraints (sec 5.2.2)
-cLocal :: Path -> Rule Var -> Constraints
-cLocal [] (Rule _ vars disj) =
-    let inside = Set.fromList $ do
-            conj <- disj
-            conj >>= variables
-        outside = Set.fromList vars
-        locals = inside Set.\\ outside
-    in term [] `Set.map` locals
-cLocal [d] (Rule _ vars disj) =
-    let conj = disj !! d
-        inside = Set.fromList $ conj >>= variables
-        outside = Set.fromList $ vars ++ do
-            conj' <- dropIndex d disj
-            conj' >>= variables
-        locals = inside Set.\\ outside
-    in term [d] `Set.map` locals
-cLocal [d,c] (Rule _ vars disj) =
-    let conj = disj !! d
-        inside = Set.fromList . variables $ conj !! c
-        outside = Set.fromList $ vars ++ (dropIndex c conj >>= variables) ++ do
-            conj' <- dropIndex d disj
-            conj' >>= variables
-        locals = inside Set.\\ outside
-    in term [d,c] `Set.map` locals
+cLocal :: Path -> Rule Var Var -> Constraints
+cLocal p r = term p `Set.map` locals p r
 
 -- | External constraints (sec 5.2.2)
 cExt _ _ = Set.empty
 
 -- | Disjunction constraints (sec 5.2.3)
-cDisj :: Rule Var -> Constraints
-cDisj (Rule _ vars disj) = Set.unions $ do
-    (d, conj) <- zip [0..] disj
-    let inside = Set.fromList $ conj >>= variables
-        outside = Set.fromList $ vars ++ do
-            conj' <- dropIndex d disj
-            conj' >>= variables
-        nonlocals = inside `Set.intersection` outside
-    pure $ Set.map (\v -> term [] v `Sat.Iff` term [d] v) nonlocals
+cDisj :: Path -> Rule Var Var -> Constraints
+cDisj p r = Set.unions $ do
+    let Disj disj = extract p $ body r
+    (d, g) <- zip [0..] disj
+    pure $ Set.map (\v -> term p v `Sat.Iff` term (p ++ [d]) v) $ nonlocals (p ++ [d]) r
 
 -- | Conjunction constraints (sec 5.2.3)
-cConj :: Int -> [Goal Var] -> Constraints
-cConj d conj = Set.fromList $ do
+cConj :: Path -> Rule Var Var -> Constraints
+cConj p (Rule _ _ body) = Set.fromList $ do
+    let Conj conj = extract p body
     v <- nub $ conj >>= variables
-    let terms = [term [d,c] v | (c,g) <- zip [0..] conj, v `elem` variables g]
-        c = term [d] v `Sat.Iff` foldr1 Sat.Disj terms
+    let terms = [term (p ++ [c]) v | (c,g) <- zip [0..] conj, v `elem` variables g]
+        c = term p v `Sat.Iff` foldr1 Sat.Disj terms
         cs = [Sat.Neg (Sat.Conj s t) | s <- terms, t <- terms, s < t]
     (c:cs)
 
@@ -154,19 +159,19 @@ nand :: Path -> Var -> Var -> Sat.Expr
 nand p u v = Sat.Neg (Sat.Conj (term p u) (term p v))
 
 -- | Goal-specific constraints
-cGoal :: CState -> Path -> Rule Var -> Constraints
-cGoal procs [] r = Set.unions $ cDisj r : [cComp procs [d] r | d <- take (length disj) [0..]]
-    where disj = body r
-cGoal procs [d] r = Set.unions $ cConj d conj : [cComp procs [d,c] r | c <- take (length conj) [0..]]
-    where conj = body r !! d
+cGoal :: CState -> Path -> Rule Var Var -> Constraints
+cGoal procs p r = case extract p (body r) of
+    Disj disj -> Set.unions $ cDisj p r :
+        [cComp procs (p ++ [d]) r | d <- take (length disj) [0..]]
+    Conj conj -> Set.unions $ cConj p r :
+        [cComp procs (p ++ [c]) r | c <- take (length conj) [0..]]
 -- Atomic goals (sec 5.2.4)
-cGoal procs p@[d,c] r = case body r !! d !! c of
-    Unif u v -> Set.singleton $ nand p u v
-    Func _ [] _ -> Set.empty
-    Func _ [v] u -> Set.singleton $ nand p u v
-    Func _ (v:vs) u -> Set.fromList $
+    Atom (Unif u v) -> Set.singleton $ nand p u v
+    Atom (Func _ [] _) -> Set.empty
+    Atom (Func _ [v] u) -> Set.singleton $ nand p u v
+    Atom (Func _ (v:vs) u) -> Set.fromList $
         nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
-    Pred name vars
+    Atom (Pred name vars)
       | Rule rname rvars _ <- r, name == rname, length vars == length rvars -> Set.fromList $ do
         (u,v) <- zip vars rvars
         pure $ term p u `Sat.Iff` term [] v
@@ -181,27 +186,26 @@ cGoal procs p@[d,c] r = case body r !! d !! c of
                     Out _ -> t
       | otherwise -> error $ "unknown predicate "++ name ++"/"++ show (length vars)
 
-solveConstraints :: CState -> Rule Var -> IO (Set Constraints)
+solveConstraints :: CState -> Rule Var Var -> IO (Set Constraints)
 solveConstraints procs rule = do
     let cs = cComp procs [] rule
     Sat.Solutions solutions <- Sat.solveProp . foldr1 Sat.Conj $ Set.elems cs
     return . Set.fromList $ Set.fromList <$> solutions
 
-unsafeSolveConstraints :: CState -> Rule Var -> Set Constraints
+unsafeSolveConstraints :: CState -> Rule Var Var -> Set Constraints
 unsafeSolveConstraints procs = unsafePerformIO . solveConstraints procs
 
-mode :: Rule Var -> Constraints -> Either String (Rule ModedVar)
-mode (Rule name vars disj) soln = case disj' of
-    Left cycle -> Left $ "mode ordering failure, cyclic dependency: "++
-                    intercalate " -> " (show <$> toList cycle)
-    Right r -> Right $ Rule name (annotate [] <$> vars) r
+mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
+mode (Rule name vars body) soln =
+    Right $ Rule name (annotate [] <$> vars) (walk [] body)
   where annotate p (V v) | term p (V v) `Set.member` soln = Out v
                          | Sat.Neg (term p (V v)) `Set.member` soln = In v
-        disj' = sequence $ do
-            (d,conj) <- zip [0..] disj
-            pure $ sortConj [annotate [d,c] <$> g | (c,g) <- zip [0..] conj]
+        walk p (Disj disj) = Disj [walk (p ++ [d]) g | (d,g) <- zip [0..] disj]
+        walk p (Conj conj) = Conj . either (error . show) id $
+            sortConj [walk (p ++ [c]) g | (c,g) <- zip [0..] conj]
+        walk p (Atom a) = Atom $ annotate p <$> a
 
-mode' :: CState -> Rule Var -> CState
+mode' :: CState -> Rule Var Var -> CState
 mode' procs rule@(Rule name vars _) = procs ++
     [((name, length vars), ((rule, cComp procs [] rule), mode rule <$> Set.elems (unsafeSolveConstraints procs rule)))]
 
@@ -231,29 +235,51 @@ cgPred name vs =
         modes (In  _:vs) = 'i' : modes vs
         modes (Out _:vs) = 'o' : modes vs
 
-cgGoal :: Goal ModedVar -> Text
-cgGoal (Unif (Out u) v) = T.pack u <> " <- pure " <> mv v
-cgGoal (Unif u (Out v)) = T.pack v <> " <- pure " <> mv u
-cgGoal (Unif u v) = "guard $ " <> mv u <> " == " <> mv v
-cgGoal (Func name vs@(Out v:_) u) = cgFunc name vs <> " <- pure " <> mv u
-cgGoal (Func name vs (Out u)) = T.pack u <> " <- pure " <> cgFunc name vs
-cgGoal (Func name vs u) = "guard $ " <> mv u <> " == " <> cgFunc name vs
-cgGoal (Pred name vars) = lhs <> " <- " <> rhs
+cgAtom :: Atom ModedVar -> Text
+cgAtom (Unif (Out u) v) = T.pack u <> " <- pure " <> mv v
+cgAtom (Unif u (Out v)) = T.pack v <> " <- pure " <> mv u
+cgAtom (Unif u v) = "guard $ " <> mv u <> " == " <> mv v
+cgAtom (Func name vs@(Out v:_) u) = cgFunc name vs <> " <- pure " <> mv u
+cgAtom (Func name vs (Out u)) = T.pack u <> " <- pure " <> cgFunc name vs
+cgAtom (Func name vs u) = "guard $ " <> mv u <> " == " <> cgFunc name vs
+cgAtom (Pred name vars) = lhs <> " <- " <> rhs
   where (lhs,rhs) = cgPred name vars
 
-cgRule :: Rule ModedVar -> Text
-cgRule (Rule name vars disj) = ((rhs <>" = ")<>) . T.intercalate " <|> " $ do
-    conj <- disj
-    let body = T.unlines $ cgGoal <$> conj
-    pure [text|
-        (do
-          $body
+cgGoal :: Path -> Rule ModedVar ModedVar -> Text
+cgGoal p r = case extract p $ body r of
+    Disj disj -> T.intercalate " <|> " [cgGoal (p ++ [d]) r | d <- take (length disj) [0..]]
+    Conj conj ->
+        let code = T.unlines $ do
+                c <- take (length conj) [0..]
+                let p' = p ++ [c]
+                pure $ case extract p' $ body r of
+                    Atom a -> cgAtom a
+                    g -> "(" <> T.intercalate ","
+                        [T.pack v | V v <- Set.elems $ nonlocals' p' r
+                                  , Out v `elem` variables g]
+                        <> ") <- " <> cgGoal p' r
+            ret = T.intercalate "," [T.pack v | V v <- Set.elems $ nonlocals' p r
+                                              , Out v `elem` variables (Conj conj)]
+        in [text|
+            (do
+              $code
+              pure ($ret)
+             )
+        |]
+    Atom a -> cgAtom a
+
+cgRule :: Rule ModedVar ModedVar -> Text
+cgRule r@(Rule name vars body) =
+    let (lhs,rhs) = cgPred name vars
+        code = cgGoal [] r
+        rets = T.intercalate "," [T.pack v | V v <- Set.elems $ nonlocals' [] r, Out v `elem` variables body]
+    in [text|
+        $rhs = do
+          ($rets) <- $code
           pure $lhs
-         )
-     |]
-  where (lhs,rhs) = cgPred name vars
+    |]
 
-compile :: Prog Var -> Text
+compile :: Prog Var Var -> Text
 compile rules = [text|
     import Control.Applicative
     import Control.Monad.Logic
@@ -280,27 +306,20 @@ compile rules = [text|
                               | otherwise = "--" <> l
             doc ++ defs
 
-combineDefs :: Prog Val -> Prog Val
+combineDefs :: Prog Val Val -> Prog Var Val
 combineDefs rules = do
     let p (Rule n vs _) (Rule n' vs' _) = n == n' && length vs == length vs'
     defs <- groupBy p rules
-    if length defs == 1 then pure (head defs) else do
-        let Rule name vars _ = head defs
-            params = [Var . V $ "arg" ++ show i | i <- [1..length vars]]
-            disj' = do
-                Rule _ vars disj <- defs
-                [zipWith Unif params vars ++ conj | conj <- disj]
-        pure $ Rule name params disj'
+    let Rule name vars _ = head defs
+        params = [V $ "arg" ++ show i | i <- [1..length vars]]
+        body' = Disj $ do
+            Rule _ vars body <- defs
+            pure . Conj $ (Atom <$> zipWith Unif (Var <$> params) vars) ++ [body]
+    pure $ Rule name params body'
 
-superhomogeneous :: Rule Val -> Rule Var
-superhomogeneous (Rule name args disj) = Rule name vars disj'
-  where (vars, argbody) = runState (mapM tVal args) []
-        disj' :: [[Goal Var]]
-        disj' = do
-            conj <- disj
-            let (conj', body) = runState (mapM tGoal conj) argbody
-            pure $ body ++ conj'
-        tVal :: Val -> State [Goal Var] Var
+superhomogeneous :: Rule Var Val -> Rule Var Var
+superhomogeneous (Rule name args body) = Rule name args (tGoal body)
+  where tVal :: Val -> State [Atom Var] Var
         tVal (Var v) = return v
         tVal (Cons name vs) = do
             vs' <- mapM tVal vs
@@ -308,22 +327,28 @@ superhomogeneous (Rule name args disj) = Rule name vars disj'
             let u = V $ "data" ++ show (length body)
             put $ body ++ [Func name vs' u]
             return u
-        tGoal :: Goal Val -> State [Goal Var] (Goal Var)
-        tGoal (Unif (Var u) (Var v)) = return $ Unif u v
-        tGoal (Unif (Var u) (Cons name vs)) = do
+        tAtom :: Atom Val -> State [Atom Var] (Atom Var)
+        tAtom (Unif (Var u) (Var v)) = return $ Unif u v
+        tAtom (Unif (Var u) (Cons name vs)) = do
             vs' <- mapM tVal vs
             return $ Func name vs' u
-        tGoal (Unif u v) = error $ "tGoal "++ show (Unif u v)
-        tGoal (Func name vs u) = do
+        tAtom (Unif u v) = error $ "tAtom "++ show (Unif u v)
+        tAtom (Func name vs u) = do
             u' <- tVal u
             vs' <- mapM tVal vs
             return $ Func name vs' u'
-        tGoal (Pred name vs) = do
+        tAtom (Pred name vs) = do
             vs' <- mapM tVal vs
             return $ Pred name vs'
+        tGoal :: Goal Val -> Goal Var
+        tGoal (Disj gs) = Disj $ tGoal <$> gs
+        tGoal (Conj gs) = Conj $ tGoal <$> gs
+        tGoal (Atom a) = if null body then Atom a' else Conj $ Atom <$> a' : body
+          where (a', body) = runState (tAtom a) []
 
-distinctFuncVars :: Rule Var -> Rule Var
-distinctFuncVars (Rule name args disj) = Rule name args $ do
+{-
+distinctVars :: Rule Var Var -> Rule Var Var
+distinctVars (Rule name args disj) = Rule name args $ do
     conj <- disj
     let vars = do
             goal <- conj
@@ -347,3 +372,4 @@ distinctFuncVars (Rule name args disj) = Rule name args $ do
         tGoal g = return g
         (conj', body) = runState (mapM tGoal conj) []
     pure $ body ++ conj'
+-}
