@@ -356,21 +356,19 @@ superhomogeneous (Rule name args body) = Rule name args (tGoal body)
 
 distinctVars :: Rule Var Var -> Rule Var Var
 distinctVars (Rule name args body) = Rule name args (tGoal body)
-  where --vars = do
-        --    goal <- conj
-        --    case goal of
-        --        Func _ vs _ -> vs
-        --        _ -> []
-        --fdups = [(head l, length l) | l <- group (sort vars), length l > 1]
+  where vars (Atom (Func _ vs _)) = vs
+        vars (Atom _) = []
+        vars g = subgoals g >>= vars
+        fdups = [(head l, length l) | l <- group . sort $ vars body, length l > 1]
         tVar dups (V v) | V v `elem` map fst dups = do
             body <- get
             let v' = v ++ show (length body)
             put $ body ++ [Unif (V v') (V v)]
             return (V v')
         tVar _ v = return v
-        --tAtom (Func name vs u) = do
-        --    vs' <- mapM (tVar fdups) vs
-        --    return $ Func name vs' u
+        tAtom (Func name vs u) = do
+            vs' <- mapM (tVar fdups) vs
+            return $ Func name vs' u
         tAtom (Pred name vs) = do
             let pdups = [(head l, length l) | l <- group (sort vs), length l > 1]
             vs' <- mapM (tVar pdups) vs

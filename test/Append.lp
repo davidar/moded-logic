@@ -1,5 +1,5 @@
 append [] x x.
-append (ah:t) b (ch:tb) :- ah = ch, append t b tb.
+append (h:t) b (h:tb) :- append t b tb.
 append a b c abc :-
     append a b ab, append ab c abc.
 reverse [] [].
