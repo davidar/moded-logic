@@ -3,8 +3,9 @@ import Control.Applicative
 import Control.Monad.Logic
 
 {- append/3
-append arg1 arg2 arg3 :- ((arg1 = [], arg2 = x, arg3 = x, ()); ((arg1 = h0 : t, h0 = h), arg2 = b, (arg3 = h0 : tb, h0 = h), (append t b tb))).
+append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b, ()); ((arg1 = h0 : t, h0 = h), arg2 = b, (arg3 = h0 : tb, h0 = h), (append t b tb))).
 constraints:
+b[0]
 b[1]
 b[]
 h0[1]
@@ -15,13 +16,12 @@ t[1]
 t[]
 tb[1]
 tb[]
-x[0]
-x[]
 ~(arg1[1,0,0] & h0[1,0,0])
-~(arg2[0,1] & x[0,1])
+~(arg2[0,1] & b[0,1])
 ~(arg2[1,1] & b[1,1])
-~(arg3[0,2] & x[0,2])
+~(arg3[0,2] & b[0,2])
 ~(arg3[1,2,0] & h0[1,2,0])
+~(b[0,1] & b[0,2])
 ~(b[1,1] & b[1,3])
 ~(h0[1,0,0] & h0[1,0,1])
 ~(h0[1,0,1] & h[1,0,1])
@@ -31,7 +31,6 @@ x[]
 ~(h[1,0] & h[1,2])
 ~(t[1,0] & t[1,3])
 ~(tb[1,2] & tb[1,3])
-~(x[0,1] & x[0,2])
 (arg1[0] <-> arg1[0,0])
 (arg1[1,0] <-> arg1[1,0,0])
 (arg1[1] <-> arg1[1,0])
@@ -46,6 +45,7 @@ x[]
 (arg3[1] <-> arg3[1,2])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
+(b[0] <-> (b[0,1] | b[0,2]))
 (b[1,3,0] <-> arg2[])
 (b[1,3] <-> b[1,3,0])
 (b[1] <-> (b[1,1] | b[1,3]))
@@ -65,7 +65,6 @@ x[]
 (tb[1,3,0] <-> arg3[])
 (tb[1,3] <-> tb[1,3,0])
 (tb[1] <-> (tb[1,2] | tb[1,3]))
-(x[0] <-> (x[0,1] | x[0,2]))
 -}
 -- mode ordering failure, cyclic dependency: [2] (arg3::out = h0::in : tb::in, h0::in = h::out) -> [0] (h0::out = h::in, arg1::out = h0::in : t::in)
 -- mode ordering failure, cyclic dependency: [2] (h0::out = h::in, arg3::out = h0::in : tb::in) -> [0] (arg1::out = h0::in : t::in, h0::in = h::out)
@@ -81,8 +80,8 @@ x[]
 append_iio arg1 arg2 = do
   (arg3) <- (do
     guard $ arg1 == []
-    x <- pure arg2
-    arg3 <- pure x
+    b <- pure arg2
+    arg3 <- pure b
     () <- (do
       
       pure ()
@@ -110,8 +109,8 @@ append_iio arg1 arg2 = do
 append_oii arg2 arg3 = do
   (arg1) <- (do
     arg1 <- pure []
-    x <- pure arg2
-    guard $ arg3 == x
+    b <- pure arg2
+    guard $ arg3 == b
     () <- (do
       
       pure ()
@@ -139,8 +138,8 @@ append_oii arg2 arg3 = do
 --append_oii arg2 arg3 = do
 --  (arg1) <- (do
 --    arg1 <- pure []
---    x <- pure arg3
---    guard $ arg2 == x
+--    b <- pure arg3
+--    guard $ arg2 == b
 --    () <- (do
 --      
 --      pure ()
@@ -169,8 +168,8 @@ append_oii arg2 arg3 = do
 append_ooi arg3 = do
   (arg1,arg2) <- (do
     arg1 <- pure []
-    x <- pure arg3
-    arg2 <- pure x
+    b <- pure arg3
+    arg2 <- pure b
     () <- (do
       
       pure ()

@@ -99,18 +99,23 @@ unDepNode (DepNode _ g) = g
 variables :: Goal v -> [v]
 variables = toList
 
-nonlocals :: Path -> Rule Var Var -> Set Var
-nonlocals p r@(Rule _ vars body) = Set.fromList inside `Set.intersection` Set.fromList outside
-  where inside = variables (extract p body)
-        outside = vars ++ (variables body \\ inside)
+outside :: Path -> Goal Var -> Set Var
+outside [] g = Set.empty
+outside (c:ps) (Conj gs) = Set.fromList (dropIndex c gs >>= variables) `Set.union` outside ps (gs !! c)
+outside (d:ps) (Disj gs) = outside ps (gs !! d)
 
 nonlocals' :: Path -> Rule ModedVar ModedVar -> Set Var
 nonlocals' p (Rule name vars body) = nonlocals p (Rule name (stripMode <$> vars) (stripMode <$> body))
 
+nonlocals :: Path -> Rule Var Var -> Set Var
+nonlocals p r@(Rule _ vars body) = inside `Set.intersection` out
+  where inside = Set.fromList . variables $ extract p body
+        out = Set.fromList vars `Set.union` outside p body
+
 locals :: Path -> Rule Var Var -> Set Var
-locals p r@(Rule _ vars body) = Set.fromList inside Set.\\ Set.fromList outside
-  where inside = variables (extract p body)
-        outside = vars ++ (variables body \\ inside)
+locals p r@(Rule _ vars body) = inside Set.\\ out
+  where inside = Set.fromList . variables $ extract p body
+        out = Set.fromList vars `Set.union` outside p body
 
 subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs
