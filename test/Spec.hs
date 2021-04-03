@@ -32,7 +32,6 @@ main = do
             observeAll (append_iio [1..3] [4..6]) `shouldBe` [[1..6]]
         it "ooi" $ do
             observeAll (append_ooi [1..6]) `shouldBe` [splitAt i [1..6] | i <- [0..6]]
-        {-
         it "iiio" $ do
             observeAll (append_iiio [1,2] [3,4] [5,6]) `shouldBe` [[1..6]]
         it "iiii" $ do
@@ -45,6 +44,7 @@ main = do
                 j <- [0..length bc]
                 let (b,c) = splitAt j bc
                 pure (a,b,c)
+        {-
         it "reverse" $ do
             observeAll (reverse_oi [0..9]) `shouldBe` [[9,8..0]]
             observeAll (reverse_io [0..9]) `shouldBe` [[9,8..0]]

@@ -214,3 +214,518 @@ append_ooi arg3 = do
     pure (arg1,arg2)
    )
   pure (arg1,arg2)
+{- append/4
+append arg1 arg2 arg3 arg4 :- ((arg1 = a, arg2 = b, arg3 = c, arg4 = abc, (append a b ab, append ab c abc))).
+constraints:
+a[0]
+a[]
+ab[0,4]
+ab[0]
+ab[]
+abc[0]
+abc[]
+b[0]
+b[]
+c[0]
+c[]
+~(a[0,0] & a[0,4])
+~(ab[0,4,0] & ab[0,4,1])
+~(abc[0,3] & abc[0,4])
+~(arg1[0,0] & a[0,0])
+~(arg2[0,1] & b[0,1])
+~(arg3[0,2] & c[0,2])
+~(arg4[0,3] & abc[0,3])
+~(b[0,1] & b[0,4])
+~(c[0,2] & c[0,4])
+((a[0,4,0] & (b[0,4,0] & ~ab[0,4,0])) | ((a[0,4,0] & (~b[0,4,0] & ~ab[0,4,0])) | ((~a[0,4,0] & (b[0,4,0] & ~ab[0,4,0])) | ((~a[0,4,0] & (~b[0,4,0] & ab[0,4,0])) | (~a[0,4,0] & (~b[0,4,0] & ~ab[0,4,0]))))))
+((ab[0,4,1] & (c[0,4,1] & ~abc[0,4,1])) | ((ab[0,4,1] & (~c[0,4,1] & ~abc[0,4,1])) | ((~ab[0,4,1] & (c[0,4,1] & ~abc[0,4,1])) | ((~ab[0,4,1] & (~c[0,4,1] & abc[0,4,1])) | (~ab[0,4,1] & (~c[0,4,1] & ~abc[0,4,1]))))))
+(a[0,4] <-> a[0,4,0])
+(a[0] <-> (a[0,0] | a[0,4]))
+(ab[0,4] <-> (ab[0,4,0] | ab[0,4,1]))
+(ab[0] <-> ab[0,4])
+(abc[0,4] <-> abc[0,4,1])
+(abc[0] <-> (abc[0,3] | abc[0,4]))
+(arg1[0] <-> arg1[0,0])
+(arg1[] <-> arg1[0])
+(arg2[0] <-> arg2[0,1])
+(arg2[] <-> arg2[0])
+(arg3[0] <-> arg3[0,2])
+(arg3[] <-> arg3[0])
+(arg4[0] <-> arg4[0,3])
+(arg4[] <-> arg4[0])
+(b[0,4] <-> b[0,4,0])
+(b[0] <-> (b[0,1] | b[0,4]))
+(c[0,4] <-> c[0,4,1])
+(c[0] <-> (c[0,2] | c[0,4]))
+-}
+append_iiii arg1 arg2 arg3 arg4 = do
+  () <- (do
+    a <- pure arg1
+    abc <- pure arg4
+    (b,c) <- (do
+      (ab,c) <- append_ooi abc
+      (b) <- append_ioi a ab
+      pure (b,c)
+     )
+    guard $ arg2 == b
+    guard $ arg3 == c
+    pure ()
+   )
+  pure ()
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    abc <- pure arg4
+--    (c) <- (do
+--      (ab) <- append_iio a b
+--      (c) <- append_ioi ab abc
+--      pure (c)
+--     )
+--    guard $ arg3 == c
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    abc <- pure arg4
+--    (c) <- (do
+--      (ab,c) <- append_ooi abc
+--      () <- append_iii a b ab
+--      pure (c)
+--     )
+--    guard $ arg3 == c
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    c <- pure arg3
+--    (abc) <- (do
+--      (ab) <- append_iio a b
+--      (abc) <- append_iio ab c
+--      pure (abc)
+--     )
+--    guard $ arg4 == abc
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    c <- pure arg3
+--    abc <- pure arg4
+--    () <- (do
+--      (ab) <- append_iio a b
+--      () <- append_iii ab c abc
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    c <- pure arg3
+--    abc <- pure arg4
+--    () <- (do
+--      (ab) <- append_oii c abc
+--      () <- append_iii a b ab
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    a <- pure arg1
+--    c <- pure arg3
+--    abc <- pure arg4
+--    (b) <- (do
+--      (ab) <- append_oii c abc
+--      (b) <- append_ioi a ab
+--      pure (b)
+--     )
+--    guard $ arg2 == b
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    abc <- pure arg4
+--    (a,b,c) <- (do
+--      (ab,c) <- append_ooi abc
+--      (a,b) <- append_ooi ab
+--      pure (a,b,c)
+--     )
+--    guard $ arg1 == a
+--    guard $ arg2 == b
+--    guard $ arg3 == c
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    b <- pure arg2
+--    abc <- pure arg4
+--    (a,c) <- (do
+--      (ab,c) <- append_ooi abc
+--      (a) <- append_oii b ab
+--      pure (a,c)
+--     )
+--    guard $ arg1 == a
+--    guard $ arg3 == c
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    b <- pure arg2
+--    c <- pure arg3
+--    abc <- pure arg4
+--    (a) <- (do
+--      (ab) <- append_oii c abc
+--      (a) <- append_oii b ab
+--      pure (a)
+--     )
+--    guard $ arg1 == a
+--    pure ()
+--   )
+--  pure ()
+
+--append_iiii arg1 arg2 arg3 arg4 = do
+--  () <- (do
+--    c <- pure arg3
+--    abc <- pure arg4
+--    (a,b) <- (do
+--      (ab) <- append_oii c abc
+--      (a,b) <- append_ooi ab
+--      pure (a,b)
+--     )
+--    guard $ arg1 == a
+--    guard $ arg2 == b
+--    pure ()
+--   )
+--  pure ()
+
+append_iiio arg1 arg2 arg3 = do
+  (arg4) <- (do
+    a <- pure arg1
+    b <- pure arg2
+    c <- pure arg3
+    (abc) <- (do
+      (ab) <- append_iio a b
+      (abc) <- append_iio ab c
+      pure (abc)
+     )
+    arg4 <- pure abc
+    pure (arg4)
+   )
+  pure (arg4)
+append_iioi arg1 arg2 arg4 = do
+  (arg3) <- (do
+    a <- pure arg1
+    abc <- pure arg4
+    (b,c) <- (do
+      (ab,c) <- append_ooi abc
+      (b) <- append_ioi a ab
+      pure (b,c)
+     )
+    guard $ arg2 == b
+    arg3 <- pure c
+    pure (arg3)
+   )
+  pure (arg3)
+--append_iioi arg1 arg2 arg4 = do
+--  (arg3) <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    abc <- pure arg4
+--    (c) <- (do
+--      (ab) <- append_iio a b
+--      (c) <- append_ioi ab abc
+--      pure (c)
+--     )
+--    arg3 <- pure c
+--    pure (arg3)
+--   )
+--  pure (arg3)
+
+--append_iioi arg1 arg2 arg4 = do
+--  (arg3) <- (do
+--    a <- pure arg1
+--    b <- pure arg2
+--    abc <- pure arg4
+--    (c) <- (do
+--      (ab,c) <- append_ooi abc
+--      () <- append_iii a b ab
+--      pure (c)
+--     )
+--    arg3 <- pure c
+--    pure (arg3)
+--   )
+--  pure (arg3)
+
+--append_iioi arg1 arg2 arg4 = do
+--  (arg3) <- (do
+--    abc <- pure arg4
+--    (a,b,c) <- (do
+--      (ab,c) <- append_ooi abc
+--      (a,b) <- append_ooi ab
+--      pure (a,b,c)
+--     )
+--    guard $ arg1 == a
+--    guard $ arg2 == b
+--    arg3 <- pure c
+--    pure (arg3)
+--   )
+--  pure (arg3)
+
+--append_iioi arg1 arg2 arg4 = do
+--  (arg3) <- (do
+--    b <- pure arg2
+--    abc <- pure arg4
+--    (a,c) <- (do
+--      (ab,c) <- append_ooi abc
+--      (a) <- append_oii b ab
+--      pure (a,c)
+--     )
+--    guard $ arg1 == a
+--    arg3 <- pure c
+--    pure (arg3)
+--   )
+--  pure (arg3)
+
+append_ioii arg1 arg3 arg4 = do
+  (arg2) <- (do
+    a <- pure arg1
+    abc <- pure arg4
+    (b,c) <- (do
+      (ab,c) <- append_ooi abc
+      (b) <- append_ioi a ab
+      pure (b,c)
+     )
+    arg2 <- pure b
+    guard $ arg3 == c
+    pure (arg2)
+   )
+  pure (arg2)
+--append_ioii arg1 arg3 arg4 = do
+--  (arg2) <- (do
+--    a <- pure arg1
+--    c <- pure arg3
+--    abc <- pure arg4
+--    (b) <- (do
+--      (ab) <- append_oii c abc
+--      (b) <- append_ioi a ab
+--      pure (b)
+--     )
+--    arg2 <- pure b
+--    pure (arg2)
+--   )
+--  pure (arg2)
+
+--append_ioii arg1 arg3 arg4 = do
+--  (arg2) <- (do
+--    abc <- pure arg4
+--    (a,b,c) <- (do
+--      (ab,c) <- append_ooi abc
+--      (a,b) <- append_ooi ab
+--      pure (a,b,c)
+--     )
+--    guard $ arg1 == a
+--    arg2 <- pure b
+--    guard $ arg3 == c
+--    pure (arg2)
+--   )
+--  pure (arg2)
+
+--append_ioii arg1 arg3 arg4 = do
+--  (arg2) <- (do
+--    c <- pure arg3
+--    abc <- pure arg4
+--    (a,b) <- (do
+--      (ab) <- append_oii c abc
+--      (a,b) <- append_ooi ab
+--      pure (a,b)
+--     )
+--    guard $ arg1 == a
+--    arg2 <- pure b
+--    pure (arg2)
+--   )
+--  pure (arg2)
+
+append_iooi arg1 arg4 = do
+  (arg2,arg3) <- (do
+    a <- pure arg1
+    abc <- pure arg4
+    (b,c) <- (do
+      (ab,c) <- append_ooi abc
+      (b) <- append_ioi a ab
+      pure (b,c)
+     )
+    arg2 <- pure b
+    arg3 <- pure c
+    pure (arg2,arg3)
+   )
+  pure (arg2,arg3)
+--append_iooi arg1 arg4 = do
+--  (arg2,arg3) <- (do
+--    abc <- pure arg4
+--    (a,b,c) <- (do
+--      (ab,c) <- append_ooi abc
+--      (a,b) <- append_ooi ab
+--      pure (a,b,c)
+--     )
+--    guard $ arg1 == a
+--    arg2 <- pure b
+--    arg3 <- pure c
+--    pure (arg2,arg3)
+--   )
+--  pure (arg2,arg3)
+
+append_oiii arg2 arg3 arg4 = do
+  (arg1) <- (do
+    abc <- pure arg4
+    (a,b,c) <- (do
+      (ab,c) <- append_ooi abc
+      (a,b) <- append_ooi ab
+      pure (a,b,c)
+     )
+    arg1 <- pure a
+    guard $ arg2 == b
+    guard $ arg3 == c
+    pure (arg1)
+   )
+  pure (arg1)
+--append_oiii arg2 arg3 arg4 = do
+--  (arg1) <- (do
+--    b <- pure arg2
+--    abc <- pure arg4
+--    (a,c) <- (do
+--      (ab,c) <- append_ooi abc
+--      (a) <- append_oii b ab
+--      pure (a,c)
+--     )
+--    arg1 <- pure a
+--    guard $ arg3 == c
+--    pure (arg1)
+--   )
+--  pure (arg1)
+
+--append_oiii arg2 arg3 arg4 = do
+--  (arg1) <- (do
+--    b <- pure arg2
+--    c <- pure arg3
+--    abc <- pure arg4
+--    (a) <- (do
+--      (ab) <- append_oii c abc
+--      (a) <- append_oii b ab
+--      pure (a)
+--     )
+--    arg1 <- pure a
+--    pure (arg1)
+--   )
+--  pure (arg1)
+
+--append_oiii arg2 arg3 arg4 = do
+--  (arg1) <- (do
+--    c <- pure arg3
+--    abc <- pure arg4
+--    (a,b) <- (do
+--      (ab) <- append_oii c abc
+--      (a,b) <- append_ooi ab
+--      pure (a,b)
+--     )
+--    arg1 <- pure a
+--    guard $ arg2 == b
+--    pure (arg1)
+--   )
+--  pure (arg1)
+
+append_oioi arg2 arg4 = do
+  (arg1,arg3) <- (do
+    abc <- pure arg4
+    (a,b,c) <- (do
+      (ab,c) <- append_ooi abc
+      (a,b) <- append_ooi ab
+      pure (a,b,c)
+     )
+    arg1 <- pure a
+    guard $ arg2 == b
+    arg3 <- pure c
+    pure (arg1,arg3)
+   )
+  pure (arg1,arg3)
+--append_oioi arg2 arg4 = do
+--  (arg1,arg3) <- (do
+--    b <- pure arg2
+--    abc <- pure arg4
+--    (a,c) <- (do
+--      (ab,c) <- append_ooi abc
+--      (a) <- append_oii b ab
+--      pure (a,c)
+--     )
+--    arg1 <- pure a
+--    arg3 <- pure c
+--    pure (arg1,arg3)
+--   )
+--  pure (arg1,arg3)
+
+append_ooii arg3 arg4 = do
+  (arg1,arg2) <- (do
+    abc <- pure arg4
+    (a,b,c) <- (do
+      (ab,c) <- append_ooi abc
+      (a,b) <- append_ooi ab
+      pure (a,b,c)
+     )
+    arg1 <- pure a
+    arg2 <- pure b
+    guard $ arg3 == c
+    pure (arg1,arg2)
+   )
+  pure (arg1,arg2)
+--append_ooii arg3 arg4 = do
+--  (arg1,arg2) <- (do
+--    c <- pure arg3
+--    abc <- pure arg4
+--    (a,b) <- (do
+--      (ab) <- append_oii c abc
+--      (a,b) <- append_ooi ab
+--      pure (a,b)
+--     )
+--    arg1 <- pure a
+--    arg2 <- pure b
+--    pure (arg1,arg2)
+--   )
+--  pure (arg1,arg2)
+
+append_oooi arg4 = do
+  (arg1,arg2,arg3) <- (do
+    abc <- pure arg4
+    (a,b,c) <- (do
+      (ab,c) <- append_ooi abc
+      (a,b) <- append_ooi ab
+      pure (a,b,c)
+     )
+    arg1 <- pure a
+    arg2 <- pure b
+    arg3 <- pure c
+    pure (arg1,arg2,arg3)
+   )
+  pure (arg1,arg2,arg3)

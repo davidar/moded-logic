@@ -196,27 +196,29 @@ unsafeSolveConstraints :: CState -> Rule Var Var -> Set Constraints
 unsafeSolveConstraints procs = unsafePerformIO . solveConstraints procs
 
 mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
-mode (Rule name vars body) soln =
+mode r@(Rule name vars body) soln =
     Right $ Rule name (annotate [] <$> vars) (walk [] body)
   where annotate p (V v) | term p (V v) `Set.member` soln = Out v
                          | Sat.Neg (term p (V v)) `Set.member` soln = In v
         walk p (Disj disj) = Disj [walk (p ++ [d]) g | (d,g) <- zip [0..] disj]
         walk p (Conj conj) = Conj . either (error . show) id $
-            sortConj [walk (p ++ [c]) g | (c,g) <- zip [0..] conj]
+            sortConj [(walk (p ++ [c]) g, nonlocals (p ++ [c]) r) | (c,g) <- zip [0..] conj]
         walk p (Atom a) = Atom $ annotate p <$> a
 
 mode' :: CState -> Rule Var Var -> CState
 mode' procs rule@(Rule name vars _) = procs ++
     [((name, length vars), ((rule, cComp procs [] rule), mode rule <$> Set.elems (unsafeSolveConstraints procs rule)))]
 
-sortConj :: [Goal ModedVar] -> Either (Cycle DepNode) [Goal ModedVar]
+sortConj :: [(Goal ModedVar, Set Var)] -> Either (Cycle DepNode) [Goal ModedVar]
 sortConj gs = map unDepNode <$> topSort (overlay vs es)
-  where vs = vertices $ zipWith DepNode [0..] gs
+  where vs = vertices $ zipWith DepNode [0..] (fst <$> gs)
         es = edges $ do
-            let ins  = [Set.fromList [v | In  v <- variables g] | g <- gs]
-                outs = [Set.fromList [v | Out v <- variables g] | g <- gs]
-            (i,g) <- zip [0..] gs
-            (j,h) <- zip [0..] gs
+            let ins  = [Set.fromList [v | V v <- Set.elems nl
+                                        , In v `elem` variables g] | (g,nl) <- gs]
+                outs = [Set.fromList [v | V v <- Set.elems nl
+                                        , Out v `elem` variables g] | (g,nl) <- gs]
+            (i,(g,_)) <- zip [0..] gs
+            (j,(h,_)) <- zip [0..] gs
             guard . not . Set.null $ Set.intersection (outs !! i) (ins !! j)
             return (DepNode i g, DepNode j h)
 
