@@ -729,3 +729,187 @@ append_oooi arg4 = do
     pure (arg1,arg2,arg3)
    )
   pure (arg1,arg2,arg3)
+{- reverse/2
+reverse arg1 arg2 :- ((arg1 = [], arg2 = [], ()); (arg1 = h : t, arg2 = l, (reverse t r, (append r data1 l, data0 = [], data1 = h : data0)))).
+constraints:
+data0[1,2,1]
+data0[1,2]
+data0[1]
+data0[]
+data1[1,2,1]
+data1[1,2]
+data1[1]
+data1[]
+h[1]
+h[]
+l[1]
+l[]
+r[1,2]
+r[1]
+r[]
+t[1]
+t[]
+~(arg1[1,0] & h[1,0])
+~(arg2[1,1] & l[1,1])
+~(data0[1,2,1,1] & data0[1,2,1,2])
+~(data1[1,2,1,0] & data1[1,2,1,2])
+~(data1[1,2,1,2] & h[1,2,1,2])
+~(h[1,0] & h[1,2])
+~(l[1,1] & l[1,2])
+~(r[1,2,0] & r[1,2,1])
+~(t[1,0] & t[1,2])
+((r[1,2,1,0] & (data1[1,2,1,0] & ~l[1,2,1,0])) | ((r[1,2,1,0] & (~data1[1,2,1,0] & ~l[1,2,1,0])) | ((~r[1,2,1,0] & (data1[1,2,1,0] & ~l[1,2,1,0])) | ((~r[1,2,1,0] & (~data1[1,2,1,0] & l[1,2,1,0])) | (~r[1,2,1,0] & (~data1[1,2,1,0] & ~l[1,2,1,0]))))))
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,1])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(data0[1,2,1] <-> (data0[1,2,1,1] | data0[1,2,1,2]))
+(data0[1,2] <-> data0[1,2,1])
+(data0[1] <-> data0[1,2])
+(data1[1,2,1] <-> (data1[1,2,1,0] | data1[1,2,1,2]))
+(data1[1,2] <-> data1[1,2,1])
+(data1[1] <-> data1[1,2])
+(h[1,0] <-> t[1,0])
+(h[1,2,1,2] <-> data0[1,2,1,2])
+(h[1,2,1] <-> h[1,2,1,2])
+(h[1,2] <-> h[1,2,1])
+(h[1] <-> (h[1,0] | h[1,2]))
+(l[1,2,1] <-> l[1,2,1,0])
+(l[1,2] <-> l[1,2,1])
+(l[1] <-> (l[1,1] | l[1,2]))
+(r[1,2,0] <-> arg2[])
+(r[1,2,1] <-> r[1,2,1,0])
+(r[1,2] <-> (r[1,2,0] | r[1,2,1]))
+(r[1] <-> r[1,2])
+(t[1,2,0] <-> arg1[])
+(t[1,2] <-> t[1,2,0])
+(t[1] <-> (t[1,0] | t[1,2]))
+-}
+reverse_ii arg1 arg2 = do
+  () <- (do
+    guard $ arg1 == []
+    guard $ arg2 == []
+    () <- (do
+      
+      pure ()
+     )
+    pure ()
+   ) <|> (do
+    (h:t) <- pure arg1
+    l <- pure arg2
+    () <- (do
+      (r) <- (do
+        (r,data1) <- append_ooi l
+        data0 <- pure []
+        guard $ data1 == (h:data0)
+        pure (r)
+       )
+      () <- reverse_ii t r
+      pure ()
+     )
+    pure ()
+   )
+  pure ()
+--reverse_ii arg1 arg2 = do
+--  () <- (do
+--    guard $ arg1 == []
+--    guard $ arg2 == []
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    (h:t) <- pure arg1
+--    l <- pure arg2
+--    () <- (do
+--      (r) <- (do
+--        data0 <- pure []
+--        data1 <- pure (h:data0)
+--        (r) <- append_oii data1 l
+--        pure (r)
+--       )
+--      () <- reverse_ii t r
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+reverse_io arg1 = do
+  (arg2) <- (do
+    guard $ arg1 == []
+    arg2 <- pure []
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg2)
+   ) <|> (do
+    (h:t) <- pure arg1
+    (l) <- (do
+      (r) <- reverse_io t
+      (l) <- (do
+        data0 <- pure []
+        data1 <- pure (h:data0)
+        (l) <- append_iio r data1
+        pure (l)
+       )
+      pure (l)
+     )
+    arg2 <- pure l
+    pure (arg2)
+   )
+  pure (arg2)
+reverse_oi arg2 = do
+  (arg1) <- (do
+    arg1 <- pure []
+    guard $ arg2 == []
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg1)
+   ) <|> (do
+    l <- pure arg2
+    (h,t) <- (do
+      (h,r) <- (do
+        (r,data1) <- append_ooi l
+        (h:data0) <- pure data1
+        guard $ data0 == []
+        pure (h,r)
+       )
+      (t) <- reverse_oi r
+      pure (h,t)
+     )
+    arg1 <- pure (h:t)
+    pure (arg1)
+   )
+  pure (arg1)
+{- palindrome/1
+palindrome arg1 :- ((arg1 = a, (reverse a a))).
+constraints:
+a[0]
+a[]
+~(a[0,0] & a[0,1])
+~(arg1[0,0] & a[0,0])
+((a[0,1,0] & ~a[0,1,0]) | ((~a[0,1,0] & a[0,1,0]) | (~a[0,1,0] & ~a[0,1,0])))
+(a[0,1] <-> a[0,1,0])
+(a[0] <-> (a[0,0] | a[0,1]))
+(arg1[0] <-> arg1[0,0])
+(arg1[] <-> arg1[0])
+-}
+palindrome_i arg1 = do
+  () <- (do
+    a <- pure arg1
+    () <- (do
+      () <- reverse_ii a a
+      pure ()
+     )
+    pure ()
+   )
+  pure ()

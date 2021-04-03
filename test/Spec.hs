@@ -44,7 +44,6 @@ main = do
                 j <- [0..length bc]
                 let (b,c) = splitAt j bc
                 pure (a,b,c)
-        {-
         it "reverse" $ do
             observeAll (reverse_oi [0..9]) `shouldBe` [[9,8..0]]
             observeAll (reverse_io [0..9]) `shouldBe` [[9,8..0]]
@@ -53,6 +52,7 @@ main = do
         it "palindrome" $ do
             observeAll (palindrome_i [1,2,3,2,1]) `shouldBe` [()]
             observeAll (palindrome_i [1,2,3,4,5]) `shouldBe` []
+        {-
         it "duplicate" $ do
             observeAll (duplicate_oi [0,1,0,1]) `shouldBe` [[0,1]]
             observeAll (duplicate_oi [0,1,2,3]) `shouldBe` []
