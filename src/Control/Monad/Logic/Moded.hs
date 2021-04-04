@@ -138,6 +138,9 @@ extendPath p r = [p ++ [i] | i <- take (length . subgoals . extract p $ body r) 
 term :: Path -> Var -> Sat.Expr
 term p (V v) = Sat.Var . Sat.Ident $ v ++ show p
 
+nand :: Path -> Var -> Var -> Sat.Expr
+nand p u v = Sat.Neg $ term p u `Sat.Conj` term p v
+
 cOr :: [Sat.Expr] -> Sat.Expr
 cOr = foldr Sat.Disj Sat.Bottom
 
@@ -160,6 +163,15 @@ cLocal p r = term p `Set.map` locals p r
 cExt :: Path -> Rule Var Var -> Constraints
 cExt [] _ = Set.empty
 cExt p r = (Sat.Neg . term p) `Set.map` (inside (init p) r Set.\\ inside p r)
+
+-- | Goal-specific constraints
+cGoal :: CState -> Path -> Rule Var Var -> Constraints
+cGoal procs p r | Atom{} <- extract p (body r) = cAtom procs p r
+cGoal procs p r = Set.unions [cComp procs p' r | p' <- extendPath p r] `Set.union`
+    case extract p (body r) of
+        Disj{} -> cDisj p r
+        Conj{} -> cConj p r
+        Ifte{} -> cIte  p r
 
 -- | Disjunction constraints (sec 5.2.3)
 cDisj :: Path -> Rule Var Var -> Constraints
@@ -187,25 +199,15 @@ cIte p r = Set.fromList . concat $
         pt = p ++ [1]
         pe = p ++ [2]
 
-nand :: Path -> Var -> Var -> Sat.Expr
-nand p u v = Sat.Neg (Sat.Conj (term p u) (term p v))
-
--- | Goal-specific constraints
-cGoal :: CState -> Path -> Rule Var Var -> Constraints
-cGoal procs p r = case extract p (body r) of
-    Disj disj -> Set.unions $ cDisj p r :
-        [cComp procs (p ++ [d]) r | d <- take (length disj) [0..]]
-    Conj conj -> Set.unions $ cConj p r :
-        [cComp procs (p ++ [c]) r | c <- take (length conj) [0..]]
-    Ifte c t e -> Set.unions $ cIte p r :
-        [cComp procs (p ++ [c]) r | c <- [0,1,2]]
--- Atomic goals (sec 5.2.4)
-    Atom (Unif u v) -> Set.singleton $ nand p u v
-    Atom (Func _ [] _) -> Set.empty
-    Atom (Func _ [v] u) -> Set.singleton $ nand p u v
-    Atom (Func _ (v:vs) u) -> Set.fromList $
+-- | Atomic goals (sec 5.2.4)
+cAtom :: CState -> Path -> Rule Var Var -> Constraints
+cAtom procs p r = case let Atom a = extract p (body r) in a of
+    Unif u v -> Set.singleton $ nand p u v
+    Func _ [] _ -> Set.empty
+    Func _ [v] u -> Set.singleton $ nand p u v
+    Func _ (v:vs) u -> Set.fromList $
         nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
-    Atom (Pred name vars)
+    Pred name vars
       | Rule rname rvars _ <- r, name == rname, length vars == length rvars -> Set.fromList $ do
         (u,v) <- zip vars rvars
         pure $ term p u `Sat.Iff` term [] v
