@@ -1,6 +1,7 @@
 module Control.Monad.Logic.Parse where
 
 import Control.Monad.Logic.Moded
+import Data.Char
 import Data.Functor
 import Data.Void
 import Text.Megaparsec
@@ -9,21 +10,38 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
 
-sc :: Parser ()
-sc = L.space (void spaceChar) lineComment blockComment
+spaceConsumer :: Parser ()
+spaceConsumer = L.space (void spaceChar) lineComment blockComment
   where lineComment  = L.skipLineComment "--"
         blockComment = L.skipBlockComment "{-" "-}"
 
 lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
+lexeme = L.lexeme spaceConsumer
 
 symbol :: String -> Parser String
-symbol = L.symbol sc
+symbol = L.symbol spaceConsumer
 
+integer :: Parser Integer
+integer = lexeme L.decimal
+
+signedInteger :: Parser Integer
+signedInteger = L.signed spaceConsumer integer
+
+parens :: Parser a -> Parser a
 parens = symbol "(" `between` symbol ")"
 
+rword :: String -> Parser ()
+rword w = string w *> notFollowedBy alphaNumChar *> spaceConsumer
+
+rws :: [String] -- list of reserved words
+rws = ["if","then","else"]
+
 identifier :: Parser String
-identifier = lexeme $ (:) <$> letterChar <*> many alphaNumChar
+identifier = (lexeme . try) (p >>= check)
+  where p = (:) <$> letterChar <*> many alphaNumChar
+        check x = if x `elem` rws
+                  then fail $ "keyword " ++ show x ++ " cannot be an identifier"
+                  else return x
 
 variable :: Parser Val
 variable = Var . V <$> identifier
@@ -41,7 +59,14 @@ value = parens value <|> try (do
     pure $ foldr (\u v -> Cons ":" [u,v]) (Cons "[]" []) elems
   ) <|> (do
     v <- identifier
-    pure $ Var (V v)
+    if isUpper (head v)
+    then do
+      vs <- many value
+      pure $ Cons v vs
+    else pure $ Var (V v)
+  ) <|> (do
+    i <- signedInteger
+    pure $ Cons (show i) []
   )
 
 
@@ -56,7 +81,16 @@ predicate = do
     vs <- many value
     pure $ Pred name vs
 
-goal = Atom <$> (try unify <|> predicate)
+softcut = do
+    rword "if"
+    c <- goal
+    rword "then"
+    t <- goal
+    rword "else"
+    e <- goal
+    pure $ Ifte c t e
+
+goal = (Atom <$> (try unify <|> predicate)) <|> softcut
 
 conj = Conj <$> goal `sepBy` symbol ","
 

@@ -30,6 +30,7 @@ data Atom v = Unif v v
 data Goal v = Atom (Atom v)
             | Conj [Goal v]
             | Disj [Goal v]
+            | Ifte (Goal v) (Goal v) (Goal v)
             deriving (Eq, Ord, Functor, Foldable)
 
 data Rule u v = Rule Name [u] (Goal v)
@@ -43,7 +44,7 @@ data ModedVar = In String | Out String
 
 type Prog u v = [Rule u v]
 
-type CState = [((Name, Int), ((Rule Var Var, Constraints), [Either String (Rule ModedVar ModedVar)]))]
+type CState = [((Name, Int), ((Rule Var Var, Constraints), [(Constraints, Either String (Rule ModedVar ModedVar))]))]
 
 data Val = Var Var
          | Cons Name [Val]
@@ -70,6 +71,7 @@ instance (Show v) => Show (Goal v) where
     show (Atom a) = show a
     show (Conj gs) = "("++ intercalate ", " (map show gs) ++")"
     show (Disj gs) = "("++ intercalate "; " (map show gs) ++")"
+    show (Ifte c t e) = "if " <> show c <> " then " <> show t <> " else " <> show e
 
 instance (Show u, Show v) => Show (Rule u v) where
     show (Rule name vars g) =
@@ -99,10 +101,14 @@ unDepNode (DepNode _ g) = g
 variables :: Goal v -> [v]
 variables = toList
 
+-- | Variables accessible from parent/sibling contexts
 outside :: Path -> Goal Var -> Set Var
 outside [] g = Set.empty
 outside (c:ps) (Conj gs) = Set.fromList (dropIndex c gs >>= variables) `Set.union` outside ps (gs !! c)
 outside (d:ps) (Disj gs) = outside ps (gs !! d)
+outside (0:ps) (Ifte c t e) = Set.fromList (variables t) `Set.union` outside ps c
+outside (1:ps) (Ifte c t e) = Set.fromList (variables c) `Set.union` outside ps t
+outside (2:ps) (Ifte c t e) = outside ps e
 
 nonlocals' :: Path -> Rule ModedVar ModedVar -> Set Var
 nonlocals' p (Rule name vars body) = nonlocals p (Rule name (stripMode <$> vars) (stripMode <$> body))
@@ -120,6 +126,7 @@ locals p r@(Rule _ vars body) = inside Set.\\ out
 subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs
 subgoals (Disj gs) = gs
+subgoals (Ifte c t e) = [c,t,e]
 
 extract :: Path -> Goal v -> Goal v
 extract [] g = g
@@ -141,7 +148,11 @@ cLocal :: Path -> Rule Var Var -> Constraints
 cLocal p r = term p `Set.map` locals p r
 
 -- | External constraints (sec 5.2.2)
-cExt _ _ = Set.empty
+cExt :: Path -> Rule Var Var -> Constraints
+cExt [] _ = Set.empty
+cExt p r = (Sat.Neg . term p) `Set.map` vs
+  where parent = init p
+        vs = Set.fromList (variables . extract parent $ body r) Set.\\ Set.fromList (variables . extract p $ body r)
 
 -- | Disjunction constraints (sec 5.2.3)
 cDisj :: Path -> Rule Var Var -> Constraints
@@ -152,13 +163,27 @@ cDisj p r = Set.unions $ do
 
 -- | Conjunction constraints (sec 5.2.3)
 cConj :: Path -> Rule Var Var -> Constraints
-cConj p (Rule _ _ body) = Set.fromList $ do
-    let Conj conj = extract p body
+cConj p r = Set.fromList $ do
+    let Conj conj = extract p $ body r
     v <- nub $ conj >>= variables
     let terms = [term (p ++ [c]) v | (c,g) <- zip [0..] conj, v `elem` variables g]
         c = term p v `Sat.Iff` foldr1 Sat.Disj terms
         cs = [Sat.Neg (Sat.Conj s t) | s <- terms, t <- terms, s < t]
     (c:cs)
+
+-- | If-then-else constraints (sec 5.2.3)
+cIte :: Path -> Rule Var Var -> Constraints
+cIte p r = Set.fromList . concat $
+    [[term p v `Sat.Iff` (term pc v `Sat.Disj` term pt v `Sat.Disj` term pe v) | v <- vs]
+    ,[Sat.Neg $ term pc v `Sat.Conj` term pt v | v <- vs]
+    ,[Sat.Neg $ term pc v | v <- nls]
+    ,[term pt v `Sat.Iff` term pe v | v <- nls]
+    ]
+  where vs = nub . variables . extract p $ body r
+        nls = Set.elems $ nonlocals p r
+        pc = p ++ [0]
+        pt = p ++ [1]
+        pe = p ++ [2]
 
 nand :: Path -> Var -> Var -> Sat.Expr
 nand p u v = Sat.Neg (Sat.Conj (term p u) (term p v))
@@ -170,6 +195,8 @@ cGoal procs p r = case extract p (body r) of
         [cComp procs (p ++ [d]) r | d <- take (length disj) [0..]]
     Conj conj -> Set.unions $ cConj p r :
         [cComp procs (p ++ [c]) r | c <- take (length conj) [0..]]
+    Ifte c t e -> Set.unions $ cIte p r :
+        [cComp procs (p ++ [c]) r | c <- [0,1,2]]
 -- Atomic goals (sec 5.2.4)
     Atom (Unif u v) -> Set.singleton $ nand p u v
     Atom (Func _ [] _) -> Set.empty
@@ -182,7 +209,7 @@ cGoal procs p r = case extract p (body r) of
         pure $ term p u `Sat.Iff` term [] v
       | Just (_, procs') <- lookup (name, length vars) procs ->
         Set.singleton . foldr1 Sat.Disj . nub . sort $ do
-            Right (Rule _ mvars _) <- procs'
+            (_, Right (Rule _ mvars _)) <- procs'
             pure . foldr1 Sat.Conj $ do
                 (v,mv) <- zip vars mvars
                 let t = term p v
@@ -213,11 +240,22 @@ mode r@(Rule name vars body) soln = case walk [] body of
             conj'' <- sortConj [(g, nonlocals (p ++ [c]) r)
                              | (c,g) <- zip [0..] conj']
             pure $ Conj conj''
+        walk p (Ifte c t e) = do
+            c' <- walk (p ++ [0]) c
+            t' <- walk (p ++ [1]) t
+            e' <- walk (p ++ [2]) e
+            pure $ Ifte c' t' e'
         walk p (Atom a) = pure . Atom $ annotate p <$> a
 
 mode' :: CState -> Rule Var Var -> CState
 mode' procs rule@(Rule name vars _) = procs ++
-    [((name, length vars), ((rule, cComp procs [] rule), mode rule <$> Set.elems (unsafeSolveConstraints procs rule)))]
+    [ ( (name, length vars)
+      , ( (rule, cComp procs [] rule)
+        , [ (soln, mode rule soln)
+          | soln <- Set.elems $ unsafeSolveConstraints procs rule]
+        )
+      )
+    ]
 
 sortConj :: [(Goal ModedVar, Set Var)] -> Either (Cycle DepNode) [Goal ModedVar]
 sortConj gs = map unDepNode <$> topSort (overlay vs es)
@@ -237,8 +275,9 @@ mv :: ModedVar -> Text
 mv = T.pack . show . stripMode
 
 cgFunc :: Name -> [ModedVar] -> Text
-cgFunc name [] = T.pack name
 cgFunc ":" [u,v] = "(" <> mv u <> ":" <> mv v <> ")"
+cgFunc name [] = T.pack name
+cgFunc name vs = "(" <> T.unwords (T.pack name : map mv vs) <> ")"
 
 cgPred :: Name -> [ModedVar] -> (Text, Text)
 cgPred name vs =
@@ -279,6 +318,10 @@ cgGoal p r = case extract p $ body r of
               pure ($ret)
              )
         |]
+    Ifte c t e -> "ifte (" <> cgGoal (p ++ [0]) r <> ") (\\(" <> cret <> ") -> " <> cgGoal (p ++ [1]) r <> ") (" <> cgGoal (p ++ [2]) r <> ")"
+      where cret = T.intercalate ","
+                [T.pack v | V v <- Set.elems $ nonlocals' (p ++ [0]) r
+                          , Out v `elem` variables c]
     Atom a -> cgAtom a
 
 cgRule :: Rule ModedVar ModedVar -> Text
@@ -310,10 +353,14 @@ compile rules = [text|
                       ++ ["-}"]
                 defs = do
                     (def:defs) <- groupBy (\a b -> comparing (head . T.words) a b == EQ) . sort $ do
-                        p <- procs
+                        (soln,p) <- procs
                         pure $ case p of
                             Left e -> "-- " <> T.pack e
-                            Right r -> cgRule r
+                            Right r -> T.unlines $
+                                let (hd:tl) = T.lines $ cgRule r
+                                    meta = "  -- solution: " <>
+                                        T.unwords (T.pack . show <$> Set.elems soln)
+                                in hd : meta : tl
                     def : (T.unlines . map commentLine . T.lines <$> defs)
                 commentLine l | "--" `T.isPrefixOf` l = l
                               | otherwise = "--" <> l
@@ -356,6 +403,7 @@ superhomogeneous (Rule name args body) = Rule name args (tGoal body)
         tGoal :: Goal Val -> Goal Var
         tGoal (Disj gs) = Disj $ tGoal <$> gs
         tGoal (Conj gs) = Conj $ tGoal <$> gs
+        tGoal (Ifte c t e) = Ifte (tGoal c) (tGoal t) (tGoal e)
         tGoal (Atom a) = if null body then Atom a' else Conj $ Atom <$> a' : body
           where (a', body) = runState (tAtom a) []
 
@@ -368,6 +416,11 @@ distinctVars (Rule name args body) = Rule name args $ evalState (tGoal body) 0
         tGoal :: Goal Var -> State Int (Goal Var)
         tGoal (Disj gs) = Disj <$> mapM tGoal gs
         tGoal (Conj gs) = Conj <$> mapM tGoal gs
+        tGoal (Ifte c t e) = do
+            c' <- tGoal c
+            t' <- tGoal t
+            e' <- tGoal e
+            return $ Ifte c' t' e'
         tGoal (Atom (Func name vs u)) = do
             (vs', body) <- tVars fdups vs
             return . Conj $ Atom <$> Func name vs' u : concat body
