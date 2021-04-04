@@ -8,3 +8,8 @@ tasks:
     command: |
       ln -sv /workspace/.stack/ ~/.stack
       stack test
+
+vscode:
+  extensions:
+    - haskell.haskell@1.2.0:ZPrUKYpwCCFQf9Q0phszuQ==
+    - justusadam.language-haskell@3.3.0:uqgpHstOoamig+7LyFNNVw==

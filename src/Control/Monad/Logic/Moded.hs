@@ -132,8 +132,17 @@ extract :: Path -> Goal v -> Goal v
 extract [] g = g
 extract (p:ps) g = extract ps $ subgoals g !! p
 
+extendPath :: Path -> Rule u v -> [Path]
+extendPath p r = [p ++ [i] | i <- take (length . subgoals . extract p $ body r) [0..]]
+
 term :: Path -> Var -> Sat.Expr
 term p (V v) = Sat.Var . Sat.Ident $ v ++ show p
+
+cOr :: [Sat.Expr] -> Sat.Expr
+cOr = foldr Sat.Disj Sat.Bottom
+
+cAnd :: [Sat.Expr] -> Sat.Expr
+cAnd = foldr Sat.Conj Sat.Top
 
 -- | Complete set of constraints (sec 5.2.2)
 cComp :: CState -> Path -> Rule Var Var -> Constraints
@@ -154,20 +163,15 @@ cExt p r = (Sat.Neg . term p) `Set.map` (inside (init p) r Set.\\ inside p r)
 
 -- | Disjunction constraints (sec 5.2.3)
 cDisj :: Path -> Rule Var Var -> Constraints
-cDisj p r = Set.unions $ do
-    let Disj disj = extract p $ body r
-    (d, g) <- zip [0..] disj
-    pure $ Set.map (\v -> term p v `Sat.Iff` term (p ++ [d]) v) $ nonlocals (p ++ [d]) r
+cDisj p r = Set.fromList
+    [term p v `Sat.Iff` term p' v | v <- Set.elems $ nonlocals p r, p' <- extendPath p r]
 
 -- | Conjunction constraints (sec 5.2.3)
 cConj :: Path -> Rule Var Var -> Constraints
 cConj p r = Set.fromList $ do
-    let Conj conj = extract p $ body r
     v <- Set.elems $ inside p r
-    let terms = [term (p ++ [c]) v | (c,g) <- zip [0..] conj, v `elem` g]
-        c = term p v `Sat.Iff` foldr1 Sat.Disj terms
-        cs = [Sat.Neg (Sat.Conj s t) | s <- terms, t <- terms, s < t]
-    (c:cs)
+    let ts = [term p' v | p' <- extendPath p r]
+    (term p v `Sat.Iff` cOr ts) : [Sat.Neg (Sat.Conj s t) | s <- ts, t <- ts, s < t]
 
 -- | If-then-else constraints (sec 5.2.3)
 cIte :: Path -> Rule Var Var -> Constraints
@@ -206,9 +210,9 @@ cGoal procs p r = case extract p (body r) of
         (u,v) <- zip vars rvars
         pure $ term p u `Sat.Iff` term [] v
       | Just (_, procs') <- lookup (name, length vars) procs ->
-        Set.singleton . foldr1 Sat.Disj . nub . sort $ do
+        Set.singleton . cOr . nub . sort $ do
             (_, Right (Rule _ mvars _)) <- procs'
-            pure . foldr1 Sat.Conj $ do
+            pure . cAnd $ do
                 (v,mv) <- zip vars mvars
                 let t = term p v
                 pure $ case mv of
@@ -217,16 +221,19 @@ cGoal procs p r = case extract p (body r) of
       | otherwise -> error $ "unknown predicate "++ name ++"/"++ show (length vars)
 
 constraints :: CState -> Rule Var Var -> Constraints
-constraints procs rule = Set.map (Sat.simp . Sat.subst env) cs
+constraints procs rule = Set.map f cs
   where cs = cComp procs [] rule
         env = Map.fromList $
             [(i, Sat.Top) | Sat.Var i <- Set.elems cs] ++
             [(i, Sat.Bottom) | Sat.Neg (Sat.Var i) <- Set.elems cs]
+        f c = case Sat.subst env c of
+            Sat.Bottom -> error $ show c ++" always fails with "++ show env
+            e -> e
 
 solveConstraints :: CState -> Rule Var Var -> IO (Set Constraints)
 solveConstraints procs rule = do
     let cs = constraints procs rule
-    Sat.Solutions solutions <- Sat.solveProp . foldr1 Sat.Conj $ Set.elems cs
+    Sat.Solutions solutions <- Sat.solveProp . cAnd $ Set.elems cs
     return . Set.fromList $ Set.fromList <$> solutions
 
 unsafeSolveConstraints :: CState -> Rule Var Var -> Set Constraints
