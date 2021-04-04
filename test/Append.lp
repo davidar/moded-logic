@@ -6,6 +6,6 @@ reverse [] [].
 reverse (h:t) l :- reverse t r, append r [h] l.
 palindrome a :- reverse a a.
 duplicate a b :- append a a b.
---classify [] Nothing.
---classify (x:xs) (Just 42).
-classify xs r :- if xs = [] then r = Nothing else r = Just 42.
+classify xs r :- if palindrome xs then r = Just []
+            else if duplicate h xs then r = Just h
+            else r = Nothing.

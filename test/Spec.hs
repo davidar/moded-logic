@@ -57,5 +57,6 @@ main = do
             observeAll (duplicate_oi [0,1,0,1]) `shouldBe` [[0,1]]
             observeAll (duplicate_oi [0,1,2,3]) `shouldBe` []
         it "classify" $ do
-            observeAll (classify_io ([] :: [()])) `shouldBe` [Nothing]
-            observeAll (classify_io [()]) `shouldBe` [Just 42]
+            observeAll (classify_io [1,2,3,2,1]) `shouldBe` [Just []]
+            observeAll (classify_io [1,2,1,2]) `shouldBe` [Just [1,2]]
+            observeAll (classify_io [1,2,3]) `shouldBe` [Nothing]

@@ -1774,57 +1774,74 @@ duplicate_oi arg2 = do
 --  pure (arg1)
 
 {- classify/2
-classify arg1 arg2 :- ((arg1 = xs, arg2 = r, (if (xs = []) then (r = Nothing) else ((r = Just data0), (data0 = 42))))).
+classify arg1 arg2 :- ((arg1 = xs, arg2 = r, (if (palindrome xs) then ((r = Just data0), (data0 = [])) else if (duplicate h xs) then (r = Just h) else (r = Nothing)))).
 constraints:
 ~xs[0,2,0,0,0]
-~xs[0,2,0]
+~xs[0,2,0,2,0,0]
+~xs[0,2,0,2]
 ~(arg1[0,0] & xs[0,0])
 ~(arg2[0,1] & r[0,1])
-~(data0[0,2,0,2,0] & data0[0,2,0,2,1])
+~(data0[0,2,0,1,0] & data0[0,2,0,1,1])
+~(h[0,2,0,2,0] & h[0,2,0,2,1])
 ~(r[0,1] & r[0,2])
-~(r[0,2,0,2,0,0] & data0[0,2,0,2,0,0])
+~(r[0,2,0,1,0,0] & data0[0,2,0,1,0,0])
+~(r[0,2,0,2,1,0] & h[0,2,0,2,1,0])
 ~(xs[0,0] & xs[0,2])
-(data0[0,2,0,2,0] | data0[0,2,0,2,1])
+(data0[0,2,0,1,0] | data0[0,2,0,1,1])
+(h[0,2,0,2,0] | h[0,2,0,2,1])
 (r[0,1] | r[0,2])
 (xs[0,0] | xs[0,2])
+((h[0,2,0,2,0,0] & ~xs[0,2,0,2,0,0]) | ((~h[0,2,0,2,0,0] & xs[0,2,0,2,0,0]) | (~h[0,2,0,2,0,0] & ~xs[0,2,0,2,0,0])))
 (arg1[0] <-> arg1[0,0])
 (arg1[] <-> arg1[0])
 (arg2[0] <-> arg2[0,1])
 (arg2[] <-> arg2[0])
-(data0[0,2,0,2,0] <-> data0[0,2,0,2,0,0])
-(data0[0,2,0,2,1] <-> data0[0,2,0,2,1,0])
+(data0[0,2,0,1,0] <-> data0[0,2,0,1,0,0])
+(data0[0,2,0,1,1] <-> data0[0,2,0,1,1,0])
+(h[0,2,0,2,0] <-> h[0,2,0,2,0,0])
+(h[0,2,0,2,1] <-> h[0,2,0,2,1,0])
+(r[0,2,0,1,0] <-> r[0,2,0,1,0,0])
 (r[0,2,0,1] <-> r[0,2,0,1,0])
 (r[0,2,0,1] <-> r[0,2,0,2])
-(r[0,2,0,2,0] <-> r[0,2,0,2,0,0])
-(r[0,2,0,2] <-> r[0,2,0,2,0])
+(r[0,2,0,2,1] <-> r[0,2,0,2,1,0])
+(r[0,2,0,2,1] <-> r[0,2,0,2,2])
+(r[0,2,0,2,2] <-> r[0,2,0,2,2,0])
+(r[0,2,0,2] <-> (r[0,2,0,2,1] | r[0,2,0,2,2]))
 (r[0,2,0] <-> (r[0,2,0,1] | r[0,2,0,2]))
 (r[0,2] <-> r[0,2,0])
+(xs[0,2,0] <-> xs[0,2,0,2])
 (xs[0,2] <-> xs[0,2,0])
 1
 -}
 classify_ii arg1 arg2 = do
-  -- solution: data0[0,2,0,2,0,0] data0[0,2,0,2,0] r[0,1] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~data0[0,2,0,2,1,0] ~data0[0,2,0,2,1] ~r[0,2,0,1,0] ~r[0,2,0,1] ~r[0,2,0,2,0,0] ~r[0,2,0,2,0] ~r[0,2,0,2] ~r[0,2,0] ~r[0,2] ~xs[0,2,0,0,0] ~xs[0,2,0] ~xs[0,2]
+  -- solution: data0[0,2,0,1,0,0] data0[0,2,0,1,0] h[0,2,0,2,0,0] h[0,2,0,2,0] r[0,1] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~data0[0,2,0,1,1,0] ~data0[0,2,0,1,1] ~h[0,2,0,2,1,0] ~h[0,2,0,2,1] ~r[0,2,0,1,0,0] ~r[0,2,0,1,0] ~r[0,2,0,1] ~r[0,2,0,2,1,0] ~r[0,2,0,2,1] ~r[0,2,0,2,2,0] ~r[0,2,0,2,2] ~r[0,2,0,2] ~r[0,2,0] ~r[0,2] ~xs[0,2,0,0,0] ~xs[0,2,0,2,0,0] ~xs[0,2,0,2] ~xs[0,2,0] ~xs[0,2]
   () <- (do
     xs <- pure arg1
     r <- pure arg2
     () <- (do
       () <- ifte ((do
-        guard $ xs == []
+        () <- palindrome_i xs
         pure ()
        )) (\() -> (do
-        guard $ r == Nothing
-        pure ()
-       )) ((do
         (data0) <- (do
           (Just data0) <- pure r
           pure (data0)
          )
         () <- (do
-          guard $ data0 == 42
+          guard $ data0 == []
           pure ()
          )
         pure ()
-       ))
+       )) (ifte ((do
+        (h) <- duplicate_oi xs
+        pure (h)
+       )) (\(h) -> (do
+        guard $ r == (Just h)
+        pure ()
+       )) ((do
+        guard $ r == Nothing
+        pure ()
+       )))
       pure ()
      )
     pure ()
@@ -1832,28 +1849,34 @@ classify_ii arg1 arg2 = do
   pure ()
 
 --classify_ii arg1 arg2 = do
---  -- solution: data0[0,2,0,2,1,0] data0[0,2,0,2,1] r[0,1] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~data0[0,2,0,2,0,0] ~data0[0,2,0,2,0] ~r[0,2,0,1,0] ~r[0,2,0,1] ~r[0,2,0,2,0,0] ~r[0,2,0,2,0] ~r[0,2,0,2] ~r[0,2,0] ~r[0,2] ~xs[0,2,0,0,0] ~xs[0,2,0] ~xs[0,2]
+--  -- solution: data0[0,2,0,1,0,0] data0[0,2,0,1,0] h[0,2,0,2,1,0] h[0,2,0,2,1] r[0,1] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~data0[0,2,0,1,1,0] ~data0[0,2,0,1,1] ~h[0,2,0,2,0,0] ~h[0,2,0,2,0] ~r[0,2,0,1,0,0] ~r[0,2,0,1,0] ~r[0,2,0,1] ~r[0,2,0,2,1,0] ~r[0,2,0,2,1] ~r[0,2,0,2,2,0] ~r[0,2,0,2,2] ~r[0,2,0,2] ~r[0,2,0] ~r[0,2] ~xs[0,2,0,0,0] ~xs[0,2,0,2,0,0] ~xs[0,2,0,2] ~xs[0,2,0] ~xs[0,2]
 --  () <- (do
 --    xs <- pure arg1
 --    r <- pure arg2
 --    () <- (do
 --      () <- ifte ((do
---        guard $ xs == []
+--        () <- palindrome_i xs
 --        pure ()
 --       )) (\() -> (do
---        guard $ r == Nothing
---        pure ()
---       )) ((do
 --        (data0) <- (do
---          data0 <- pure 42
+--          (Just data0) <- pure r
 --          pure (data0)
 --         )
 --        () <- (do
---          guard $ r == (Just data0)
+--          guard $ data0 == []
 --          pure ()
 --         )
 --        pure ()
---       ))
+--       )) (ifte ((do
+--        () <- duplicate_ii h xs
+--        pure ()
+--       )) (\() -> (do
+--        (Just h) <- pure r
+--        pure (h)
+--       )) ((do
+--        guard $ r == Nothing
+--        pure ()
+--       )))
 --      pure ()
 --     )
 --    pure ()
@@ -1861,19 +1884,51 @@ classify_ii arg1 arg2 = do
 --  pure ()
 
 --classify_ii arg1 arg2 = do
---  -- solution: data0[0,2,0,2,1,0] data0[0,2,0,2,1] r[0,2,0,1,0] r[0,2,0,1] r[0,2,0,2,0,0] r[0,2,0,2,0] r[0,2,0,2] r[0,2,0] r[0,2] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~data0[0,2,0,2,0,0] ~data0[0,2,0,2,0] ~r[0,1] ~xs[0,2,0,0,0] ~xs[0,2,0] ~xs[0,2]
+--  -- solution: data0[0,2,0,1,1,0] data0[0,2,0,1,1] h[0,2,0,2,0,0] h[0,2,0,2,0] r[0,1] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~data0[0,2,0,1,0,0] ~data0[0,2,0,1,0] ~h[0,2,0,2,1,0] ~h[0,2,0,2,1] ~r[0,2,0,1,0,0] ~r[0,2,0,1,0] ~r[0,2,0,1] ~r[0,2,0,2,1,0] ~r[0,2,0,2,1] ~r[0,2,0,2,2,0] ~r[0,2,0,2,2] ~r[0,2,0,2] ~r[0,2,0] ~r[0,2] ~xs[0,2,0,0,0] ~xs[0,2,0,2,0,0] ~xs[0,2,0,2] ~xs[0,2,0] ~xs[0,2]
+--  () <- (do
+--    xs <- pure arg1
+--    r <- pure arg2
+--    () <- (do
+--      () <- ifte ((do
+--        () <- palindrome_i xs
+--        pure ()
+--       )) (\() -> (do
+--        (data0) <- (do
+--          data0 <- pure []
+--          pure (data0)
+--         )
+--        () <- (do
+--          guard $ r == (Just data0)
+--          pure ()
+--         )
+--        pure ()
+--       )) (ifte ((do
+--        (h) <- duplicate_oi xs
+--        pure (h)
+--       )) (\(h) -> (do
+--        guard $ r == (Just h)
+--        pure ()
+--       )) ((do
+--        guard $ r == Nothing
+--        pure ()
+--       )))
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--classify_ii arg1 arg2 = do
+--  -- solution: data0[0,2,0,1,1,0] data0[0,2,0,1,1] h[0,2,0,2,0,0] h[0,2,0,2,0] r[0,2,0,1,0,0] r[0,2,0,1,0] r[0,2,0,1] r[0,2,0,2,1,0] r[0,2,0,2,1] r[0,2,0,2,2,0] r[0,2,0,2,2] r[0,2,0,2] r[0,2,0] r[0,2] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~data0[0,2,0,1,0,0] ~data0[0,2,0,1,0] ~h[0,2,0,2,1,0] ~h[0,2,0,2,1] ~r[0,1] ~xs[0,2,0,0,0] ~xs[0,2,0,2,0,0] ~xs[0,2,0,2] ~xs[0,2,0] ~xs[0,2]
 --  () <- (do
 --    xs <- pure arg1
 --    (r) <- (do
 --      (r) <- ifte ((do
---        guard $ xs == []
+--        () <- palindrome_i xs
 --        pure ()
 --       )) (\() -> (do
---        r <- pure Nothing
---        pure (r)
---       )) ((do
 --        (data0) <- (do
---          data0 <- pure 42
+--          data0 <- pure []
 --          pure (data0)
 --         )
 --        (r) <- (do
@@ -1881,7 +1936,16 @@ classify_ii arg1 arg2 = do
 --          pure (r)
 --         )
 --        pure (r)
---       ))
+--       )) (ifte ((do
+--        (h) <- duplicate_oi xs
+--        pure (h)
+--       )) (\(h) -> (do
+--        r <- pure (Just h)
+--        pure (r)
+--       )) ((do
+--        r <- pure Nothing
+--        pure (r)
+--       )))
 --      pure (r)
 --     )
 --    guard $ arg2 == r
@@ -1889,20 +1953,52 @@ classify_ii arg1 arg2 = do
 --   )
 --  pure ()
 
+--classify_ii arg1 arg2 = do
+--  -- solution: data0[0,2,0,1,1,0] data0[0,2,0,1,1] h[0,2,0,2,1,0] h[0,2,0,2,1] r[0,1] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~data0[0,2,0,1,0,0] ~data0[0,2,0,1,0] ~h[0,2,0,2,0,0] ~h[0,2,0,2,0] ~r[0,2,0,1,0,0] ~r[0,2,0,1,0] ~r[0,2,0,1] ~r[0,2,0,2,1,0] ~r[0,2,0,2,1] ~r[0,2,0,2,2,0] ~r[0,2,0,2,2] ~r[0,2,0,2] ~r[0,2,0] ~r[0,2] ~xs[0,2,0,0,0] ~xs[0,2,0,2,0,0] ~xs[0,2,0,2] ~xs[0,2,0] ~xs[0,2]
+--  () <- (do
+--    xs <- pure arg1
+--    r <- pure arg2
+--    () <- (do
+--      () <- ifte ((do
+--        () <- palindrome_i xs
+--        pure ()
+--       )) (\() -> (do
+--        (data0) <- (do
+--          data0 <- pure []
+--          pure (data0)
+--         )
+--        () <- (do
+--          guard $ r == (Just data0)
+--          pure ()
+--         )
+--        pure ()
+--       )) (ifte ((do
+--        () <- duplicate_ii h xs
+--        pure ()
+--       )) (\() -> (do
+--        (Just h) <- pure r
+--        pure (h)
+--       )) ((do
+--        guard $ r == Nothing
+--        pure ()
+--       )))
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
 classify_io arg1 = do
-  -- solution: arg2[0,1] arg2[0] arg2[] data0[0,2,0,2,1,0] data0[0,2,0,2,1] r[0,2,0,1,0] r[0,2,0,1] r[0,2,0,2,0,0] r[0,2,0,2,0] r[0,2,0,2] r[0,2,0] r[0,2] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~data0[0,2,0,2,0,0] ~data0[0,2,0,2,0] ~r[0,1] ~xs[0,2,0,0,0] ~xs[0,2,0] ~xs[0,2]
+  -- solution: arg2[0,1] arg2[0] arg2[] data0[0,2,0,1,1,0] data0[0,2,0,1,1] h[0,2,0,2,0,0] h[0,2,0,2,0] r[0,2,0,1,0,0] r[0,2,0,1,0] r[0,2,0,1] r[0,2,0,2,1,0] r[0,2,0,2,1] r[0,2,0,2,2,0] r[0,2,0,2,2] r[0,2,0,2] r[0,2,0] r[0,2] xs[0,0] ~arg1[0,0] ~arg1[0] ~arg1[] ~data0[0,2,0,1,0,0] ~data0[0,2,0,1,0] ~h[0,2,0,2,1,0] ~h[0,2,0,2,1] ~r[0,1] ~xs[0,2,0,0,0] ~xs[0,2,0,2,0,0] ~xs[0,2,0,2] ~xs[0,2,0] ~xs[0,2]
   (arg2) <- (do
     xs <- pure arg1
     (r) <- (do
       (r) <- ifte ((do
-        guard $ xs == []
+        () <- palindrome_i xs
         pure ()
        )) (\() -> (do
-        r <- pure Nothing
-        pure (r)
-       )) ((do
         (data0) <- (do
-          data0 <- pure 42
+          data0 <- pure []
           pure (data0)
          )
         (r) <- (do
@@ -1910,7 +2006,16 @@ classify_io arg1 = do
           pure (r)
          )
         pure (r)
-       ))
+       )) (ifte ((do
+        (h) <- duplicate_oi xs
+        pure (h)
+       )) (\(h) -> (do
+        r <- pure (Just h)
+        pure (r)
+       )) ((do
+        r <- pure Nothing
+        pure (r)
+       )))
       pure (r)
      )
     arg2 <- pure r
