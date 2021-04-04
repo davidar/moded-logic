@@ -360,26 +360,27 @@ superhomogeneous (Rule name args body) = Rule name args (tGoal body)
           where (a', body) = runState (tAtom a) []
 
 distinctVars :: Rule Var Var -> Rule Var Var
-distinctVars (Rule name args body) = Rule name args (tGoal body)
+distinctVars (Rule name args body) = Rule name args $ evalState (tGoal body) 0
   where vars (Atom (Func _ vs _)) = vs
         vars (Atom _) = []
         vars g = subgoals g >>= vars
-        fdups = [(head l, length l) | l <- group . sort $ vars body, length l > 1]
-        tVar dups (V v) | V v `elem` map fst dups = do
-            body <- get
-            let v' = v ++ show (length body)
-            put $ body ++ [Unif (V v') (V v)]
-            return (V v')
-        tVar _ v = return v
-        tAtom (Func name vs u) = do
-            vs' <- mapM (tVar fdups) vs
-            return $ Func name vs' u
-        tAtom (Pred name vs) = do
-            let pdups = [(head l, length l) | l <- group (sort vs), length l > 1]
-            vs' <- mapM (tVar pdups) vs
-            return $ Pred name vs'
-        tAtom a = return a
-        tGoal (Disj gs) = Disj $ tGoal <$> gs
-        tGoal (Conj gs) = Conj $ tGoal <$> gs
-        tGoal (Atom a) = if null body then Atom a' else Conj $ Atom <$> a' : body
-          where (a', body) = runState (tAtom a) []
+        fdups = [head l | l <- group . sort $ vars body, length l > 1]
+        tGoal :: Goal Var -> State Int (Goal Var)
+        tGoal (Disj gs) = Disj <$> mapM tGoal gs
+        tGoal (Conj gs) = Conj <$> mapM tGoal gs
+        tGoal (Atom (Func name vs u)) = do
+            (vs', body) <- tVars fdups vs
+            return . Conj $ Atom <$> Func name vs' u : concat body
+        tGoal (Atom (Pred name vs)) = do
+            let pdups = [head l | l <- group (sort vs), length l > 1]
+            (vs', body) <- tVars pdups vs
+            return . Conj $ Atom <$> Pred name vs': concat body
+        tGoal (Atom a) = return $ Atom a
+        tVars dups vs = fmap unzip . forM vs $ \v ->
+            if v `elem` dups
+            then do
+                count <- get
+                put $ count + 1
+                let v' = V (show v ++ show count)
+                return (v', [Unif v' v])
+            else return (v, [])
