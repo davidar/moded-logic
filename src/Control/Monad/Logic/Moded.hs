@@ -7,6 +7,7 @@ import Control.Monad
 import Control.Monad.State
 import Data.Foldable
 import Data.List
+import qualified Data.Map as Map
 import Data.Monoid
 import Data.Ord
 import qualified Data.Set as Set
@@ -215,9 +216,16 @@ cGoal procs p r = case extract p (body r) of
                     Out _ -> t
       | otherwise -> error $ "unknown predicate "++ name ++"/"++ show (length vars)
 
+constraints :: CState -> Rule Var Var -> Constraints
+constraints procs rule = Set.map (Sat.simp . Sat.subst env) cs
+  where cs = cComp procs [] rule
+        env = Map.fromList $
+            [(i, Sat.Top) | Sat.Var i <- Set.elems cs] ++
+            [(i, Sat.Bottom) | Sat.Neg (Sat.Var i) <- Set.elems cs]
+
 solveConstraints :: CState -> Rule Var Var -> IO (Set Constraints)
 solveConstraints procs rule = do
-    let cs = cComp procs [] rule
+    let cs = constraints procs rule
     Sat.Solutions solutions <- Sat.solveProp . foldr1 Sat.Conj $ Set.elems cs
     return . Set.fromList $ Set.fromList <$> solutions
 
@@ -247,7 +255,7 @@ mode r@(Rule name vars body) soln = case walk [] body of
 mode' :: CState -> Rule Var Var -> CState
 mode' procs rule@(Rule name vars _) = procs ++
     [ ( (name, length vars)
-      , ( (rule, cComp procs [] rule)
+      , ( (rule, constraints procs rule)
         , [ (soln, mode rule soln)
           | soln <- Set.elems $ unsafeSolveConstraints procs rule]
         )
