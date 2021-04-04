@@ -98,30 +98,29 @@ stripMode (Out v) = V v
 unDepNode :: DepNode -> Goal ModedVar
 unDepNode (DepNode _ g) = g
 
-variables :: Goal v -> [v]
-variables = toList
+-- | Variables inside a goal
+inside :: (Ord v) => Path -> Rule u v -> Set v
+inside p = Set.fromList . toList . extract p . body
 
 -- | Variables accessible from parent/sibling contexts
 outside :: Path -> Goal Var -> Set Var
 outside [] g = Set.empty
-outside (c:ps) (Conj gs) = Set.fromList (dropIndex c gs >>= variables) `Set.union` outside ps (gs !! c)
+outside (c:ps) (Conj gs) = Set.fromList (dropIndex c gs >>= toList) `Set.union` outside ps (gs !! c)
 outside (d:ps) (Disj gs) = outside ps (gs !! d)
-outside (0:ps) (Ifte c t e) = Set.fromList (variables t) `Set.union` outside ps c
-outside (1:ps) (Ifte c t e) = Set.fromList (variables c) `Set.union` outside ps t
+outside (0:ps) (Ifte c t e) = Set.fromList (toList t) `Set.union` outside ps c
+outside (1:ps) (Ifte c t e) = Set.fromList (toList c) `Set.union` outside ps t
 outside (2:ps) (Ifte c t e) = outside ps e
 
 nonlocals' :: Path -> Rule ModedVar ModedVar -> Set Var
 nonlocals' p (Rule name vars body) = nonlocals p (Rule name (stripMode <$> vars) (stripMode <$> body))
 
 nonlocals :: Path -> Rule Var Var -> Set Var
-nonlocals p r@(Rule _ vars body) = inside `Set.intersection` out
-  where inside = Set.fromList . variables $ extract p body
-        out = Set.fromList vars `Set.union` outside p body
+nonlocals p r@(Rule _ vars body) = inside p r `Set.intersection` out
+  where out = Set.fromList vars `Set.union` outside p body
 
 locals :: Path -> Rule Var Var -> Set Var
-locals p r@(Rule _ vars body) = inside Set.\\ out
-  where inside = Set.fromList . variables $ extract p body
-        out = Set.fromList vars `Set.union` outside p body
+locals p r@(Rule _ vars body) = inside p r Set.\\ out
+  where out = Set.fromList vars `Set.union` outside p body
 
 subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs
@@ -150,9 +149,7 @@ cLocal p r = term p `Set.map` locals p r
 -- | External constraints (sec 5.2.2)
 cExt :: Path -> Rule Var Var -> Constraints
 cExt [] _ = Set.empty
-cExt p r = (Sat.Neg . term p) `Set.map` vs
-  where parent = init p
-        vs = Set.fromList (variables . extract parent $ body r) Set.\\ Set.fromList (variables . extract p $ body r)
+cExt p r = (Sat.Neg . term p) `Set.map` (inside (init p) r Set.\\ inside p r)
 
 -- | Disjunction constraints (sec 5.2.3)
 cDisj :: Path -> Rule Var Var -> Constraints
@@ -165,8 +162,8 @@ cDisj p r = Set.unions $ do
 cConj :: Path -> Rule Var Var -> Constraints
 cConj p r = Set.fromList $ do
     let Conj conj = extract p $ body r
-    v <- nub $ conj >>= variables
-    let terms = [term (p ++ [c]) v | (c,g) <- zip [0..] conj, v `elem` variables g]
+    v <- Set.elems $ inside p r
+    let terms = [term (p ++ [c]) v | (c,g) <- zip [0..] conj, v `elem` g]
         c = term p v `Sat.Iff` foldr1 Sat.Disj terms
         cs = [Sat.Neg (Sat.Conj s t) | s <- terms, t <- terms, s < t]
     (c:cs)
@@ -179,7 +176,7 @@ cIte p r = Set.fromList . concat $
     ,[Sat.Neg $ term pc v | v <- nls]
     ,[term pt v `Sat.Iff` term pe v | v <- nls]
     ]
-  where vs = nub . variables . extract p $ body r
+  where vs = Set.elems $ inside p r
         nls = Set.elems $ nonlocals p r
         pc = p ++ [0]
         pt = p ++ [1]
@@ -262,10 +259,10 @@ sortConj gs = map unDepNode <$> topSort (overlay vs es)
   where vs = vertices $ zipWith DepNode [0..] (fst <$> gs)
         es = edges $ do
             let ins  = [Set.fromList [v | V v <- Set.elems nl
-                                        , In v `elem` variables g
-                                        , Out v `notElem` variables g] | (g,nl) <- gs]
+                                        , In v `elem` g
+                                        , Out v `notElem` g] | (g,nl) <- gs]
                 outs = [Set.fromList [v | V v <- Set.elems nl
-                                        , Out v `elem` variables g] | (g,nl) <- gs]
+                                        , Out v `elem` g] | (g,nl) <- gs]
             (i,(g,_)) <- zip [0..] gs
             (j,(h,_)) <- zip [0..] gs
             guard . not . Set.null $ Set.intersection (outs !! i) (ins !! j)
@@ -308,10 +305,10 @@ cgGoal p r = case extract p $ body r of
                     Atom a -> cgAtom a
                     g -> "(" <> T.intercalate ","
                         [T.pack v | V v <- Set.elems $ nonlocals' p' r
-                                  , Out v `elem` variables g]
+                                  , Out v `elem` g]
                         <> ") <- " <> cgGoal p' r
             ret = T.intercalate "," [T.pack v | V v <- Set.elems $ nonlocals' p r
-                                              , Out v `elem` variables (Conj conj)]
+                                              , Out v `elem` Conj conj]
         in [text|
             (do
               $code
@@ -321,14 +318,14 @@ cgGoal p r = case extract p $ body r of
     Ifte c t e -> "ifte (" <> cgGoal (p ++ [0]) r <> ") (\\(" <> cret <> ") -> " <> cgGoal (p ++ [1]) r <> ") (" <> cgGoal (p ++ [2]) r <> ")"
       where cret = T.intercalate ","
                 [T.pack v | V v <- Set.elems $ nonlocals' (p ++ [0]) r
-                          , Out v `elem` variables c]
+                          , Out v `elem` c]
     Atom a -> cgAtom a
 
 cgRule :: Rule ModedVar ModedVar -> Text
 cgRule r@(Rule name vars body) =
     let (lhs,rhs) = cgPred name vars
         code = cgGoal [] r
-        rets = T.intercalate "," [T.pack v | V v <- Set.elems $ nonlocals' [] r, Out v `elem` variables body]
+        rets = T.intercalate "," [T.pack v | V v <- Set.elems $ nonlocals' [] r, Out v `elem` body]
     in [text|
         $rhs = do
           ($rets) <- $code
