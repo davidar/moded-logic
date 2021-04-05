@@ -66,4 +66,8 @@ main = do
         --TIO.writeFile "test/Primes.hs" code
         expect <- TIO.readFile "test/Primes.hs"
         code `shouldBe` expect
-        print $ observeAll (primes_io 100)
+      it "primes" $ do
+        let p100 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+        observeAll (primes_io 100) `shouldBe` [p100]
+        observeAll (primes_ii 100 p100) `shouldBe` [()]
+        observeAll (primes_ii 100 [2 .. 99]) `shouldBe` []
