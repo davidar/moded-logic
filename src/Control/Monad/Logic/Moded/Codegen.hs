@@ -36,10 +36,17 @@ cgFunc name [] = T.pack name
 cgFunc name vs = "(" <> T.unwords (T.pack name : map mv vs) <> ")"
 
 cgPred :: Name -> [ModedVar] -> (Text, Text)
+cgPred name vs
+  | head name == '('
+  , last name == ')' =
+    ( "()"
+    , "if " <>
+      T.pack name <>
+      " " <> T.unwords [T.pack v | In v <- vs] <> " then pure () else empty")
 cgPred name vs =
   ( "(" <> T.intercalate "," [T.pack v | Out v <- vs] <> ")"
   , T.pack name <>
-    "_" <> T.pack (modes vs) <> " " <> T.intercalate " " [T.pack v | In v <- vs])
+    "_" <> T.pack (modes vs) <> " " <> T.unwords [T.pack v | In v <- vs])
   where
     modes [] = ""
     modes (In _:vs) = 'i' : modes vs
@@ -127,6 +134,9 @@ compile rules =
   [text|
     import Control.Applicative
     import Control.Monad.Logic
+
+    succ_io a = pure (succ a)
+    mod_iio a b = pure (mod a b)
 
     $code
   |]

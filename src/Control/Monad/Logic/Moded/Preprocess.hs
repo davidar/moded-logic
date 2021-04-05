@@ -35,7 +35,10 @@ combineDefs rules = do
       body' =
         Disj $ do
           Rule _ vars body <- defs
-          pure . Conj $ (Atom <$> zipWith Unif (Var <$> params) vars) ++ [body]
+          pure . Conj $
+            (fmap Atom . filter (\(Unif _ v) -> show v /= "_") $
+             zipWith Unif (Var <$> params) vars) ++
+            [body]
   pure $ Rule name params body'
 
 superhomogeneous :: Rule Var Val -> Rule Var Var

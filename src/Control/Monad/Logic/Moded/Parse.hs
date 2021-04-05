@@ -83,6 +83,8 @@ value =
           vs <- many value
           pure $ Cons v vs
         else pure $ Var (V v)) <|>
+  (do symbol "_"
+      pure $ Var (V "_")) <|>
   (do i <- signedInteger
       pure $ Cons (show i) [])
 
@@ -94,10 +96,15 @@ unify = do
   pure $ Unif lhs rhs
 
 predicate :: Parser (Atom Val)
-predicate = do
-  name <- identifier
-  vs <- many value
-  pure $ Pred name vs
+predicate =
+  try
+    (do lhs <- variable
+        symbol "<="
+        rhs <- value
+        pure $ Pred "(<=)" [lhs, rhs]) <|>
+  (do name <- identifier
+      vs <- many value
+      pure $ Pred name vs)
 
 softcut :: Parser (Goal Val)
 softcut = do

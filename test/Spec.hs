@@ -1,13 +1,10 @@
-{-# LANGUAGE QuasiQuotes #-}
-
 import Append
-import Control.Monad ()
+import Primes
+
 import Control.Monad.Logic (observeAll)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Parse (parseProg)
-import Data.Either ()
 import qualified Data.List as List
-import Data.Monoid ()
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -19,6 +16,8 @@ main :: IO ()
 main = do
   lp <- readFile "test/Append.lp"
   let program = parseProg "test/Append.lp" lp
+  lp' <- readFile "test/Primes.lp"
+  let program' = parseProg "test/Primes.lp" lp'
   --putStrLn . unlines $ show <$> program
   hspec $ do
     describe "Append" $ do
@@ -39,7 +38,8 @@ main = do
         observeAll (append3_iiio [1, 2] [3, 4] [5, 6]) `shouldBe` [[1 .. 6]]
         observeAll (append3_iiii [1, 2] [3, 4] [5, 6] [1 .. 6]) `shouldBe` [()]
         observeAll (append3_iiii [1, 2] [3, 4] [5, 6] [0 .. 6]) `shouldBe` []
-        ((List.sort . observeAll $ append3_oooi [1 .. 6]) `shouldBe`) . List.sort $ do
+        ((List.sort . observeAll $ append3_oooi [1 .. 6]) `shouldBe`) .
+          List.sort $ do
           i <- [0 .. 6]
           let (a, bc) = splitAt i [1 .. 6]
           j <- [0 .. length bc]
@@ -60,3 +60,10 @@ main = do
         observeAll (classify_io [1, 2, 3, 2, 1]) `shouldBe` [Just []]
         observeAll (classify_io [1, 2, 1, 2]) `shouldBe` [Just [1, 2]]
         observeAll (classify_io [1, 2, 3]) `shouldBe` [Nothing]
+    describe "Primes" $ do
+      it "compile" $ do
+        let code = T.pack "module Primes where\n" <> compile program'
+        --TIO.writeFile "test/Primes.hs" code
+        expect <- TIO.readFile "test/Primes.hs"
+        code `shouldBe` expect
+        print $ observeAll (primes_io 100)

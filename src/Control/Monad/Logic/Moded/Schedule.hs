@@ -65,6 +65,7 @@ mode r@(Rule name vars body) soln =
     annotate p (V v)
       | term p (V v) `Set.member` soln = Out v
       | Sat.Neg (term p (V v)) `Set.member` soln = In v
+      | otherwise = error $ v ++ show p ++ " not in " ++ show soln
     walk p (Disj disj) =
       Disj <$> sequence [walk (p ++ [d]) g | (d, g) <- zip [0 ..] disj]
     walk p (Conj conj) = do
@@ -89,16 +90,21 @@ mode' procs rule@(Rule name vars _) =
         ]))
   ]
   where
-    m = do
-      ((name, _), (_, procs')) <- procs
-      pure . (name, ) $ do
-        (_, Right (Rule _ mvars _)) <- procs'
-        pure $ do
-          mv <- mvars
-          pure $
-            case mv of
-              In _ -> MIn
-              Out _ -> MOut
+    builtins =
+      [ ("succ", [[MIn, MOut], [MOut, MIn], [MIn, MIn]])
+      , ("mod", [[MIn, MIn, MOut], [MIn, MIn, MIn]])
+      ]
+    m =
+      builtins ++ do
+        ((name, _), (_, procs')) <- procs
+        pure . (name, ) $ do
+          (_, Right (Rule _ mvars _)) <- procs'
+          pure $ do
+            mv <- mvars
+            pure $
+              case mv of
+                In _ -> MIn
+                Out _ -> MOut
 
 sortConj :: [(Goal ModedVar, Set Var)] -> Either (Cycle DepNode) [Goal ModedVar]
 sortConj gs = map unDepNode <$> topSort (overlay vs es)

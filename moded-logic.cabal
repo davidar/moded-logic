@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 94c3d77735b40d75ebb66ffa078f81ec8a682131b4d3cb06c16f37ca0c8d7173
+-- hash: 1c4ccfd4b82bfa896fdca8213d487f6273647077cb22338a7dc191f519e9de6e
 
 name:           moded-logic
 version:        0.1.0.0
@@ -80,6 +80,7 @@ test-suite moded-logic-test
   main-is: Spec.hs
   other-modules:
       Append
+      Primes
       Paths_moded_logic
   hs-source-dirs:
       test

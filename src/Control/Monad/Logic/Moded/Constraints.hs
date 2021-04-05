@@ -140,6 +140,8 @@ cAtom m p r =
               case mode of
                 MIn -> Sat.Neg t
                 MOut -> t
+      | head name == '('
+      , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
       | otherwise ->
         error $ "unknown predicate " ++ name ++ "/" ++ show (length vars)
 
