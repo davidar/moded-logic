@@ -66,6 +66,9 @@ identifier = (lexeme . try) (p >>= check)
         then fail $ "keyword " ++ show x ++ " cannot be an identifier"
         else return x
 
+operator :: Parser String
+operator = lexeme . some $ oneOf "!#$%&*+./<=>?@\\^|-~:"
+
 variable :: Parser Val
 variable = Var . V <$> identifier
 
@@ -103,9 +106,9 @@ predicate :: Parser (Atom Val)
 predicate =
   try
     (do lhs <- variable
-        symbol "<="
+        op <- operator
         rhs <- value
-        pure $ Pred "(<=)" [lhs, rhs]) <|>
+        pure $ Pred ("(" ++ op ++ ")") [lhs, rhs]) <|>
   (do name <- identifier
       vs <- many value
       pure $ Pred name vs)
