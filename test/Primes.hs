@@ -1,9 +1,7 @@
 module Primes where
 import Control.Applicative
 import Control.Monad.Logic
-
-succ_io a = pure (succ a)
-mod_iio a b = pure (mod a b)
+import Control.Monad.Logic.Moded.Prelude
 
 {- integers/3
 integers arg1 arg2 arg3 :- ((arg1 = low, arg2 = high, arg3 = result, (if (((<=) low high)) then ((succ low m), (integers m high rest), (result = low : rest)) else ((result = []))))).

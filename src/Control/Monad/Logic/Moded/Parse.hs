@@ -70,7 +70,7 @@ operator :: Parser String
 operator = lexeme . some $ oneOf "!#$%&*+./<=>?@\\^|-~:"
 
 variable :: Parser Val
-variable = Var . V <$> identifier
+variable = (symbol "_" >> pure (Var (V "_"))) <|> (Var . V <$> identifier)
 
 value :: Parser Val
 value =

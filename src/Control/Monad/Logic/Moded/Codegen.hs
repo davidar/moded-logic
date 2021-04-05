@@ -45,12 +45,14 @@ cgPred name vs
       " " <> T.unwords [T.pack v | In v <- vs] <> " then pure () else empty")
 cgPred name vs =
   ( "(" <> T.intercalate "," [T.pack v | Out v <- vs] <> ")"
-  , T.pack name <>
-    "_" <> T.pack (modes vs) <> " " <> T.unwords [T.pack v | In v <- vs])
+  , T.pack name <> suffix <> " " <> T.unwords [T.pack v | In v <- vs])
   where
     modes [] = ""
     modes (In _:vs) = 'i' : modes vs
     modes (Out _:vs) = 'o' : modes vs
+    suffix = case modes vs of
+      [] -> ""
+      ms -> "_" <> T.pack ms
 
 cgAtom :: Atom ModedVar -> Text
 cgAtom (Unif (Out u) v) = T.pack u <> " <- pure " <> mv v
@@ -134,9 +136,7 @@ compile rules =
   [text|
     import Control.Applicative
     import Control.Monad.Logic
-
-    succ_io a = pure (succ a)
-    mod_iio a b = pure (mod a b)
+    import Control.Monad.Logic.Moded.Prelude
 
     $code
   |]

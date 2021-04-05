@@ -12,7 +12,6 @@ import Control.Monad (guard)
 import Control.Monad.Logic.Moded.AST (Goal(..), Name, Rule(..), Var(..))
 import Control.Monad.Logic.Moded.Constraints
   ( Constraints
-  , Mode(..)
   , constraints
   , term
   , unsafeSolveConstraints
@@ -65,6 +64,7 @@ mode r@(Rule name vars body) soln =
     annotate p (V v)
       | term p (V v) `Set.member` soln = Out v
       | Sat.Neg (term p (V v)) `Set.member` soln = In v
+      | v == "_" = Out v
       | otherwise = error $ v ++ show p ++ " not in " ++ show soln
     walk p (Disj disj) =
       Disj <$> sequence [walk (p ++ [d]) g | (d, g) <- zip [0 ..] disj]
@@ -91,8 +91,10 @@ mode' procs rule@(Rule name vars _) =
   ]
   where
     builtins =
-      [ ("succ", [[MIn, MOut], [MOut, MIn], [MIn, MIn]])
-      , ("mod", [[MIn, MIn, MOut], [MIn, MIn, MIn]])
+      [ ("succ", ["io", "oi", "ii"])
+      , ("mod",  ["iio", "iii"])
+      , ("plus", ["iio", "ioi", "oii"])
+      , ("empty", [""])
       ]
     m =
       builtins ++ do
@@ -103,8 +105,8 @@ mode' procs rule@(Rule name vars _) =
             mv <- mvars
             pure $
               case mv of
-                In _ -> MIn
-                Out _ -> MOut
+                In _ -> 'i'
+                Out _ -> 'o'
 
 sortConj :: [(Goal ModedVar, Set Var)] -> Either (Cycle DepNode) [Goal ModedVar]
 sortConj gs = map unDepNode <$> topSort (overlay vs es)

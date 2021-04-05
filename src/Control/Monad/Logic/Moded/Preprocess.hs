@@ -42,17 +42,17 @@ combineDefs rules = do
   pure $ Rule name params body'
 
 superhomogeneous :: Rule Var Val -> Rule Var Var
-superhomogeneous (Rule name args body) = Rule name args (tGoal body)
+superhomogeneous (Rule name args body) = Rule name args $ evalState (tGoal body) (0, [])
   where
-    tVal :: Val -> State [Atom Var] Var
+    tVal :: Val -> State (Int, [Atom Var]) Var
     tVal (Var v) = return v
     tVal (Cons name vs) = do
       vs' <- mapM tVal vs
-      body <- get
-      let u = V $ "data" ++ show (length body)
-      put $ body ++ [Func name vs' u]
+      (count, body) <- get
+      let u = V $ "data" ++ show count
+      put (count + 1, body ++ [Func name vs' u])
       return u
-    tAtom :: Atom Val -> State [Atom Var] (Atom Var)
+    tAtom :: Atom Val -> State (Int, [Atom Var]) (Atom Var)
     tAtom (Unif (Var u) (Var v)) = return $ Unif u v
     tAtom (Unif (Var u) (Cons name vs)) = do
       vs' <- mapM tVal vs
@@ -65,16 +65,22 @@ superhomogeneous (Rule name args body) = Rule name args (tGoal body)
     tAtom (Pred name vs) = do
       vs' <- mapM tVal vs
       return $ Pred name vs'
-    tGoal :: Goal Val -> Goal Var
-    tGoal (Disj gs) = Disj $ tGoal <$> gs
-    tGoal (Conj gs) = Conj $ tGoal <$> gs
-    tGoal (Ifte c t e) = Ifte (tGoal c) (tGoal t) (tGoal e)
-    tGoal (Atom a) =
-      if null body
+    tGoal :: Goal Val -> State (Int, [Atom Var]) (Goal Var)
+    tGoal (Disj gs) = Disj <$> mapM tGoal gs
+    tGoal (Conj gs) = Conj <$> mapM tGoal gs
+    tGoal (Ifte c t e) = do
+      c' <- tGoal c
+      t' <- tGoal t
+      e' <- tGoal e
+      return $ Ifte c' t' e'
+    tGoal (Atom a) = do
+      (count, _) <- get
+      put (count, [])
+      a' <- tAtom a
+      (_, body) <- get
+      return $ if null body
         then Atom a'
         else Conj $ Atom <$> a' : body
-      where
-        (a', body) = runState (tAtom a) []
 
 distinctVars :: Rule Var Var -> Rule Var Var
 distinctVars (Rule name args body) = Rule name args $ evalState (tGoal body) 0
@@ -101,7 +107,7 @@ distinctVars (Rule name args body) = Rule name args $ evalState (tGoal body) 0
     tGoal (Atom a) = return $ Atom a
     tVars dups vs =
       fmap unzip . forM vs $ \v ->
-        if v `elem` dups
+        if v `elem` dups && show v /= "_"
           then do
             count <- get
             put $ count + 1

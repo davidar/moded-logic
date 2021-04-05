@@ -3,7 +3,6 @@ module Control.Monad.Logic.Moded.Constraints
   , term
   , constraints
   , unsafeSolveConstraints
-  , Mode(..)
   ) where
 
 import Control.Monad.Logic.Moded.AST
@@ -31,11 +30,7 @@ import System.IO.Unsafe (unsafePerformIO)
 
 type Constraints = Set Sat.Expr
 
-data Mode
-  = MIn
-  | MOut
-
-type Modes = [(Name, [[Mode]])]
+type Modes = [(Name, [String])]
 
 term :: Path -> Var -> Sat.Expr
 term p (V v) = Sat.Var . Sat.Ident $ v ++ show p
@@ -140,8 +135,8 @@ cAtom m p r =
             let t = term p v
             pure $
               case mode of
-                MIn -> Sat.Neg t
-                MOut -> t
+                'i' -> Sat.Neg t
+                'o' -> t
       | head name == '('
       , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
       | otherwise ->

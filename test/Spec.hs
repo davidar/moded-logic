@@ -3,6 +3,7 @@
 import Append
 import Primes
 import Sort
+import Queens
 
 import Control.Monad.Logic (observeAll)
 import Control.Monad.Logic.Moded.AST (Prog, Var)
@@ -77,9 +78,33 @@ programSort =
   sort list sorted :- qsort list sorted [].
   |]
 
+programQueens =
+  [logic|
+  delete h (h:t) t.
+  delete x (h:t) (h:r) :- delete x t r.
+
+  nodiag _ _ [].
+  nodiag b d (h:t) :-
+    plus hmb b h,
+    plus bmh h b,
+    succ d d1,
+    if d = hmb then empty
+    else if d = bmh then empty
+    else nodiag b d1 t.
+
+  cqueens [] _ [].
+  cqueens xs history (q:m) :-
+    xs = (_:_),
+    delete q xs r,
+    nodiag q 1 history,
+    cqueens r (q:history) m.
+
+  queens dat out :- cqueens dat [] out.
+  |]
+
 main :: IO ()
 main = do
-  putStrLn . unlines $ show <$> concat [programAppend, programPrimes, programSort]
+  putStrLn . unlines $ show <$> concat [programAppend, programPrimes, programSort, programQueens]
   hspec $ do
     describe "Append" $ do
       it "compile" $ do
@@ -150,3 +175,10 @@ main = do
         observeAll (sort_io xs) `shouldBe` [List.sort xs]
         observeAll (sort_ii xs (List.sort xs)) `shouldBe` [()]
         observeAll (sort_ii xs xs) `shouldBe` []
+    describe "Queens" $ do
+      it "compile" $ do
+        let code = T.pack "module Queens where\n" <> compile programQueens
+        --TIO.writeFile "test/Queens.hs" code
+        expect <- TIO.readFile "test/Queens.hs"
+        code `shouldBe` expect
+        print $ observeAll (queens_io [1 .. 5])
