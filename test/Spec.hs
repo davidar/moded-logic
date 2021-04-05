@@ -20,15 +20,23 @@ programAppend =
   [logic|
   append [] b b.
   append (h:t) b (h:tb) :- append t b tb.
+
   append3 a b c abc :-
     append a b ab, append ab c abc.
+
   reverse [] [].
   reverse (h:t) l :- reverse t r, append r [h] l.
+
   palindrome a :- reverse a a.
   duplicate a b :- append a a b.
   classify xs r :- if palindrome xs then r = Just []
               else if duplicate h xs then r = Just h
               else r = Nothing.
+
+  delete h (h:t) t.
+  delete x (h:t) (h:r) :- delete x t r.
+  perm [] [].
+  perm xs (h:t) :- delete h xs ys, perm ys t.
   |]
 
 programPrimes :: Prog Var Var
@@ -113,6 +121,11 @@ main = do
         observeAll (classify_io [1, 2, 3, 2, 1]) `shouldBe` [Just []]
         observeAll (classify_io [1, 2, 1, 2]) `shouldBe` [Just [1, 2]]
         observeAll (classify_io [1, 2, 3]) `shouldBe` [Nothing]
+      it "perm" $ do
+        List.sort (observeAll (perm_io [1 .. 5])) `shouldBe` List.sort (List.permutations [1 .. 5])
+        List.sort (observeAll (perm_oi [1 .. 5])) `shouldBe` List.sort (List.permutations [1 .. 5])
+        observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` [()]
+        observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
     describe "Primes" $ do
       it "compile" $ do
         let code = T.pack "module Primes where\n" <> compile programPrimes

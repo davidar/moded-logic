@@ -2037,3 +2037,945 @@ classify_io arg1 = do
     pure (arg2)
    )
   pure (arg2)
+
+{- delete/3
+delete arg1 arg2 arg3 :- ((arg1 = h, (arg2 = h0 : t1, h0 = h, t1 = t), arg3 = t, ()); (arg1 = x, (arg2 = h2 : t3, h2 = h, t3 = t), (arg3 = h4 : r, h4 = h), ((delete x t r)))).
+constraints:
+~(arg1[0,0] & h[0,0])
+~(arg1[1,0] & x[1,0])
+~(arg2[0,1,0] & h0[0,1,0])
+~(arg2[1,1,0] & h2[1,1,0])
+~(arg3[0,2] & t[0,2])
+~(arg3[1,2,0] & h4[1,2,0])
+~(h0[0,1,0] & h0[0,1,1])
+~(h0[0,1,1] & h[0,1,1])
+~(h2[1,1,0] & h2[1,1,1])
+~(h2[1,1,1] & h[1,1,1])
+~(h4[1,2,0] & h4[1,2,1])
+~(h4[1,2,1] & h[1,2,1])
+~(h[0,0] & h[0,1])
+~(h[1,1] & h[1,2])
+~(r[1,2] & r[1,3])
+~(t1[0,1,0] & t1[0,1,2])
+~(t1[0,1,2] & t[0,1,2])
+~(t3[1,1,0] & t3[1,1,2])
+~(t3[1,1,2] & t[1,1,2])
+~(t[0,1] & t[0,2])
+~(t[1,1] & t[1,3])
+~(x[1,0] & x[1,3])
+(h0[0,1,0] | h0[0,1,1])
+(h2[1,1,0] | h2[1,1,1])
+(h4[1,2,0] | h4[1,2,1])
+(h[0,0] | h[0,1])
+(h[1,1] | h[1,2])
+(r[1,2] | r[1,3])
+(t1[0,1,0] | t1[0,1,2])
+(t3[1,1,0] | t3[1,1,2])
+(t[0,1] | t[0,2])
+(t[1,1] | t[1,3])
+(x[1,0] | x[1,3])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg2[0,1] <-> arg2[0,1,0])
+(arg2[0] <-> arg2[0,1])
+(arg2[1,1] <-> arg2[1,1,0])
+(arg2[1] <-> arg2[1,1])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(arg3[0] <-> arg3[0,2])
+(arg3[1,2] <-> arg3[1,2,0])
+(arg3[1] <-> arg3[1,2])
+(arg3[] <-> arg3[0])
+(arg3[] <-> arg3[1])
+(h0[0,1,0] <-> t1[0,1,0])
+(h2[1,1,0] <-> t3[1,1,0])
+(h4[1,2,0] <-> r[1,2,0])
+(h[0,1] <-> h[0,1,1])
+(h[1,1] <-> h[1,1,1])
+(h[1,2] <-> h[1,2,1])
+(r[1,2] <-> r[1,2,0])
+(r[1,3,0,0] <-> arg3[])
+(r[1,3,0] <-> r[1,3,0,0])
+(r[1,3] <-> r[1,3,0])
+(t[0,1] <-> t[0,1,2])
+(t[1,1] <-> t[1,1,2])
+(t[1,3,0,0] <-> arg2[])
+(t[1,3,0] <-> t[1,3,0,0])
+(t[1,3] <-> t[1,3,0])
+(x[1,3,0,0] <-> arg1[])
+(x[1,3,0] <-> x[1,3,0,0])
+(x[1,3] <-> x[1,3,0])
+1
+-}
+delete_iii arg1 arg2 arg3 = do
+  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,0] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+  () <- (do
+    h <- pure arg1
+    (t) <- (do
+      (h0:t1) <- pure arg2
+      guard $ h0 == h
+      t <- pure t1
+      pure (t)
+     )
+    guard $ arg3 == t
+    () <- (do
+      
+      pure ()
+     )
+    pure ()
+   ) <|> (do
+    x <- pure arg1
+    (h,t) <- (do
+      (h2:t3) <- pure arg2
+      h <- pure h2
+      t <- pure t3
+      pure (h,t)
+     )
+    (r) <- (do
+      (h4:r) <- pure arg3
+      guard $ h4 == h
+      pure (r)
+     )
+    () <- (do
+      () <- (do
+        () <- delete_iii x t r
+        pure ()
+       )
+      pure ()
+     )
+    pure ()
+   )
+  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,0] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    h <- pure arg1
+--    t <- pure arg3
+--    () <- (do
+--      (h0:t1) <- pure arg2
+--      guard $ h0 == h
+--      guard $ t1 == t
+--      pure ()
+--     )
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,t) <- (do
+--      (h2:t3) <- pure arg2
+--      h <- pure h2
+--      t <- pure t3
+--      pure (h,t)
+--     )
+--    (r) <- (do
+--      (h4:r) <- pure arg3
+--      guard $ h4 == h
+--      pure (r)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,0] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    h <- pure arg1
+--    (t) <- (do
+--      (h0:t1) <- pure arg2
+--      guard $ h0 == h
+--      t <- pure t1
+--      pure (t)
+--     )
+--    guard $ arg3 == t
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,r) <- (do
+--      (h4:r) <- pure arg3
+--      h <- pure h4
+--      pure (h,r)
+--     )
+--    (t) <- (do
+--      (h2:t3) <- pure arg2
+--      guard $ h2 == h
+--      t <- pure t3
+--      pure (t)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,0] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    h <- pure arg1
+--    t <- pure arg3
+--    () <- (do
+--      (h0:t1) <- pure arg2
+--      guard $ h0 == h
+--      guard $ t1 == t
+--      pure ()
+--     )
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,r) <- (do
+--      (h4:r) <- pure arg3
+--      h <- pure h4
+--      pure (h,r)
+--     )
+--    (t) <- (do
+--      (h2:t3) <- pure arg2
+--      guard $ h2 == h
+--      t <- pure t3
+--      pure (t)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    (h,t) <- (do
+--      (h0:t1) <- pure arg2
+--      h <- pure h0
+--      t <- pure t1
+--      pure (h,t)
+--     )
+--    guard $ arg1 == h
+--    guard $ arg3 == t
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,t) <- (do
+--      (h2:t3) <- pure arg2
+--      h <- pure h2
+--      t <- pure t3
+--      pure (h,t)
+--     )
+--    (r) <- (do
+--      (h4:r) <- pure arg3
+--      guard $ h4 == h
+--      pure (r)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    t <- pure arg3
+--    (h) <- (do
+--      (h0:t1) <- pure arg2
+--      h <- pure h0
+--      guard $ t1 == t
+--      pure (h)
+--     )
+--    guard $ arg1 == h
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,t) <- (do
+--      (h2:t3) <- pure arg2
+--      h <- pure h2
+--      t <- pure t3
+--      pure (h,t)
+--     )
+--    (r) <- (do
+--      (h4:r) <- pure arg3
+--      guard $ h4 == h
+--      pure (r)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    (h,t) <- (do
+--      (h0:t1) <- pure arg2
+--      h <- pure h0
+--      t <- pure t1
+--      pure (h,t)
+--     )
+--    guard $ arg1 == h
+--    guard $ arg3 == t
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,r) <- (do
+--      (h4:r) <- pure arg3
+--      h <- pure h4
+--      pure (h,r)
+--     )
+--    (t) <- (do
+--      (h2:t3) <- pure arg2
+--      guard $ h2 == h
+--      t <- pure t3
+--      pure (t)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    t <- pure arg3
+--    (h) <- (do
+--      (h0:t1) <- pure arg2
+--      h <- pure h0
+--      guard $ t1 == t
+--      pure (h)
+--     )
+--    guard $ arg1 == h
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,r) <- (do
+--      (h4:r) <- pure arg3
+--      h <- pure h4
+--      pure (h,r)
+--     )
+--    (t) <- (do
+--      (h2:t3) <- pure arg2
+--      guard $ h2 == h
+--      t <- pure t3
+--      pure (t)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,1] h2[1,1,0] h4[1,2,0] h[0,0] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,2] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,0] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,0] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    h <- pure arg1
+--    t <- pure arg3
+--    () <- (do
+--      h0 <- pure h
+--      t1 <- pure t
+--      guard $ arg2 == (h0:t1)
+--      pure ()
+--     )
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,t) <- (do
+--      (h2:t3) <- pure arg2
+--      h <- pure h2
+--      t <- pure t3
+--      pure (h,t)
+--     )
+--    (r) <- (do
+--      (h4:r) <- pure arg3
+--      guard $ h4 == h
+--      pure (r)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+--delete_iii arg1 arg2 arg3 = do
+--  -- solution: h0[0,1,1] h2[1,1,0] h4[1,2,0] h[0,0] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,2] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,0] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,0] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  () <- (do
+--    h <- pure arg1
+--    t <- pure arg3
+--    () <- (do
+--      h0 <- pure h
+--      t1 <- pure t
+--      guard $ arg2 == (h0:t1)
+--      pure ()
+--     )
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure ()
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,r) <- (do
+--      (h4:r) <- pure arg3
+--      h <- pure h4
+--      pure (h,r)
+--     )
+--    (t) <- (do
+--      (h2:t3) <- pure arg2
+--      guard $ h2 == h
+--      t <- pure t3
+--      pure (t)
+--     )
+--    () <- (do
+--      () <- (do
+--        () <- delete_iii x t r
+--        pure ()
+--       )
+--      pure ()
+--     )
+--    pure ()
+--   )
+--  pure ()
+
+delete_iio arg1 arg2 = do
+  -- solution: arg3[0,2] arg3[0] arg3[1,2,0] arg3[1,2] arg3[1] arg3[] h0[0,1,0] h2[1,1,0] h4[1,2,1] h[0,0] h[1,1,1] h[1,1] r[1,3,0,0] r[1,3,0] r[1,3] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,0] ~h[0,1,1] ~h[0,1] ~h[1,2,1] ~h[1,2] ~r[1,2,0] ~r[1,2] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+  (arg3) <- (do
+    h <- pure arg1
+    (t) <- (do
+      (h0:t1) <- pure arg2
+      guard $ h0 == h
+      t <- pure t1
+      pure (t)
+     )
+    arg3 <- pure t
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg3)
+   ) <|> (do
+    x <- pure arg1
+    (h,t) <- (do
+      (h2:t3) <- pure arg2
+      h <- pure h2
+      t <- pure t3
+      pure (h,t)
+     )
+    (r) <- (do
+      (r) <- (do
+        (r) <- delete_iio x t
+        pure (r)
+       )
+      pure (r)
+     )
+    (arg3) <- (do
+      h4 <- pure h
+      arg3 <- pure (h4:r)
+      pure (arg3)
+     )
+    pure (arg3)
+   )
+  pure (arg3)
+
+--delete_iio arg1 arg2 = do
+--  -- solution: arg3[0,2] arg3[0] arg3[1,2,0] arg3[1,2] arg3[1] arg3[] h0[0,1,0] h2[1,1,0] h4[1,2,1] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,3,0,0] r[1,3,0] r[1,3] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,0] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,2,0] ~r[1,2] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+--  (arg3) <- (do
+--    (h,t) <- (do
+--      (h0:t1) <- pure arg2
+--      h <- pure h0
+--      t <- pure t1
+--      pure (h,t)
+--     )
+--    guard $ arg1 == h
+--    arg3 <- pure t
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure (arg3)
+--   ) <|> (do
+--    x <- pure arg1
+--    (h,t) <- (do
+--      (h2:t3) <- pure arg2
+--      h <- pure h2
+--      t <- pure t3
+--      pure (h,t)
+--     )
+--    (r) <- (do
+--      (r) <- (do
+--        (r) <- delete_iio x t
+--        pure (r)
+--       )
+--      pure (r)
+--     )
+--    (arg3) <- (do
+--      h4 <- pure h
+--      arg3 <- pure (h4:r)
+--      pure (arg3)
+--     )
+--    pure (arg3)
+--   )
+--  pure (arg3)
+
+delete_ioi arg1 arg3 = do
+  -- solution: arg2[0,1,0] arg2[0,1] arg2[0] arg2[1,1,0] arg2[1,1] arg2[1] arg2[] h0[0,1,1] h2[1,1,1] h4[1,2,0] h[0,0] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,2] t3[1,1,2] t[0,2] t[1,3,0,0] t[1,3,0] t[1,3] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,0] ~h2[1,1,0] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,0] ~t3[1,1,0] ~t[0,1,2] ~t[0,1] ~t[1,1,2] ~t[1,1] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
+  (arg2) <- (do
+    h <- pure arg1
+    t <- pure arg3
+    (arg2) <- (do
+      h0 <- pure h
+      t1 <- pure t
+      arg2 <- pure (h0:t1)
+      pure (arg2)
+     )
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg2)
+   ) <|> (do
+    x <- pure arg1
+    (h,r) <- (do
+      (h4:r) <- pure arg3
+      h <- pure h4
+      pure (h,r)
+     )
+    (t) <- (do
+      (t) <- (do
+        (t) <- delete_ioi x r
+        pure (t)
+       )
+      pure (t)
+     )
+    (arg2) <- (do
+      h2 <- pure h
+      t3 <- pure t
+      arg2 <- pure (h2:t3)
+      pure (arg2)
+     )
+    pure (arg2)
+   )
+  pure (arg2)
+
+delete_oii arg2 arg3 = do
+  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
+  (arg1) <- (do
+    (h,t) <- (do
+      (h0:t1) <- pure arg2
+      h <- pure h0
+      t <- pure t1
+      pure (h,t)
+     )
+    arg1 <- pure h
+    guard $ arg3 == t
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg1)
+   ) <|> (do
+    (h,t) <- (do
+      (h2:t3) <- pure arg2
+      h <- pure h2
+      t <- pure t3
+      pure (h,t)
+     )
+    (r) <- (do
+      (h4:r) <- pure arg3
+      guard $ h4 == h
+      pure (r)
+     )
+    (x) <- (do
+      (x) <- (do
+        (x) <- delete_oii t r
+        pure (x)
+       )
+      pure (x)
+     )
+    arg1 <- pure x
+    pure (arg1)
+   )
+  pure (arg1)
+
+--delete_oii arg2 arg3 = do
+--  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
+--  (arg1) <- (do
+--    t <- pure arg3
+--    (h) <- (do
+--      (h0:t1) <- pure arg2
+--      h <- pure h0
+--      guard $ t1 == t
+--      pure (h)
+--     )
+--    arg1 <- pure h
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure (arg1)
+--   ) <|> (do
+--    (h,t) <- (do
+--      (h2:t3) <- pure arg2
+--      h <- pure h2
+--      t <- pure t3
+--      pure (h,t)
+--     )
+--    (r) <- (do
+--      (h4:r) <- pure arg3
+--      guard $ h4 == h
+--      pure (r)
+--     )
+--    (x) <- (do
+--      (x) <- (do
+--        (x) <- delete_oii t r
+--        pure (x)
+--       )
+--      pure (x)
+--     )
+--    arg1 <- pure x
+--    pure (arg1)
+--   )
+--  pure (arg1)
+
+--delete_oii arg2 arg3 = do
+--  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
+--  (arg1) <- (do
+--    (h,t) <- (do
+--      (h0:t1) <- pure arg2
+--      h <- pure h0
+--      t <- pure t1
+--      pure (h,t)
+--     )
+--    arg1 <- pure h
+--    guard $ arg3 == t
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure (arg1)
+--   ) <|> (do
+--    (h,r) <- (do
+--      (h4:r) <- pure arg3
+--      h <- pure h4
+--      pure (h,r)
+--     )
+--    (t) <- (do
+--      (h2:t3) <- pure arg2
+--      guard $ h2 == h
+--      t <- pure t3
+--      pure (t)
+--     )
+--    (x) <- (do
+--      (x) <- (do
+--        (x) <- delete_oii t r
+--        pure (x)
+--       )
+--      pure (x)
+--     )
+--    arg1 <- pure x
+--    pure (arg1)
+--   )
+--  pure (arg1)
+
+--delete_oii arg2 arg3 = do
+--  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
+--  (arg1) <- (do
+--    t <- pure arg3
+--    (h) <- (do
+--      (h0:t1) <- pure arg2
+--      h <- pure h0
+--      guard $ t1 == t
+--      pure (h)
+--     )
+--    arg1 <- pure h
+--    () <- (do
+--      
+--      pure ()
+--     )
+--    pure (arg1)
+--   ) <|> (do
+--    (h,r) <- (do
+--      (h4:r) <- pure arg3
+--      h <- pure h4
+--      pure (h,r)
+--     )
+--    (t) <- (do
+--      (h2:t3) <- pure arg2
+--      guard $ h2 == h
+--      t <- pure t3
+--      pure (t)
+--     )
+--    (x) <- (do
+--      (x) <- (do
+--        (x) <- delete_oii t r
+--        pure (x)
+--       )
+--      pure (x)
+--     )
+--    arg1 <- pure x
+--    pure (arg1)
+--   )
+--  pure (arg1)
+
+delete_oio arg2 = do
+  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] arg3[0,2] arg3[0] arg3[1,2,0] arg3[1,2] arg3[1] arg3[] h0[0,1,0] h2[1,1,0] h4[1,2,1] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,3,0,0] r[1,3,0] r[1,3] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,0] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,2,0] ~r[1,2] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
+  (arg1,arg3) <- (do
+    (h,t) <- (do
+      (h0:t1) <- pure arg2
+      h <- pure h0
+      t <- pure t1
+      pure (h,t)
+     )
+    arg1 <- pure h
+    arg3 <- pure t
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg1,arg3)
+   ) <|> (do
+    (h,t) <- (do
+      (h2:t3) <- pure arg2
+      h <- pure h2
+      t <- pure t3
+      pure (h,t)
+     )
+    (r,x) <- (do
+      (r,x) <- (do
+        (x,r) <- delete_oio t
+        pure (r,x)
+       )
+      pure (r,x)
+     )
+    arg1 <- pure x
+    (arg3) <- (do
+      h4 <- pure h
+      arg3 <- pure (h4:r)
+      pure (arg3)
+     )
+    pure (arg1,arg3)
+   )
+  pure (arg1,arg3)
+
+{- perm/2
+perm arg1 arg2 :- (((arg1 = []), (arg2 = []), ()); (arg1 = xs, (arg2 = h : t), ((delete h xs ys), (perm ys t)))).
+constraints:
+~(arg1[1,0] & xs[1,0])
+~(arg2[1,1,0] & h[1,1,0])
+~(h[1,1] & h[1,2])
+~(t[1,1] & t[1,2])
+~(xs[1,0] & xs[1,2])
+~(ys[1,2,0] & ys[1,2,1])
+(h[1,1] | h[1,2])
+(t[1,1] | t[1,2])
+(xs[1,0] | xs[1,2])
+(ys[1,2,0] | ys[1,2,1])
+((h[1,2,0,0] & (~xs[1,2,0,0] & ys[1,2,0,0])) | ((h[1,2,0,0] & (~xs[1,2,0,0] & ~ys[1,2,0,0])) | ((~h[1,2,0,0] & (xs[1,2,0,0] & ~ys[1,2,0,0])) | ((~h[1,2,0,0] & (~xs[1,2,0,0] & ys[1,2,0,0])) | (~h[1,2,0,0] & (~xs[1,2,0,0] & ~ys[1,2,0,0]))))))
+(arg1[0,0] <-> arg1[0,0,0])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg2[0,1] <-> arg2[0,1,0])
+(arg2[0] <-> arg2[0,1])
+(arg2[1,1] <-> arg2[1,1,0])
+(arg2[1] <-> arg2[1,1])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(h[1,1,0] <-> t[1,1,0])
+(h[1,1] <-> h[1,1,0])
+(h[1,2,0] <-> h[1,2,0,0])
+(h[1,2] <-> h[1,2,0])
+(t[1,1] <-> t[1,1,0])
+(t[1,2,1,0] <-> arg2[])
+(t[1,2,1] <-> t[1,2,1,0])
+(t[1,2] <-> t[1,2,1])
+(xs[1,2,0] <-> xs[1,2,0,0])
+(xs[1,2] <-> xs[1,2,0])
+(ys[1,2,0] <-> ys[1,2,0,0])
+(ys[1,2,1,0] <-> arg1[])
+(ys[1,2,1] <-> ys[1,2,1,0])
+1
+-}
+perm_ii arg1 arg2 = do
+  -- solution: h[1,1,0] h[1,1] t[1,1,0] t[1,1] xs[1,0] ys[1,2,0,0] ys[1,2,0] ~arg1[0,0,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h[1,2,0,0] ~h[1,2,0] ~h[1,2] ~t[1,2,1,0] ~t[1,2,1] ~t[1,2] ~xs[1,2,0,0] ~xs[1,2,0] ~xs[1,2] ~ys[1,2,1,0] ~ys[1,2,1]
+  () <- (do
+    () <- (do
+      guard $ arg1 == []
+      pure ()
+     )
+    () <- (do
+      guard $ arg2 == []
+      pure ()
+     )
+    () <- (do
+      
+      pure ()
+     )
+    pure ()
+   ) <|> (do
+    xs <- pure arg1
+    (h,t) <- (do
+      (h:t) <- pure arg2
+      pure (h,t)
+     )
+    () <- (do
+      (ys) <- (do
+        (ys) <- delete_iio h xs
+        pure (ys)
+       )
+      () <- (do
+        () <- perm_ii ys t
+        pure ()
+       )
+      pure ()
+     )
+    pure ()
+   )
+  pure ()
+
+perm_io arg1 = do
+  -- solution: arg2[0,1,0] arg2[0,1] arg2[0] arg2[1,1,0] arg2[1,1] arg2[1] arg2[] h[1,2,0,0] h[1,2,0] h[1,2] t[1,2,1,0] t[1,2,1] t[1,2] xs[1,0] ys[1,2,0,0] ys[1,2,0] ~arg1[0,0,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~h[1,1,0] ~h[1,1] ~t[1,1,0] ~t[1,1] ~xs[1,2,0,0] ~xs[1,2,0] ~xs[1,2] ~ys[1,2,1,0] ~ys[1,2,1]
+  (arg2) <- (do
+    () <- (do
+      guard $ arg1 == []
+      pure ()
+     )
+    (arg2) <- (do
+      arg2 <- pure []
+      pure (arg2)
+     )
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg2)
+   ) <|> (do
+    xs <- pure arg1
+    (h,t) <- (do
+      (h,ys) <- (do
+        (h,ys) <- delete_oio xs
+        pure (h,ys)
+       )
+      (t) <- (do
+        (t) <- perm_io ys
+        pure (t)
+       )
+      pure (h,t)
+     )
+    (arg2) <- (do
+      arg2 <- pure (h:t)
+      pure (arg2)
+     )
+    pure (arg2)
+   )
+  pure (arg2)
+
+perm_oi arg2 = do
+  -- solution: arg1[0,0,0] arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h[1,1,0] h[1,1] t[1,1,0] t[1,1] xs[1,2,0,0] xs[1,2,0] xs[1,2] ys[1,2,1,0] ys[1,2,1] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h[1,2,0,0] ~h[1,2,0] ~h[1,2] ~t[1,2,1,0] ~t[1,2,1] ~t[1,2] ~xs[1,0] ~ys[1,2,0,0] ~ys[1,2,0]
+  (arg1) <- (do
+    (arg1) <- (do
+      arg1 <- pure []
+      pure (arg1)
+     )
+    () <- (do
+      guard $ arg2 == []
+      pure ()
+     )
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg1)
+   ) <|> (do
+    (h,t) <- (do
+      (h:t) <- pure arg2
+      pure (h,t)
+     )
+    (xs) <- (do
+      (ys) <- (do
+        (ys) <- perm_oi t
+        pure (ys)
+       )
+      (xs) <- (do
+        (xs) <- delete_ioi h ys
+        pure (xs)
+       )
+      pure (xs)
+     )
+    arg1 <- pure xs
+    pure (arg1)
+   )
+  pure (arg1)
