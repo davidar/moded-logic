@@ -2,9 +2,10 @@
 
 import Append
 import Primes
-import Sort
 import Queens
+import Sort
 
+import Control.Monad (forM_)
 import Control.Monad.Logic (observeAll)
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
@@ -80,8 +81,10 @@ programSort =
 
 programQueens =
   [logic|
-  delete h (h:t) t.
-  delete x (h:t) (h:r) :- delete x t r.
+  qdelete h (h:t) t.
+  qdelete x (h:t) (h:r) :- qdelete x t r.
+  qperm [] [].
+  qperm xs (h:t) :- qdelete h xs ys, qperm ys t.
 
   nodiag _ _ [].
   nodiag b d (h:t) :-
@@ -92,19 +95,25 @@ programQueens =
     else if d = bmh then empty
     else nodiag b d1 t.
 
+  safe [].
+  safe (h:t) :- nodiag h 1 t, safe t.
+
+  queens1 dat out :- qperm dat out, safe out.
+
   cqueens [] _ [].
   cqueens xs history (q:m) :-
     xs = (_:_),
-    delete q xs r,
+    qdelete q xs r,
     nodiag q 1 history,
     cqueens r (q:history) m.
 
-  queens dat out :- cqueens dat [] out.
+  queens2 dat out :- cqueens dat [] out.
   |]
 
 main :: IO ()
 main = do
-  putStrLn . unlines $ show <$> concat [programAppend, programPrimes, programSort, programQueens]
+  putStrLn . unlines $
+    show <$> concat [programAppend, programPrimes, programSort, programQueens]
   hspec $ do
     describe "Append" $ do
       it "compile" $ do
@@ -147,8 +156,10 @@ main = do
         observeAll (classify_io [1, 2, 1, 2]) `shouldBe` [Just [1, 2]]
         observeAll (classify_io [1, 2, 3]) `shouldBe` [Nothing]
       it "perm" $ do
-        List.sort (observeAll (perm_io [1 .. 5])) `shouldBe` List.sort (List.permutations [1 .. 5])
-        List.sort (observeAll (perm_oi [1 .. 5])) `shouldBe` List.sort (List.permutations [1 .. 5])
+        List.sort (observeAll (perm_io [1 .. 5])) `shouldBe`
+          List.sort (List.permutations [1 .. 5])
+        List.sort (observeAll (perm_oi [1 .. 5])) `shouldBe`
+          List.sort (List.permutations [1 .. 5])
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` [()]
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
     describe "Primes" $ do
@@ -181,4 +192,11 @@ main = do
         --TIO.writeFile "test/Queens.hs" code
         expect <- TIO.readFile "test/Queens.hs"
         code `shouldBe` expect
-        print $ observeAll (queens_io [1 .. 5])
+      it "queens1" $ do
+        observeAll (queens1_io [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
+      it "queens2" $ do
+        observeAll (queens2_io [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
+      forM_ [1 .. 6] $ \n ->
+        it ("n=" ++ show n) $
+        observeAll (queens1_io [1 .. n]) `shouldBe`
+        observeAll (queens2_io [1 .. n])

@@ -3,8 +3,8 @@ import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 
-{- delete/3
-delete arg1 arg2 arg3 :- ((arg1 = h, (arg2 = h0 : t1, h0 = h, t1 = t), arg3 = t, ()); (arg1 = x, (arg2 = h2 : t3, h2 = h, t3 = t), (arg3 = h4 : r, h4 = h), ((delete x t r)))).
+{- qdelete/3
+qdelete arg1 arg2 arg3 :- ((arg1 = h, (arg2 = h0 : t1, h0 = h, t1 = t), arg3 = t, ()); (arg1 = x, (arg2 = h2 : t3, h2 = h, t3 = t), (arg3 = h4 : r, h4 = h), ((qdelete x t r)))).
 constraints:
 ~(arg1[0,0] & h[0,0])
 ~(arg1[1,0] & x[1,0])
@@ -74,7 +74,7 @@ constraints:
 (x[1,3] <-> x[1,3,0])
 1
 -}
-delete_iii arg1 arg2 arg3 = do
+qdelete_iii arg1 arg2 arg3 = do
   -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,0] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
   () <- (do
     h <- pure arg1
@@ -105,7 +105,7 @@ delete_iii arg1 arg2 arg3 = do
      )
     () <- (do
       () <- (do
-        () <- delete_iii x t r
+        () <- qdelete_iii x t r
         pure ()
        )
       pure ()
@@ -114,7 +114,7 @@ delete_iii arg1 arg2 arg3 = do
    )
   pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,0] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    h <- pure arg1
@@ -145,7 +145,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -154,7 +154,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,0] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    h <- pure arg1
@@ -185,7 +185,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -194,7 +194,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,0] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    h <- pure arg1
@@ -225,7 +225,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -234,7 +234,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    (h,t) <- (do
@@ -265,7 +265,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -274,7 +274,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    t <- pure arg3
@@ -305,7 +305,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -314,7 +314,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    (h,t) <- (do
@@ -345,7 +345,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -354,7 +354,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    t <- pure arg3
@@ -385,7 +385,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -394,7 +394,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,1] h2[1,1,0] h4[1,2,0] h[0,0] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,2] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,0] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,0] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    h <- pure arg1
@@ -425,7 +425,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -434,7 +434,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
---delete_iii arg1 arg2 arg3 = do
+--qdelete_iii arg1 arg2 arg3 = do
 --  -- solution: h0[0,1,1] h2[1,1,0] h4[1,2,0] h[0,0] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,2] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,0] ~h2[1,1,1] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,0] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  () <- (do
 --    h <- pure arg1
@@ -465,7 +465,7 @@ delete_iii arg1 arg2 arg3 = do
 --     )
 --    () <- (do
 --      () <- (do
---        () <- delete_iii x t r
+--        () <- qdelete_iii x t r
 --        pure ()
 --       )
 --      pure ()
@@ -474,7 +474,7 @@ delete_iii arg1 arg2 arg3 = do
 --   )
 --  pure ()
 
-delete_iio arg1 arg2 = do
+qdelete_iio arg1 arg2 = do
   -- solution: arg3[0,2] arg3[0] arg3[1,2,0] arg3[1,2] arg3[1] arg3[] h0[0,1,0] h2[1,1,0] h4[1,2,1] h[0,0] h[1,1,1] h[1,1] r[1,3,0,0] r[1,3,0] r[1,3] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,0] ~h[0,1,1] ~h[0,1] ~h[1,2,1] ~h[1,2] ~r[1,2,0] ~r[1,2] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
   (arg3) <- (do
     h <- pure arg1
@@ -500,7 +500,7 @@ delete_iio arg1 arg2 = do
      )
     (r) <- (do
       (r) <- (do
-        (r) <- delete_iio x t
+        (r) <- qdelete_iio x t
         pure (r)
        )
       pure (r)
@@ -514,7 +514,7 @@ delete_iio arg1 arg2 = do
    )
   pure (arg3)
 
---delete_iio arg1 arg2 = do
+--qdelete_iio arg1 arg2 = do
 --  -- solution: arg3[0,2] arg3[0] arg3[1,2,0] arg3[1,2] arg3[1] arg3[] h0[0,1,0] h2[1,1,0] h4[1,2,1] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,3,0,0] r[1,3,0] r[1,3] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,0] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,2,0] ~r[1,2] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
 --  (arg3) <- (do
 --    (h,t) <- (do
@@ -540,7 +540,7 @@ delete_iio arg1 arg2 = do
 --     )
 --    (r) <- (do
 --      (r) <- (do
---        (r) <- delete_iio x t
+--        (r) <- qdelete_iio x t
 --        pure (r)
 --       )
 --      pure (r)
@@ -554,7 +554,7 @@ delete_iio arg1 arg2 = do
 --   )
 --  pure (arg3)
 
-delete_ioi arg1 arg3 = do
+qdelete_ioi arg1 arg3 = do
   -- solution: arg2[0,1,0] arg2[0,1] arg2[0] arg2[1,1,0] arg2[1,1] arg2[1] arg2[] h0[0,1,1] h2[1,1,1] h4[1,2,0] h[0,0] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,2] t3[1,1,2] t[0,2] t[1,3,0,0] t[1,3,0] t[1,3] x[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,0] ~h2[1,1,0] ~h4[1,2,1] ~h[0,1,1] ~h[0,1] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,0] ~t3[1,1,0] ~t[0,1,2] ~t[0,1] ~t[1,1,2] ~t[1,1] ~x[1,3,0,0] ~x[1,3,0] ~x[1,3]
   (arg2) <- (do
     h <- pure arg1
@@ -579,7 +579,7 @@ delete_ioi arg1 arg3 = do
      )
     (t) <- (do
       (t) <- (do
-        (t) <- delete_ioi x r
+        (t) <- qdelete_ioi x r
         pure (t)
        )
       pure (t)
@@ -594,7 +594,7 @@ delete_ioi arg1 arg3 = do
    )
   pure (arg2)
 
-delete_oii arg2 arg3 = do
+qdelete_oii arg2 arg3 = do
   -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
   (arg1) <- (do
     (h,t) <- (do
@@ -624,7 +624,7 @@ delete_oii arg2 arg3 = do
      )
     (x) <- (do
       (x) <- (do
-        (x) <- delete_oii t r
+        (x) <- qdelete_oii t r
         pure (x)
        )
       pure (x)
@@ -634,7 +634,7 @@ delete_oii arg2 arg3 = do
    )
   pure (arg1)
 
---delete_oii arg2 arg3 = do
+--qdelete_oii arg2 arg3 = do
 --  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
 --  (arg1) <- (do
 --    t <- pure arg3
@@ -664,7 +664,7 @@ delete_oii arg2 arg3 = do
 --     )
 --    (x) <- (do
 --      (x) <- (do
---        (x) <- delete_oii t r
+--        (x) <- qdelete_oii t r
 --        pure (x)
 --       )
 --      pure (x)
@@ -674,7 +674,7 @@ delete_oii arg2 arg3 = do
 --   )
 --  pure (arg1)
 
---delete_oii arg2 arg3 = do
+--qdelete_oii arg2 arg3 = do
 --  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
 --  (arg1) <- (do
 --    (h,t) <- (do
@@ -704,7 +704,7 @@ delete_oii arg2 arg3 = do
 --     )
 --    (x) <- (do
 --      (x) <- (do
---        (x) <- delete_oii t r
+--        (x) <- qdelete_oii t r
 --        pure (x)
 --       )
 --      pure (x)
@@ -714,7 +714,7 @@ delete_oii arg2 arg3 = do
 --   )
 --  pure (arg1)
 
---delete_oii arg2 arg3 = do
+--qdelete_oii arg2 arg3 = do
 --  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h0[0,1,0] h2[1,1,0] h4[1,2,0] h[0,1,1] h[0,1] h[1,2,1] h[1,2] r[1,2,0] r[1,2] t1[0,1,0] t3[1,1,0] t[0,2] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,1] ~h[0,0] ~h[1,1,1] ~h[1,1] ~r[1,3,0,0] ~r[1,3,0] ~r[1,3] ~t1[0,1,2] ~t3[1,1,2] ~t[0,1,2] ~t[0,1] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
 --  (arg1) <- (do
 --    t <- pure arg3
@@ -744,7 +744,7 @@ delete_oii arg2 arg3 = do
 --     )
 --    (x) <- (do
 --      (x) <- (do
---        (x) <- delete_oii t r
+--        (x) <- qdelete_oii t r
 --        pure (x)
 --       )
 --      pure (x)
@@ -754,7 +754,7 @@ delete_oii arg2 arg3 = do
 --   )
 --  pure (arg1)
 
-delete_oio arg2 = do
+qdelete_oio arg2 = do
   -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] arg3[0,2] arg3[0] arg3[1,2,0] arg3[1,2] arg3[1] arg3[] h0[0,1,0] h2[1,1,0] h4[1,2,1] h[0,1,1] h[0,1] h[1,1,1] h[1,1] r[1,3,0,0] r[1,3,0] r[1,3] t1[0,1,0] t3[1,1,0] t[0,1,2] t[0,1] t[1,1,2] t[1,1] x[1,3,0,0] x[1,3,0] x[1,3] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h0[0,1,1] ~h2[1,1,1] ~h4[1,2,0] ~h[0,0] ~h[1,2,1] ~h[1,2] ~r[1,2,0] ~r[1,2] ~t1[0,1,2] ~t3[1,1,2] ~t[0,2] ~t[1,3,0,0] ~t[1,3,0] ~t[1,3] ~x[1,0]
   (arg1,arg3) <- (do
     (h,t) <- (do
@@ -779,7 +779,7 @@ delete_oio arg2 = do
      )
     (r,x) <- (do
       (r,x) <- (do
-        (x,r) <- delete_oio t
+        (x,r) <- qdelete_oio t
         pure (r,x)
        )
       pure (r,x)
@@ -793,6 +793,157 @@ delete_oio arg2 = do
     pure (arg1,arg3)
    )
   pure (arg1,arg3)
+
+{- qperm/2
+qperm arg1 arg2 :- (((arg1 = []), (arg2 = []), ()); (arg1 = xs, (arg2 = h : t), ((qdelete h xs ys), (qperm ys t)))).
+constraints:
+~(arg1[1,0] & xs[1,0])
+~(arg2[1,1,0] & h[1,1,0])
+~(h[1,1] & h[1,2])
+~(t[1,1] & t[1,2])
+~(xs[1,0] & xs[1,2])
+~(ys[1,2,0] & ys[1,2,1])
+(h[1,1] | h[1,2])
+(t[1,1] | t[1,2])
+(xs[1,0] | xs[1,2])
+(ys[1,2,0] | ys[1,2,1])
+((h[1,2,0,0] & (~xs[1,2,0,0] & ys[1,2,0,0])) | ((h[1,2,0,0] & (~xs[1,2,0,0] & ~ys[1,2,0,0])) | ((~h[1,2,0,0] & (xs[1,2,0,0] & ~ys[1,2,0,0])) | ((~h[1,2,0,0] & (~xs[1,2,0,0] & ys[1,2,0,0])) | (~h[1,2,0,0] & (~xs[1,2,0,0] & ~ys[1,2,0,0]))))))
+(arg1[0,0] <-> arg1[0,0,0])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg2[0,1] <-> arg2[0,1,0])
+(arg2[0] <-> arg2[0,1])
+(arg2[1,1] <-> arg2[1,1,0])
+(arg2[1] <-> arg2[1,1])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(h[1,1,0] <-> t[1,1,0])
+(h[1,1] <-> h[1,1,0])
+(h[1,2,0] <-> h[1,2,0,0])
+(h[1,2] <-> h[1,2,0])
+(t[1,1] <-> t[1,1,0])
+(t[1,2,1,0] <-> arg2[])
+(t[1,2,1] <-> t[1,2,1,0])
+(t[1,2] <-> t[1,2,1])
+(xs[1,2,0] <-> xs[1,2,0,0])
+(xs[1,2] <-> xs[1,2,0])
+(ys[1,2,0] <-> ys[1,2,0,0])
+(ys[1,2,1,0] <-> arg1[])
+(ys[1,2,1] <-> ys[1,2,1,0])
+1
+-}
+qperm_ii arg1 arg2 = do
+  -- solution: h[1,1,0] h[1,1] t[1,1,0] t[1,1] xs[1,0] ys[1,2,0,0] ys[1,2,0] ~arg1[0,0,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h[1,2,0,0] ~h[1,2,0] ~h[1,2] ~t[1,2,1,0] ~t[1,2,1] ~t[1,2] ~xs[1,2,0,0] ~xs[1,2,0] ~xs[1,2] ~ys[1,2,1,0] ~ys[1,2,1]
+  () <- (do
+    () <- (do
+      guard $ arg1 == []
+      pure ()
+     )
+    () <- (do
+      guard $ arg2 == []
+      pure ()
+     )
+    () <- (do
+      
+      pure ()
+     )
+    pure ()
+   ) <|> (do
+    xs <- pure arg1
+    (h,t) <- (do
+      (h:t) <- pure arg2
+      pure (h,t)
+     )
+    () <- (do
+      (ys) <- (do
+        (ys) <- qdelete_iio h xs
+        pure (ys)
+       )
+      () <- (do
+        () <- qperm_ii ys t
+        pure ()
+       )
+      pure ()
+     )
+    pure ()
+   )
+  pure ()
+
+qperm_io arg1 = do
+  -- solution: arg2[0,1,0] arg2[0,1] arg2[0] arg2[1,1,0] arg2[1,1] arg2[1] arg2[] h[1,2,0,0] h[1,2,0] h[1,2] t[1,2,1,0] t[1,2,1] t[1,2] xs[1,0] ys[1,2,0,0] ys[1,2,0] ~arg1[0,0,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~h[1,1,0] ~h[1,1] ~t[1,1,0] ~t[1,1] ~xs[1,2,0,0] ~xs[1,2,0] ~xs[1,2] ~ys[1,2,1,0] ~ys[1,2,1]
+  (arg2) <- (do
+    () <- (do
+      guard $ arg1 == []
+      pure ()
+     )
+    (arg2) <- (do
+      arg2 <- pure []
+      pure (arg2)
+     )
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg2)
+   ) <|> (do
+    xs <- pure arg1
+    (h,t) <- (do
+      (h,ys) <- (do
+        (h,ys) <- qdelete_oio xs
+        pure (h,ys)
+       )
+      (t) <- (do
+        (t) <- qperm_io ys
+        pure (t)
+       )
+      pure (h,t)
+     )
+    (arg2) <- (do
+      arg2 <- pure (h:t)
+      pure (arg2)
+     )
+    pure (arg2)
+   )
+  pure (arg2)
+
+qperm_oi arg2 = do
+  -- solution: arg1[0,0,0] arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h[1,1,0] h[1,1] t[1,1,0] t[1,1] xs[1,2,0,0] xs[1,2,0] xs[1,2] ys[1,2,1,0] ys[1,2,1] ~arg2[0,1,0] ~arg2[0,1] ~arg2[0] ~arg2[1,1,0] ~arg2[1,1] ~arg2[1] ~arg2[] ~h[1,2,0,0] ~h[1,2,0] ~h[1,2] ~t[1,2,1,0] ~t[1,2,1] ~t[1,2] ~xs[1,0] ~ys[1,2,0,0] ~ys[1,2,0]
+  (arg1) <- (do
+    (arg1) <- (do
+      arg1 <- pure []
+      pure (arg1)
+     )
+    () <- (do
+      guard $ arg2 == []
+      pure ()
+     )
+    () <- (do
+      
+      pure ()
+     )
+    pure (arg1)
+   ) <|> (do
+    (h,t) <- (do
+      (h:t) <- pure arg2
+      pure (h,t)
+     )
+    (xs) <- (do
+      (ys) <- (do
+        (ys) <- qperm_oi t
+        pure (ys)
+       )
+      (xs) <- (do
+        (xs) <- qdelete_ioi h ys
+        pure (xs)
+       )
+      pure (xs)
+     )
+    arg1 <- pure xs
+    pure (arg1)
+   )
+  pure (arg1)
 
 {- nodiag/3
 nodiag arg1 arg2 arg3 :- (((arg3 = []), ()); (arg1 = b, arg2 = d, (arg3 = h : t), ((plus hmb b h), (plus bmh h b), (succ d d1), if (d = hmb) then ((empty)) else (if (d = bmh) then ((empty)) else ((nodiag b d1 t)))))).
@@ -956,8 +1107,203 @@ nodiag_iii arg1 arg2 arg3 = do
    )
   pure ()
 
+{- safe/1
+safe arg1 :- (((arg1 = []), ()); ((arg1 = h : t), (((nodiag h data0 t), (data0 = 1)), (safe t)))).
+constraints:
+~(arg1[1,0,0] & h[1,0,0])
+~(data0[1,1,0,0] & data0[1,1,0,1])
+~(h[1,0] & h[1,1])
+~(t[1,0] & t[1,1])
+~(t[1,1,0] & t[1,1,1])
+(~h[1,1,0,0,0] & (~data0[1,1,0,0,0] & ~t[1,1,0,0,0]))
+(data0[1,1,0,0] | data0[1,1,0,1])
+(h[1,0] | h[1,1])
+(t[1,0] | t[1,1])
+(arg1[0,0] <-> arg1[0,0,0])
+(arg1[0] <-> arg1[0,0])
+(arg1[1,0] <-> arg1[1,0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(data0[1,1,0,0] <-> data0[1,1,0,0,0])
+(data0[1,1,0,1] <-> data0[1,1,0,1,0])
+(h[1,0,0] <-> t[1,0,0])
+(h[1,0] <-> h[1,0,0])
+(h[1,1,0,0] <-> h[1,1,0,0,0])
+(h[1,1,0] <-> h[1,1,0,0])
+(h[1,1] <-> h[1,1,0])
+(t[1,0] <-> t[1,0,0])
+(t[1,1,0,0] <-> t[1,1,0,0,0])
+(t[1,1,0] <-> t[1,1,0,0])
+(t[1,1,1,0] <-> arg1[])
+(t[1,1,1] <-> t[1,1,1,0])
+(t[1,1] <-> (t[1,1,0] | t[1,1,1]))
+1
+-}
+safe_i arg1 = do
+  -- solution: data0[1,1,0,1,0] data0[1,1,0,1] h[1,0,0] h[1,0] t[1,0,0] t[1,0] ~arg1[0,0,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0,0] ~arg1[1,0] ~arg1[1] ~arg1[] ~data0[1,1,0,0,0] ~data0[1,1,0,0] ~h[1,1,0,0,0] ~h[1,1,0,0] ~h[1,1,0] ~h[1,1] ~t[1,1,0,0,0] ~t[1,1,0,0] ~t[1,1,0] ~t[1,1,1,0] ~t[1,1,1] ~t[1,1]
+  () <- (do
+    () <- (do
+      guard $ arg1 == []
+      pure ()
+     )
+    () <- (do
+      
+      pure ()
+     )
+    pure ()
+   ) <|> (do
+    (h,t) <- (do
+      (h:t) <- pure arg1
+      pure (h,t)
+     )
+    () <- (do
+      () <- (do
+        (data0) <- (do
+          data0 <- pure 1
+          pure (data0)
+         )
+        () <- (do
+          () <- nodiag_iii h data0 t
+          pure ()
+         )
+        pure ()
+       )
+      () <- (do
+        () <- safe_i t
+        pure ()
+       )
+      pure ()
+     )
+    pure ()
+   )
+  pure ()
+
+{- queens1/2
+queens1 arg1 arg2 :- ((arg1 = dat, arg2 = out, ((qperm dat out), (safe out)))).
+constraints:
+~out[0,2,1,0]
+~(arg1[0,0] & dat[0,0])
+~(arg2[0,1] & out[0,1])
+~(dat[0,0] & dat[0,2])
+~(out[0,1] & out[0,2])
+~(out[0,2,0] & out[0,2,1])
+(dat[0,0] | dat[0,2])
+(out[0,1] | out[0,2])
+((dat[0,2,0,0] & ~out[0,2,0,0]) | ((~dat[0,2,0,0] & out[0,2,0,0]) | (~dat[0,2,0,0] & ~out[0,2,0,0])))
+(arg1[0] <-> arg1[0,0])
+(arg1[] <-> arg1[0])
+(arg2[0] <-> arg2[0,1])
+(arg2[] <-> arg2[0])
+(dat[0,2,0] <-> dat[0,2,0,0])
+(dat[0,2] <-> dat[0,2,0])
+(out[0,2,0] <-> out[0,2,0,0])
+(out[0,2,1] <-> out[0,2,1,0])
+(out[0,2] <-> (out[0,2,0] | out[0,2,1]))
+1
+-}
+queens1_ii arg1 arg2 = do
+  -- solution: dat[0,0] out[0,1] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~dat[0,2,0,0] ~dat[0,2,0] ~dat[0,2] ~out[0,2,0,0] ~out[0,2,0] ~out[0,2,1,0] ~out[0,2,1] ~out[0,2]
+  () <- (do
+    dat <- pure arg1
+    out <- pure arg2
+    () <- (do
+      () <- (do
+        () <- qperm_ii dat out
+        pure ()
+       )
+      () <- (do
+        () <- safe_i out
+        pure ()
+       )
+      pure ()
+     )
+    pure ()
+   )
+  pure ()
+
+--queens1_ii arg1 arg2 = do
+--  -- solution: dat[0,0] out[0,2,0,0] out[0,2,0] out[0,2] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~dat[0,2,0,0] ~dat[0,2,0] ~dat[0,2] ~out[0,1] ~out[0,2,1,0] ~out[0,2,1]
+--  () <- (do
+--    dat <- pure arg1
+--    (out) <- (do
+--      (out) <- (do
+--        (out) <- qperm_io dat
+--        pure (out)
+--       )
+--      () <- (do
+--        () <- safe_i out
+--        pure ()
+--       )
+--      pure (out)
+--     )
+--    guard $ arg2 == out
+--    pure ()
+--   )
+--  pure ()
+
+--queens1_ii arg1 arg2 = do
+--  -- solution: dat[0,2,0,0] dat[0,2,0] dat[0,2] out[0,1] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~dat[0,0] ~out[0,2,0,0] ~out[0,2,0] ~out[0,2,1,0] ~out[0,2,1] ~out[0,2]
+--  () <- (do
+--    out <- pure arg2
+--    (dat) <- (do
+--      (dat) <- (do
+--        (dat) <- qperm_oi out
+--        pure (dat)
+--       )
+--      () <- (do
+--        () <- safe_i out
+--        pure ()
+--       )
+--      pure (dat)
+--     )
+--    guard $ arg1 == dat
+--    pure ()
+--   )
+--  pure ()
+
+queens1_io arg1 = do
+  -- solution: arg2[0,1] arg2[0] arg2[] dat[0,0] out[0,2,0,0] out[0,2,0] out[0,2] ~arg1[0,0] ~arg1[0] ~arg1[] ~dat[0,2,0,0] ~dat[0,2,0] ~dat[0,2] ~out[0,1] ~out[0,2,1,0] ~out[0,2,1]
+  (arg2) <- (do
+    dat <- pure arg1
+    (out) <- (do
+      (out) <- (do
+        (out) <- qperm_io dat
+        pure (out)
+       )
+      () <- (do
+        () <- safe_i out
+        pure ()
+       )
+      pure (out)
+     )
+    arg2 <- pure out
+    pure (arg2)
+   )
+  pure (arg2)
+
+queens1_oi arg2 = do
+  -- solution: arg1[0,0] arg1[0] arg1[] dat[0,2,0,0] dat[0,2,0] dat[0,2] out[0,1] ~arg2[0,1] ~arg2[0] ~arg2[] ~dat[0,0] ~out[0,2,0,0] ~out[0,2,0] ~out[0,2,1,0] ~out[0,2,1] ~out[0,2]
+  (arg1) <- (do
+    out <- pure arg2
+    (dat) <- (do
+      (dat) <- (do
+        (dat) <- qperm_oi out
+        pure (dat)
+       )
+      () <- (do
+        () <- safe_i out
+        pure ()
+       )
+      pure (dat)
+     )
+    arg1 <- pure dat
+    pure (arg1)
+   )
+  pure (arg1)
+
 {- cqueens/3
-cqueens arg1 arg2 arg3 :- (((arg1 = []), (arg3 = []), ()); (arg1 = xs, arg2 = history, (arg3 = q0 : m, q0 = q), ((xs = _ : _), (delete q xs r), ((nodiag q data0 history), (data0 = 1)), ((cqueens r data1 m), (data1 = q1 : history, q1 = q))))).
+cqueens arg1 arg2 arg3 :- (((arg1 = []), (arg3 = []), ()); (arg1 = xs, arg2 = history, (arg3 = q0 : m, q0 = q), ((xs = _ : _), (qdelete q xs r), ((nodiag q data0 history), (data0 = 1)), ((cqueens r data1 m), (data1 = q1 : history, q1 = q))))).
 constraints:
 ~arg2[]
 ~xs[1,3,0,0]
@@ -1038,7 +1384,7 @@ constraints:
 (xs[1,3] <-> (xs[1,3,0] | xs[1,3,1]))
 1
 -}
--- mode ordering failure, cyclic dependency: [3] ((xs::in = _::out : _::out), (delete q::out xs::in r::out), ((data0::out = 1), (nodiag q::in data0::in history::in)), ((q1::out = q::in, data1::out = q1::in : history::in), (cqueens r::in data1::in m::in))) -> [2] (arg3::in = q0::out : m::out, q0::in = q::in)
+-- mode ordering failure, cyclic dependency: [3] ((xs::in = _::out : _::out), (qdelete q::out xs::in r::out), ((data0::out = 1), (nodiag q::in data0::in history::in)), ((q1::out = q::in, data1::out = q1::in : history::in), (cqueens r::in data1::in m::in))) -> [2] (arg3::in = q0::out : m::out, q0::in = q::in)
 cqueens_iii arg1 arg2 arg3 = do
   -- solution: data0[1,3,2,1,0] data0[1,3,2,1] data1[1,3,3,1,0] data1[1,3,3,1] history[1,1] m[1,2,0] m[1,2] q0[1,2,0] q1[1,3,3,1,1] q[1,2,1] q[1,2] r[1,3,1,0] r[1,3,1] xs[1,0] ~arg1[0,0,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[1,1] ~arg2[1] ~arg2[] ~arg3[0,1,0] ~arg3[0,1] ~arg3[0] ~arg3[1,2,0] ~arg3[1,2] ~arg3[1] ~arg3[] ~data0[1,3,2,0,0] ~data0[1,3,2,0] ~data1[1,3,3,0,0] ~data1[1,3,3,0] ~history[1,3,2,0,0] ~history[1,3,2,0] ~history[1,3,2] ~history[1,3,3,1,0] ~history[1,3,3,1] ~history[1,3,3] ~history[1,3] ~m[1,3,3,0,0] ~m[1,3,3,0] ~m[1,3,3] ~m[1,3] ~q0[1,2,1] ~q1[1,3,3,1,0] ~q[1,3,1,0] ~q[1,3,1] ~q[1,3,2,0,0] ~q[1,3,2,0] ~q[1,3,2] ~q[1,3,3,1,1] ~q[1,3,3,1] ~q[1,3,3] ~q[1,3] ~r[1,3,3,0,0] ~r[1,3,3,0] ~r[1,3,3] ~xs[1,3,0,0] ~xs[1,3,0] ~xs[1,3,1,0] ~xs[1,3,1] ~xs[1,3]
   () <- (do
@@ -1069,7 +1415,7 @@ cqueens_iii arg1 arg2 arg3 = do
         pure ()
        )
       (r) <- (do
-        (r) <- delete_iio q xs
+        (r) <- qdelete_iio q xs
         pure (r)
        )
       () <- (do
@@ -1126,7 +1472,7 @@ cqueens_iio arg1 arg2 = do
         pure ()
        )
       (q,r) <- (do
-        (q,r) <- delete_oio xs
+        (q,r) <- qdelete_oio xs
         pure (q,r)
        )
       () <- (do
@@ -1211,7 +1557,7 @@ cqueens_oii arg2 arg3 = do
         pure (r)
        )
       (xs) <- (do
-        (xs) <- delete_ioi q r
+        (xs) <- qdelete_ioi q r
         pure (xs)
        )
       () <- (do
@@ -1225,8 +1571,8 @@ cqueens_oii arg2 arg3 = do
    )
   pure (arg1)
 
-{- queens/2
-queens arg1 arg2 :- ((arg1 = dat, arg2 = out, (((cqueens dat data0 out), (data0 = []))))).
+{- queens2/2
+queens2 arg1 arg2 :- ((arg1 = dat, arg2 = out, (((cqueens dat data0 out), (data0 = []))))).
 constraints:
 ~(arg1[0,0] & dat[0,0])
 ~(arg2[0,1] & out[0,1])
@@ -1251,7 +1597,7 @@ constraints:
 (out[0,2] <-> out[0,2,0])
 1
 -}
-queens_ii arg1 arg2 = do
+queens2_ii arg1 arg2 = do
   -- solution: dat[0,0] data0[0,2,0,1,0] data0[0,2,0,1] out[0,1] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~dat[0,2,0,0,0] ~dat[0,2,0,0] ~dat[0,2,0] ~dat[0,2] ~data0[0,2,0,0,0] ~data0[0,2,0,0] ~out[0,2,0,0,0] ~out[0,2,0,0] ~out[0,2,0] ~out[0,2]
   () <- (do
     dat <- pure arg1
@@ -1274,7 +1620,7 @@ queens_ii arg1 arg2 = do
    )
   pure ()
 
---queens_ii arg1 arg2 = do
+--queens2_ii arg1 arg2 = do
 --  -- solution: dat[0,0] data0[0,2,0,1,0] data0[0,2,0,1] out[0,2,0,0,0] out[0,2,0,0] out[0,2,0] out[0,2] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~dat[0,2,0,0,0] ~dat[0,2,0,0] ~dat[0,2,0] ~dat[0,2] ~data0[0,2,0,0,0] ~data0[0,2,0,0] ~out[0,1]
 --  () <- (do
 --    dat <- pure arg1
@@ -1297,7 +1643,7 @@ queens_ii arg1 arg2 = do
 --   )
 --  pure ()
 
---queens_ii arg1 arg2 = do
+--queens2_ii arg1 arg2 = do
 --  -- solution: dat[0,2,0,0,0] dat[0,2,0,0] dat[0,2,0] dat[0,2] data0[0,2,0,1,0] data0[0,2,0,1] out[0,1] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~dat[0,0] ~data0[0,2,0,0,0] ~data0[0,2,0,0] ~out[0,2,0,0,0] ~out[0,2,0,0] ~out[0,2,0] ~out[0,2]
 --  () <- (do
 --    out <- pure arg2
@@ -1320,7 +1666,7 @@ queens_ii arg1 arg2 = do
 --   )
 --  pure ()
 
-queens_io arg1 = do
+queens2_io arg1 = do
   -- solution: arg2[0,1] arg2[0] arg2[] dat[0,0] data0[0,2,0,1,0] data0[0,2,0,1] out[0,2,0,0,0] out[0,2,0,0] out[0,2,0] out[0,2] ~arg1[0,0] ~arg1[0] ~arg1[] ~dat[0,2,0,0,0] ~dat[0,2,0,0] ~dat[0,2,0] ~dat[0,2] ~data0[0,2,0,0,0] ~data0[0,2,0,0] ~out[0,1]
   (arg2) <- (do
     dat <- pure arg1
@@ -1343,7 +1689,7 @@ queens_io arg1 = do
    )
   pure (arg2)
 
-queens_oi arg2 = do
+queens2_oi arg2 = do
   -- solution: arg1[0,0] arg1[0] arg1[] dat[0,2,0,0,0] dat[0,2,0,0] dat[0,2,0] dat[0,2] data0[0,2,0,1,0] data0[0,2,0,1] out[0,1] ~arg2[0,1] ~arg2[0] ~arg2[] ~dat[0,0] ~data0[0,2,0,0,0] ~data0[0,2,0,0] ~out[0,2,0,0,0] ~out[0,2,0,0] ~out[0,2,0] ~out[0,2]
   (arg1) <- (do
     out <- pure arg2
