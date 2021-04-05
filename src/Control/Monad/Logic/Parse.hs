@@ -1,9 +1,11 @@
 module Control.Monad.Logic.Parse where
 
 import Control.Monad.Logic.Moded
-import Data.Char
-import Data.Functor
-import Data.Void
+
+import Data.Char ( isUpper )
+import Data.Functor ( void )
+import Data.Void ( Void )
+
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -70,17 +72,20 @@ value = parens value <|> try (do
   )
 
 
+unify :: Parser (Atom Val)
 unify = do
     lhs <- variable
     symbol "="
     rhs <- value
     pure $ Unif lhs rhs
 
+predicate :: Parser (Atom Val)
 predicate = do
     name <- identifier
     vs <- many value
     pure $ Pred name vs
 
+softcut :: Parser (Goal Val)
 softcut = do
     rword "if"
     c <- goal
@@ -90,10 +95,13 @@ softcut = do
     e <- goal
     pure $ Ifte c t e
 
+goal :: Parser (Goal Val)
 goal = (Atom <$> (try unify <|> predicate)) <|> softcut
 
+conj :: Parser (Goal Val)
 conj = Conj <$> goal `sepBy` symbol ","
 
+rule :: Parser (Rule Val Val)
 rule = do
     name <- identifier
     vars <- many value
@@ -101,6 +109,7 @@ rule = do
     symbol "."
     pure $ Rule name vars body
 
+rules :: Parser (Prog Val Val)
 rules = some rule
 
 parseProg :: String -> String -> Prog Var Var

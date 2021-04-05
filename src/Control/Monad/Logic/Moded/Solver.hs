@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns, DeriveDataTypeable #-}
 -- adapted from picologic (c) 2014-2020, Stephen Diehl
-
 module Control.Monad.Logic.Moded.Solver
   ( Expr (..),
     Ident (..),
@@ -24,14 +23,14 @@ module Control.Monad.Logic.Moded.Solver
   )
 where
 
-import Data.Data
-import Data.List
+import Data.Data ( Data, Typeable )
+import Data.List ( (\\), group, sort )
 import qualified Data.Map as M
-import Data.Maybe
+import Data.Maybe ( fromMaybe, mapMaybe )
 import qualified Data.Set as S
-import Control.Monad.Writer
+import Control.Monad.Writer ()
 
-import Picosat
+import Picosat ( Solution(..), solve, solveAll )
 
 newtype Ident = Ident String
   deriving (Eq, Ord, Show, Data, Typeable)

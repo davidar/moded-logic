@@ -1,22 +1,22 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, FlexibleContexts, FlexibleInstances, OverloadedStrings, QuasiQuotes #-}
 module Control.Monad.Logic.Moded where
 
-import Algebra.Graph.AdjacencyMap
-import Algebra.Graph.AdjacencyMap.Algorithm
-import Control.Monad
+import Algebra.Graph.AdjacencyMap ( edges, overlay, vertices )
+import Algebra.Graph.AdjacencyMap.Algorithm ( Cycle, topSort )
+import Control.Monad ( guard, forM )
 import Control.Monad.State
-import Data.Foldable
-import Data.List
+import Data.Foldable ( Foldable(toList) )
+import Data.List ( group, groupBy, intercalate, nub, sort )
 import qualified Data.Map as Map
-import Data.Monoid
-import Data.Ord
+import Data.Monoid ()
+import Data.Ord ( comparing )
 import qualified Data.Set as Set
 import Data.Set (Set)
-import NeatInterpolation
+import NeatInterpolation ( text )
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import qualified Data.Text as T
 import Data.Text (Text)
-import System.IO.Unsafe
+import System.IO.Unsafe ( unsafePerformIO )
 
 type Name = String
 
@@ -129,8 +129,7 @@ subgoals (Disj gs) = gs
 subgoals (Ifte c t e) = [c,t,e]
 
 extract :: Path -> Goal v -> Goal v
-extract [] g = g
-extract (p:ps) g = extract ps $ subgoals g !! p
+extract = flip . foldl $ \g i -> subgoals g !! i
 
 extendPath :: Path -> Rule u v -> [Path]
 extendPath p r = [p ++ [i] | i <- take (length . subgoals . extract p $ body r) [0..]]
