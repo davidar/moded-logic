@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveLift #-}
 
 module Control.Monad.Logic.Moded.AST
   ( Prog
@@ -14,28 +14,30 @@ module Control.Monad.Logic.Moded.AST
 import Data.List (intercalate)
 import qualified Data.Set as Set
 import Data.Set (Set)
+import Language.Haskell.TH.Syntax (Lift)
 
 type Name = String
 
 newtype Var =
   V String
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Lift)
 
 data Atom v
   = Unif v v
   | Func Name [v] v
   | Pred Name [v]
-  deriving (Eq, Ord, Functor, Foldable)
+  deriving (Eq, Ord, Functor, Foldable, Lift)
 
 data Goal v
   = Atom (Atom v)
   | Conj [Goal v]
   | Disj [Goal v]
   | Ifte (Goal v) (Goal v) (Goal v)
-  deriving (Eq, Ord, Functor, Foldable)
+  deriving (Eq, Ord, Functor, Foldable, Lift)
 
 data Rule u v =
   Rule Name [u] (Goal v)
+  deriving (Lift)
 
 type Path = [Int]
 

@@ -1,28 +1,62 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 import Append
 import Primes
 
 import Control.Monad.Logic (observeAll)
+import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
-import Control.Monad.Logic.Moded.Parse (parseProg)
+import Control.Monad.Logic.Moded.Parse (logic)
 import qualified Data.List as List
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import System.IO
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe)
 
+programAppend :: Prog Var Var
+programAppend =
+  [logic|
+  append [] b b.
+  append (h:t) b (h:tb) :- append t b tb.
+  append3 a b c abc :-
+    append a b ab, append ab c abc.
+  reverse [] [].
+  reverse (h:t) l :- reverse t r, append r [h] l.
+  palindrome a :- reverse a a.
+  duplicate a b :- append a a b.
+  classify xs r :- if palindrome xs then r = Just []
+              else if duplicate h xs then r = Just h
+              else r = Nothing.
+  |]
+
+programPrimes :: Prog Var Var
+programPrimes =
+  [logic|
+  integers low high result :-
+    if low <= high
+    then succ low m, integers m high rest, result = (low:rest)
+    else result = [].
+
+  remove _ [] [].
+  remove p (j:js) result :-
+    mod j p m,
+    remove p js njs,
+    if m = 0 then result = njs else result = (j:njs).
+
+  sift [] [].
+  sift (p:js) (p:ps) :- remove p js new, sift new ps.
+
+  primes limit ps :- integers 2 limit js, sift js ps.
+  |]
+
 main :: IO ()
 main = do
-  lp <- readFile "test/Append.lp"
-  let program = parseProg "test/Append.lp" lp
-  lp' <- readFile "test/Primes.lp"
-  let program' = parseProg "test/Primes.lp" lp'
-  --putStrLn . unlines $ show <$> program
+  putStrLn . unlines $ show <$> (programAppend ++ programPrimes)
   hspec $ do
     describe "Append" $ do
       it "compile" $ do
-        let code = T.pack "module Append where\n" <> compile program
+        let code = T.pack "module Append where\n" <> compile programAppend
         --TIO.writeFile "test/Append.hs" code
         expect <- TIO.readFile "test/Append.hs"
         code `shouldBe` expect
@@ -62,7 +96,7 @@ main = do
         observeAll (classify_io [1, 2, 3]) `shouldBe` [Nothing]
     describe "Primes" $ do
       it "compile" $ do
-        let code = T.pack "module Primes where\n" <> compile program'
+        let code = T.pack "module Primes where\n" <> compile programPrimes
         --TIO.writeFile "test/Primes.hs" code
         expect <- TIO.readFile "test/Primes.hs"
         code `shouldBe` expect

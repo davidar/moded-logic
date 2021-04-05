@@ -1,5 +1,8 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Control.Monad.Logic.Moded.Parse
-  ( parseProg
+  ( logic
+  , parseProg
   ) where
 
 import Control.Monad.Logic.Moded.AST
@@ -19,6 +22,7 @@ import Control.Monad.Logic.Moded.Preprocess
 import Data.Char (isUpper)
 import Data.Functor (void)
 import Data.Void (Void)
+import Language.Haskell.TH.Quote (QuasiQuoter(..))
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -131,12 +135,29 @@ rule = do
   pure $ Rule name vars body
 
 rules :: Parser (Prog Val Val)
-rules = some rule
+rules = spaceConsumer >> some rule
 
-parseProg :: String -> String -> Prog Var Var
-parseProg fn lp = p4
+parseProg ::
+     String -> String -> Either (ParseErrorBundle String Void) (Prog Var Var)
+parseProg fn lp = do
+  p1 <- parse rules fn lp
+  let p2 = combineDefs p1
+      p3 = map superhomogeneous p2
+      p4 = map distinctVars p3
+  pure p4
+
+logic :: QuasiQuoter
+logic =
+  QuasiQuoter
+    { quoteExp =
+        \s ->
+          case parseProg "<quasi-quotation>" s of
+            Left e -> fail (errorBundlePretty e)
+            Right p -> [|p|]
+    , quotePat = notHandled "patterns"
+    , quoteType = notHandled "types"
+    , quoteDec = notHandled "declarations"
+    }
   where
-    p1 = either (error . errorBundlePretty) id $ parse rules fn lp
-    p2 = combineDefs p1
-    p3 = map superhomogeneous p2
-    p4 = map distinctVars p3
+    notHandled things =
+      error $ things ++ " are not handled by the logic quasiquoter"
