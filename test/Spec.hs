@@ -22,22 +22,23 @@ main = do
     let program = parseProg "test/Append.lp" lp
     --putStrLn . unlines $ show <$> program
     hspec $ do
-      describe "append" $ do
+      describe "Append" $ do
         it "compile" $ do
             let code = T.pack "module Append where\n" <> compile program
             --TIO.writeFile "test/Append.hs" code
             expect <- TIO.readFile "test/Append.hs"
             code `shouldBe` expect
-        it "iio" $ do
+        it "append/3" $ do
             observeAll (append_iio [1..3] [4..6]) `shouldBe` [[1..6]]
-        it "ooi" $ do
+            observeAll (append_iii [1..3] [4..6] [1..6]) `shouldBe` [()]
+            observeAll (append_iii [1..3] [4..6] [0..6]) `shouldBe` []
             observeAll (append_ooi [1..6]) `shouldBe` [splitAt i [1..6] | i <- [0..6]]
-        it "iiio" $ do
+            observeAll (append_ioi [1..3] [1..6]) `shouldBe` [[4..6]]
+            observeAll (append_oii [4..6] [1..6]) `shouldBe` [[1..3]]
+        it "append/4" $ do
             observeAll (append_iiio [1,2] [3,4] [5,6]) `shouldBe` [[1..6]]
-        it "iiii" $ do
             observeAll (append_iiii [1,2] [3,4] [5,6] [1..6]) `shouldBe` [()]
             observeAll (append_iiii [1,2] [3,4] [5,6] [0..6]) `shouldBe` []
-        it "oooi" $ do
             ((List.sort . observeAll $ append_oooi [1..6]) `shouldBe`) . List.sort $ do
                 i <- [0..6]
                 let (a,bc) = splitAt i [1..6]
@@ -55,3 +56,7 @@ main = do
         it "duplicate" $ do
             observeAll (duplicate_oi [0,1,0,1]) `shouldBe` [[0,1]]
             observeAll (duplicate_oi [0,1,2,3]) `shouldBe` []
+        it "classify" $ do
+            observeAll (classify_io [1,2,3,2,1]) `shouldBe` [Just []]
+            observeAll (classify_io [1,2,1,2]) `shouldBe` [Just [1,2]]
+            observeAll (classify_io [1,2,3]) `shouldBe` [Nothing]
