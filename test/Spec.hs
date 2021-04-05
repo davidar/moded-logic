@@ -2,6 +2,7 @@
 
 import Append
 import Primes
+import Sort
 
 import Control.Monad.Logic (observeAll)
 import Control.Monad.Logic.Moded.AST (Prog, Var)
@@ -50,9 +51,27 @@ programPrimes =
   primes limit ps :- integers 2 limit js, sift js ps.
   |]
 
+programSort :: Prog Var Var
+programSort =
+  [logic|
+  partition [] _ [] [].
+  partition (h:t) p lo hi :-
+    if h <= p
+    then partition t p lo1 hi, lo = (h:lo1)
+    else partition t p lo hi1, hi = (h:hi1).
+
+  qsort [] r r.
+  qsort (x:xs) r r0 :-
+    partition xs x ys zs,
+    qsort zs r1 r0,
+    qsort ys r (x:r1).
+
+  sort list sorted :- qsort list sorted [].
+  |]
+
 main :: IO ()
 main = do
-  putStrLn . unlines $ show <$> (programAppend ++ programPrimes)
+  putStrLn . unlines $ show <$> concat [programAppend, programPrimes, programSort]
   hspec $ do
     describe "Append" $ do
       it "compile" $ do
@@ -101,7 +120,20 @@ main = do
         expect <- TIO.readFile "test/Primes.hs"
         code `shouldBe` expect
       it "primes" $ do
-        let p100 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+        let p100 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41,
+                    43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
         observeAll (primes_io 100) `shouldBe` [p100]
         observeAll (primes_ii 100 p100) `shouldBe` [()]
         observeAll (primes_ii 100 [2 .. 99]) `shouldBe` []
+    describe "Sort" $ do
+      it "compile" $ do
+        let code = T.pack "module Sort where\n" <> compile programSort
+        --TIO.writeFile "test/Sort.hs" code
+        expect <- TIO.readFile "test/Sort.hs"
+        code `shouldBe` expect
+      it "sort" $ do
+        let xs = [27,74,17,33,94,18,46,83,65,2,32,53,28,85,99,47,28,82,6,11,55,29,39,81,
+                  90,37,10,0,66,51,7,21,85,27,31,63,75,4,95,99,11,28,61,74,18,92,40,53,59,8]
+        observeAll (sort_io xs) `shouldBe` [List.sort xs]
+        observeAll (sort_ii xs (List.sort xs)) `shouldBe` [()]
+        observeAll (sort_ii xs xs) `shouldBe` []

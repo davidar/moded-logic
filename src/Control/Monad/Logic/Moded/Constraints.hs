@@ -105,6 +105,8 @@ cIte p r =
   , [Sat.Neg $ term pc v `Sat.Conj` term pt v | v <- vs]
   , [Sat.Neg $ term pc v | v <- nls]
   , [term pt v `Sat.Iff` term pe v | v <- nls]
+  -- condition cannot consume variables produced by branches
+  , [Sat.Neg $ term pt v | v <- Set.elems $ inside pc r]
   ]
   where
     vs = Set.elems $ inside p r

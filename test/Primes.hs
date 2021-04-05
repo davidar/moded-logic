@@ -9,9 +9,10 @@ mod_iio a b = pure (mod a b)
 integers arg1 arg2 arg3 :- ((arg1 = low, arg2 = high, arg3 = result, (if (((<=) low high)) then ((succ low m), (integers m high rest), (result = low : rest)) else ((result = []))))).
 constraints:
 ~high[0,3,0,0,0]
-~high[0,3,0,1]
+~high[0,3,0,1,1]
+~high[0,3,0]
 ~low[0,3,0,0,0]
-~low[0,3,0,1]
+~low[0,3,0]
 ~(arg1[0,0] & low[0,0])
 ~(arg2[0,1] & high[0,1])
 ~(arg3[0,2] & result[0,2])
@@ -22,6 +23,7 @@ constraints:
 ~(rest[0,3,0,1,1] & rest[0,3,0,1,2])
 ~(result[0,2] & result[0,3])
 ~(result[0,3,0,1,2,0] & low[0,3,0,1,2,0])
+~(low[0,3,0,1,0] | low[0,3,0,1,2])
 (~low[0,3,0,0,0,0] & ~high[0,3,0,0,0,0])
 (high[0,1] | high[0,3])
 (low[0,0] | low[0,3])
@@ -38,15 +40,11 @@ constraints:
 (high[0,3,0,0,0] <-> high[0,3,0,0,0,0])
 (high[0,3,0,1,1,0] <-> arg2[])
 (high[0,3,0,1,1] <-> high[0,3,0,1,1,0])
-(high[0,3,0,1] <-> high[0,3,0,1,1])
-(high[0,3,0] <-> high[0,3,0,1])
 (high[0,3] <-> high[0,3,0])
 (low[0,3,0,0,0] <-> low[0,3,0,0,0,0])
 (low[0,3,0,1,0] <-> low[0,3,0,1,0,0])
 (low[0,3,0,1,2,0] <-> rest[0,3,0,1,2,0])
 (low[0,3,0,1,2] <-> low[0,3,0,1,2,0])
-(low[0,3,0,1] <-> (low[0,3,0,1,0] | low[0,3,0,1,2]))
-(low[0,3,0] <-> low[0,3,0,1])
 (low[0,3] <-> low[0,3,0])
 (m[0,3,0,1,0] <-> m[0,3,0,1,0,0])
 (m[0,3,0,1,1,0] <-> arg1[])
@@ -64,7 +62,7 @@ constraints:
 1
 -}
 integers_iio arg1 arg2 = do
-  -- solution: arg3[0,2] arg3[0] arg3[] high[0,1] low[0,0] m[0,3,0,1,0,0] m[0,3,0,1,0] rest[0,3,0,1,1,0] rest[0,3,0,1,1] result[0,3,0,1,2,0] result[0,3,0,1,2] result[0,3,0,1] result[0,3,0,2,0,0] result[0,3,0,2,0] result[0,3,0,2] result[0,3,0] result[0,3] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~high[0,3,0,0,0,0] ~high[0,3,0,0,0] ~high[0,3,0,1,1,0] ~high[0,3,0,1,1] ~high[0,3,0,1] ~high[0,3,0] ~high[0,3] ~low[0,3,0,0,0,0] ~low[0,3,0,0,0] ~low[0,3,0,1,0,0] ~low[0,3,0,1,0] ~low[0,3,0,1,2,0] ~low[0,3,0,1,2] ~low[0,3,0,1] ~low[0,3,0] ~low[0,3] ~m[0,3,0,1,1,0] ~m[0,3,0,1,1] ~rest[0,3,0,1,2,0] ~rest[0,3,0,1,2] ~result[0,2]
+  -- solution: arg3[0,2] arg3[0] arg3[] high[0,1] low[0,0] m[0,3,0,1,0,0] m[0,3,0,1,0] rest[0,3,0,1,1,0] rest[0,3,0,1,1] result[0,3,0,1,2,0] result[0,3,0,1,2] result[0,3,0,1] result[0,3,0,2,0,0] result[0,3,0,2,0] result[0,3,0,2] result[0,3,0] result[0,3] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~high[0,3,0,0,0,0] ~high[0,3,0,0,0] ~high[0,3,0,1,1,0] ~high[0,3,0,1,1] ~high[0,3,0] ~high[0,3] ~low[0,3,0,0,0,0] ~low[0,3,0,0,0] ~low[0,3,0,1,0,0] ~low[0,3,0,1,0] ~low[0,3,0,1,2,0] ~low[0,3,0,1,2] ~low[0,3,0] ~low[0,3] ~m[0,3,0,1,1,0] ~m[0,3,0,1,1] ~rest[0,3,0,1,2,0] ~rest[0,3,0,1,2] ~result[0,2]
   (arg3) <- (do
     low <- pure arg1
     high <- pure arg2
