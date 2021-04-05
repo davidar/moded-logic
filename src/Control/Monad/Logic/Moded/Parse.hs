@@ -102,11 +102,11 @@ predicate = do
 softcut :: Parser (Goal Val)
 softcut = do
   rword "if"
-  c <- goal
+  c <- conj
   rword "then"
-  t <- goal
+  t <- conj
   rword "else"
-  e <- goal
+  e <- conj
   pure $ Ifte c t e
 
 goal :: Parser (Goal Val)
