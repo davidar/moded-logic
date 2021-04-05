@@ -3,8 +3,8 @@
 import Append
 import Control.Monad ()
 import Control.Monad.Logic (observeAll)
-import Control.Monad.Logic.Moded (compile)
-import Control.Monad.Logic.Parse (parseProg)
+import Control.Monad.Logic.Moded.Codegen (compile)
+import Control.Monad.Logic.Moded.Parse (parseProg)
 import Data.Either ()
 import qualified Data.List as List
 import Data.Monoid ()
@@ -27,7 +27,7 @@ main = do
         --TIO.writeFile "test/Append.hs" code
         expect <- TIO.readFile "test/Append.hs"
         code `shouldBe` expect
-      it "append/3" $ do
+      it "append" $ do
         observeAll (append_iio [1 .. 3] [4 .. 6]) `shouldBe` [[1 .. 6]]
         observeAll (append_iii [1 .. 3] [4 .. 6] [1 .. 6]) `shouldBe` [()]
         observeAll (append_iii [1 .. 3] [4 .. 6] [0 .. 6]) `shouldBe` []
@@ -35,11 +35,11 @@ main = do
           [splitAt i [1 .. 6] | i <- [0 .. 6]]
         observeAll (append_ioi [1 .. 3] [1 .. 6]) `shouldBe` [[4 .. 6]]
         observeAll (append_oii [4 .. 6] [1 .. 6]) `shouldBe` [[1 .. 3]]
-      it "append/4" $ do
-        observeAll (append_iiio [1, 2] [3, 4] [5, 6]) `shouldBe` [[1 .. 6]]
-        observeAll (append_iiii [1, 2] [3, 4] [5, 6] [1 .. 6]) `shouldBe` [()]
-        observeAll (append_iiii [1, 2] [3, 4] [5, 6] [0 .. 6]) `shouldBe` []
-        ((List.sort . observeAll $ append_oooi [1 .. 6]) `shouldBe`) . List.sort $ do
+      it "append3" $ do
+        observeAll (append3_iiio [1, 2] [3, 4] [5, 6]) `shouldBe` [[1 .. 6]]
+        observeAll (append3_iiii [1, 2] [3, 4] [5, 6] [1 .. 6]) `shouldBe` [()]
+        observeAll (append3_iiii [1, 2] [3, 4] [5, 6] [0 .. 6]) `shouldBe` []
+        ((List.sort . observeAll $ append3_oooi [1 .. 6]) `shouldBe`) . List.sort $ do
           i <- [0 .. 6]
           let (a, bc) = splitAt i [1 .. 6]
           j <- [0 .. length bc]

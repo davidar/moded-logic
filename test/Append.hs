@@ -428,8 +428,8 @@ append_ooi arg3 = do
    )
   pure (arg1,arg2)
 
-{- append/4
-append arg1 arg2 arg3 arg4 :- ((arg1 = a, arg2 = b, arg3 = c, arg4 = abc, ((append a b ab), (append ab c abc)))).
+{- append3/4
+append3 arg1 arg2 arg3 arg4 :- ((arg1 = a, arg2 = b, arg3 = c, arg4 = abc, ((append a b ab), (append ab c abc)))).
 constraints:
 ~(a[0,0] & a[0,4])
 ~(ab[0,4,0] & ab[0,4,1])
@@ -467,7 +467,7 @@ constraints:
 (c[0,4] <-> c[0,4,1])
 1
 -}
-append_iiii arg1 arg2 arg3 arg4 = do
+append3_iiii arg1 arg2 arg3 arg4 = do
   -- solution: a[0,0] ab[0,4,0,0] ab[0,4,0] abc[0,3] b[0,1] c[0,2] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,1,0] ~ab[0,4,1] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
   () <- (do
     a <- pure arg1
@@ -489,7 +489,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
    )
   pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,0] ab[0,4,0,0] ab[0,4,0] abc[0,3] b[0,1] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,1,0] ~ab[0,4,1] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,2]
 --  () <- (do
 --    a <- pure arg1
@@ -511,7 +511,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,0] ab[0,4,0,0] ab[0,4,0] abc[0,4,1,0] abc[0,4,1] abc[0,4] b[0,1] c[0,2] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,1,0] ~ab[0,4,1] ~abc[0,3] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
 --  () <- (do
 --    a <- pure arg1
@@ -533,7 +533,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] b[0,1] c[0,2] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
 --  () <- (do
 --    a <- pure arg1
@@ -555,7 +555,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] b[0,1] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,2]
 --  () <- (do
 --    a <- pure arg1
@@ -577,7 +577,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] b[0,4,0,0] b[0,4,0] b[0,4] c[0,2] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
 --  () <- (do
 --    a <- pure arg1
@@ -599,7 +599,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  () <- (do
 --    a <- pure arg1
@@ -621,7 +621,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] b[0,1] c[0,2] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
 --  () <- (do
 --    b <- pure arg2
@@ -643,7 +643,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] b[0,1] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,2]
 --  () <- (do
 --    b <- pure arg2
@@ -665,7 +665,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] b[0,4,0,0] b[0,4,0] b[0,4] c[0,2] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
 --  () <- (do
 --    c <- pure arg3
@@ -687,7 +687,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
---append_iiii arg1 arg2 arg3 arg4 = do
+--append3_iiii arg1 arg2 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  () <- (do
 --    abc <- pure arg4
@@ -709,7 +709,7 @@ append_iiii arg1 arg2 arg3 arg4 = do
 --   )
 --  pure ()
 
-append_iiio arg1 arg2 arg3 = do
+append3_iiio arg1 arg2 arg3 = do
   -- solution: a[0,0] ab[0,4,0,0] ab[0,4,0] abc[0,4,1,0] abc[0,4,1] abc[0,4] arg4[0,3] arg4[0] arg4[] b[0,1] c[0,2] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,1,0] ~ab[0,4,1] ~abc[0,3] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
   (arg4) <- (do
     a <- pure arg1
@@ -731,7 +731,7 @@ append_iiio arg1 arg2 arg3 = do
    )
   pure (arg4)
 
-append_iioi arg1 arg2 arg4 = do
+append3_iioi arg1 arg2 arg4 = do
   -- solution: a[0,0] ab[0,4,0,0] ab[0,4,0] abc[0,3] arg3[0,2] arg3[0] arg3[] b[0,1] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,1,0] ~ab[0,4,1] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,2]
   (arg3) <- (do
     a <- pure arg1
@@ -753,7 +753,7 @@ append_iioi arg1 arg2 arg4 = do
    )
   pure (arg3)
 
---append_iioi arg1 arg2 arg4 = do
+--append3_iioi arg1 arg2 arg4 = do
 --  -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg3[0,2] arg3[0] arg3[] b[0,1] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,2]
 --  (arg3) <- (do
 --    a <- pure arg1
@@ -775,7 +775,7 @@ append_iioi arg1 arg2 arg4 = do
 --   )
 --  pure (arg3)
 
---append_iioi arg1 arg2 arg4 = do
+--append3_iioi arg1 arg2 arg4 = do
 --  -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg3[0,2] arg3[0] arg3[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  (arg3) <- (do
 --    a <- pure arg1
@@ -797,7 +797,7 @@ append_iioi arg1 arg2 arg4 = do
 --   )
 --  pure (arg3)
 
---append_iioi arg1 arg2 arg4 = do
+--append3_iioi arg1 arg2 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg3[0,2] arg3[0] arg3[] b[0,1] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,2]
 --  (arg3) <- (do
 --    b <- pure arg2
@@ -819,7 +819,7 @@ append_iioi arg1 arg2 arg4 = do
 --   )
 --  pure (arg3)
 
---append_iioi arg1 arg2 arg4 = do
+--append3_iioi arg1 arg2 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg3[0,2] arg3[0] arg3[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  (arg3) <- (do
 --    abc <- pure arg4
@@ -841,7 +841,7 @@ append_iioi arg1 arg2 arg4 = do
 --   )
 --  pure (arg3)
 
-append_ioii arg1 arg3 arg4 = do
+append3_ioii arg1 arg3 arg4 = do
   -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg2[0,1] arg2[0] arg2[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,2] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
   (arg2) <- (do
     a <- pure arg1
@@ -863,7 +863,7 @@ append_ioii arg1 arg3 arg4 = do
    )
   pure (arg2)
 
---append_ioii arg1 arg3 arg4 = do
+--append3_ioii arg1 arg3 arg4 = do
 --  -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg2[0,1] arg2[0] arg2[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  (arg2) <- (do
 --    a <- pure arg1
@@ -885,7 +885,7 @@ append_ioii arg1 arg3 arg4 = do
 --   )
 --  pure (arg2)
 
---append_ioii arg1 arg3 arg4 = do
+--append3_ioii arg1 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg2[0,1] arg2[0] arg2[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,2] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
 --  (arg2) <- (do
 --    c <- pure arg3
@@ -907,7 +907,7 @@ append_ioii arg1 arg3 arg4 = do
 --   )
 --  pure (arg2)
 
---append_ioii arg1 arg3 arg4 = do
+--append3_ioii arg1 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg2[0,1] arg2[0] arg2[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  (arg2) <- (do
 --    abc <- pure arg4
@@ -929,7 +929,7 @@ append_ioii arg1 arg3 arg4 = do
 --   )
 --  pure (arg2)
 
-append_iooi arg1 arg4 = do
+append3_iooi arg1 arg4 = do
   -- solution: a[0,0] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg2[0,1] arg2[0] arg2[] arg3[0,2] arg3[0] arg3[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,4,0,0] ~a[0,4,0] ~a[0,4] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
   (arg2,arg3) <- (do
     a <- pure arg1
@@ -951,7 +951,7 @@ append_iooi arg1 arg4 = do
    )
   pure (arg2,arg3)
 
---append_iooi arg1 arg4 = do
+--append3_iooi arg1 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg2[0,1] arg2[0] arg2[] arg3[0,2] arg3[0] arg3[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg1[0,0] ~arg1[0] ~arg1[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  (arg2,arg3) <- (do
 --    abc <- pure arg4
@@ -973,7 +973,7 @@ append_iooi arg1 arg4 = do
 --   )
 --  pure (arg2,arg3)
 
-append_oiii arg2 arg3 arg4 = do
+append3_oiii arg2 arg3 arg4 = do
   -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] b[0,1] c[0,2] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
   (arg1) <- (do
     b <- pure arg2
@@ -995,7 +995,7 @@ append_oiii arg2 arg3 arg4 = do
    )
   pure (arg1)
 
---append_oiii arg2 arg3 arg4 = do
+--append3_oiii arg2 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] b[0,1] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,2]
 --  (arg1) <- (do
 --    b <- pure arg2
@@ -1017,7 +1017,7 @@ append_oiii arg2 arg3 arg4 = do
 --   )
 --  pure (arg1)
 
---append_oiii arg2 arg3 arg4 = do
+--append3_oiii arg2 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,2] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
 --  (arg1) <- (do
 --    c <- pure arg3
@@ -1039,7 +1039,7 @@ append_oiii arg2 arg3 arg4 = do
 --   )
 --  pure (arg1)
 
---append_oiii arg2 arg3 arg4 = do
+--append3_oiii arg2 arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  (arg1) <- (do
 --    abc <- pure arg4
@@ -1061,7 +1061,7 @@ append_oiii arg2 arg3 arg4 = do
 --   )
 --  pure (arg1)
 
-append_oioi arg2 arg4 = do
+append3_oioi arg2 arg4 = do
   -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] arg3[0,2] arg3[0] arg3[] b[0,1] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,4,0,0] ~b[0,4,0] ~b[0,4] ~c[0,2]
   (arg1,arg3) <- (do
     b <- pure arg2
@@ -1083,7 +1083,7 @@ append_oioi arg2 arg4 = do
    )
   pure (arg1,arg3)
 
---append_oioi arg2 arg4 = do
+--append3_oioi arg2 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] arg3[0,2] arg3[0] arg3[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg2[0,1] ~arg2[0] ~arg2[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  (arg1,arg3) <- (do
 --    abc <- pure arg4
@@ -1105,7 +1105,7 @@ append_oioi arg2 arg4 = do
 --   )
 --  pure (arg1,arg3)
 
-append_ooii arg3 arg4 = do
+append3_ooii arg3 arg4 = do
   -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] arg2[0,1] arg2[0] arg2[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,2] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,4,1,0] ~c[0,4,1] ~c[0,4]
   (arg1,arg2) <- (do
     c <- pure arg3
@@ -1127,7 +1127,7 @@ append_ooii arg3 arg4 = do
    )
   pure (arg1,arg2)
 
---append_ooii arg3 arg4 = do
+--append3_ooii arg3 arg4 = do
 --  -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] arg2[0,1] arg2[0] arg2[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg3[0,2] ~arg3[0] ~arg3[] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
 --  (arg1,arg2) <- (do
 --    abc <- pure arg4
@@ -1149,7 +1149,7 @@ append_ooii arg3 arg4 = do
 --   )
 --  pure (arg1,arg2)
 
-append_oooi arg4 = do
+append3_oooi arg4 = do
   -- solution: a[0,4,0,0] a[0,4,0] a[0,4] ab[0,4,1,0] ab[0,4,1] abc[0,3] arg1[0,0] arg1[0] arg1[] arg2[0,1] arg2[0] arg2[] arg3[0,2] arg3[0] arg3[] b[0,4,0,0] b[0,4,0] b[0,4] c[0,4,1,0] c[0,4,1] c[0,4] ~a[0,0] ~ab[0,4,0,0] ~ab[0,4,0] ~abc[0,4,1,0] ~abc[0,4,1] ~abc[0,4] ~arg4[0,3] ~arg4[0] ~arg4[] ~b[0,1] ~c[0,2]
   (arg1,arg2,arg3) <- (do
     abc <- pure arg4

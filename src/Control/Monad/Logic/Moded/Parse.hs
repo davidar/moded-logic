@@ -1,6 +1,20 @@
-module Control.Monad.Logic.Parse where
+module Control.Monad.Logic.Moded.Parse
+  ( parseProg
+  ) where
 
-import Control.Monad.Logic.Moded
+import Control.Monad.Logic.Moded.AST
+  ( Atom(..)
+  , Goal(..)
+  , Prog
+  , Rule(..)
+  , Var(..)
+  )
+import Control.Monad.Logic.Moded.Preprocess
+  ( Val(..)
+  , combineDefs
+  , distinctVars
+  , superhomogeneous
+  )
 
 import Data.Char (isUpper)
 import Data.Functor (void)
