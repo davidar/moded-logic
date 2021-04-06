@@ -7,7 +7,7 @@ module Control.Monad.Logic.Moded.Path
   , extendPath
   ) where
 
-import Control.Monad.Logic.Moded.AST (Goal(..), Rule(..), Var, body, subgoals)
+import Control.Monad.Logic.Moded.AST (Goal(..), Rule(..), Var, subgoals)
 import Data.Foldable (Foldable(toList))
 import qualified Data.Set as Set
 import Data.Set (Set)
@@ -21,7 +21,7 @@ dropIndex i xs = h ++ drop 1 t
 
 -- | Variables inside a goal
 inside :: (Ord v) => Path -> Rule u v -> Set v
-inside p = Set.fromList . toList . extract p . body
+inside p = Set.fromList . toList . extract p . ruleBody
 
 -- | Variables accessible from parent/sibling contexts
 outside :: Path -> Goal Var -> Set Var
@@ -48,4 +48,4 @@ extract = flip . foldl $ \g i -> subgoals g !! i
 
 extendPath :: Path -> Rule u v -> [Path]
 extendPath p r =
-  [p ++ [i] | i <- take (length . subgoals . extract p $ body r) [0 ..]]
+  [p ++ [i] | i <- take (length . subgoals . extract p $ ruleBody r) [0 ..]]

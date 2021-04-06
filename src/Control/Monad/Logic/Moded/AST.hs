@@ -7,7 +7,6 @@ module Control.Monad.Logic.Moded.AST
   , Atom(..)
   , Var(..)
   , Name
-  , body
   , subgoals
   ) where
 
@@ -36,7 +35,11 @@ data Goal v
   deriving (Eq, Ord, Functor, Foldable, Lift)
 
 data Rule u v =
-  Rule Name [u] (Goal v)
+  Rule
+    { ruleName :: Name
+    , ruleArgs :: [u]
+    , ruleBody :: Goal v
+    }
   deriving (Lift)
 
 type Path = [Int]
@@ -63,9 +66,6 @@ instance (Show v) => Show (Goal v) where
 instance (Show u, Show v) => Show (Rule u v) where
   show (Rule name vars g) =
     unwords (name : map show vars) ++ " :- " ++ show g ++ "."
-
-body :: Rule u v -> Goal v
-body (Rule _ _ goal) = goal
 
 subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs

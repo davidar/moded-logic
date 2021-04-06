@@ -11,7 +11,6 @@ import Control.Monad.Logic.Moded.AST
   , Prog
   , Rule(..)
   , Var(..)
-  , body
   )
 import Control.Monad.Logic.Moded.Path (Path, extract, nonlocals)
 import Control.Monad.Logic.Moded.Schedule (ModedVar(..), mode', stripMode)
@@ -67,7 +66,7 @@ cgAtom (Pred name vars) = lhs <> " <- " <> rhs
 
 cgGoal :: Path -> Rule ModedVar ModedVar -> Text
 cgGoal p r =
-  case extract p $ body r of
+  case extract p $ ruleBody r of
     Disj disj ->
       T.intercalate
         " <|> "
@@ -78,7 +77,7 @@ cgGoal p r =
               c <- take (length conj) [0 ..]
               let p' = p ++ [c]
               pure $
-                case extract p' $ body r of
+                case extract p' $ ruleBody r of
                   Atom a -> cgAtom a
                   g ->
                     "(" <>
@@ -163,7 +162,7 @@ compile rules =
                               "  -- solution: " <>
                               T.unwords (T.pack . show <$> Set.elems soln)
                          in hd : meta : tl
-              def : (T.unlines . map commentLine . T.lines <$> defs)
+              pure def -- : (T.unlines . map commentLine . T.lines <$> defs)
             commentLine l
               | "--" `T.isPrefixOf` l = l
               | otherwise = "--" <> l

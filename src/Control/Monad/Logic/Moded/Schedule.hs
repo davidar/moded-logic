@@ -9,7 +9,7 @@ module Control.Monad.Logic.Moded.Schedule
 import Algebra.Graph.AdjacencyMap (edges, overlay, vertices)
 import Algebra.Graph.AdjacencyMap.Algorithm (Cycle, topSort)
 import Control.Monad (guard)
-import Control.Monad.Logic.Moded.AST (Goal(..), Name, Rule(..), Var(..))
+import Control.Monad.Logic.Moded.AST (Atom(..), Goal(..), Name, Rule(..), Var(..))
 import Control.Monad.Logic.Moded.Constraints
   ( Constraints
   , constraints
@@ -37,13 +37,18 @@ instance Show ModedVar where
   show (In v) = v ++ "::in"
   show (Out v) = v ++ "::out"
 
--- TODO prioritise Ord based on cardinality estimates
 data DepNode =
   DepNode Int (Goal ModedVar)
-  deriving (Eq, Ord)
+  deriving (Eq)
 
 instance Show DepNode where
   show (DepNode i g) = "[" ++ show i ++ "] " ++ show g
+
+instance Ord DepNode where
+  DepNode i g `compare` DepNode j g' =
+    case priority g `compare` priority g' of
+      EQ -> (g, i) `compare` (g', j)
+      r -> r
 
 stripMode :: ModedVar -> Var
 stripMode (In v) = V v
@@ -51,6 +56,11 @@ stripMode (Out v) = V v
 
 unDepNode :: DepNode -> Goal ModedVar
 unDepNode (DepNode _ g) = g
+
+priority :: Goal ModedVar -> Int
+priority (Atom Unif{}) = 0
+priority (Atom Func{}) = 1
+priority g = 2 + length [() | Out v <- toList g]
 
 mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
 mode r@(Rule name vars body) soln =

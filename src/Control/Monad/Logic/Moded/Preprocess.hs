@@ -3,6 +3,7 @@ module Control.Monad.Logic.Moded.Preprocess
   , combineDefs
   , superhomogeneous
   , distinctVars
+  , simplify
   ) where
 
 import Control.Monad (forM)
@@ -42,7 +43,8 @@ combineDefs rules = do
   pure $ Rule name params body'
 
 superhomogeneous :: Rule Var Val -> Rule Var Var
-superhomogeneous (Rule name args body) = Rule name args $ evalState (tGoal body) (0, [])
+superhomogeneous (Rule name args body) =
+  Rule name args $ evalState (tGoal body) (0, [])
   where
     tVal :: Val -> State (Int, [Atom Var]) Var
     tVal (Var v) = return v
@@ -78,9 +80,10 @@ superhomogeneous (Rule name args body) = Rule name args $ evalState (tGoal body)
       put (count, [])
       a' <- tAtom a
       (_, body) <- get
-      return $ if null body
-        then Atom a'
-        else Conj $ Atom <$> a' : body
+      return $
+        if null body
+          then Atom a'
+          else Conj $ Atom <$> a' : body
 
 distinctVars :: Rule Var Var -> Rule Var Var
 distinctVars (Rule name args body) = Rule name args $ evalState (tGoal body) 0
@@ -114,3 +117,16 @@ distinctVars (Rule name args body) = Rule name args $ evalState (tGoal body) 0
             let v' = V (show v ++ show count)
             return (v', [Unif v' v])
           else return (v, [])
+
+simplify :: Goal Var -> Goal Var
+simplify (Conj gs) = Conj $ conjs ++ other
+  where
+    gs' = simplify <$> gs
+    isConj (Conj _) = True
+    isConj _ = False
+    unConj (Conj c) = c
+    conjs = concat $ unConj <$> filter isConj gs'
+    other = filter (not . isConj) gs'
+simplify (Disj gs) = Disj $ simplify <$> gs
+simplify (Ifte c t e) = Ifte (simplify c) (simplify t) (simplify e)
+simplify g = g

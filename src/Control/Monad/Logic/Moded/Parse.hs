@@ -17,6 +17,7 @@ import Control.Monad.Logic.Moded.Preprocess
   , combineDefs
   , distinctVars
   , superhomogeneous
+  , simplify
   )
 
 import Data.Char (isUpper)
@@ -147,7 +148,8 @@ parseProg fn lp = do
   let p2 = combineDefs p1
       p3 = map superhomogeneous p2
       p4 = map distinctVars p3
-  pure p4
+      p5 = map (\r -> r { ruleBody = simplify (ruleBody r) }) p4
+  pure p5
 
 logic :: QuasiQuoter
 logic =

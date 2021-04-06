@@ -11,7 +11,6 @@ import Control.Monad.Logic.Moded.AST
   , Name
   , Rule(..)
   , Var(..)
-  , body
   )
 import Control.Monad.Logic.Moded.Path
   ( Path
@@ -64,10 +63,10 @@ cExt p r = (Sat.Neg . term p) `Set.map` (inside (init p) r Set.\\ inside p r)
 -- | Goal-specific constraints
 cGoal :: Modes -> Path -> Rule Var Var -> Constraints
 cGoal m p r
-  | Atom {} <- extract p (body r) = cAtom m p r
+  | Atom {} <- extract p (ruleBody r) = cAtom m p r
 cGoal m p r =
   Set.unions [cComp m p' r | p' <- extendPath p r] `Set.union`
-  case extract p (body r) of
+  case extract p (ruleBody r) of
     Disj {} -> cDisj p r
     Conj {} -> cConj p r
     Ifte {} -> cIte p r
@@ -113,7 +112,7 @@ cIte p r =
 -- | Atomic goals (sec 5.2.4)
 cAtom :: Modes -> Path -> Rule Var Var -> Constraints
 cAtom m p r =
-  case let Atom a = extract p (body r)
+  case let Atom a = extract p (ruleBody r)
         in a of
     Unif u v -> Set.singleton $ nand p u v
     Func _ [] _ -> Set.empty
