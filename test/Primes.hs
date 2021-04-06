@@ -4,7 +4,7 @@ import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 
 {- integers/3
-integers arg1 arg2 arg3 :- ((if ((<=) low high) then (succ low m, integers m high rest, result = low : rest) else (result = []), arg1 = low, arg2 = high, arg3 = result)).
+integers arg1 arg2 arg3 :- ((if ((<=) low high) then (succ low m, integers m high rest, result = low:rest) else (result = []), arg1 = low, arg2 = high, arg3 = result)).
 constraints:
 ~high[0,0,0,0]
 ~high[0,0,1,1]
@@ -68,7 +68,7 @@ integers_iio arg1 arg2 = do
   pure (arg3)
 
 {- remove/3
-remove arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = j0 : js, j0 = j, mod j p m, remove p js njs, if (m = 0) then (result = njs) else (result = j1 : njs, j1 = j), arg1 = p, arg3 = result)).
+remove arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = j0:js, j0 = j, mod j p m, remove p js njs, if (m = 0) then (result = njs) else (result = j1:njs, j1 = j), arg1 = p, arg3 = result)).
 constraints:
 ~arg1[]
 ~j[1,4,2]
@@ -186,7 +186,7 @@ remove_iio arg1 arg2 = do
   pure (arg3)
 
 {- sift/2
-sift arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = p0 : js, p0 = p, arg2 = p1 : ps, p1 = p, remove p js new, sift new ps)).
+sift arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = p0:js, p0 = p, arg2 = p1:ps, p1 = p, remove p js new, sift new ps)).
 constraints:
 ~(arg1[1,0] & p0[1,0])
 ~(arg2[1,2] & p1[1,2])

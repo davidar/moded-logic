@@ -30,7 +30,7 @@ mv :: ModedVar -> Text
 mv = T.pack . show . stripMode
 
 cgFunc :: Name -> [ModedVar] -> Text
-cgFunc ":" [u, v] = "(" <> mv u <> ":" <> mv v <> ")"
+cgFunc ":" vs = "(" <> T.intercalate ":" (map mv vs) <> ")"
 cgFunc name [] = T.pack name
 cgFunc name vs = "(" <> T.unwords (T.pack name : map mv vs) <> ")"
 

@@ -84,7 +84,8 @@ value =
   (do symbol "["
       elems <- value `sepBy` symbol ","
       symbol "]"
-      pure $ foldr (\u v -> Cons ":" [u, v]) (Cons "[]" []) elems) <|>
+      let nil = Cons "[]" []
+      pure $ if null elems then nil else Cons ":" $ elems ++ [nil]) <|>
   (do v <- identifier
       if isUpper (head v)
         then do

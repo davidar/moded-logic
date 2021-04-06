@@ -4,7 +4,7 @@ import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 
 {- append/3
-append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h0 : t, h0 = h, arg3 = h1 : tb, h1 = h, append t b tb, arg2 = b)).
+append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h0:t, h0 = h, arg3 = h1:tb, h1 = h, append t b tb, arg2 = b)).
 constraints:
 ~(arg1[1,0] & h0[1,0])
 ~(arg2[0,1] & b[0,1])
@@ -283,7 +283,7 @@ append3_oooi arg4 = do
   pure (arg1,arg2,arg3)
 
 {- reverse/2
-reverse arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h0 : t, h0 = h, reverse t r, append r data1 l, data0 = [], data1 = h1 : data0, h1 = h, arg2 = l)).
+reverse arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h0:t, h0 = h, reverse t r, append r data1 l, data0 = [], data1 = h1:data0, h1 = h, arg2 = l)).
 constraints:
 ~(arg1[1,0] & h0[1,0])
 ~(arg2[1,7] & l[1,7])
@@ -566,7 +566,7 @@ classify_io arg1 = do
   pure (arg2)
 
 {- delete/3
-delete arg1 arg2 arg3 :- ((arg2 = h0 : t1, h0 = h, t1 = t, arg1 = h, arg3 = t); (arg2 = h2 : t3, h2 = h, t3 = t, arg3 = h4 : r, h4 = h, delete x t r, arg1 = x)).
+delete arg1 arg2 arg3 :- ((arg2 = h0:t1, h0 = h, t1 = t, arg1 = h, arg3 = t); (arg2 = h2:t3, h2 = h, t3 = t, arg3 = h4:r, h4 = h, delete x t r, arg1 = x)).
 constraints:
 ~(arg1[0,3] & h[0,3])
 ~(arg1[1,6] & x[1,6])
@@ -727,7 +727,7 @@ delete_oio arg2 = do
   pure (arg1,arg3)
 
 {- perm/2
-perm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h : t, delete h xs ys, perm ys t, arg1 = xs)).
+perm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h:t, delete h xs ys, perm ys t, arg1 = xs)).
 constraints:
 ~(arg1[1,3] & xs[1,3])
 ~(arg2[1,0] & h[1,0])

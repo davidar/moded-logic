@@ -103,7 +103,10 @@ mode' procs rule@(Rule name vars _) =
     builtins =
       [ ("succ", ["io", "oi", "ii"])
       , ("mod",  ["iio", "iii"])
+      , ("divMod", ["iioo", "iioi", "iiio", "iiii"])
       , ("plus", ["iio", "ioi", "oii"])
+      , ("times", ["iio", "ioi", "oii"])
+      , ("sum", ["io", "ii"])
       , ("empty", [""])
       ]
     m =

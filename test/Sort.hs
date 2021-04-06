@@ -4,7 +4,7 @@ import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 
 {- partition/4
-partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h0 : t, h0 = h, if ((<=) h p) then (partition t p lo1 hi, lo = h1 : lo1, h1 = h) else (partition t p lo hi1, hi = h2 : hi1, h2 = h), arg2 = p, arg3 = lo, arg4 = hi)).
+partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h0:t, h0 = h, if ((<=) h p) then (partition t p lo1 hi, lo = h1:lo1, h1 = h) else (partition t p lo hi1, hi = h2:hi1, h2 = h), arg2 = p, arg3 = lo, arg4 = hi)).
 constraints:
 ~arg2[]
 ~h[1,2,0,0]
@@ -211,7 +211,7 @@ partition_iioo arg1 arg2 = do
   pure (arg3,arg4)
 
 {- qsort/3
-qsort arg1 arg2 arg3 :- ((arg1 = [], arg2 = r, arg3 = r); (arg1 = x0 : xs, x0 = x, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x1 : r1, x1 = x, arg2 = r, arg3 = r0)).
+qsort arg1 arg2 arg3 :- ((arg1 = [], arg2 = r, arg3 = r); (arg1 = x0:xs, x0 = x, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x1:r1, x1 = x, arg2 = r, arg3 = r0)).
 constraints:
 ~(arg1[1,0] & x0[1,0])
 ~(arg2[0,1] & r[0,1])
@@ -268,7 +268,7 @@ constraints:
 (zs[1,3] <-> arg1[])
 1
 -}
--- mode ordering failure, cyclic dependency: [2] partition xs::in x::in ys::out zs::out -> [4] qsort ys::in r::in data0::out -> [5] data0::in = x1::out : r1::out -> [6] x1::in = x::out
+-- mode ordering failure, cyclic dependency: [2] partition xs::in x::in ys::out zs::out -> [4] qsort ys::in r::in data0::out -> [5] data0::in = x1::out:r1::out -> [6] x1::in = x::out
 qsort_iio arg1 arg2 = do
   -- solution: arg3[0,2] arg3[0] arg3[1,8] arg3[1] arg3[] data0[1,4] r0[1,3] r1[1,5] r[0,1] r[1,7] x0[1,0] x1[1,5] x[1,1] xs[1,0] ys[1,2] zs[1,2] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[1,7] ~arg2[1] ~arg2[] ~data0[1,5] ~r0[1,8] ~r1[1,3] ~r[0,2] ~r[1,4] ~x0[1,1] ~x1[1,6] ~x[1,2] ~x[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
   (arg3) <- (do

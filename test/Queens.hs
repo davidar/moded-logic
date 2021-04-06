@@ -4,7 +4,7 @@ import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 
 {- qdelete/3
-qdelete arg1 arg2 arg3 :- ((arg2 = h0 : t1, h0 = h, t1 = t, arg1 = h, arg3 = t); (arg2 = h2 : t3, h2 = h, t3 = t, arg3 = h4 : r, h4 = h, qdelete x t r, arg1 = x)).
+qdelete arg1 arg2 arg3 :- ((arg2 = h0:t1, h0 = h, t1 = t, arg1 = h, arg3 = t); (arg2 = h2:t3, h2 = h, t3 = t, arg3 = h4:r, h4 = h, qdelete x t r, arg1 = x)).
 constraints:
 ~(arg1[0,3] & h[0,3])
 ~(arg1[1,6] & x[1,6])
@@ -165,7 +165,7 @@ qdelete_oio arg2 = do
   pure (arg1,arg3)
 
 {- qperm/2
-qperm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h : t, qdelete h xs ys, qperm ys t, arg1 = xs)).
+qperm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h:t, qdelete h xs ys, qperm ys t, arg1 = xs)).
 constraints:
 ~(arg1[1,3] & xs[1,3])
 ~(arg2[1,0] & h[1,0])
@@ -237,7 +237,7 @@ qperm_oi arg2 = do
   pure (arg1)
 
 {- nodiag/3
-nodiag arg1 arg2 arg3 :- ((arg3 = []); (arg3 = h : t, plus hmb b h, plus bmh h b, succ d d1, if (d = hmb) then (empty) else (if (d = bmh) then (empty) else (nodiag b d1 t)), arg1 = b, arg2 = d)).
+nodiag arg1 arg2 arg3 :- ((arg3 = []); (arg3 = h:t, plus hmb b h, plus bmh h b, succ d d1, if (d = hmb) then (empty) else (if (d = bmh) then (empty) else (nodiag b d1 t)), arg1 = b, arg2 = d)).
 constraints:
 ~arg1[]
 ~arg2[]
@@ -353,7 +353,7 @@ nodiag_iii arg1 arg2 arg3 = do
   pure ()
 
 {- safe/1
-safe arg1 :- ((arg1 = []); (arg1 = h : t, nodiag h data0 t, data0 = 1, safe t)).
+safe arg1 :- ((arg1 = []); (arg1 = h:t, nodiag h data0 t, data0 = 1, safe t)).
 constraints:
 ~(arg1[1,0] & h[1,0])
 ~(data0[1,1] & data0[1,2])
@@ -440,7 +440,7 @@ queens1_oi arg2 = do
   pure (arg1)
 
 {- cqueens/3
-cqueens arg1 arg2 arg3 :- ((arg1 = [], arg3 = []); (arg3 = q0 : m, q0 = q, xs = _ : _, qdelete q xs r, nodiag q data0 history, data0 = 1, cqueens r data1 m, data1 = q1 : history, q1 = q, arg1 = xs, arg2 = history)).
+cqueens arg1 arg2 arg3 :- ((arg1 = [], arg3 = []); (arg3 = q0:m, q0 = q, xs = _:_, qdelete q xs r, nodiag q data0 history, data0 = 1, cqueens r data1 m, data1 = q1:history, q1 = q, arg1 = xs, arg2 = history)).
 constraints:
 ~arg2[]
 ~xs[1,2]
