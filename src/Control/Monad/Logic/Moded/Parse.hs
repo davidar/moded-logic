@@ -60,7 +60,7 @@ rws = ["if", "then", "else"]
 identifier :: Parser String
 identifier = (lexeme . try) (p >>= check)
   where
-    p = (:) <$> letterChar <*> many alphaNumChar
+    p = (:) <$> letterChar <*> many (alphaNumChar <|> char '\'')
     check x =
       if x `elem` rws
         then fail $ "keyword " ++ show x ++ " cannot be an identifier"
