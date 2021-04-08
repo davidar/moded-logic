@@ -70,6 +70,7 @@ cGoal m p r =
     Disj {} -> cDisj p r
     Conj {} -> cConj p r
     Ifte {} -> cIte p r
+    Atom {} -> error "impossible"
 
 -- | Disjunction constraints (sec 5.2.3)
 cDisj :: Path -> Rule Var Var -> Constraints
@@ -136,6 +137,7 @@ cAtom m p r =
               case mode of
                 'i' -> Sat.Neg t
                 'o' -> t
+                _ -> error "invalid mode string"
       | head name == '('
       , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
       | otherwise ->

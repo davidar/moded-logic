@@ -60,15 +60,15 @@ unDepNode (DepNode _ g) = g
 priority :: Goal ModedVar -> Int
 priority (Atom Unif{}) = 0
 priority (Atom Func{}) = 1
-priority g = 2 + length [() | Out v <- toList g]
+priority g = 2 + length [v | Out v <- toList g]
 
 mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
 mode r@(Rule name vars body) soln =
   case walk [] body of
-    Left cycle ->
+    Left cyc ->
       Left $
       "mode ordering failure, cyclic dependency: " ++
-      intercalate " -> " (show <$> toList cycle)
+      intercalate " -> " (show <$> toList cyc)
     Right body' -> Right $ Rule name (annotate [] <$> vars) body'
   where
     annotate p (V v)
@@ -111,8 +111,8 @@ mode' procs rule@(Rule name vars _) =
       ]
     m =
       builtins ++ do
-        ((name, _), (_, procs')) <- procs
-        pure . (name, ) $ do
+        ((name', _), (_, procs')) <- procs
+        pure . (name', ) $ do
           (_, Right (Rule _ mvars _)) <- procs'
           pure $ do
             mv <- mvars

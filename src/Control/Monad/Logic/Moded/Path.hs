@@ -25,13 +25,14 @@ inside p = Set.fromList . toList . extract p . ruleBody
 
 -- | Variables accessible from parent/sibling contexts
 outside :: Path -> Goal Var -> Set Var
-outside [] g = Set.empty
+outside [] _ = Set.empty
 outside (c:ps) (Conj gs) =
   Set.fromList (dropIndex c gs >>= toList) `Set.union` outside ps (gs !! c)
 outside (d:ps) (Disj gs) = outside ps (gs !! d)
-outside (0:ps) (Ifte c t e) = Set.fromList (toList t) `Set.union` outside ps c
-outside (1:ps) (Ifte c t e) = Set.fromList (toList c) `Set.union` outside ps t
-outside (2:ps) (Ifte c t e) = outside ps e
+outside (0:ps) (Ifte c t _) = Set.fromList (toList t) `Set.union` outside ps c
+outside (1:ps) (Ifte c t _) = Set.fromList (toList c) `Set.union` outside ps t
+outside (2:ps) (Ifte _ _ e) = outside ps e
+outside _ _ = error "invalid path"
 
 nonlocals :: Path -> Rule Var Var -> Set Var
 nonlocals p r@(Rule _ vars body) = inside p r `Set.intersection` out

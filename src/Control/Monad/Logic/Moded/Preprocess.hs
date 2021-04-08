@@ -6,7 +6,6 @@ module Control.Monad.Logic.Moded.Preprocess
   , simplify
   ) where
 
-import Control.Monad (forM)
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
@@ -35,16 +34,16 @@ combineDefs rules = do
       params = [V $ "arg" ++ show i | i <- [1 .. length vars]]
       body' =
         Disj $ do
-          Rule _ vars body <- defs
+          Rule _ vars' body <- defs
           pure . Conj $
             (fmap Atom . filter (\(Unif _ v) -> show v /= "_") $
-             zipWith Unif (Var <$> params) vars) ++
+             zipWith Unif (Var <$> params) vars') ++
             [body]
   pure $ Rule name params body'
 
 superhomogeneous :: Rule Var Val -> Rule Var Var
-superhomogeneous (Rule name args body) =
-  Rule name args $ evalState (tGoal body) (0, [])
+superhomogeneous r =
+  r { ruleBody = evalState (tGoal $ ruleBody r) (0, []) }
   where
     tVal :: Val -> State (Int, [Atom Var]) Var
     tVal (Var v) = return v
@@ -86,12 +85,12 @@ superhomogeneous (Rule name args body) =
           else Conj $ Atom <$> a' : body
 
 distinctVars :: Rule Var Var -> Rule Var Var
-distinctVars (Rule name args body) = Rule name args $ evalState (tGoal body) 0
+distinctVars r = r { ruleBody = evalState (tGoal $ ruleBody r) 0 }
   where
     vars (Atom (Func _ vs _)) = vs
     vars (Atom _) = []
     vars g = subgoals g >>= vars
-    fdups = [head l | l <- group . sort $ vars body, length l > 1]
+    fdups = [head l | l <- group . sort . vars $ ruleBody r, length l > 1]
     tGoal :: Goal Var -> State Int (Goal Var)
     tGoal (Disj gs) = Disj <$> mapM tGoal gs
     tGoal (Conj gs) = Conj <$> mapM tGoal gs
@@ -125,6 +124,7 @@ simplify (Conj gs) = Conj $ conjs ++ other
     isConj (Conj _) = True
     isConj _ = False
     unConj (Conj c) = c
+    unConj _ = undefined
     conjs = concat $ unConj <$> filter isConj gs'
     other = filter (not . isConj) gs'
 simplify (Disj gs) = Disj $ simplify <$> gs

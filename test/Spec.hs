@@ -277,4 +277,4 @@ main = do
         expect <- TIO.readFile "test/Euler.hs"
         code `shouldBe` expect
       it "1" $ do
-        (sum . OrdList.nubSort $ observeAll euler1_o) `shouldBe` 233168
+        (sum . OrdList.nub $ observeAll euler1_o) `shouldBe` 233168

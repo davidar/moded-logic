@@ -48,8 +48,8 @@ cgPred name vs =
   , T.pack name <> suffix <> " " <> T.unwords [T.pack v | In v <- vs])
   where
     modes [] = ""
-    modes (In _:vs) = 'i' : modes vs
-    modes (Out _:vs) = 'o' : modes vs
+    modes (In _:mvs) = 'i' : modes mvs
+    modes (Out _:mvs) = 'o' : modes mvs
     suffix = case modes vs of
       [] -> ""
       ms -> "_" <> T.pack ms
@@ -58,7 +58,7 @@ cgAtom :: Atom ModedVar -> Text
 cgAtom (Unif (Out u) v) = T.pack u <> " <- pure " <> mv v
 cgAtom (Unif u (Out v)) = T.pack v <> " <- pure " <> mv u
 cgAtom (Unif u v) = "guard $ " <> mv u <> " == " <> mv v
-cgAtom (Func name vs@(Out v:_) u) = cgFunc name vs <> " <- pure " <> mv u
+cgAtom (Func name vs@(Out _:_) u) = cgFunc name vs <> " <- pure " <> mv u
 cgAtom (Func name vs (Out u)) = T.pack u <> " <- pure " <> cgFunc name vs
 cgAtom (Func name vs u) = "guard $ " <> mv u <> " == " <> cgFunc name vs
 cgAtom (Pred name vars) = lhs <> " <- " <> rhs
@@ -102,7 +102,7 @@ cgGoal p r =
               pure ($ret)
              )
         |]
-    Ifte c t e ->
+    Ifte c _ _ ->
       "ifte (" <>
       cgGoal (p ++ [0]) r <>
       ") (\\(" <>
@@ -132,10 +132,10 @@ cgRule r@(Rule name vars body) =
     |]
 
 compile :: Text -> Prog Var Var -> Text
-compile mod rules =
+compile moduleName rules =
   [text|
     {-# LANGUAGE NoMonomorphismRestriction #-}
-    module $mod where
+    module $moduleName where
 
     import Control.Applicative
     import Control.Monad.Logic
@@ -153,7 +153,7 @@ compile mod rules =
               ["{- " ++ name ++ "/" ++ show arity, show rule, "constraints:"] ++
               map show (Set.elems constraints) ++ ["-}"]
             defs = do
-              (def:defs) <-
+              (def:_) <-
                 groupBy (\a b -> comparing (head . T.words) a b == EQ) . sort $ do
                   (soln, p) <- procs
                   pure $
@@ -167,7 +167,7 @@ compile mod rules =
                               T.unwords (T.pack . show <$> Set.elems soln)
                          in hd : meta : tl
               pure def -- : (T.unlines . map commentLine . T.lines <$> defs)
-            commentLine l
-              | "--" `T.isPrefixOf` l = l
-              | otherwise = "--" <> l
+            --commentLine l
+            --  | "--" `T.isPrefixOf` l = l
+            --  | otherwise = "--" <> l
         doc ++ defs

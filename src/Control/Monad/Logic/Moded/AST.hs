@@ -11,14 +11,12 @@ module Control.Monad.Logic.Moded.AST
   ) where
 
 import Data.List (intercalate)
-import qualified Data.Set as Set
-import Data.Set (Set)
 import Language.Haskell.TH.Syntax (Lift)
 
 type Name = String
 
 newtype Var =
-  V String
+  V Name
   deriving (Eq, Ord, Lift)
 
 data Atom v
@@ -41,8 +39,6 @@ data Rule u v =
     , ruleBody :: Goal v
     }
   deriving (Lift)
-
-type Path = [Int]
 
 type Prog u v = [Rule u v]
 
@@ -71,3 +67,4 @@ subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs
 subgoals (Disj gs) = gs
 subgoals (Ifte c t e) = [c, t, e]
+subgoals (Atom _) = error "not a compound goal"

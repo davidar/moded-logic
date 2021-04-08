@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wwarn #-}
 module Control.Monad.Logic.Moded.Prelude where
 
 import Control.Monad

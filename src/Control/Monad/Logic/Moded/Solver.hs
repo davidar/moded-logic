@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns, DeriveDataTypeable #-}
+{-# OPTIONS_GHC -Wwarn #-}
 -- adapted from picologic (c) 2014-2020, Stephen Diehl
 module Control.Monad.Logic.Moded.Solver
   ( Expr (..),

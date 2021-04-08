@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-unused-do-bind #-}
 
 module Control.Monad.Logic.Moded.Parse
   ( logic

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7cc37587a4a59ae1a19d6d1bc08740437288352c38488b6a8e410c240d0e38df
+-- hash: da2ddb2294b0d756a4b90b0dd96c5881da5666da650389efeef43a3016f31e16
 
 name:           moded-logic
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
       Paths_moded_logic
   hs-source-dirs:
       src
+  ghc-options: -Wall -Werror
   build-depends:
       algebraic-graphs
     , base >=4.7 && <5
