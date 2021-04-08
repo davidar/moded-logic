@@ -2,12 +2,14 @@
 
 import Append
 import Euler
+import Kiselyov
 import Primes
 import Queens
 import Sort
 
 import Control.Monad (forM_, when)
 import Control.Monad.Logic (observeAll)
+import qualified Control.Monad.Logic.FBackTrackT as FBT
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Parse (logic)
@@ -19,7 +21,7 @@ import qualified Data.Text.IO as TIO
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe)
 
-updateCode = True
+updateCode = False
 
 programAppend :: Prog Var Var
 programAppend =
@@ -172,6 +174,17 @@ programCrypt =
     zeros z.
   |]
 
+programKiselyov =
+  [logic|
+  nat 0.
+  nat n' :- nat n, succ n n'.
+
+  pythag i j k :-
+    nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j,
+    times i i ii, times j j jj, times k k kk,
+    plus ii jj kk.
+  |]
+
 programEuler =
   [logic|
   elem x (x:_).
@@ -183,7 +196,7 @@ programEuler =
 main :: IO ()
 main = do
   putStrLn . unlines $
-    show <$> concat [programAppend, programPrimes, programSort, programQueens, programCrypt, programEuler]
+    show <$> concat [programAppend, programPrimes, programSort, programQueens, programCrypt, programKiselyov, programEuler]
   hspec $ do
     describe "Append" $ do
       it "compile" $ do
@@ -270,6 +283,15 @@ main = do
         it ("n=" ++ show n) $
         observeAll (queens1_io [1 .. n]) `shouldBe`
         observeAll (queens2_io [1 .. n])
+    describe "Kiselyov" $ do
+      it "compile" $ do
+        let code = compile "Kiselyov" programKiselyov
+        when updateCode $ TIO.writeFile "test/Kiselyov.hs" code
+        expect <- TIO.readFile "test/Kiselyov.hs"
+        code `shouldBe` expect
+      it "pythag" $ do
+        take 7 (FBT.observeAll pythag_ooo) `shouldBe`
+          [(3,4,5),(6,8,10),(5,12,13),(9,12,15),(8,15,17),(12,16,20),(7,24,25)]
     describe "Euler" $ do
       it "compile" $ do
         let code = compile "Euler" programEuler
