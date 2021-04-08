@@ -23,6 +23,7 @@ dependencies:
 - algebraic-graphs
 - base >= 4.7 && < 5
 - containers
+- data-ordlist
 - hspec
 - hspec-expectations-pretty-diff
 - logict

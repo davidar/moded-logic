@@ -1,4 +1,6 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
 module Primes where
+
 import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude

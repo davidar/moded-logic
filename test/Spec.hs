@@ -1,21 +1,25 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
 
 import Append
+import Euler
 import Primes
 import Queens
 import Sort
 
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import Control.Monad.Logic (observeAll)
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Parse (logic)
 import qualified Data.List as List
+import qualified Data.List.Ordered as OrdList
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe)
+
+updateCode = True
 
 programAppend :: Prog Var Var
 programAppend =
@@ -168,15 +172,23 @@ programCrypt =
     zeros z.
   |]
 
+programEuler =
+  [logic|
+  elem x (x:_).
+  elem x (_:xs) :- elem x xs.
+
+  euler1 x :- elem x [0..999], mod x y 0, (y = 3; y = 5).
+  |]
+
 main :: IO ()
 main = do
   putStrLn . unlines $
-    show <$> concat [programAppend, programPrimes, programSort, programQueens, programCrypt]
+    show <$> concat [programAppend, programPrimes, programSort, programQueens, programCrypt, programEuler]
   hspec $ do
     describe "Append" $ do
       it "compile" $ do
-        let code = T.pack "module Append where\n" <> compile programAppend
-        --TIO.writeFile "test/Append.hs" code
+        let code = compile "Append" programAppend
+        when updateCode $ TIO.writeFile "test/Append.hs" code
         expect <- TIO.readFile "test/Append.hs"
         code `shouldBe` expect
       it "append" $ do
@@ -222,8 +234,8 @@ main = do
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
     describe "Primes" $ do
       it "compile" $ do
-        let code = T.pack "module Primes where\n" <> compile programPrimes
-        --TIO.writeFile "test/Primes.hs" code
+        let code = compile "Primes" programPrimes
+        when updateCode $ TIO.writeFile "test/Primes.hs" code
         expect <- TIO.readFile "test/Primes.hs"
         code `shouldBe` expect
       it "primes" $ do
@@ -234,8 +246,8 @@ main = do
         observeAll (primes_ii 100 [2 .. 99]) `shouldBe` []
     describe "Sort" $ do
       it "compile" $ do
-        let code = T.pack "module Sort where\n" <> compile programSort
-        --TIO.writeFile "test/Sort.hs" code
+        let code = compile "Sort" programSort
+        when updateCode $ TIO.writeFile "test/Sort.hs" code
         expect <- TIO.readFile "test/Sort.hs"
         code `shouldBe` expect
       it "sort" $ do
@@ -246,8 +258,8 @@ main = do
         observeAll (sort_ii xs xs) `shouldBe` []
     describe "Queens" $ do
       it "compile" $ do
-        let code = T.pack "module Queens where\n" <> compile programQueens
-        --TIO.writeFile "test/Queens.hs" code
+        let code = compile "Queens" programQueens
+        when updateCode $ TIO.writeFile "test/Queens.hs" code
         expect <- TIO.readFile "test/Queens.hs"
         code `shouldBe` expect
       it "queens1" $ do
@@ -258,3 +270,11 @@ main = do
         it ("n=" ++ show n) $
         observeAll (queens1_io [1 .. n]) `shouldBe`
         observeAll (queens2_io [1 .. n])
+    describe "Euler" $ do
+      it "compile" $ do
+        let code = compile "Euler" programEuler
+        when updateCode $ TIO.writeFile "test/Euler.hs" code
+        expect <- TIO.readFile "test/Euler.hs"
+        code `shouldBe` expect
+      it "1" $ do
+        (sum . OrdList.nubSort $ observeAll euler1_o) `shouldBe` 233168

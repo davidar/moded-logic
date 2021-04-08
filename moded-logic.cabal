@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6ec5d191d31426ec299c1c155d3069f96cc2f73bb245b45a19f0e325f488be52
+-- hash: 7cc37587a4a59ae1a19d6d1bc08740437288352c38488b6a8e410c240d0e38df
 
 name:           moded-logic
 version:        0.1.0.0
@@ -44,6 +44,7 @@ library
       algebraic-graphs
     , base >=4.7 && <5
     , containers
+    , data-ordlist
     , hspec
     , hspec-expectations-pretty-diff
     , logict
@@ -66,6 +67,7 @@ executable moded-logic-exe
       algebraic-graphs
     , base >=4.7 && <5
     , containers
+    , data-ordlist
     , hspec
     , hspec-expectations-pretty-diff
     , logict
@@ -83,6 +85,7 @@ test-suite moded-logic-test
   main-is: Spec.hs
   other-modules:
       Append
+      Euler
       Primes
       Queens
       Sort
@@ -94,6 +97,7 @@ test-suite moded-logic-test
       algebraic-graphs
     , base >=4.7 && <5
     , containers
+    , data-ordlist
     , hspec
     , hspec-expectations-pretty-diff
     , logict

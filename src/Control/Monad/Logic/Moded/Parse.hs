@@ -81,6 +81,13 @@ value =
         symbol ":"
         v <- value
         pure $ Cons ":" [u, v]) <|>
+  try
+    (do symbol "["
+        u <- value
+        symbol ".."
+        v <- value
+        symbol "]"
+        pure $ Cons ".." [u, v]) <|>
   (do symbol "["
       elems <- value `sepBy` symbol ","
       symbol "]"
@@ -125,8 +132,11 @@ softcut = do
   e <- conj
   pure $ Ifte c t e
 
+disj :: Parser (Goal Val)
+disj = Disj <$> parens (goal `sepBy` symbol ";")
+
 goal :: Parser (Goal Val)
-goal = (Atom <$> (try unify <|> predicate)) <|> softcut
+goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> disj
 
 conj :: Parser (Goal Val)
 conj = Conj <$> goal `sepBy` symbol ","

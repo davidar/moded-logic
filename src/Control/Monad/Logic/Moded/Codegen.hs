@@ -31,6 +31,7 @@ mv = T.pack . show . stripMode
 
 cgFunc :: Name -> [ModedVar] -> Text
 cgFunc ":" vs = "(" <> T.intercalate ":" (map mv vs) <> ")"
+cgFunc ".." [u,v] = "[" <> mv u <> ".." <> mv v <> "]"
 cgFunc name [] = T.pack name
 cgFunc name vs = "(" <> T.unwords (T.pack name : map mv vs) <> ")"
 
@@ -130,9 +131,12 @@ cgRule r@(Rule name vars body) =
           pure $lhs
     |]
 
-compile :: Prog Var Var -> Text
-compile rules =
+compile :: Text -> Prog Var Var -> Text
+compile mod rules =
   [text|
+    {-# LANGUAGE NoMonomorphismRestriction #-}
+    module $mod where
+
     import Control.Applicative
     import Control.Monad.Logic
     import Control.Monad.Logic.Moded.Prelude
