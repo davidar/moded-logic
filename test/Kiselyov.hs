@@ -48,7 +48,7 @@ nat_o  = do
   pure (arg1)
 
 {- pythag/3
-pythag arg1 arg2 arg3 :- ((nat i, (>) i data0, data0 = 0, nat j, (>) j data1, data1 = 0, nat k, (>) k data2, data2 = 0, (<) i j, times i0 i1 ii, i0 = i, i1 = i, times j2 j3 jj, j2 = j, j3 = j, times k4 k5 kk, k4 = k, k5 = k, plus ii jj kk, arg1 = i, arg2 = j, arg3 = k)).
+pythag arg1 arg2 arg3 :- ((nat i, (>) i data0, data0 = 0, nat j, (>) j data1, data1 = 0, nat k, (>) k data2, data2 = 0, (<) i j, timesInt i0 i1 ii, i0 = i, i1 = i, timesInt j2 j3 jj, j2 = j, j3 = j, timesInt k4 k5 kk, k4 = k, k5 = k, plus ii jj kk, arg1 = i, arg2 = j, arg3 = k)).
 constraints:
 ~(arg1[0,20] & i[0,20])
 ~(arg2[0,21] & j[0,21])
@@ -145,7 +145,7 @@ constraints:
 (arg3[] <-> arg3[0])
 1
 -}
--- mode ordering failure, cyclic dependency: [10] times i0::in i1::out ii::in -> [12] i1::in = i::out -> [11] i0::out = i::in
+-- mode ordering failure, cyclic dependency: [10] timesInt i0::in i1::out ii::in -> [12] i1::in = i::out -> [11] i0::out = i::in
 pythag_iii arg1 arg2 arg3 = do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,21] jj[0,13] k4[0,17] k5[0,18] k[0,22] kk[0,16] ~arg1[0,20] ~arg1[0] ~arg1[] ~arg2[0,21] ~arg2[0] ~arg2[] ~arg3[0,22] ~arg3[0] ~arg3[] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,3] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,6] ~k[0,7] ~kk[0,19]
   () <- (do
@@ -167,10 +167,10 @@ pythag_iii arg1 arg2 arg3 = do
     i1 <- pure i
     () <- if (<) i j then pure () else empty
     () <- if (>) i data0 then pure () else empty
-    (jj) <- times_iio j2 j3
-    (kk) <- times_iio k4 k5
+    (jj) <- timesInt_iio j2 j3
+    (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
-    (i0) <- times_oii i1 ii
+    (i0) <- timesInt_oii i1 ii
     guard $ i0 == i
     pure ()
    )
@@ -197,10 +197,10 @@ pythag_iio arg1 arg2 = do
     k4 <- pure k
     k5 <- pure k
     () <- if (>) k data2 then pure () else empty
-    (jj) <- times_iio j2 j3
-    (kk) <- times_iio k4 k5
+    (jj) <- timesInt_iio j2 j3
+    (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
-    (i0) <- times_oii i1 ii
+    (i0) <- timesInt_oii i1 ii
     guard $ i0 == i
     pure (arg3)
    )
@@ -227,10 +227,10 @@ pythag_ioi arg1 arg3 = do
     j3 <- pure j
     () <- if (<) i j then pure () else empty
     () <- if (>) j data1 then pure () else empty
-    (jj) <- times_iio j2 j3
-    (kk) <- times_iio k4 k5
+    (jj) <- timesInt_iio j2 j3
+    (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
-    (i0) <- times_oii i1 ii
+    (i0) <- timesInt_oii i1 ii
     guard $ i0 == i
     pure (arg2)
    )
@@ -257,10 +257,10 @@ pythag_ioo arg1 = do
     k4 <- pure k
     k5 <- pure k
     () <- if (>) k data2 then pure () else empty
-    (jj) <- times_iio j2 j3
-    (kk) <- times_iio k4 k5
+    (jj) <- timesInt_iio j2 j3
+    (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
-    (i0) <- times_oii i1 ii
+    (i0) <- timesInt_oii i1 ii
     guard $ i0 == i
     pure (arg2,arg3)
    )
@@ -287,10 +287,10 @@ pythag_oii arg2 arg3 = do
     i1 <- pure i
     () <- if (<) i j then pure () else empty
     () <- if (>) i data0 then pure () else empty
-    (jj) <- times_iio j2 j3
-    (kk) <- times_iio k4 k5
+    (jj) <- timesInt_iio j2 j3
+    (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
-    (i0) <- times_oii i1 ii
+    (i0) <- timesInt_oii i1 ii
     guard $ i0 == i
     pure (arg1)
    )
@@ -317,10 +317,10 @@ pythag_oio arg2 = do
     k4 <- pure k
     k5 <- pure k
     () <- if (>) k data2 then pure () else empty
-    (jj) <- times_iio j2 j3
-    (kk) <- times_iio k4 k5
+    (jj) <- timesInt_iio j2 j3
+    (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
-    (i0) <- times_oii i1 ii
+    (i0) <- timesInt_oii i1 ii
     guard $ i0 == i
     pure (arg1,arg3)
    )
@@ -347,10 +347,10 @@ pythag_ooi arg3 = do
     j3 <- pure j
     () <- if (<) i j then pure () else empty
     () <- if (>) j data1 then pure () else empty
-    (jj) <- times_iio j2 j3
-    (kk) <- times_iio k4 k5
+    (jj) <- timesInt_iio j2 j3
+    (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
-    (i0) <- times_oii i1 ii
+    (i0) <- timesInt_oii i1 ii
     guard $ i0 == i
     pure (arg1,arg2)
    )
@@ -377,10 +377,10 @@ pythag_ooo  = do
     k4 <- pure k
     k5 <- pure k
     () <- if (>) k data2 then pure () else empty
-    (jj) <- times_iio j2 j3
-    (kk) <- times_iio k4 k5
+    (jj) <- timesInt_iio j2 j3
+    (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
-    (i0) <- times_oii i1 ii
+    (i0) <- timesInt_oii i1 ii
     guard $ i0 == i
     pure (arg1,arg2,arg3)
    )

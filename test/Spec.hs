@@ -181,7 +181,7 @@ programKiselyov =
 
   pythag i j k :-
     nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j,
-    times i i ii, times j j jj, times k k kk,
+    timesInt i i ii, timesInt j j jj, timesInt k k kk,
     plus ii jj kk.
   |]
 

@@ -106,6 +106,7 @@ mode' procs rule@(Rule name vars _) =
       , ("divMod", ["iioo", "iioi", "iiio", "iiii"])
       , ("plus", ["iio", "ioi", "oii"])
       , ("times", ["iio", "ioi", "oii"])
+      , ("timesInt", ["iio", "ioi", "oii"])
       , ("sum", ["io", "ii"])
       , ("empty", [""])
       ]
