@@ -27,6 +27,7 @@ dependencies:
 - hspec
 - hspec-expectations-pretty-diff
 - logict
+- MemoTrie
 - megaparsec
 - mtl
 - neat-interpolation

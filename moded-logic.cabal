@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e48a38c5e17488bf5a5bf8cb92f4d5c3857b59a9d5b4c4486aa9783a44410c9c
+-- hash: e4ac1d87ab51e6e641eef6c308517a42e91b421d89b270c8399c4c5f3a37e3c7
 
 name:           moded-logic
 version:        0.1.0.0
@@ -43,7 +43,8 @@ library
       src
   ghc-options: -Wall -Werror
   build-depends:
-      algebraic-graphs
+      MemoTrie
+    , algebraic-graphs
     , base >=4.7 && <5
     , containers
     , data-ordlist
@@ -66,7 +67,8 @@ executable moded-logic-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      algebraic-graphs
+      MemoTrie
+    , algebraic-graphs
     , base >=4.7 && <5
     , containers
     , data-ordlist
@@ -97,7 +99,8 @@ test-suite moded-logic-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
-      algebraic-graphs
+      MemoTrie
+    , algebraic-graphs
     , base >=4.7 && <5
     , containers
     , data-ordlist

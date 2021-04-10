@@ -8,9 +8,9 @@ import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
   , Name
+  , Pragma(..)
   , Prog(..)
   , Rule(..)
-  , Pragma(..)
   , Var(..)
   )
 import Control.Monad.Logic.Moded.Path (Path, extract, nonlocals)
@@ -32,28 +32,14 @@ mv = T.pack . show . stripMode
 
 cgFunc :: Name -> [ModedVar] -> Text
 cgFunc ":" vs = "(" <> T.intercalate ":" (map mv vs) <> ")"
-cgFunc ".." [u,v] = "[" <> mv u <> ".." <> mv v <> "]"
+cgFunc ".." [u, v] = "[" <> mv u <> ".." <> mv v <> "]"
 cgFunc name [] = T.pack name
 cgFunc name vs = "(" <> T.unwords (T.pack name : map mv vs) <> ")"
 
-cgPred :: Name -> [ModedVar] -> (Text, Text)
-cgPred name vs
-  | head name == '('
-  , last name == ')' =
-    ( "()"
-    , "if " <>
-      T.pack name <>
-      " " <> T.unwords [T.pack v | In v <- vs] <> " then pure () else empty")
-cgPred name vs =
-  ( "(" <> T.intercalate "," [T.pack v | Out v <- vs] <> ")"
-  , T.pack name <> suffix <> " " <> T.unwords [T.pack v | In v <- vs])
-  where
-    modes [] = ""
-    modes (In _:mvs) = 'i' : modes mvs
-    modes (Out _:mvs) = 'o' : modes mvs
-    suffix = case modes vs of
-      [] -> ""
-      ms -> "_" <> T.pack ms
+modeString :: [ModedVar] -> String
+modeString [] = ""
+modeString (In _:mvs) = 'i' : modeString mvs
+modeString (Out _:mvs) = 'o' : modeString mvs
 
 cgAtom :: Atom ModedVar -> Text
 cgAtom (Unif (Out u) v) = T.pack u <> " <- pure " <> mv v
@@ -62,9 +48,19 @@ cgAtom (Unif u v) = "guard $ " <> mv u <> " == " <> mv v
 cgAtom (Func name vs@(Out _:_) u) = cgFunc name vs <> " <- pure " <> mv u
 cgAtom (Func name vs (Out u)) = T.pack u <> " <- pure " <> cgFunc name vs
 cgAtom (Func name vs u) = "guard $ " <> mv u <> " == " <> cgFunc name vs
-cgAtom (Pred name vars) = lhs <> " <- " <> rhs
+cgAtom (Pred name vs)
+  | head name == '('
+  , last name == ')' =
+    "guard $ " <> T.unwords (T.pack <$> name : [v | In v <- vs])
+cgAtom (Pred name vs) =
+  "(" <>
+  T.intercalate "," [T.pack v | Out v <- vs] <>
+  ") <- " <> name' <> " " <> T.unwords [T.pack v | In v <- vs]
   where
-    (lhs, rhs) = cgPred name vars
+    name' =
+      case modeString vs of
+        [] -> T.pack name
+        ms -> T.pack name <> "_" <> T.pack ms
 
 cgGoal :: Path -> Rule ModedVar ModedVar -> Text
 cgGoal p r =
@@ -120,18 +116,33 @@ cgGoal p r =
 
 cgRule :: [Pragma] -> Rule ModedVar ModedVar -> Text
 cgRule pragmas r@(Rule name vars body) =
-  let (lhs, rhs) = cgPred name vars
+  let nameMode =
+        case modeString vars of
+          [] -> T.pack name
+          ms -> T.pack name <> "_" <> T.pack ms
       code = cgGoal [] r
       rets =
         T.intercalate
           ","
           [T.pack v | V v <- Set.elems $ nonlocals' [] r, Out v `elem` body]
-      decorate | Pragma ["nub", name] `elem` pragmas = "choose . nub . observeAll $ do"
-               | otherwise = "do"
+      ins = [T.pack v | In v <- vars]
+      outs = T.intercalate "," [T.pack v | Out v <- vars]
+      decorate
+        | Pragma ["memo", name] `elem` pragmas = case length ins of
+          0 -> ""
+          1 -> "memo $ "
+          k -> "memo" <> T.pack (show k) <> " $ "
+        | otherwise = ""
+      args | null ins = ""
+           | otherwise = "\\" <> T.unwords ins <> " -> "
+      transform
+        | Pragma ["nub", name] `elem` pragmas = "choose . nub . observeAll $ do"
+        | Pragma ["memo", name] `elem` pragmas = "choose . observeAll $ do"
+        | otherwise = "do"
    in [text|
-        $rhs = $decorate
+        $nameMode = $decorate$args$transform
           ($rets) <- $code
-          pure $lhs
+          pure ($outs)
     |]
 
 compile :: Text -> Prog Var Var -> Text
@@ -144,6 +155,7 @@ compile moduleName (Prog pragmas rules) =
     import Control.Monad.Logic
     import Control.Monad.Logic.Moded.Prelude
     import Data.List
+    import Data.MemoTrie
 
     $code
   |]

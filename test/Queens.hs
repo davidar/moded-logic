@@ -5,6 +5,7 @@ import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 import Data.List
+import Data.MemoTrie
 
 {- qdelete/3
 qdelete arg1 arg2 arg3 :- ((arg2 = h0:t1, h0 = h, t1 = t, arg1 = h, arg3 = t); (arg2 = h2:t3, h2 = h, t3 = t, arg3 = h4:r, h4 = h, qdelete x t r, arg1 = x)).
@@ -62,7 +63,7 @@ constraints:
 (x[1,5] <-> arg1[])
 1
 -}
-qdelete_iii arg1 arg2 arg3 = do
+qdelete_iii = \arg1 arg2 arg3 -> do
   -- solution: h0[0,0] h2[1,0] h4[1,3] h[0,1] h[1,1] r[1,3] t1[0,0] t3[1,0] t[0,2] t[1,2] x[1,6] ~arg1[0,3] ~arg1[0] ~arg1[1,6] ~arg1[1] ~arg1[] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~arg3[0,4] ~arg3[0] ~arg3[1,3] ~arg3[1] ~arg3[] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~h[0,3] ~h[1,4] ~r[1,5] ~t1[0,2] ~t3[1,2] ~t[0,4] ~t[1,5] ~x[1,5]
   () <- (do
     (h0:t1) <- pure arg2
@@ -83,7 +84,7 @@ qdelete_iii arg1 arg2 arg3 = do
    )
   pure ()
 
-qdelete_iio arg1 arg2 = do
+qdelete_iio = \arg1 arg2 -> do
   -- solution: arg3[0,4] arg3[0] arg3[1,3] arg3[1] arg3[] h0[0,0] h2[1,0] h4[1,4] h[0,1] h[1,1] r[1,5] t1[0,0] t3[1,0] t[0,2] t[1,2] x[1,6] ~arg1[0,3] ~arg1[0] ~arg1[1,6] ~arg1[1] ~arg1[] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~h0[0,1] ~h2[1,1] ~h4[1,3] ~h[0,3] ~h[1,4] ~r[1,3] ~t1[0,2] ~t3[1,2] ~t[0,4] ~t[1,5] ~x[1,5]
   (arg3) <- (do
     (h0:t1) <- pure arg2
@@ -104,7 +105,7 @@ qdelete_iio arg1 arg2 = do
    )
   pure (arg3)
 
-qdelete_ioi arg1 arg3 = do
+qdelete_ioi = \arg1 arg3 -> do
   -- solution: arg2[0,0] arg2[0] arg2[1,0] arg2[1] arg2[] h0[0,1] h2[1,1] h4[1,3] h[0,3] h[1,4] r[1,3] t1[0,2] t3[1,2] t[0,4] t[1,5] x[1,6] ~arg1[0,3] ~arg1[0] ~arg1[1,6] ~arg1[1] ~arg1[] ~arg3[0,4] ~arg3[0] ~arg3[1,3] ~arg3[1] ~arg3[] ~h0[0,0] ~h2[1,0] ~h4[1,4] ~h[0,1] ~h[1,1] ~r[1,5] ~t1[0,0] ~t3[1,0] ~t[0,2] ~t[1,2] ~x[1,5]
   (arg2) <- (do
     h <- pure arg1
@@ -125,7 +126,7 @@ qdelete_ioi arg1 arg3 = do
    )
   pure (arg2)
 
-qdelete_oii arg2 arg3 = do
+qdelete_oii = \arg2 arg3 -> do
   -- solution: arg1[0,3] arg1[0] arg1[1,6] arg1[1] arg1[] h0[0,0] h2[1,0] h4[1,3] h[0,1] h[1,1] r[1,3] t1[0,0] t3[1,0] t[0,2] t[1,2] x[1,5] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~arg3[0,4] ~arg3[0] ~arg3[1,3] ~arg3[1] ~arg3[] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~h[0,3] ~h[1,4] ~r[1,5] ~t1[0,2] ~t3[1,2] ~t[0,4] ~t[1,5] ~x[1,6]
   (arg1) <- (do
     (h0:t1) <- pure arg2
@@ -146,7 +147,7 @@ qdelete_oii arg2 arg3 = do
    )
   pure (arg1)
 
-qdelete_oio arg2 = do
+qdelete_oio = \arg2 -> do
   -- solution: arg1[0,3] arg1[0] arg1[1,6] arg1[1] arg1[] arg3[0,4] arg3[0] arg3[1,3] arg3[1] arg3[] h0[0,0] h2[1,0] h4[1,4] h[0,1] h[1,1] r[1,5] t1[0,0] t3[1,0] t[0,2] t[1,2] x[1,5] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~h0[0,1] ~h2[1,1] ~h4[1,3] ~h[0,3] ~h[1,4] ~r[1,3] ~t1[0,2] ~t3[1,2] ~t[0,4] ~t[1,5] ~x[1,6]
   (arg1,arg3) <- (do
     (h0:t1) <- pure arg2
@@ -194,7 +195,7 @@ constraints:
 (ys[1,2] <-> arg1[])
 1
 -}
-qperm_ii arg1 arg2 = do
+qperm_ii = \arg1 arg2 -> do
   -- solution: h[1,0] t[1,0] xs[1,3] ys[1,1] ~arg1[0,0] ~arg1[0] ~arg1[1,3] ~arg1[1] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~h[1,1] ~t[1,2] ~xs[1,1] ~ys[1,2]
   () <- (do
     guard $ arg1 == []
@@ -209,7 +210,7 @@ qperm_ii arg1 arg2 = do
    )
   pure ()
 
-qperm_io arg1 = do
+qperm_io = \arg1 -> do
   -- solution: arg2[0,1] arg2[0] arg2[1,0] arg2[1] arg2[] h[1,1] t[1,2] xs[1,3] ys[1,1] ~arg1[0,0] ~arg1[0] ~arg1[1,3] ~arg1[1] ~arg1[] ~h[1,0] ~t[1,0] ~xs[1,1] ~ys[1,2]
   (arg2) <- (do
     guard $ arg1 == []
@@ -224,7 +225,7 @@ qperm_io arg1 = do
    )
   pure (arg2)
 
-qperm_oi arg2 = do
+qperm_oi = \arg2 -> do
   -- solution: arg1[0,0] arg1[0] arg1[1,3] arg1[1] arg1[] h[1,0] t[1,0] xs[1,1] ys[1,2] ~arg2[0,1] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~h[1,1] ~t[1,2] ~xs[1,3] ~ys[1,1]
   (arg1) <- (do
     guard $ arg2 == []
@@ -320,7 +321,7 @@ constraints:
 (t[1,4] <-> t[1,4,2])
 1
 -}
-nodiag_iii arg1 arg2 arg3 = do
+nodiag_iii = \arg1 arg2 arg3 -> do
   -- solution: b[1,5] bmh[1,2] d1[1,3] d[1,6] h[1,0] hmb[1,1] t[1,0] ~arg1[1,5] ~arg1[1] ~arg1[] ~arg2[1,6] ~arg2[1] ~arg2[] ~arg3[0,0] ~arg3[0] ~arg3[1,0] ~arg3[1] ~arg3[] ~b[1,1] ~b[1,2] ~b[1,4,2,0,2,0] ~b[1,4,2,0,2] ~b[1,4,2,0] ~b[1,4,2] ~b[1,4] ~bmh[1,4,2,0,0,0] ~bmh[1,4,2,0] ~bmh[1,4,2] ~bmh[1,4] ~d1[1,4,2,0,2,0] ~d1[1,4,2,0,2] ~d1[1,4,2,0] ~d1[1,4,2] ~d1[1,4] ~d[1,3] ~d[1,4,0,0] ~d[1,4,2,0,0,0] ~d[1,4,2,0] ~d[1,4,2] ~d[1,4] ~h[1,1] ~h[1,2] ~hmb[1,4,0,0] ~hmb[1,4] ~t[1,4,2,0,2,0] ~t[1,4,2,0,2] ~t[1,4,2,0] ~t[1,4,2] ~t[1,4]
   () <- (do
     guard $ arg3 == []
@@ -376,7 +377,7 @@ constraints:
 (t[1,3] <-> arg1[])
 1
 -}
-safe_i arg1 = do
+safe_i = \arg1 -> do
   -- solution: data0[1,2] h[1,0] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~data0[1,1] ~h[1,1] ~t[1,1] ~t[1,3]
   () <- (do
     guard $ arg1 == []
@@ -409,7 +410,7 @@ constraints:
 (arg2[] <-> arg2[0])
 1
 -}
-queens1_ii arg1 arg2 = do
+queens1_ii = \arg1 arg2 -> do
   -- solution: dat[0,0] out[0,3] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~dat[0,2] ~out[0,0] ~out[0,1]
   () <- (do
     out <- pure arg2
@@ -420,7 +421,7 @@ queens1_ii arg1 arg2 = do
    )
   pure ()
 
-queens1_io arg1 = do
+queens1_io = \arg1 -> do
   -- solution: arg2[0,3] arg2[0] arg2[] dat[0,2] out[0,0] ~arg1[0,2] ~arg1[0] ~arg1[] ~dat[0,0] ~out[0,1] ~out[0,3]
   (arg2) <- (do
     dat <- pure arg1
@@ -431,7 +432,7 @@ queens1_io arg1 = do
    )
   pure (arg2)
 
-queens1_oi arg2 = do
+queens1_oi = \arg2 -> do
   -- solution: arg1[0,2] arg1[0] arg1[] dat[0,0] out[0,3] ~arg2[0,3] ~arg2[0] ~arg2[] ~dat[0,2] ~out[0,0] ~out[0,1]
   (arg1) <- (do
     out <- pure arg2
@@ -499,7 +500,7 @@ constraints:
 (r[1,6] <-> arg1[])
 1
 -}
-cqueens_iii arg1 arg2 arg3 = do
+cqueens_iii = \arg1 arg2 arg3 -> do
   -- solution: data0[1,5] data1[1,7] history[1,10] m[1,0] q0[1,0] q1[1,8] q[1,1] r[1,3] xs[1,9] ~arg1[0,0] ~arg1[0] ~arg1[1,9] ~arg1[1] ~arg1[] ~arg2[1,10] ~arg2[1] ~arg2[] ~arg3[0,1] ~arg3[0] ~arg3[1,0] ~arg3[1] ~arg3[] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,6] ~q0[1,1] ~q1[1,7] ~q[1,3] ~q[1,4] ~q[1,8] ~r[1,6] ~xs[1,2] ~xs[1,3]
   () <- (do
     guard $ arg1 == []
@@ -521,7 +522,7 @@ cqueens_iii arg1 arg2 arg3 = do
    )
   pure ()
 
-cqueens_iio arg1 arg2 = do
+cqueens_iio = \arg1 arg2 -> do
   -- solution: arg3[0,1] arg3[0] arg3[1,0] arg3[1] arg3[] data0[1,5] data1[1,7] history[1,10] m[1,6] q0[1,1] q1[1,8] q[1,3] r[1,3] xs[1,9] ~arg1[0,0] ~arg1[0] ~arg1[1,9] ~arg1[1] ~arg1[] ~arg2[1,10] ~arg2[1] ~arg2[] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,0] ~q0[1,0] ~q1[1,7] ~q[1,1] ~q[1,4] ~q[1,8] ~r[1,6] ~xs[1,2] ~xs[1,3]
   (arg3) <- (do
     guard $ arg1 == []
@@ -543,7 +544,7 @@ cqueens_iio arg1 arg2 = do
    )
   pure (arg3)
 
-cqueens_oii arg2 arg3 = do
+cqueens_oii = \arg2 arg3 -> do
   -- solution: arg1[0,0] arg1[0] arg1[1,9] arg1[1] arg1[] data0[1,5] data1[1,7] history[1,10] m[1,0] q0[1,0] q1[1,8] q[1,1] r[1,6] xs[1,3] ~arg2[1,10] ~arg2[1] ~arg2[] ~arg3[0,1] ~arg3[0] ~arg3[1,0] ~arg3[1] ~arg3[] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,6] ~q0[1,1] ~q1[1,7] ~q[1,3] ~q[1,4] ~q[1,8] ~r[1,3] ~xs[1,2] ~xs[1,9]
   (arg1) <- (do
     guard $ arg3 == []
@@ -583,7 +584,7 @@ constraints:
 (arg2[] <-> arg2[0])
 1
 -}
-queens2_ii arg1 arg2 = do
+queens2_ii = \arg1 arg2 -> do
   -- solution: dat[0,0] data0[0,1] out[0,3] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~dat[0,2] ~data0[0,0] ~out[0,0]
   () <- (do
     out <- pure arg2
@@ -594,7 +595,7 @@ queens2_ii arg1 arg2 = do
    )
   pure ()
 
-queens2_io arg1 = do
+queens2_io = \arg1 -> do
   -- solution: arg2[0,3] arg2[0] arg2[] dat[0,2] data0[0,1] out[0,0] ~arg1[0,2] ~arg1[0] ~arg1[] ~dat[0,0] ~data0[0,0] ~out[0,3]
   (arg2) <- (do
     dat <- pure arg1
@@ -605,7 +606,7 @@ queens2_io arg1 = do
    )
   pure (arg2)
 
-queens2_oi arg2 = do
+queens2_oi = \arg2 -> do
   -- solution: arg1[0,2] arg1[0] arg1[] dat[0,0] data0[0,1] out[0,3] ~arg2[0,3] ~arg2[0] ~arg2[] ~dat[0,2] ~data0[0,0] ~out[0,0]
   (arg1) <- (do
     out <- pure arg2

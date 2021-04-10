@@ -5,6 +5,7 @@ import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 import Data.List
+import Data.MemoTrie
 
 {- partition/4
 partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h0:t, h0 = h, if ((<=) h p) then (partition t p lo1 hi, lo = h1:lo1, h1 = h) else (partition t p lo hi1, hi = h2:hi1, h2 = h), arg2 = p, arg3 = lo, arg4 = hi)).
@@ -89,7 +90,7 @@ constraints:
 (t[1,2] <-> (t[1,2,1] | t[1,2,2]))
 1
 -}
-partition_iiii arg1 arg2 arg3 arg4 = do
+partition_iiii = \arg1 arg2 arg3 arg4 -> do
   -- solution: h0[1,0] h1[1,2,1,1] h2[1,2,2,1] h[1,1] hi1[1,2,2,1] hi[1,5] lo1[1,2,1,1] lo[1,4] p[1,3] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[1,3] ~arg2[1] ~arg2[] ~arg3[0,1] ~arg3[0] ~arg3[1,4] ~arg3[1] ~arg3[] ~arg4[0,2] ~arg4[0] ~arg4[1,5] ~arg4[1] ~arg4[] ~h0[1,1] ~h1[1,2,1,2] ~h2[1,2,2,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2,2] ~h[1,2,2] ~h[1,2] ~hi1[1,2,2,0] ~hi[1,2,1,0] ~hi[1,2,1] ~hi[1,2,2,1] ~hi[1,2,2] ~hi[1,2] ~lo1[1,2,1,0] ~lo[1,2,1,1] ~lo[1,2,1] ~lo[1,2,2,0] ~lo[1,2,2] ~lo[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2,0] ~p[1,2,2] ~p[1,2] ~t[1,2,1,0] ~t[1,2,1] ~t[1,2,2,0] ~t[1,2,2] ~t[1,2]
   () <- (do
     guard $ arg1 == []
@@ -103,7 +104,7 @@ partition_iiii arg1 arg2 arg3 arg4 = do
     (h0:t) <- pure arg1
     h <- pure h0
     () <- ifte ((do
-      () <- if (<=) h p then pure () else empty
+      guard $ (<=) h p
       pure ()
      )) (\() -> (do
       (h1:lo1) <- pure lo
@@ -120,7 +121,7 @@ partition_iiii arg1 arg2 arg3 arg4 = do
    )
   pure ()
 
-partition_iiio arg1 arg2 arg3 = do
+partition_iiio = \arg1 arg2 arg3 -> do
   -- solution: arg4[0,2] arg4[0] arg4[1,5] arg4[1] arg4[] h0[1,0] h1[1,2,1,1] h2[1,2,2,2] h[1,1] hi1[1,2,2,0] hi[1,2,1,0] hi[1,2,1] hi[1,2,2,1] hi[1,2,2] hi[1,2] lo1[1,2,1,1] lo[1,4] p[1,3] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[1,3] ~arg2[1] ~arg2[] ~arg3[0,1] ~arg3[0] ~arg3[1,4] ~arg3[1] ~arg3[] ~h0[1,1] ~h1[1,2,1,2] ~h2[1,2,2,1] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2,2] ~h[1,2,2] ~h[1,2] ~hi1[1,2,2,1] ~hi[1,5] ~lo1[1,2,1,0] ~lo[1,2,1,1] ~lo[1,2,1] ~lo[1,2,2,0] ~lo[1,2,2] ~lo[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2,0] ~p[1,2,2] ~p[1,2] ~t[1,2,1,0] ~t[1,2,1] ~t[1,2,2,0] ~t[1,2,2] ~t[1,2]
   (arg4) <- (do
     guard $ arg1 == []
@@ -133,7 +134,7 @@ partition_iiio arg1 arg2 arg3 = do
     (h0:t) <- pure arg1
     h <- pure h0
     (hi) <- ifte ((do
-      () <- if (<=) h p then pure () else empty
+      guard $ (<=) h p
       pure ()
      )) (\() -> (do
       (h1:lo1) <- pure lo
@@ -151,7 +152,7 @@ partition_iiio arg1 arg2 arg3 = do
    )
   pure (arg4)
 
-partition_iioi arg1 arg2 arg4 = do
+partition_iioi = \arg1 arg2 arg4 -> do
   -- solution: arg3[0,1] arg3[0] arg3[1,4] arg3[1] arg3[] h0[1,0] h1[1,2,1,2] h2[1,2,2,1] h[1,1] hi1[1,2,2,1] hi[1,5] lo1[1,2,1,0] lo[1,2,1,1] lo[1,2,1] lo[1,2,2,0] lo[1,2,2] lo[1,2] p[1,3] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[1,3] ~arg2[1] ~arg2[] ~arg4[0,2] ~arg4[0] ~arg4[1,5] ~arg4[1] ~arg4[] ~h0[1,1] ~h1[1,2,1,1] ~h2[1,2,2,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2,2] ~h[1,2,2] ~h[1,2] ~hi1[1,2,2,0] ~hi[1,2,1,0] ~hi[1,2,1] ~hi[1,2,2,1] ~hi[1,2,2] ~hi[1,2] ~lo1[1,2,1,1] ~lo[1,4] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2,0] ~p[1,2,2] ~p[1,2] ~t[1,2,1,0] ~t[1,2,1] ~t[1,2,2,0] ~t[1,2,2] ~t[1,2]
   (arg3) <- (do
     guard $ arg1 == []
@@ -164,7 +165,7 @@ partition_iioi arg1 arg2 arg4 = do
     (h0:t) <- pure arg1
     h <- pure h0
     (lo) <- ifte ((do
-      () <- if (<=) h p then pure () else empty
+      guard $ (<=) h p
       pure ()
      )) (\() -> (do
       h1 <- pure h
@@ -182,7 +183,7 @@ partition_iioi arg1 arg2 arg4 = do
    )
   pure (arg3)
 
-partition_iioo arg1 arg2 = do
+partition_iioo = \arg1 arg2 -> do
   -- solution: arg3[0,1] arg3[0] arg3[1,4] arg3[1] arg3[] arg4[0,2] arg4[0] arg4[1,5] arg4[1] arg4[] h0[1,0] h1[1,2,1,2] h2[1,2,2,2] h[1,1] hi1[1,2,2,0] hi[1,2,1,0] hi[1,2,1] hi[1,2,2,1] hi[1,2,2] hi[1,2] lo1[1,2,1,0] lo[1,2,1,1] lo[1,2,1] lo[1,2,2,0] lo[1,2,2] lo[1,2] p[1,3] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[1,3] ~arg2[1] ~arg2[] ~h0[1,1] ~h1[1,2,1,1] ~h2[1,2,2,1] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2,2] ~h[1,2,2] ~h[1,2] ~hi1[1,2,2,1] ~hi[1,5] ~lo1[1,2,1,1] ~lo[1,4] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2,0] ~p[1,2,2] ~p[1,2] ~t[1,2,1,0] ~t[1,2,1] ~t[1,2,2,0] ~t[1,2,2] ~t[1,2]
   (arg3,arg4) <- (do
     guard $ arg1 == []
@@ -194,7 +195,7 @@ partition_iioo arg1 arg2 = do
     (h0:t) <- pure arg1
     h <- pure h0
     (hi,lo) <- ifte ((do
-      () <- if (<=) h p then pure () else empty
+      guard $ (<=) h p
       pure ()
      )) (\() -> (do
       h1 <- pure h
@@ -272,7 +273,7 @@ constraints:
 1
 -}
 -- mode ordering failure, cyclic dependency: [2] partition xs::in x::in ys::out zs::out -> [4] qsort ys::in r::in data0::out -> [5] data0::in = x1::out:r1::out -> [6] x1::in = x::out
-qsort_iio arg1 arg2 = do
+qsort_iio = \arg1 arg2 -> do
   -- solution: arg3[0,2] arg3[0] arg3[1,8] arg3[1] arg3[] data0[1,4] r0[1,3] r1[1,5] r[0,1] r[1,7] x0[1,0] x1[1,5] x[1,1] xs[1,0] ys[1,2] zs[1,2] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[1,7] ~arg2[1] ~arg2[] ~data0[1,5] ~r0[1,8] ~r1[1,3] ~r[0,2] ~r[1,4] ~x0[1,1] ~x1[1,6] ~x[1,2] ~x[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
   (arg3) <- (do
     r <- pure arg2
@@ -293,7 +294,7 @@ qsort_iio arg1 arg2 = do
    )
   pure (arg3)
 
-qsort_ioi arg1 arg3 = do
+qsort_ioi = \arg1 arg3 -> do
   -- solution: arg2[0,1] arg2[0] arg2[1,7] arg2[1] arg2[] data0[1,5] r0[1,8] r1[1,3] r[0,2] r[1,4] x0[1,0] x1[1,6] x[1,1] xs[1,0] ys[1,2] zs[1,2] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg3[0,2] ~arg3[0] ~arg3[1,8] ~arg3[1] ~arg3[] ~data0[1,4] ~r0[1,3] ~r1[1,5] ~r[0,1] ~r[1,7] ~x0[1,1] ~x1[1,5] ~x[1,2] ~x[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
   (arg2) <- (do
     r <- pure arg3
@@ -332,7 +333,7 @@ constraints:
 (arg2[] <-> arg2[0])
 1
 -}
-sort_ii arg1 arg2 = do
+sort_ii = \arg1 arg2 -> do
   -- solution: data0[0,0] list[0,2] sorted[0,3] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~data0[0,1] ~list[0,0] ~sorted[0,0]
   () <- (do
     list <- pure arg1
@@ -343,7 +344,7 @@ sort_ii arg1 arg2 = do
    )
   pure ()
 
-sort_io arg1 = do
+sort_io = \arg1 -> do
   -- solution: arg2[0,3] arg2[0] arg2[] data0[0,1] list[0,2] sorted[0,0] ~arg1[0,2] ~arg1[0] ~arg1[] ~data0[0,0] ~list[0,0] ~sorted[0,3]
   (arg2) <- (do
     list <- pure arg1

@@ -208,6 +208,11 @@ programEuler =
   multiple x y :- mod x y 0.
 
   euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5).
+
+  #pragma memo fib.
+  fib 0 0.
+  fib 1 1.
+  fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk.
   |]
 
 main :: IO ()
@@ -322,3 +327,7 @@ main = do
         code `shouldBe` expect
       it "1" $ do
         (sum . OrdList.nub $ observeAll euler1_o) `shouldBe` 233168
+      it "fib" $ do
+        [observeAll (fib_io i) | i <- [0 .. 12 :: Integer]] `shouldBe`
+          map pure [0,1,1,2,3,5,8,13,21,34,55,89,144]
+        observeAll (fib_io (100 :: Integer)) `shouldBe` [354224848179261915075]

@@ -5,6 +5,7 @@ import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 import Data.List
+import Data.MemoTrie
 
 {- nat/1
 nat arg1 :- ((arg1 = 0); (nat n, succ n n', arg1 = n')).
@@ -22,7 +23,7 @@ constraints:
 (n[1,0] <-> arg1[])
 1
 -}
-nat_i arg1 = do
+nat_i = \arg1 -> do
   -- solution: n'[1,2] n[1,1] ~arg1[0,0] ~arg1[0] ~arg1[1,2] ~arg1[1] ~arg1[] ~n'[1,1] ~n[1,0]
   () <- (do
     guard $ arg1 == 0
@@ -35,7 +36,7 @@ nat_i arg1 = do
    )
   pure ()
 
-nat_o  = do
+nat_o = do
   -- solution: arg1[0,0] arg1[0] arg1[1,2] arg1[1] arg1[] n'[1,1] n[1,0] ~n'[1,2] ~n[1,1]
   (arg1) <- (do
     arg1 <- pure 0
@@ -75,7 +76,7 @@ xs[1,0]
 (xs[1,1] <-> arg2[])
 1
 -}
-elem_ii arg1 arg2 = do
+elem_ii = \arg1 arg2 -> do
   -- solution: x[0,0] x[1,2] xs[1,0] ~arg1[0,1] ~arg1[0] ~arg1[1,2] ~arg1[1] ~arg1[] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~x[0,1] ~x[1,1] ~xs[1,1]
   () <- (do
     (x:_) <- pure arg2
@@ -89,7 +90,7 @@ elem_ii arg1 arg2 = do
    )
   pure ()
 
-elem_oi arg2 = do
+elem_oi = \arg2 -> do
   -- solution: arg1[0,1] arg1[0] arg1[1,2] arg1[1] arg1[] x[0,0] x[1,1] xs[1,0] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~x[0,1] ~x[1,2] ~xs[1,1]
   (arg1) <- (do
     (x:_) <- pure arg2
@@ -202,7 +203,7 @@ constraints:
 1
 -}
 -- mode ordering failure, cyclic dependency: [10] timesInt i0::in i1::out ii::in -> [12] i1::in = i::out -> [11] i0::out = i::in
-pythag_iii arg1 arg2 arg3 = do
+pythag_iii = \arg1 arg2 arg3 -> do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,21] jj[0,13] k4[0,17] k5[0,18] k[0,22] kk[0,16] ~arg1[0,20] ~arg1[0] ~arg1[] ~arg2[0,21] ~arg2[0] ~arg2[] ~arg3[0,22] ~arg3[0] ~arg3[] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,3] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,6] ~k[0,7] ~kk[0,19]
   () <- (do
     j <- pure arg2
@@ -214,15 +215,15 @@ pythag_iii arg1 arg2 arg3 = do
     data0 <- pure 0
     data1 <- pure 0
     data2 <- pure 0
-    () <- if (>) j data1 then pure () else empty
-    () <- if (>) k data2 then pure () else empty
+    guard $ (>) j data1
+    guard $ (>) k data2
     () <- nat_i j
     () <- nat_i k
     (i) <- nat_o 
     guard $ arg1 == i
     i1 <- pure i
-    () <- if (<) i j then pure () else empty
-    () <- if (>) i data0 then pure () else empty
+    guard $ (<) i j
+    guard $ (>) i data0
     (jj) <- timesInt_iio j2 j3
     (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
@@ -232,7 +233,7 @@ pythag_iii arg1 arg2 arg3 = do
    )
   pure ()
 
-pythag_iio arg1 arg2 = do
+pythag_iio = \arg1 arg2 -> do
   -- solution: arg3[0,22] arg3[0] arg3[] data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,21] jj[0,13] k4[0,17] k5[0,18] k[0,6] kk[0,16] ~arg1[0,20] ~arg1[0] ~arg1[] ~arg2[0,21] ~arg2[0] ~arg2[] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,3] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,22] ~k[0,7] ~kk[0,19]
   (arg3) <- (do
     j <- pure arg2
@@ -241,18 +242,18 @@ pythag_iio arg1 arg2 = do
     data0 <- pure 0
     data1 <- pure 0
     data2 <- pure 0
-    () <- if (>) j data1 then pure () else empty
+    guard $ (>) j data1
     () <- nat_i j
     (i) <- nat_o 
     guard $ arg1 == i
     i1 <- pure i
-    () <- if (<) i j then pure () else empty
-    () <- if (>) i data0 then pure () else empty
+    guard $ (<) i j
+    guard $ (>) i data0
     (k) <- nat_o 
     arg3 <- pure k
     k4 <- pure k
     k5 <- pure k
-    () <- if (>) k data2 then pure () else empty
+    guard $ (>) k data2
     (jj) <- timesInt_iio j2 j3
     (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
@@ -262,7 +263,7 @@ pythag_iio arg1 arg2 = do
    )
   pure (arg3)
 
-pythag_ioi arg1 arg3 = do
+pythag_ioi = \arg1 arg3 -> do
   -- solution: arg2[0,21] arg2[0] arg2[] data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,3] jj[0,13] k4[0,17] k5[0,18] k[0,22] kk[0,16] ~arg1[0,20] ~arg1[0] ~arg1[] ~arg3[0,22] ~arg3[0] ~arg3[] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,21] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,6] ~k[0,7] ~kk[0,19]
   (arg2) <- (do
     k <- pure arg3
@@ -271,18 +272,18 @@ pythag_ioi arg1 arg3 = do
     data0 <- pure 0
     data1 <- pure 0
     data2 <- pure 0
-    () <- if (>) k data2 then pure () else empty
+    guard $ (>) k data2
     () <- nat_i k
     (i) <- nat_o 
     guard $ arg1 == i
     i1 <- pure i
-    () <- if (>) i data0 then pure () else empty
+    guard $ (>) i data0
     (j) <- nat_o 
     arg2 <- pure j
     j2 <- pure j
     j3 <- pure j
-    () <- if (<) i j then pure () else empty
-    () <- if (>) j data1 then pure () else empty
+    guard $ (<) i j
+    guard $ (>) j data1
     (jj) <- timesInt_iio j2 j3
     (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
@@ -292,7 +293,7 @@ pythag_ioi arg1 arg3 = do
    )
   pure (arg2)
 
-pythag_ioo arg1 = do
+pythag_ioo = \arg1 -> do
   -- solution: arg2[0,21] arg2[0] arg2[] arg3[0,22] arg3[0] arg3[] data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,3] jj[0,13] k4[0,17] k5[0,18] k[0,6] kk[0,16] ~arg1[0,20] ~arg1[0] ~arg1[] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,21] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,22] ~k[0,7] ~kk[0,19]
   (arg2,arg3) <- (do
     data0 <- pure 0
@@ -301,18 +302,18 @@ pythag_ioo arg1 = do
     (i) <- nat_o 
     guard $ arg1 == i
     i1 <- pure i
-    () <- if (>) i data0 then pure () else empty
+    guard $ (>) i data0
     (j) <- nat_o 
     arg2 <- pure j
     j2 <- pure j
     j3 <- pure j
-    () <- if (<) i j then pure () else empty
-    () <- if (>) j data1 then pure () else empty
+    guard $ (<) i j
+    guard $ (>) j data1
     (k) <- nat_o 
     arg3 <- pure k
     k4 <- pure k
     k5 <- pure k
-    () <- if (>) k data2 then pure () else empty
+    guard $ (>) k data2
     (jj) <- timesInt_iio j2 j3
     (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
@@ -322,7 +323,7 @@ pythag_ioo arg1 = do
    )
   pure (arg2,arg3)
 
-pythag_oii arg2 arg3 = do
+pythag_oii = \arg2 arg3 -> do
   -- solution: arg1[0,20] arg1[0] arg1[] data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,21] jj[0,13] k4[0,17] k5[0,18] k[0,22] kk[0,16] ~arg2[0,21] ~arg2[0] ~arg2[] ~arg3[0,22] ~arg3[0] ~arg3[] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,3] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,6] ~k[0,7] ~kk[0,19]
   (arg1) <- (do
     j <- pure arg2
@@ -334,15 +335,15 @@ pythag_oii arg2 arg3 = do
     data0 <- pure 0
     data1 <- pure 0
     data2 <- pure 0
-    () <- if (>) j data1 then pure () else empty
-    () <- if (>) k data2 then pure () else empty
+    guard $ (>) j data1
+    guard $ (>) k data2
     () <- nat_i j
     () <- nat_i k
     (i) <- nat_o 
     arg1 <- pure i
     i1 <- pure i
-    () <- if (<) i j then pure () else empty
-    () <- if (>) i data0 then pure () else empty
+    guard $ (<) i j
+    guard $ (>) i data0
     (jj) <- timesInt_iio j2 j3
     (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
@@ -352,7 +353,7 @@ pythag_oii arg2 arg3 = do
    )
   pure (arg1)
 
-pythag_oio arg2 = do
+pythag_oio = \arg2 -> do
   -- solution: arg1[0,20] arg1[0] arg1[] arg3[0,22] arg3[0] arg3[] data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,21] jj[0,13] k4[0,17] k5[0,18] k[0,6] kk[0,16] ~arg2[0,21] ~arg2[0] ~arg2[] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,3] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,22] ~k[0,7] ~kk[0,19]
   (arg1,arg3) <- (do
     j <- pure arg2
@@ -361,18 +362,18 @@ pythag_oio arg2 = do
     data0 <- pure 0
     data1 <- pure 0
     data2 <- pure 0
-    () <- if (>) j data1 then pure () else empty
+    guard $ (>) j data1
     () <- nat_i j
     (i) <- nat_o 
     arg1 <- pure i
     i1 <- pure i
-    () <- if (<) i j then pure () else empty
-    () <- if (>) i data0 then pure () else empty
+    guard $ (<) i j
+    guard $ (>) i data0
     (k) <- nat_o 
     arg3 <- pure k
     k4 <- pure k
     k5 <- pure k
-    () <- if (>) k data2 then pure () else empty
+    guard $ (>) k data2
     (jj) <- timesInt_iio j2 j3
     (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
@@ -382,7 +383,7 @@ pythag_oio arg2 = do
    )
   pure (arg1,arg3)
 
-pythag_ooi arg3 = do
+pythag_ooi = \arg3 -> do
   -- solution: arg1[0,20] arg1[0] arg1[] arg2[0,21] arg2[0] arg2[] data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,3] jj[0,13] k4[0,17] k5[0,18] k[0,22] kk[0,16] ~arg3[0,22] ~arg3[0] ~arg3[] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,21] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,6] ~k[0,7] ~kk[0,19]
   (arg1,arg2) <- (do
     k <- pure arg3
@@ -391,18 +392,18 @@ pythag_ooi arg3 = do
     data0 <- pure 0
     data1 <- pure 0
     data2 <- pure 0
-    () <- if (>) k data2 then pure () else empty
+    guard $ (>) k data2
     () <- nat_i k
     (i) <- nat_o 
     arg1 <- pure i
     i1 <- pure i
-    () <- if (>) i data0 then pure () else empty
+    guard $ (>) i data0
     (j) <- nat_o 
     arg2 <- pure j
     j2 <- pure j
     j3 <- pure j
-    () <- if (<) i j then pure () else empty
-    () <- if (>) j data1 then pure () else empty
+    guard $ (<) i j
+    guard $ (>) j data1
     (jj) <- timesInt_iio j2 j3
     (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
@@ -412,7 +413,7 @@ pythag_ooi arg3 = do
    )
   pure (arg1,arg2)
 
-pythag_ooo  = do
+pythag_ooo = do
   -- solution: arg1[0,20] arg1[0] arg1[] arg2[0,21] arg2[0] arg2[] arg3[0,22] arg3[0] arg3[] data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] i[0,0] ii[0,19] j2[0,14] j3[0,15] j[0,3] jj[0,13] k4[0,17] k5[0,18] k[0,6] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i0[0,11] ~i1[0,10] ~i[0,11] ~i[0,12] ~i[0,1] ~i[0,20] ~i[0,9] ~ii[0,10] ~j2[0,13] ~j3[0,13] ~j[0,14] ~j[0,15] ~j[0,21] ~j[0,4] ~j[0,9] ~jj[0,19] ~k4[0,16] ~k5[0,16] ~k[0,17] ~k[0,18] ~k[0,22] ~k[0,7] ~kk[0,19]
   (arg1,arg2,arg3) <- (do
     data0 <- pure 0
@@ -421,18 +422,18 @@ pythag_ooo  = do
     (i) <- nat_o 
     arg1 <- pure i
     i1 <- pure i
-    () <- if (>) i data0 then pure () else empty
+    guard $ (>) i data0
     (j) <- nat_o 
     arg2 <- pure j
     j2 <- pure j
     j3 <- pure j
-    () <- if (<) i j then pure () else empty
-    () <- if (>) j data1 then pure () else empty
+    guard $ (<) i j
+    guard $ (>) j data1
     (k) <- nat_o 
     arg3 <- pure k
     k4 <- pure k
     k5 <- pure k
-    () <- if (>) k data2 then pure () else empty
+    guard $ (>) k data2
     (jj) <- timesInt_iio j2 j3
     (kk) <- timesInt_iio k4 k5
     (ii) <- plus_oii jj kk
@@ -468,7 +469,7 @@ constraints:
 (arg2[] <-> arg2[0])
 1
 -}
-triang_ii arg1 arg2 = do
+triang_ii = \arg1 arg2 -> do
   -- solution: data0[0,3] n'[0,0] n[0,4] nn'[0,1] r[0,2] ~arg1[0,4] ~arg1[0] ~arg1[] ~arg2[0,5] ~arg2[0] ~arg2[] ~data0[0,2] ~n'[0,1] ~n[0,0] ~n[0,1] ~nn'[0,2] ~r[0,5]
   () <- (do
     n <- pure arg1
@@ -481,7 +482,7 @@ triang_ii arg1 arg2 = do
    )
   pure ()
 
-triang_io arg1 = do
+triang_io = \arg1 -> do
   -- solution: arg2[0,5] arg2[0] arg2[] data0[0,3] n'[0,0] n[0,4] nn'[0,1] r[0,2] ~arg1[0,4] ~arg1[0] ~arg1[] ~data0[0,2] ~n'[0,1] ~n[0,0] ~n[0,1] ~nn'[0,2] ~r[0,5]
   (arg2) <- (do
     n <- pure arg1
@@ -548,7 +549,7 @@ constraints:
 (data5[0,9] <-> i[0,9])
 1
 -}
-ptriang_i arg1 = choose . nub . observeAll $ do
+ptriang_i = \arg1 -> choose . nub . observeAll $ do
   -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,8] data6[0,9] i[0,4] j[0,7] k[0,0] ti[0,10] tj[0,11] tk[0,13] ~arg1[0,14] ~arg1[0] ~arg1[] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,6] ~data4[0,4] ~data5[0,9] ~data6[0,7] ~i[0,10] ~i[0,9] ~j[0,11] ~k[0,12] ~k[0,14] ~k[0,6] ~ti[0,13] ~tj[0,13] ~tk[0,12]
   () <- (do
     data0 <- pure 1
@@ -570,7 +571,7 @@ ptriang_i arg1 = choose . nub . observeAll $ do
    )
   pure ()
 
-ptriang_o  = choose . nub . observeAll $ do
+ptriang_o = choose . nub . observeAll $ do
   -- solution: arg1[0,14] arg1[0] arg1[] data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,8] data6[0,9] i[0,4] j[0,7] k[0,0] ti[0,10] tj[0,11] tk[0,13] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,6] ~data4[0,4] ~data5[0,9] ~data6[0,7] ~i[0,10] ~i[0,9] ~j[0,11] ~k[0,12] ~k[0,14] ~k[0,6] ~ti[0,13] ~tj[0,13] ~tk[0,12]
   (arg1) <- (do
     data0 <- pure 1
@@ -636,7 +637,7 @@ constraints:
 (n[1,3] <-> arg1[])
 1
 -}
-stepN_io arg1 = choose . nub . observeAll $ do
+stepN_io = \arg1 -> choose . nub . observeAll $ do
   -- solution: arg2[0,1] arg2[0] arg2[1,9] arg2[1] arg2[] data0[1,1] data1[1,6] data2[1,7] i'[1,4] i[1,3] n'[1,8] n[1,2] r[1,5] ~arg1[0,0] ~arg1[0] ~arg1[1,8] ~arg1[1] ~arg1[] ~data0[1,0] ~data1[1,7] ~data2[1,5] ~i'[1,7] ~i[1,4] ~i[1,7] ~n'[1,0] ~n'[1,2] ~n[1,3] ~r[1,9]
   (arg2) <- (do
     guard $ arg1 == 0
@@ -646,7 +647,7 @@ stepN_io arg1 = choose . nub . observeAll $ do
     n' <- pure arg1
     data0 <- pure 0
     data1 <- pure []
-    () <- if (>) n' data0 then pure () else empty
+    guard $ (>) n' data0
     (n) <- succ_oi n'
     (i) <- stepN_io n
     (i') <- succ_io i
@@ -657,7 +658,7 @@ stepN_io arg1 = choose . nub . observeAll $ do
    )
   pure (arg2)
 
-stepN_oo  = choose . nub . observeAll $ do
+stepN_oo = choose . nub . observeAll $ do
   -- solution: arg1[0,0] arg1[0] arg1[1,8] arg1[1] arg1[] arg2[0,1] arg2[0] arg2[1,9] arg2[1] arg2[] data0[1,1] data1[1,6] data2[1,7] i'[1,4] i[1,3] n'[1,2] n[1,3] r[1,5] ~data0[1,0] ~data1[1,7] ~data2[1,5] ~i'[1,7] ~i[1,4] ~i[1,7] ~n'[1,0] ~n'[1,8] ~n[1,2] ~r[1,9]
   (arg1,arg2) <- (do
     arg1 <- pure 0
@@ -673,7 +674,7 @@ stepN_oo  = choose . nub . observeAll $ do
     arg2 <- pure r
     (n') <- succ_io n
     arg1 <- pure n'
-    () <- if (>) n' data0 then pure () else empty
+    guard $ (>) n' data0
     pure (arg1,arg2)
    )
   pure (arg1,arg2)

@@ -5,6 +5,7 @@ import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
 import Data.List
+import Data.MemoTrie
 
 {- integers/3
 integers arg1 arg2 arg3 :- ((if ((<=) low high) then (succ low m, integers m high rest, result = low:rest) else (result = []), arg1 = low, arg2 = high, arg3 = result)).
@@ -48,13 +49,13 @@ constraints:
 (result[0,0] <-> (result[0,0,1] | result[0,0,2]))
 1
 -}
-integers_iio arg1 arg2 = do
+integers_iio = \arg1 arg2 -> do
   -- solution: arg3[0,3] arg3[0] arg3[] high[0,2] low[0,1] m[0,0,1,0] rest[0,0,1,1] result[0,0,1,2] result[0,0,1] result[0,0,2,0] result[0,0,2] result[0,0] ~arg1[0,1] ~arg1[0] ~arg1[] ~arg2[0,2] ~arg2[0] ~arg2[] ~high[0,0,0,0] ~high[0,0,1,1] ~high[0,0] ~low[0,0,0,0] ~low[0,0,1,0] ~low[0,0,1,2] ~low[0,0] ~m[0,0,1,1] ~rest[0,0,1,2] ~result[0,3]
   (arg3) <- (do
     low <- pure arg1
     high <- pure arg2
     (result) <- ifte ((do
-      () <- if (<=) low high then pure () else empty
+      guard $ (<=) low high
       pure ()
      )) (\() -> (do
       (m) <- succ_io low
@@ -132,7 +133,7 @@ constraints:
 (result[1,4] <-> (result[1,4,1] | result[1,4,2]))
 1
 -}
-remove_iii arg1 arg2 arg3 = do
+remove_iii = \arg1 arg2 arg3 -> do
   -- solution: j0[1,0] j1[1,4,2,0] j[1,1] js[1,0] m[1,2] njs[1,4,1,0] njs[1,4,1] njs[1,4,2,0] njs[1,4,2] njs[1,4] p[1,5] result[1,6] ~arg1[1,5] ~arg1[1] ~arg1[] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~arg3[0,1] ~arg3[0] ~arg3[1,6] ~arg3[1] ~arg3[] ~j0[1,1] ~j1[1,4,2,1] ~j[1,2] ~j[1,4,2,1] ~j[1,4,2] ~j[1,4] ~js[1,3] ~m[1,4,0,0] ~m[1,4] ~njs[1,3] ~p[1,2] ~p[1,3] ~result[1,4,1,0] ~result[1,4,1] ~result[1,4,2,0] ~result[1,4,2] ~result[1,4]
   () <- (do
     guard $ arg2 == []
@@ -160,7 +161,7 @@ remove_iii arg1 arg2 arg3 = do
    )
   pure ()
 
-remove_iio arg1 arg2 = do
+remove_iio = \arg1 arg2 -> do
   -- solution: arg3[0,1] arg3[0] arg3[1,6] arg3[1] arg3[] j0[1,0] j1[1,4,2,1] j[1,1] js[1,0] m[1,2] njs[1,3] p[1,5] result[1,4,1,0] result[1,4,1] result[1,4,2,0] result[1,4,2] result[1,4] ~arg1[1,5] ~arg1[1] ~arg1[] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~j0[1,1] ~j1[1,4,2,0] ~j[1,2] ~j[1,4,2,1] ~j[1,4,2] ~j[1,4] ~js[1,3] ~m[1,4,0,0] ~m[1,4] ~njs[1,4,1,0] ~njs[1,4,1] ~njs[1,4,2,0] ~njs[1,4,2] ~njs[1,4] ~p[1,2] ~p[1,3] ~result[1,6]
   (arg3) <- (do
     guard $ arg2 == []
@@ -224,7 +225,7 @@ constraints:
 (ps[1,5] <-> arg2[])
 1
 -}
-sift_ii arg1 arg2 = do
+sift_ii = \arg1 arg2 -> do
   -- solution: js[1,0] new[1,4] p0[1,0] p1[1,2] p[1,1] ps[1,2] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[1,2] ~arg2[1] ~arg2[] ~js[1,4] ~new[1,5] ~p0[1,1] ~p1[1,3] ~p[1,3] ~p[1,4] ~ps[1,5]
   () <- (do
     guard $ arg1 == []
@@ -241,7 +242,7 @@ sift_ii arg1 arg2 = do
    )
   pure ()
 
-sift_io arg1 = do
+sift_io = \arg1 -> do
   -- solution: arg2[0,1] arg2[0] arg2[1,2] arg2[1] arg2[] js[1,0] new[1,4] p0[1,0] p1[1,3] p[1,1] ps[1,5] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~js[1,4] ~new[1,5] ~p0[1,1] ~p1[1,2] ~p[1,3] ~p[1,4] ~ps[1,2]
   (arg2) <- (do
     guard $ arg1 == []
@@ -279,7 +280,7 @@ constraints:
 (arg2[] <-> arg2[0])
 1
 -}
-primes_ii arg1 arg2 = do
+primes_ii = \arg1 arg2 -> do
   -- solution: data0[0,1] js[0,0] limit[0,3] ps[0,2] ~arg1[0,3] ~arg1[0] ~arg1[] ~arg2[0,4] ~arg2[0] ~arg2[] ~data0[0,0] ~js[0,2] ~limit[0,0] ~ps[0,4]
   () <- (do
     limit <- pure arg1
@@ -291,7 +292,7 @@ primes_ii arg1 arg2 = do
    )
   pure ()
 
-primes_io arg1 = do
+primes_io = \arg1 -> do
   -- solution: arg2[0,4] arg2[0] arg2[] data0[0,1] js[0,0] limit[0,3] ps[0,2] ~arg1[0,3] ~arg1[0] ~arg1[] ~data0[0,0] ~js[0,2] ~limit[0,0] ~ps[0,4]
   (arg2) <- (do
     limit <- pure arg1
