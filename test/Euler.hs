@@ -4,6 +4,7 @@ module Euler where
 import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
+import Data.List
 
 {- elem/2
 elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
@@ -60,38 +61,65 @@ elem_oi arg2 = do
    )
   pure (arg1)
 
-{- euler1/1
-euler1 arg1 :- ((elem x data2, data0 = 0, data1 = 999, data2 = .. data0 data1, mod x y data3, data3 = 0, ((y = 3); (y = 5)), arg1 = x)).
+{- multiple/2
+multiple arg1 arg2 :- ((mod x y data0, data0 = 0, arg1 = x, arg2 = y)).
 constraints:
-~(arg1[0,7] & x[0,7])
+~(arg1[0,2] & x[0,2])
+~(arg2[0,3] & y[0,3])
+~(data0[0,0] & data0[0,1])
+~(x[0,0] & x[0,2])
+~(y[0,0] & y[0,3])
+(data0[0,0] | data0[0,1])
+(x[0,0] | x[0,2])
+(y[0,0] | y[0,3])
+((~x[0,0] & (~y[0,0] & data0[0,0])) | (~x[0,0] & (~y[0,0] & ~data0[0,0])))
+(arg1[0] <-> arg1[0,2])
+(arg1[] <-> arg1[0])
+(arg2[0] <-> arg2[0,3])
+(arg2[] <-> arg2[0])
+1
+-}
+multiple_ii arg1 arg2 = do
+  -- solution: data0[0,0] x[0,2] y[0,3] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~data0[0,1] ~x[0,0] ~y[0,0]
+  () <- (do
+    x <- pure arg1
+    y <- pure arg2
+    (data0) <- mod_iio x y
+    guard $ data0 == 0
+    pure ()
+   )
+  pure ()
+
+{- euler1/1
+euler1 arg1 :- ((elem x data2, data0 = 0, data1 = 999, data2 = .. data0 data1, multiple x y, ((y = 3); (y = 5)), arg1 = x)).
+constraints:
+~(arg1[0,6] & x[0,6])
 ~(data0[0,1] & data0[0,3])
 ~(data1[0,2] & data1[0,3])
 ~(data2[0,0] & data2[0,3])
 ~(data2[0,3] & data0[0,3])
-~(data3[0,4] & data3[0,5])
 ~(x[0,0] & x[0,4])
-~(x[0,0] & x[0,7])
-~(x[0,4] & x[0,7])
-~(y[0,4] & y[0,6])
+~(x[0,0] & x[0,6])
+~(x[0,4] & x[0,6])
+~(y[0,4] & y[0,5])
+(~x[0,4] & ~y[0,4])
 (data0[0,1] | data0[0,3])
 (data1[0,2] | data1[0,3])
 (data2[0,0] | data2[0,3])
-(data3[0,4] | data3[0,5])
-(x[0,0] | (x[0,4] | x[0,7]))
-(y[0,4] | y[0,6])
+(x[0,0] | (x[0,4] | x[0,6]))
+(y[0,4] | y[0,5])
 ((x[0,0] & ~data2[0,0]) | (~x[0,0] & ~data2[0,0]))
-((~x[0,4] & (~y[0,4] & data3[0,4])) | (~x[0,4] & (~y[0,4] & ~data3[0,4])))
-(arg1[0] <-> arg1[0,7])
+(arg1[0] <-> arg1[0,6])
 (arg1[] <-> arg1[0])
 (data0[0,3] <-> data1[0,3])
-(y[0,6,0] <-> y[0,6,0,0])
-(y[0,6,1] <-> y[0,6,1,0])
-(y[0,6] <-> y[0,6,0])
-(y[0,6] <-> y[0,6,1])
+(y[0,5,0] <-> y[0,5,0,0])
+(y[0,5,1] <-> y[0,5,1,0])
+(y[0,5] <-> y[0,5,0])
+(y[0,5] <-> y[0,5,1])
 1
 -}
 euler1_i arg1 = do
-  -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,4] x[0,0] y[0,6,0,0] y[0,6,0] y[0,6,1,0] y[0,6,1] y[0,6] ~arg1[0,7] ~arg1[0] ~arg1[] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,5] ~x[0,4] ~x[0,7] ~y[0,4]
+  -- solution: data0[0,1] data1[0,2] data2[0,3] x[0,0] y[0,5,0,0] y[0,5,0] y[0,5,1,0] y[0,5,1] y[0,5] ~arg1[0,6] ~arg1[0] ~arg1[] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~x[0,4] ~x[0,6] ~y[0,4]
   () <- (do
     data0 <- pure 0
     data1 <- pure 999
@@ -105,14 +133,13 @@ euler1_i arg1 = do
       y <- pure 5
       pure (y)
      )
-    (data3) <- mod_iio x y
-    guard $ data3 == 0
+    () <- multiple_ii x y
     pure ()
    )
   pure ()
 
 euler1_o  = do
-  -- solution: arg1[0,7] arg1[0] arg1[] data0[0,1] data1[0,2] data2[0,3] data3[0,4] x[0,0] y[0,6,0,0] y[0,6,0] y[0,6,1,0] y[0,6,1] y[0,6] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,5] ~x[0,4] ~x[0,7] ~y[0,4]
+  -- solution: arg1[0,6] arg1[0] arg1[] data0[0,1] data1[0,2] data2[0,3] x[0,0] y[0,5,0,0] y[0,5,0] y[0,5,1,0] y[0,5,1] y[0,5] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~x[0,4] ~x[0,6] ~y[0,4]
   (arg1) <- (do
     data0 <- pure 0
     data1 <- pure 999
@@ -126,8 +153,7 @@ euler1_o  = do
       y <- pure 5
       pure (y)
      )
-    (data3) <- mod_iio x y
-    guard $ data3 == 0
+    () <- multiple_ii x y
     pure (arg1)
    )
   pure (arg1)

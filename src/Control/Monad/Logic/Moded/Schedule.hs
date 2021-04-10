@@ -102,6 +102,7 @@ mode' procs rule@(Rule name vars _) =
   where
     builtins =
       [ ("succ", ["io", "oi", "ii"])
+      , ("div",  ["iio", "iii"])
       , ("mod",  ["iio", "iii"])
       , ("divMod", ["iioo", "iioi", "iiio", "iiii"])
       , ("plus", ["iio", "ioi", "oii"])

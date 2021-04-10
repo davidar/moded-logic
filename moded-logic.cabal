@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: eb76bd7d415521f02a461d344c0ec2d4f76bd772c49ad15b0bb5a0825cf62893
+-- hash: e48a38c5e17488bf5a5bf8cb92f4d5c3857b59a9d5b4c4486aa9783a44410c9c
 
 name:           moded-logic
 version:        0.1.0.0
@@ -95,7 +95,7 @@ test-suite moded-logic-test
       Paths_moded_logic
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       algebraic-graphs
     , base >=4.7 && <5

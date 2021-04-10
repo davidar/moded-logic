@@ -9,7 +9,8 @@ module Control.Monad.Logic.Moded.Parse
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
-  , Prog
+  , Prog(..)
+  , Pragma(..)
   , Rule(..)
   , Var(..)
   )
@@ -150,18 +151,28 @@ rule = do
   symbol "."
   pure $ Rule name vars body
 
-rules :: Parser (Prog Val Val)
-rules = spaceConsumer >> some rule
+pragma :: Parser Pragma
+pragma = do
+  symbol "#pragma"
+  ws <- some identifier
+  symbol "."
+  pure $ Pragma ws
+
+prog :: Parser (Prog Val Val)
+prog = do
+  spaceConsumer
+  lrs <- some (fmap Left pragma <|> fmap Right rule)
+  pure $ Prog [l | Left l <- lrs] [r | Right r <- lrs]
 
 parseProg ::
      String -> String -> Either (ParseErrorBundle String Void) (Prog Var Var)
 parseProg fn lp = do
-  p1 <- parse rules fn lp
+  Prog pragmas p1 <- parse prog fn lp
   let p2 = combineDefs p1
       p3 = map superhomogeneous p2
       p4 = map distinctVars p3
       p5 = map (\r -> r { ruleBody = simplify (ruleBody r) }) p4
-  pure p5
+  pure $ Prog pragmas p5
 
 logic :: QuasiQuoter
 logic =

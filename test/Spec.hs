@@ -179,10 +179,25 @@ programKiselyov =
   nat 0.
   nat n' :- nat n, succ n n'.
 
+  elem x (x:_).
+  elem x (_:xs) :- elem x xs.
+
   pythag i j k :-
     nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j,
     timesInt i i ii, timesInt j j jj, timesInt k k kk,
     plus ii jj kk.
+
+  triang n r :- succ n n', times n n' nn', div nn' 2 r.
+
+  #pragma nub ptriang.
+  ptriang k :-
+    elem k [1..30], elem i [1..k], elem j [1..i],
+    triang i ti, triang j tj, triang k tk,
+    plus ti tj tk.
+
+  #pragma nub stepN.
+  stepN 0 0.
+  stepN n' r :- n' > 0, succ n n', stepN n i, succ i i', elem r [i,i'].
   |]
 
 programEuler =
@@ -190,13 +205,15 @@ programEuler =
   elem x (x:_).
   elem x (_:xs) :- elem x xs.
 
-  euler1 x :- elem x [0..999], mod x y 0, (y = 3; y = 5).
+  multiple x y :- mod x y 0.
+
+  euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5).
   |]
 
 main :: IO ()
 main = do
   putStrLn . unlines $
-    show <$> concat [programAppend, programPrimes, programSort, programQueens, programCrypt, programKiselyov, programEuler]
+    map show [programAppend, programPrimes, programSort, programQueens, programCrypt, programKiselyov, programEuler]
   hspec $ do
     describe "Append" $ do
       it "compile" $ do
@@ -292,6 +309,11 @@ main = do
       it "pythag" $ do
         take 7 (FBT.observeAll pythag_ooo) `shouldBe`
           [(3,4,5),(6,8,10),(5,12,13),(9,12,15),(8,15,17),(12,16,20),(7,24,25)]
+      it "ptriang" $ do
+        observeAll ptriang_o `shouldBe`
+          [3,6,8,10,11,13,15,16,18,20,21,23,26,27,28]
+      it "stepN" $ do
+        observeAll (stepN_io 99) `shouldBe` [0..99]
     describe "Euler" $ do
       it "compile" $ do
         let code = compile "Euler" programEuler

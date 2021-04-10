@@ -1,7 +1,8 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveLift #-}
 
 module Control.Monad.Logic.Moded.AST
-  ( Prog
+  ( Prog(..)
+  , Pragma(..)
   , Rule(..)
   , Goal(..)
   , Atom(..)
@@ -38,9 +39,15 @@ data Rule u v =
     , ruleArgs :: [u]
     , ruleBody :: Goal v
     }
-  deriving (Lift)
+  deriving (Eq, Ord, Lift)
 
-type Prog u v = [Rule u v]
+newtype Pragma =
+  Pragma [Name]
+  deriving (Eq, Ord, Lift)
+
+data Prog u v =
+  Prog [Pragma] [Rule u v]
+  deriving (Eq, Ord, Lift)
 
 instance Show Var where
   show (V v) = v
@@ -62,6 +69,12 @@ instance (Show v) => Show (Goal v) where
 instance (Show u, Show v) => Show (Rule u v) where
   show (Rule name vars g) =
     unwords (name : map show vars) ++ " :- " ++ show g ++ "."
+
+instance Show Pragma where
+  show (Pragma ws) = unwords ("#pragma" : ws) ++ "."
+
+instance (Show u, Show v) => Show (Prog u v) where
+  show (Prog pragmas rules) = unlines $ map show pragmas ++ map show rules
 
 subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs

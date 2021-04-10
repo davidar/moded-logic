@@ -4,6 +4,7 @@ module Append where
 import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
+import Data.List
 
 {- append/3
 append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h0:t, h0 = h, arg3 = h1:tb, h1 = h, append t b tb, arg2 = b)).

@@ -10,7 +10,6 @@ import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
   , Name
-  , Prog
   , Rule(..)
   , Var(..)
   , subgoals
@@ -26,7 +25,7 @@ instance Show Val where
   show (Var v) = show v
   show (Cons name vs) = unwords (name : map show vs)
 
-combineDefs :: Prog Val Val -> Prog Var Val
+combineDefs :: [Rule Val Val] -> [Rule Var Val]
 combineDefs rules = do
   let p (Rule n vs _) (Rule n' vs' _) = n == n' && length vs == length vs'
   defs <- groupBy p rules

@@ -4,6 +4,7 @@ module Primes where
 import Control.Applicative
 import Control.Monad.Logic
 import Control.Monad.Logic.Moded.Prelude
+import Data.List
 
 {- integers/3
 integers arg1 arg2 arg3 :- ((if ((<=) low high) then (succ low m, integers m high rest, result = low:rest) else (result = []), arg1 = low, arg2 = high, arg3 = result)).

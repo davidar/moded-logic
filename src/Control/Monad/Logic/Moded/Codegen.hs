@@ -8,8 +8,9 @@ import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
   , Name
-  , Prog
+  , Prog(..)
   , Rule(..)
+  , Pragma(..)
   , Var(..)
   )
 import Control.Monad.Logic.Moded.Path (Path, extract, nonlocals)
@@ -117,22 +118,24 @@ cgGoal p r =
                 ]
     Atom a -> cgAtom a
 
-cgRule :: Rule ModedVar ModedVar -> Text
-cgRule r@(Rule name vars body) =
+cgRule :: [Pragma] -> Rule ModedVar ModedVar -> Text
+cgRule pragmas r@(Rule name vars body) =
   let (lhs, rhs) = cgPred name vars
       code = cgGoal [] r
       rets =
         T.intercalate
           ","
           [T.pack v | V v <- Set.elems $ nonlocals' [] r, Out v `elem` body]
+      decorate | Pragma ["nub", name] `elem` pragmas = "choose . nub . observeAll $ do"
+               | otherwise = "do"
    in [text|
-        $rhs = do
+        $rhs = $decorate
           ($rets) <- $code
           pure $lhs
     |]
 
 compile :: Text -> Prog Var Var -> Text
-compile moduleName rules =
+compile moduleName (Prog pragmas rules) =
   [text|
     {-# LANGUAGE NoMonomorphismRestriction #-}
     module $moduleName where
@@ -140,6 +143,7 @@ compile moduleName rules =
     import Control.Applicative
     import Control.Monad.Logic
     import Control.Monad.Logic.Moded.Prelude
+    import Data.List
 
     $code
   |]
@@ -161,7 +165,7 @@ compile moduleName rules =
                       Left e -> "-- " <> T.pack e
                       Right r ->
                         T.unlines $
-                        let (hd:tl) = T.lines $ cgRule r
+                        let (hd:tl) = T.lines $ cgRule pragmas r
                             meta =
                               "  -- solution: " <>
                               T.unwords (T.pack . show <$> Set.elems soln)
