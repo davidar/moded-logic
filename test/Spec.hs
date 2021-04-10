@@ -198,6 +198,25 @@ programKiselyov =
   #pragma nub stepN.
   stepN 0 0.
   stepN n' r :- n' > 0, succ n n', stepN n i, succ i i', elem r [i,i'].
+
+  test 10.
+  test 20.
+  test 30.
+
+  odds 1.
+  odds n :- odds m, plus 2 m n.
+
+  even n :- mod n 2 0.
+
+  oddsTest x :- (odds x; test x), even x.
+
+  oddsPlus n x :- odds a, plus a n x.
+
+  oddsPlusTest x :- (n = 0; n = 1), oddsPlus n x, even x.
+
+  oddsPrime n :-
+    odds n, n > 1, succ n' n,
+    if elem d [1..n'], d > 1, mod n d 0 then empty else.
   |]
 
 programEuler =
@@ -319,6 +338,13 @@ main = do
           [3,6,8,10,11,13,15,16,18,20,21,23,26,27,28]
       it "stepN" $ do
         observeAll (stepN_io 99) `shouldBe` [0..99]
+      it "oddsTest" $ do
+        head (FBT.observeAll oddsTest_o) `shouldBe` 10
+      it "oddsPlusTest" $ do
+        head (FBT.observeAll oddsPlusTest_o) `shouldBe` 2
+      it "oddsPrime" $ do
+        take 10 (observeAll oddsPrime_o) `shouldBe`
+          [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
     describe "Euler" $ do
       it "compile" $ do
         let code = compile "Euler" programEuler

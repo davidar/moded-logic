@@ -678,3 +678,373 @@ stepN_oo = choose . nub . observeAll $ do
     pure (arg1,arg2)
    )
   pure (arg1,arg2)
+
+{- test/1
+test arg1 :- ((arg1 = 10); (arg1 = 20); (arg1 = 30)).
+constraints:
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[2] <-> arg1[2,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg1[] <-> arg1[2])
+-}
+test_i = \arg1 -> do
+  -- solution: ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[2,0] ~arg1[2] ~arg1[]
+  () <- (do
+    guard $ arg1 == 10
+    pure ()
+   ) <|> (do
+    guard $ arg1 == 20
+    pure ()
+   ) <|> (do
+    guard $ arg1 == 30
+    pure ()
+   )
+  pure ()
+
+test_o = do
+  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[2,0] arg1[2] arg1[]
+  (arg1) <- (do
+    arg1 <- pure 10
+    pure (arg1)
+   ) <|> (do
+    arg1 <- pure 20
+    pure (arg1)
+   ) <|> (do
+    arg1 <- pure 30
+    pure (arg1)
+   )
+  pure (arg1)
+
+{- odds/1
+odds arg1 :- ((arg1 = 1); (odds m, plus data0 m n, data0 = 2, arg1 = n)).
+constraints:
+~(arg1[1,3] & n[1,3])
+~(data0[1,1] & data0[1,2])
+~(m[1,0] & m[1,1])
+~(n[1,1] & n[1,3])
+(data0[1,1] | data0[1,2])
+(m[1,0] | m[1,1])
+(n[1,1] | n[1,3])
+((data0[1,1] & (~m[1,1] & ~n[1,1])) | ((~data0[1,1] & (m[1,1] & ~n[1,1])) | (~data0[1,1] & (~m[1,1] & n[1,1]))))
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,3])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(m[1,0] <-> arg1[])
+1
+-}
+odds_i = \arg1 -> do
+  -- solution: data0[1,2] m[1,1] n[1,3] ~arg1[0,0] ~arg1[0] ~arg1[1,3] ~arg1[1] ~arg1[] ~data0[1,1] ~m[1,0] ~n[1,1]
+  () <- (do
+    guard $ arg1 == 1
+    pure ()
+   ) <|> (do
+    n <- pure arg1
+    data0 <- pure 2
+    (m) <- plus_ioi data0 n
+    () <- odds_i m
+    pure ()
+   )
+  pure ()
+
+odds_o = do
+  -- solution: arg1[0,0] arg1[0] arg1[1,3] arg1[1] arg1[] data0[1,2] m[1,0] n[1,1] ~data0[1,1] ~m[1,1] ~n[1,3]
+  (arg1) <- (do
+    arg1 <- pure 1
+    pure (arg1)
+   ) <|> (do
+    data0 <- pure 2
+    (m) <- odds_o 
+    (n) <- plus_iio data0 m
+    arg1 <- pure n
+    pure (arg1)
+   )
+  pure (arg1)
+
+{- even/1
+even arg1 :- ((mod n data0 data1, data0 = 2, data1 = 0, arg1 = n)).
+constraints:
+~(arg1[0,3] & n[0,3])
+~(data0[0,0] & data0[0,1])
+~(data1[0,0] & data1[0,2])
+~(n[0,0] & n[0,3])
+(data0[0,0] | data0[0,1])
+(data1[0,0] | data1[0,2])
+(n[0,0] | n[0,3])
+((~n[0,0] & (~data0[0,0] & data1[0,0])) | (~n[0,0] & (~data0[0,0] & ~data1[0,0])))
+(arg1[0] <-> arg1[0,3])
+(arg1[] <-> arg1[0])
+1
+-}
+even_i = \arg1 -> do
+  -- solution: data0[0,1] data1[0,0] n[0,3] ~arg1[0,3] ~arg1[0] ~arg1[] ~data0[0,0] ~data1[0,2] ~n[0,0]
+  () <- (do
+    n <- pure arg1
+    data0 <- pure 2
+    (data1) <- mod_iio n data0
+    guard $ data1 == 0
+    pure ()
+   )
+  pure ()
+
+{- oddsTest/1
+oddsTest arg1 :- ((even x, ((odds x); (test x)), arg1 = x)).
+constraints:
+~x[0,0]
+~(arg1[0,2] & x[0,2])
+~(x[0,0] & x[0,1])
+~(x[0,0] & x[0,2])
+~(x[0,1] & x[0,2])
+(x[0,0] | (x[0,1] | x[0,2]))
+(x[0,1,0,0] | ~x[0,1,0,0])
+(x[0,1,1,0] | ~x[0,1,1,0])
+(arg1[0] <-> arg1[0,2])
+(arg1[] <-> arg1[0])
+(x[0,1,0] <-> x[0,1,0,0])
+(x[0,1,1] <-> x[0,1,1,0])
+(x[0,1] <-> x[0,1,0])
+(x[0,1] <-> x[0,1,1])
+1
+-}
+oddsTest_i = \arg1 -> do
+  -- solution: x[0,1,0,0] x[0,1,0] x[0,1,1,0] x[0,1,1] x[0,1] ~arg1[0,2] ~arg1[0] ~arg1[] ~x[0,0] ~x[0,2]
+  () <- (do
+    (x) <- (do
+      (x) <- odds_o 
+      pure (x)
+     ) <|> (do
+      (x) <- test_o 
+      pure (x)
+     )
+    guard $ arg1 == x
+    () <- even_i x
+    pure ()
+   )
+  pure ()
+
+oddsTest_o = do
+  -- solution: arg1[0,2] arg1[0] arg1[] x[0,1,0,0] x[0,1,0] x[0,1,1,0] x[0,1,1] x[0,1] ~x[0,0] ~x[0,2]
+  (arg1) <- (do
+    (x) <- (do
+      (x) <- odds_o 
+      pure (x)
+     ) <|> (do
+      (x) <- test_o 
+      pure (x)
+     )
+    arg1 <- pure x
+    () <- even_i x
+    pure (arg1)
+   )
+  pure (arg1)
+
+{- oddsPlus/2
+oddsPlus arg1 arg2 :- ((odds a, plus a n x, arg1 = n, arg2 = x)).
+constraints:
+~(a[0,0] & a[0,1])
+~(arg1[0,2] & n[0,2])
+~(arg2[0,3] & x[0,3])
+~(n[0,1] & n[0,2])
+~(x[0,1] & x[0,3])
+(a[0,0] | a[0,1])
+(a[0,0] | ~a[0,0])
+(n[0,1] | n[0,2])
+(x[0,1] | x[0,3])
+((a[0,1] & (~n[0,1] & ~x[0,1])) | ((~a[0,1] & (n[0,1] & ~x[0,1])) | (~a[0,1] & (~n[0,1] & x[0,1]))))
+(arg1[0] <-> arg1[0,2])
+(arg1[] <-> arg1[0])
+(arg2[0] <-> arg2[0,3])
+(arg2[] <-> arg2[0])
+1
+-}
+oddsPlus_ii = \arg1 arg2 -> do
+  -- solution: a[0,0] n[0,1] x[0,3] ~a[0,1] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~n[0,2] ~x[0,1]
+  () <- (do
+    x <- pure arg2
+    (a) <- odds_o 
+    (n) <- plus_ioi a x
+    guard $ arg1 == n
+    pure ()
+   )
+  pure ()
+
+oddsPlus_io = \arg1 -> do
+  -- solution: a[0,0] arg2[0,3] arg2[0] arg2[] n[0,2] x[0,1] ~a[0,1] ~arg1[0,2] ~arg1[0] ~arg1[] ~n[0,1] ~x[0,3]
+  (arg2) <- (do
+    n <- pure arg1
+    (a) <- odds_o 
+    (x) <- plus_iio a n
+    arg2 <- pure x
+    pure (arg2)
+   )
+  pure (arg2)
+
+oddsPlus_oi = \arg2 -> do
+  -- solution: a[0,0] arg1[0,2] arg1[0] arg1[] n[0,1] x[0,3] ~a[0,1] ~arg2[0,3] ~arg2[0] ~arg2[] ~n[0,2] ~x[0,1]
+  (arg1) <- (do
+    x <- pure arg2
+    (a) <- odds_o 
+    (n) <- plus_ioi a x
+    arg1 <- pure n
+    pure (arg1)
+   )
+  pure (arg1)
+
+{- oddsPlusTest/1
+oddsPlusTest arg1 :- ((oddsPlus n x, even x, ((n = 0); (n = 1)), arg1 = x)).
+constraints:
+~x[0,1]
+~(arg1[0,3] & x[0,3])
+~(n[0,0] & n[0,2])
+~(x[0,0] & x[0,1])
+~(x[0,0] & x[0,3])
+~(x[0,1] & x[0,3])
+(n[0,0] | n[0,2])
+(x[0,0] | (x[0,1] | x[0,3]))
+((n[0,0] & ~x[0,0]) | ((~n[0,0] & x[0,0]) | (~n[0,0] & ~x[0,0])))
+(arg1[0] <-> arg1[0,3])
+(arg1[] <-> arg1[0])
+(n[0,2,0] <-> n[0,2,0,0])
+(n[0,2,1] <-> n[0,2,1,0])
+(n[0,2] <-> n[0,2,0])
+(n[0,2] <-> n[0,2,1])
+1
+-}
+oddsPlusTest_i = \arg1 -> do
+  -- solution: n[0,0] x[0,3] ~arg1[0,3] ~arg1[0] ~arg1[] ~n[0,2,0,0] ~n[0,2,0] ~n[0,2,1,0] ~n[0,2,1] ~n[0,2] ~x[0,0] ~x[0,1]
+  () <- (do
+    x <- pure arg1
+    () <- even_i x
+    (n) <- oddsPlus_oi x
+    () <- (do
+      guard $ n == 0
+      pure ()
+     ) <|> (do
+      guard $ n == 1
+      pure ()
+     )
+    pure ()
+   )
+  pure ()
+
+oddsPlusTest_o = do
+  -- solution: arg1[0,3] arg1[0] arg1[] n[0,2,0,0] n[0,2,0] n[0,2,1,0] n[0,2,1] n[0,2] x[0,0] ~n[0,0] ~x[0,1] ~x[0,3]
+  (arg1) <- (do
+    (n) <- (do
+      n <- pure 0
+      pure (n)
+     ) <|> (do
+      n <- pure 1
+      pure (n)
+     )
+    (x) <- oddsPlus_io n
+    arg1 <- pure x
+    () <- even_i x
+    pure (arg1)
+   )
+  pure (arg1)
+
+{- oddsPrime/1
+oddsPrime arg1 :- ((odds n, (>) n data0, data0 = 1, succ n' n, if (elem d data2, data1 = 1, data2 = .. data1 n', (>) d data3, data3 = 1, mod n d data4, data4 = 0) then (empty) else (), arg1 = n)).
+constraints:
+~n'[0,4,0,2]
+~n'[0,4]
+~n[0,4,0,5]
+~n[0,4]
+~(arg1[0,5] & n[0,5])
+~(d[0,4,0,0] & d[0,4,0,3])
+~(d[0,4,0,0] & d[0,4,0,5])
+~(d[0,4,0,3] & d[0,4,0,5])
+~(data0[0,1] & data0[0,2])
+~(data1[0,4,0,1] & data1[0,4,0,2])
+~(data2[0,4,0,0] & data2[0,4,0,2])
+~(data2[0,4,0,2] & data1[0,4,0,2])
+~(data3[0,4,0,3] & data3[0,4,0,4])
+~(data4[0,4,0,5] & data4[0,4,0,6])
+~(n'[0,3] & n'[0,4])
+~(n[0,0] & n[0,1])
+~(n[0,0] & n[0,3])
+~(n[0,0] & n[0,4])
+~(n[0,0] & n[0,5])
+~(n[0,1] & n[0,3])
+~(n[0,1] & n[0,4])
+~(n[0,1] & n[0,5])
+~(n[0,3] & n[0,4])
+~(n[0,3] & n[0,5])
+~(n[0,4] & n[0,5])
+(~d[0,4,0,3] & ~data3[0,4,0,3])
+(~n[0,1] & ~data0[0,1])
+(d[0,4,0,0] | (d[0,4,0,3] | d[0,4,0,5]))
+(data0[0,1] | data0[0,2])
+(data1[0,4,0,1] | data1[0,4,0,2])
+(data2[0,4,0,0] | data2[0,4,0,2])
+(data3[0,4,0,3] | data3[0,4,0,4])
+(data4[0,4,0,5] | data4[0,4,0,6])
+(n'[0,3] | n'[0,4])
+(n[0,0] | ~n[0,0])
+(n[0,0] | (n[0,1] | (n[0,3] | (n[0,4] | n[0,5]))))
+((d[0,4,0,0] & ~data2[0,4,0,0]) | (~d[0,4,0,0] & ~data2[0,4,0,0]))
+((n'[0,3] & ~n[0,3]) | ((~n'[0,3] & n[0,3]) | (~n'[0,3] & ~n[0,3])))
+((~n[0,4,0,5] & (~d[0,4,0,5] & data4[0,4,0,5])) | (~n[0,4,0,5] & (~d[0,4,0,5] & ~data4[0,4,0,5])))
+(arg1[0] <-> arg1[0,5])
+(arg1[] <-> arg1[0])
+(data1[0,4,0,2] <-> n'[0,4,0,2])
+1
+-}
+oddsPrime_i = \arg1 -> do
+  -- solution: d[0,4,0,0] data0[0,2] data1[0,4,0,1] data2[0,4,0,2] data3[0,4,0,4] data4[0,4,0,5] n'[0,3] n[0,0] ~arg1[0,5] ~arg1[0] ~arg1[] ~d[0,4,0,3] ~d[0,4,0,5] ~data0[0,1] ~data1[0,4,0,2] ~data2[0,4,0,0] ~data3[0,4,0,3] ~data4[0,4,0,6] ~n'[0,4,0,2] ~n'[0,4] ~n[0,1] ~n[0,3] ~n[0,4,0,5] ~n[0,4] ~n[0,5]
+  () <- (do
+    data0 <- pure 1
+    (n) <- odds_o 
+    guard $ arg1 == n
+    guard $ (>) n data0
+    (n') <- succ_oi n
+    () <- ifte ((do
+      data1 <- pure 1
+      data2 <- pure [data1..n']
+      data3 <- pure 1
+      (d) <- elem_oi data2
+      guard $ (>) d data3
+      (data4) <- mod_iio n d
+      guard $ data4 == 0
+      pure ()
+     )) (\() -> (do
+      () <- empty 
+      pure ()
+     )) ((do
+      
+      pure ()
+     ))
+    pure ()
+   )
+  pure ()
+
+oddsPrime_o = do
+  -- solution: arg1[0,5] arg1[0] arg1[] d[0,4,0,0] data0[0,2] data1[0,4,0,1] data2[0,4,0,2] data3[0,4,0,4] data4[0,4,0,5] n'[0,3] n[0,0] ~d[0,4,0,3] ~d[0,4,0,5] ~data0[0,1] ~data1[0,4,0,2] ~data2[0,4,0,0] ~data3[0,4,0,3] ~data4[0,4,0,6] ~n'[0,4,0,2] ~n'[0,4] ~n[0,1] ~n[0,3] ~n[0,4,0,5] ~n[0,4] ~n[0,5]
+  (arg1) <- (do
+    data0 <- pure 1
+    (n) <- odds_o 
+    arg1 <- pure n
+    guard $ (>) n data0
+    (n') <- succ_oi n
+    () <- ifte ((do
+      data1 <- pure 1
+      data2 <- pure [data1..n']
+      data3 <- pure 1
+      (d) <- elem_oi data2
+      guard $ (>) d data3
+      (data4) <- mod_iio n d
+      guard $ data4 == 0
+      pure ()
+     )) (\() -> (do
+      () <- empty 
+      pure ()
+     )) ((do
+      
+      pure ()
+     ))
+    pure (arg1)
+   )
+  pure (arg1)
