@@ -383,6 +383,175 @@ sorted_i = \arg1 -> do
    )
   pure ()
 
+{- suffix/2
+suffix arg1 arg2 :- ((arg1 = l, arg2 = l); (arg1 = _:t, suffix t r, arg2 = r)).
+constraints:
+t[1,0]
+~arg1[1,0]
+~(arg1[0,0] & l[0,0])
+~(arg2[0,1] & l[0,1])
+~(arg2[1,2] & r[1,2])
+~(l[0,0] & l[0,1])
+~(r[1,1] & r[1,2])
+~(t[1,0] & t[1,1])
+(l[0,0] | l[0,1])
+(r[1,1] | r[1,2])
+(t[1,0] | t[1,1])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,2])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(r[1,1] <-> arg2[])
+(t[1,1] <-> arg1[])
+1
+-}
+suffix_ii = \arg1 arg2 -> do
+  -- solution: l[0,0] r[1,2] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[1,2] ~arg2[1] ~arg2[] ~l[0,1] ~r[1,1] ~t[1,1]
+  () <- (do
+    l <- pure arg1
+    guard $ arg2 == l
+    pure ()
+   ) <|> (do
+    r <- pure arg2
+    (_:t) <- pure arg1
+    () <- suffix_ii t r
+    pure ()
+   )
+  pure ()
+
+suffix_io = \arg1 -> do
+  -- solution: arg2[0,1] arg2[0] arg2[1,2] arg2[1] arg2[] l[0,0] r[1,1] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~l[0,1] ~r[1,2] ~t[1,1]
+  (arg2) <- (do
+    l <- pure arg1
+    arg2 <- pure l
+    pure (arg2)
+   ) <|> (do
+    (_:t) <- pure arg1
+    (r) <- suffix_io t
+    arg2 <- pure r
+    pure (arg2)
+   )
+  pure (arg2)
+
+{- prefix/2
+prefix arg1 arg2 :- ((arg2 = []); (arg1 = h0:t, h0 = h, arg2 = h1:t', h1 = h, prefix t t')).
+constraints:
+~arg1[]
+~(arg1[1,0] & h0[1,0])
+~(arg2[1,2] & h1[1,2])
+~(h0[1,0] & h0[1,1])
+~(h0[1,1] & h[1,1])
+~(h1[1,2] & h1[1,3])
+~(h1[1,3] & h[1,3])
+~(h[1,1] & h[1,3])
+~(t'[1,2] & t'[1,4])
+~(t[1,0] & t[1,4])
+(h0[1,0] | h0[1,1])
+(h1[1,2] | h1[1,3])
+(h[1,1] | h[1,3])
+(t'[1,2] | t'[1,4])
+(t[1,0] | t[1,4])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[1])
+(arg2[0] <-> arg2[0,0])
+(arg2[1] <-> arg2[1,2])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(h0[1,0] <-> t[1,0])
+(h1[1,2] <-> t'[1,2])
+(t'[1,4] <-> arg2[])
+(t[1,4] <-> arg1[])
+1
+-}
+prefix_ii = \arg1 arg2 -> do
+  -- solution: h0[1,0] h1[1,2] h[1,1] t'[1,2] t[1,0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,0] ~arg2[0] ~arg2[1,2] ~arg2[1] ~arg2[] ~h0[1,1] ~h1[1,3] ~h[1,3] ~t'[1,4] ~t[1,4]
+  () <- (do
+    guard $ arg2 == []
+    pure ()
+   ) <|> (do
+    (h0:t) <- pure arg1
+    h <- pure h0
+    (h1:t') <- pure arg2
+    guard $ h1 == h
+    () <- prefix_ii t t'
+    pure ()
+   )
+  pure ()
+
+prefix_io = \arg1 -> do
+  -- solution: arg2[0,0] arg2[0] arg2[1,2] arg2[1] arg2[] h0[1,0] h1[1,3] h[1,1] t'[1,4] t[1,0] ~arg1[1,0] ~arg1[1] ~arg1[] ~h0[1,1] ~h1[1,2] ~h[1,3] ~t'[1,2] ~t[1,4]
+  (arg2) <- (do
+    arg2 <- pure []
+    pure (arg2)
+   ) <|> (do
+    (h0:t) <- pure arg1
+    h <- pure h0
+    h1 <- pure h
+    (t') <- prefix_io t
+    arg2 <- pure (h1:t')
+    pure (arg2)
+   )
+  pure (arg2)
+
+{- length/2
+length arg1 arg2 :- ((arg1 = [], arg2 = 0); (arg1 = _:t, length t n, succ n n', arg2 = n')).
+constraints:
+t[1,0]
+~arg1[1,0]
+~(arg2[1,3] & n'[1,3])
+~(n'[1,2] & n'[1,3])
+~(n[1,1] & n[1,2])
+~(t[1,0] & t[1,1])
+(n'[1,2] | n'[1,3])
+(n[1,1] | n[1,2])
+(t[1,0] | t[1,1])
+((n[1,2] & ~n'[1,2]) | ((~n[1,2] & n'[1,2]) | (~n[1,2] & ~n'[1,2])))
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,3])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(n[1,1] <-> arg2[])
+(t[1,1] <-> arg1[])
+1
+-}
+length_ii = \arg1 arg2 -> do
+  -- solution: n'[1,3] n[1,2] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[1,3] ~arg2[1] ~arg2[] ~n'[1,2] ~n[1,1] ~t[1,1]
+  () <- (do
+    guard $ arg2 == 0
+    guard $ arg1 == []
+    pure ()
+   ) <|> (do
+    n' <- pure arg2
+    (_:t) <- pure arg1
+    (n) <- succ_oi n'
+    () <- length_ii t n
+    pure ()
+   )
+  pure ()
+
+length_io = \arg1 -> do
+  -- solution: arg2[0,1] arg2[0] arg2[1,3] arg2[1] arg2[] n'[1,2] n[1,1] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~n'[1,3] ~n[1,2] ~t[1,1]
+  (arg2) <- (do
+    arg2 <- pure 0
+    guard $ arg1 == []
+    pure (arg2)
+   ) <|> (do
+    (_:t) <- pure arg1
+    (n) <- length_io t
+    (n') <- succ_io n
+    arg2 <- pure n'
+    pure (arg2)
+   )
+  pure (arg2)
+
 {- pythag/3
 pythag arg1 arg2 arg3 :- ((nat i, (>) i data0, data0 = 0, nat j, (>) j data1, data1 = 0, nat k, (>) k data2, data2 = 0, (<) i j, timesInt i0 i1 ii, i0 = i, i1 = i, timesInt j2 j3 jj, j2 = j, j3 = j, timesInt k4 k5 kk, k4 = k, k5 = k, plus ii jj kk, arg1 = i, arg2 = j, arg3 = k)).
 constraints:
@@ -1510,3 +1679,200 @@ bogosort_oi = \arg2 -> do
     pure (arg1)
    )
   pure (arg1)
+
+{- tcomp_ex1/1
+tcomp_ex1 arg1 :- ((if (((i = 2); (i = 1); (i = 3)), ((j = 0); (j = 1)), i = j) then (r = Just i) else (r = Nothing), arg1 = r)).
+constraints:
+i[0,0,0]
+~i[0,0,1,0]
+~(arg1[0,1] & r[0,1])
+~(i[0,0,0,0] & i[0,0,0,2])
+~(i[0,0,0,2] & j[0,0,0,2])
+~(j[0,0,0,1] & j[0,0,0,2])
+~(r[0,0,1,0] & i[0,0,1,0])
+~(r[0,0] & r[0,1])
+(j[0,0,0,1] | j[0,0,0,2])
+(r[0,0] | r[0,1])
+(arg1[0] <-> arg1[0,1])
+(arg1[] <-> arg1[0])
+(i[0,0,0,0,0] <-> i[0,0,0,0,0,0])
+(i[0,0,0,0,1] <-> i[0,0,0,0,1,0])
+(i[0,0,0,0,2] <-> i[0,0,0,0,2,0])
+(i[0,0,0,0] <-> i[0,0,0,0,0])
+(i[0,0,0,0] <-> i[0,0,0,0,1])
+(i[0,0,0,0] <-> i[0,0,0,0,2])
+(i[0,0,0] <-> (i[0,0,0,0] | i[0,0,0,2]))
+(j[0,0,0,1,0] <-> j[0,0,0,1,0,0])
+(j[0,0,0,1,1] <-> j[0,0,0,1,1,0])
+(j[0,0,0,1] <-> j[0,0,0,1,0])
+(j[0,0,0,1] <-> j[0,0,0,1,1])
+(r[0,0,1] <-> r[0,0,1,0])
+(r[0,0,1] <-> r[0,0,2])
+(r[0,0,2] <-> r[0,0,2,0])
+(r[0,0] <-> (r[0,0,1] | r[0,0,2]))
+1
+-}
+tcomp_ex1_i = \arg1 -> do
+  -- solution: i[0,0,0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,1,0] i[0,0,0,0,1] i[0,0,0,0,2,0] i[0,0,0,0,2] i[0,0,0,0] i[0,0,0] j[0,0,0,1,0,0] j[0,0,0,1,0] j[0,0,0,1,1,0] j[0,0,0,1,1] j[0,0,0,1] r[0,0,1,0] r[0,0,1] r[0,0,2,0] r[0,0,2] r[0,0] ~arg1[0,1] ~arg1[0] ~arg1[] ~i[0,0,0,2] ~i[0,0,1,0] ~j[0,0,0,2] ~r[0,1]
+  () <- (do
+    (r) <- ifte ((do
+      (j) <- (do
+        j <- pure 0
+        pure (j)
+       ) <|> (do
+        j <- pure 1
+        pure (j)
+       )
+      (i) <- (do
+        i <- pure 2
+        pure (i)
+       ) <|> (do
+        i <- pure 1
+        pure (i)
+       ) <|> (do
+        i <- pure 3
+        pure (i)
+       )
+      guard $ i == j
+      pure (i)
+     )) (\(i) -> (do
+      r <- pure (Just i)
+      pure (r)
+     )) ((do
+      r <- pure Nothing
+      pure (r)
+     ))
+    guard $ arg1 == r
+    pure ()
+   )
+  pure ()
+
+tcomp_ex1_o = do
+  -- solution: arg1[0,1] arg1[0] arg1[] i[0,0,0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,1,0] i[0,0,0,0,1] i[0,0,0,0,2,0] i[0,0,0,0,2] i[0,0,0,0] i[0,0,0] j[0,0,0,1,0,0] j[0,0,0,1,0] j[0,0,0,1,1,0] j[0,0,0,1,1] j[0,0,0,1] r[0,0,1,0] r[0,0,1] r[0,0,2,0] r[0,0,2] r[0,0] ~i[0,0,0,2] ~i[0,0,1,0] ~j[0,0,0,2] ~r[0,1]
+  (arg1) <- (do
+    (r) <- ifte ((do
+      (j) <- (do
+        j <- pure 0
+        pure (j)
+       ) <|> (do
+        j <- pure 1
+        pure (j)
+       )
+      (i) <- (do
+        i <- pure 2
+        pure (i)
+       ) <|> (do
+        i <- pure 1
+        pure (i)
+       ) <|> (do
+        i <- pure 3
+        pure (i)
+       )
+      guard $ i == j
+      pure (i)
+     )) (\(i) -> (do
+      r <- pure (Just i)
+      pure (r)
+     )) ((do
+      r <- pure Nothing
+      pure (r)
+     ))
+    arg1 <- pure r
+    pure (arg1)
+   )
+  pure (arg1)
+
+{- findI/3
+findI arg1 arg2 arg3 :- ((suffix str t, prefix t pat, length t m, length str n, plus i m n, arg1 = pat, arg2 = str, arg3 = i)).
+constraints:
+~(arg1[0,5] & pat[0,5])
+~(arg2[0,6] & str[0,6])
+~(arg3[0,7] & i[0,7])
+~(i[0,4] & i[0,7])
+~(m[0,2] & m[0,4])
+~(n[0,3] & n[0,4])
+~(pat[0,1] & pat[0,5])
+~(str[0,0] & str[0,3])
+~(str[0,0] & str[0,6])
+~(str[0,3] & str[0,6])
+~(t[0,0] & t[0,1])
+~(t[0,0] & t[0,2])
+~(t[0,1] & t[0,2])
+(i[0,4] | i[0,7])
+(m[0,2] | m[0,4])
+(n[0,3] | n[0,4])
+(pat[0,1] | pat[0,5])
+(str[0,0] | (str[0,3] | str[0,6]))
+(t[0,0] | (t[0,1] | t[0,2]))
+((i[0,4] & (~m[0,4] & ~n[0,4])) | ((~i[0,4] & (m[0,4] & ~n[0,4])) | (~i[0,4] & (~m[0,4] & n[0,4]))))
+((~str[0,0] & t[0,0]) | (~str[0,0] & ~t[0,0]))
+((~str[0,3] & n[0,3]) | (~str[0,3] & ~n[0,3]))
+((~t[0,1] & pat[0,1]) | (~t[0,1] & ~pat[0,1]))
+((~t[0,2] & m[0,2]) | (~t[0,2] & ~m[0,2]))
+(arg1[0] <-> arg1[0,5])
+(arg1[] <-> arg1[0])
+(arg2[0] <-> arg2[0,6])
+(arg2[] <-> arg2[0])
+(arg3[0] <-> arg3[0,7])
+(arg3[] <-> arg3[0])
+1
+-}
+findI_iii = \arg1 arg2 arg3 -> do
+  -- solution: i[0,4] m[0,2] n[0,3] pat[0,1] str[0,6] t[0,0] ~arg1[0,5] ~arg1[0] ~arg1[] ~arg2[0,6] ~arg2[0] ~arg2[] ~arg3[0,7] ~arg3[0] ~arg3[] ~i[0,7] ~m[0,4] ~n[0,4] ~pat[0,5] ~str[0,0] ~str[0,3] ~t[0,1] ~t[0,2]
+  () <- (do
+    str <- pure arg2
+    (n) <- length_io str
+    (t) <- suffix_io str
+    (m) <- length_io t
+    (i) <- plus_oii m n
+    guard $ arg3 == i
+    (pat) <- prefix_io t
+    guard $ arg1 == pat
+    pure ()
+   )
+  pure ()
+
+findI_iio = \arg1 arg2 -> do
+  -- solution: arg3[0,7] arg3[0] arg3[] i[0,4] m[0,2] n[0,3] pat[0,1] str[0,6] t[0,0] ~arg1[0,5] ~arg1[0] ~arg1[] ~arg2[0,6] ~arg2[0] ~arg2[] ~i[0,7] ~m[0,4] ~n[0,4] ~pat[0,5] ~str[0,0] ~str[0,3] ~t[0,1] ~t[0,2]
+  (arg3) <- (do
+    str <- pure arg2
+    (n) <- length_io str
+    (t) <- suffix_io str
+    (m) <- length_io t
+    (i) <- plus_oii m n
+    arg3 <- pure i
+    (pat) <- prefix_io t
+    guard $ arg1 == pat
+    pure (arg3)
+   )
+  pure (arg3)
+
+findI_oii = \arg2 arg3 -> do
+  -- solution: arg1[0,5] arg1[0] arg1[] i[0,4] m[0,2] n[0,3] pat[0,1] str[0,6] t[0,0] ~arg2[0,6] ~arg2[0] ~arg2[] ~arg3[0,7] ~arg3[0] ~arg3[] ~i[0,7] ~m[0,4] ~n[0,4] ~pat[0,5] ~str[0,0] ~str[0,3] ~t[0,1] ~t[0,2]
+  (arg1) <- (do
+    str <- pure arg2
+    (n) <- length_io str
+    (t) <- suffix_io str
+    (m) <- length_io t
+    (i) <- plus_oii m n
+    guard $ arg3 == i
+    (pat) <- prefix_io t
+    arg1 <- pure pat
+    pure (arg1)
+   )
+  pure (arg1)
+
+findI_oio = \arg2 -> do
+  -- solution: arg1[0,5] arg1[0] arg1[] arg3[0,7] arg3[0] arg3[] i[0,4] m[0,2] n[0,3] pat[0,1] str[0,6] t[0,0] ~arg2[0,6] ~arg2[0] ~arg2[] ~i[0,7] ~m[0,4] ~n[0,4] ~pat[0,5] ~str[0,0] ~str[0,3] ~t[0,1] ~t[0,2]
+  (arg1,arg3) <- (do
+    str <- pure arg2
+    (n) <- length_io str
+    (t) <- suffix_io str
+    (m) <- length_io t
+    (i) <- plus_oii m n
+    arg3 <- pure i
+    (pat) <- prefix_io t
+    arg1 <- pure pat
+    pure (arg1,arg3)
+   )
+  pure (arg1,arg3)

@@ -7,8 +7,10 @@ import Primes
 import Queens
 import Sort
 
+import Control.Applicative ((<|>))
 import Control.Monad (forM_, when)
-import Control.Monad.Logic (observeMany, observeManyT, observeAll)
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Logic (observeMany, observeManyT, observeAll, observeAllT)
 import qualified Control.Monad.Logic.FBackTrackT as FBT
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
@@ -19,7 +21,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Test.Hspec (describe, hspec, it)
-import Test.Hspec.Expectations.Pretty (shouldBe)
+import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn)
 
 updateCode = False
 
@@ -192,12 +194,22 @@ programKiselyov =
   sorted [_].
   sorted (a:b:r) :- a <= b, sorted (b:r).
 
+  suffix l l.
+  suffix (_:t) r :- suffix t r.
 
+  prefix _ [].
+  prefix (h:t) (h:t') :- prefix t t'.
+
+  length [] 0.
+  length (_:t) n' :- length t n, succ n n'.
+
+  -- http://okmij.org/ftp/Computation/monads.html#fair-bt-stream
   pythag i j k :-
     nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j,
     timesInt i i ii, timesInt j j jj, timesInt k k kk,
     plus ii jj kk.
 
+  -- http://okmij.org/ftp/Haskell/set-monad.html
   triang n r :- succ n n', times n n' nn', div nn' 2 r.
 
   #pragma nub ptriang.
@@ -210,6 +222,7 @@ programKiselyov =
   stepN 0 0.
   stepN n' r :- n' > 0, succ n n', stepN n i, succ i i', elem r [i,i'].
 
+  -- http://okmij.org/ftp/papers/LogicT.pdf
   test 10.
   test 20.
   test 30.
@@ -236,6 +249,15 @@ programKiselyov =
     if nontrivialDivisor n d, print d then empty else.
 
   bogosort l p :- permute l p, sorted p.
+
+  -- http://okmij.org/ftp/continuations/generators.html#logicT
+  tcomp_ex1 r :-
+    if (i = 2; i = 1; i = 3), (j = 0; j = 1), i = j
+    then r = Just i else r = Nothing.
+
+  findI pat str i :-
+    suffix str t, prefix t pat,
+    length t m, length str n, plus i m n.
   |]
 
 programEuler =
@@ -362,15 +384,27 @@ main = do
       it "oddsPlusTest" $ do
         head (FBT.observeAll oddsPlusTest_o) `shouldBe` 2
       it "oddsPrime" $ do
-        observeMany 10 oddsPrime_o `shouldBe`
-          [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
-        print =<< observeManyT 10 oddsPrimeIO_o
+        let expect = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+        observeMany 10 oddsPrime_o `shouldBe` expect
+        observeManyT 10 oddsPrimeIO_o `shouldReturn` expect
       it "bogosort" $ do
         observeAll (bogosort_io [5,0,3,4,0,1]) `shouldBe`
           replicate 2 [0,0,1,3,4,5]
         List.sort (observeAll (bogosort_oi [1 .. 5])) `shouldBe`
           List.sort (List.permutations [1 .. 5])
         observeAll (bogosort_oi [1,0]) `shouldBe` []
+      it "tcomp" $ do
+        observeAll tcomp_ex1_o `shouldBe` [Just 1]
+      it "findI" $ do
+        observeAll (prefix_io "hello") `shouldBe` List.inits "hello"
+        observeAll (suffix_io "hello") `shouldBe` List.tails "hello"
+        let sentence = "Store it in the neighboring harbor"
+        observeAll (findI_iio "or" sentence) `shouldBe`
+          List.findIndices ("or" `List.isPrefixOf`) (List.tails sentence)
+        let sentence1 = liftIO (putStrLn "sentence1") >> return sentence
+            sentence2 = liftIO (putStrLn "sentence2") >> return "Sort of"
+            twosen = liftIO . print =<< findI_iio "or" =<< sentence1 <|> sentence2
+        observeAllT twosen `shouldReturn` replicate 4 ()
     describe "Euler" $ do
       it "compile" $ do
         let code = compile "Euler" programEuler
