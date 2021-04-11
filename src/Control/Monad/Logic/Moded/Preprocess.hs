@@ -15,11 +15,12 @@ import Control.Monad.Logic.Moded.AST
   , subgoals
   )
 import Control.Monad.State
-import Data.List (group, groupBy, sort)
+import Data.List (group, groupBy, sort, transpose)
 
 data Val
   = Var Var
   | Cons Name [Val]
+  deriving (Eq, Ord)
 
 instance Show Val where
   show (Var v) = show v
@@ -27,22 +28,31 @@ instance Show Val where
 
 combineDefs :: [Rule Val Val] -> [Rule Var Val]
 combineDefs rules = do
-  let p (Rule n vs _) (Rule n' vs' _) = n == n' && length vs == length vs'
-  defs <- groupBy p rules
-  let Rule name vars _ = head defs
-      params = [V $ "arg" ++ show i | i <- [1 .. length vars]]
+  defs <-
+    groupBy
+      (\(Rule n vs _) (Rule n' vs' _) -> n == n' && length vs == length vs')
+      rules
+  let params = do
+        (i, a:as) <- zip [1 :: Integer ..] (transpose $ ruleArgs <$> defs)
+        pure $
+          case a of
+            Var v
+              | (a ==) `all` as -> v
+            _ -> V $ "arg" ++ show i
       body' =
         Disj $ do
           Rule _ vars' body <- defs
-          pure . Conj $
-            (fmap Atom . filter (\(Unif _ v) -> show v /= "_") $
-             zipWith Unif (Var <$> params) vars') ++
-            [body]
-  pure $ Rule name params body'
+          let unifs =
+                [ Atom $ Unif p v
+                | (p, v) <- map Var params `zip` vars'
+                , show v /= "_"
+                , show p /= show v
+                ]
+          pure . Conj $ unifs ++ [body]
+  pure $ Rule (ruleName $ head defs) params body'
 
 superhomogeneous :: Rule Var Val -> Rule Var Var
-superhomogeneous r =
-  r { ruleBody = evalState (tGoal $ ruleBody r) (0, []) }
+superhomogeneous r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
   where
     tVal :: Val -> State (Int, [Atom Var]) Var
     tVal (Var v) = return v
@@ -84,7 +94,7 @@ superhomogeneous r =
           else Conj $ Atom <$> a' : body
 
 distinctVars :: Rule Var Var -> Rule Var Var
-distinctVars r = r { ruleBody = evalState (tGoal $ ruleBody r) 0 }
+distinctVars r = r {ruleBody = evalState (tGoal $ ruleBody r) 0}
   where
     vars (Atom (Func _ vs _)) = vs
     vars (Atom _) = []

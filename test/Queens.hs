@@ -392,56 +392,43 @@ safe_i = \arg1 -> do
   pure ()
 
 {- queens1/2
-queens1 arg1 arg2 :- ((qperm dat out, safe out, arg1 = dat, arg2 = out)).
+queens1 dat out :- ((qperm dat out, safe out)).
 constraints:
 ~out[0,1]
-~(arg1[0,2] & dat[0,2])
-~(arg2[0,3] & out[0,3])
-~(dat[0,0] & dat[0,2])
 ~(out[0,0] & out[0,1])
-~(out[0,0] & out[0,3])
-~(out[0,1] & out[0,3])
-(dat[0,0] | dat[0,2])
-(out[0,0] | (out[0,1] | out[0,3]))
 ((dat[0,0] & ~out[0,0]) | ((~dat[0,0] & out[0,0]) | (~dat[0,0] & ~out[0,0])))
-(arg1[0] <-> arg1[0,2])
-(arg1[] <-> arg1[0])
-(arg2[0] <-> arg2[0,3])
-(arg2[] <-> arg2[0])
+(dat[0] <-> dat[0,0])
+(dat[] <-> dat[0])
+(out[0] <-> (out[0,0] | out[0,1]))
+(out[] <-> out[0])
 1
 -}
-queens1_ii = \arg1 arg2 -> do
-  -- solution: dat[0,0] out[0,3] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~dat[0,2] ~out[0,0] ~out[0,1]
+queens1_ii = \dat out -> do
+  -- solution: ~dat[0,0] ~dat[0] ~dat[] ~out[0,0] ~out[0,1] ~out[0] ~out[]
   () <- (do
-    out <- pure arg2
+    () <- qperm_ii dat out
     () <- safe_i out
-    (dat) <- qperm_oi out
-    guard $ arg1 == dat
     pure ()
    )
   pure ()
 
-queens1_io = \arg1 -> do
-  -- solution: arg2[0,3] arg2[0] arg2[] dat[0,2] out[0,0] ~arg1[0,2] ~arg1[0] ~arg1[] ~dat[0,0] ~out[0,1] ~out[0,3]
-  (arg2) <- (do
-    dat <- pure arg1
+queens1_io = \dat -> do
+  -- solution: out[0,0] out[0] out[] ~dat[0,0] ~dat[0] ~dat[] ~out[0,1]
+  (out) <- (do
     (out) <- qperm_io dat
-    arg2 <- pure out
     () <- safe_i out
-    pure (arg2)
+    pure (out)
    )
-  pure (arg2)
+  pure (out)
 
-queens1_oi = \arg2 -> do
-  -- solution: arg1[0,2] arg1[0] arg1[] dat[0,0] out[0,3] ~arg2[0,3] ~arg2[0] ~arg2[] ~dat[0,2] ~out[0,0] ~out[0,1]
-  (arg1) <- (do
-    out <- pure arg2
+queens1_oi = \out -> do
+  -- solution: dat[0,0] dat[0] dat[] ~out[0,0] ~out[0,1] ~out[0] ~out[]
+  (dat) <- (do
     () <- safe_i out
     (dat) <- qperm_oi out
-    arg1 <- pure dat
-    pure (arg1)
+    pure (dat)
    )
-  pure (arg1)
+  pure (dat)
 
 {- cqueens/3
 cqueens arg1 arg2 arg3 :- ((arg1 = [], arg3 = []); (arg3 = q0:m, q0 = q, xs = _:_, qdelete q xs r, nodiag q data0 history, data0 = 1, cqueens r data1 m, data1 = q1:history, q1 = q, arg1 = xs, arg2 = history)).
@@ -567,52 +554,40 @@ cqueens_oii = \arg2 arg3 -> do
   pure (arg1)
 
 {- queens2/2
-queens2 arg1 arg2 :- ((cqueens dat data0 out, data0 = [], arg1 = dat, arg2 = out)).
+queens2 dat out :- ((cqueens dat data0 out, data0 = [])).
 constraints:
-~(arg1[0,2] & dat[0,2])
-~(arg2[0,3] & out[0,3])
-~(dat[0,0] & dat[0,2])
 ~(data0[0,0] & data0[0,1])
-~(out[0,0] & out[0,3])
-(dat[0,0] | dat[0,2])
 (data0[0,0] | data0[0,1])
-(out[0,0] | out[0,3])
 ((dat[0,0] & (~data0[0,0] & ~out[0,0])) | ((~dat[0,0] & (~data0[0,0] & out[0,0])) | (~dat[0,0] & (~data0[0,0] & ~out[0,0]))))
-(arg1[0] <-> arg1[0,2])
-(arg1[] <-> arg1[0])
-(arg2[0] <-> arg2[0,3])
-(arg2[] <-> arg2[0])
+(dat[0] <-> dat[0,0])
+(dat[] <-> dat[0])
+(out[0] <-> out[0,0])
+(out[] <-> out[0])
 1
 -}
-queens2_ii = \arg1 arg2 -> do
-  -- solution: dat[0,0] data0[0,1] out[0,3] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~dat[0,2] ~data0[0,0] ~out[0,0]
+queens2_ii = \dat out -> do
+  -- solution: data0[0,1] ~dat[0,0] ~dat[0] ~dat[] ~data0[0,0] ~out[0,0] ~out[0] ~out[]
   () <- (do
-    out <- pure arg2
     data0 <- pure []
-    (dat) <- cqueens_oii data0 out
-    guard $ arg1 == dat
+    () <- cqueens_iii dat data0 out
     pure ()
    )
   pure ()
 
-queens2_io = \arg1 -> do
-  -- solution: arg2[0,3] arg2[0] arg2[] dat[0,2] data0[0,1] out[0,0] ~arg1[0,2] ~arg1[0] ~arg1[] ~dat[0,0] ~data0[0,0] ~out[0,3]
-  (arg2) <- (do
-    dat <- pure arg1
+queens2_io = \dat -> do
+  -- solution: data0[0,1] out[0,0] out[0] out[] ~dat[0,0] ~dat[0] ~dat[] ~data0[0,0]
+  (out) <- (do
     data0 <- pure []
     (out) <- cqueens_iio dat data0
-    arg2 <- pure out
-    pure (arg2)
+    pure (out)
    )
-  pure (arg2)
+  pure (out)
 
-queens2_oi = \arg2 -> do
-  -- solution: arg1[0,2] arg1[0] arg1[] dat[0,0] data0[0,1] out[0,3] ~arg2[0,3] ~arg2[0] ~arg2[] ~dat[0,2] ~data0[0,0] ~out[0,0]
-  (arg1) <- (do
-    out <- pure arg2
+queens2_oi = \out -> do
+  -- solution: dat[0,0] dat[0] dat[] data0[0,1] ~data0[0,0] ~out[0,0] ~out[0] ~out[]
+  (dat) <- (do
     data0 <- pure []
     (dat) <- cqueens_oii data0 out
-    arg1 <- pure dat
-    pure (arg1)
+    pure (dat)
    )
-  pure (arg1)
+  pure (dat)

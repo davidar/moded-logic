@@ -8,52 +8,41 @@ import Data.List
 import Data.MemoTrie
 
 {- integers/3
-integers arg1 arg2 arg3 :- ((if ((<=) low high) then (succ low m, integers m high rest, result = low:rest) else (result = []), arg1 = low, arg2 = high, arg3 = result)).
+integers low high result :- ((if ((<=) low high) then (succ low m, integers m high rest, result = low:rest) else (result = []))).
 constraints:
 ~high[0,0,0,0]
 ~high[0,0,1,1]
 ~high[0,0]
 ~low[0,0,0,0]
 ~low[0,0]
-~(arg1[0,1] & low[0,1])
-~(arg2[0,2] & high[0,2])
-~(arg3[0,3] & result[0,3])
-~(high[0,0] & high[0,2])
 ~(low[0,0,1,0] & low[0,0,1,2])
-~(low[0,0] & low[0,1])
 ~(m[0,0,1,0] & m[0,0,1,1])
 ~(rest[0,0,1,1] & rest[0,0,1,2])
 ~(result[0,0,1,2] & low[0,0,1,2])
-~(result[0,0] & result[0,3])
 ~(low[0,0,1,0] | low[0,0,1,2])
 (~low[0,0,0,0] & ~high[0,0,0,0])
-(high[0,0] | high[0,2])
-(low[0,0] | low[0,1])
 (m[0,0,1,0] | m[0,0,1,1])
 (rest[0,0,1,1] | rest[0,0,1,2])
-(result[0,0] | result[0,3])
 ((low[0,0,1,0] & ~m[0,0,1,0]) | ((~low[0,0,1,0] & m[0,0,1,0]) | (~low[0,0,1,0] & ~m[0,0,1,0])))
-(arg1[0] <-> arg1[0,1])
-(arg1[] <-> arg1[0])
-(arg2[0] <-> arg2[0,2])
-(arg2[] <-> arg2[0])
-(arg3[0] <-> arg3[0,3])
-(arg3[] <-> arg3[0])
-(high[0,0,1,1] <-> arg2[])
+(high[0,0,1,1] <-> high[])
+(high[0] <-> high[0,0])
+(high[] <-> high[0])
 (low[0,0,1,2] <-> rest[0,0,1,2])
-(m[0,0,1,1] <-> arg1[])
-(rest[0,0,1,1] <-> arg3[])
+(low[0] <-> low[0,0])
+(low[] <-> low[0])
+(m[0,0,1,1] <-> low[])
+(rest[0,0,1,1] <-> result[])
 (result[0,0,1] <-> result[0,0,1,2])
 (result[0,0,1] <-> result[0,0,2])
 (result[0,0,2] <-> result[0,0,2,0])
 (result[0,0] <-> (result[0,0,1] | result[0,0,2]))
+(result[0] <-> result[0,0])
+(result[] <-> result[0])
 1
 -}
-integers_iio = \arg1 arg2 -> do
-  -- solution: arg3[0,3] arg3[0] arg3[] high[0,2] low[0,1] m[0,0,1,0] rest[0,0,1,1] result[0,0,1,2] result[0,0,1] result[0,0,2,0] result[0,0,2] result[0,0] ~arg1[0,1] ~arg1[0] ~arg1[] ~arg2[0,2] ~arg2[0] ~arg2[] ~high[0,0,0,0] ~high[0,0,1,1] ~high[0,0] ~low[0,0,0,0] ~low[0,0,1,0] ~low[0,0,1,2] ~low[0,0] ~m[0,0,1,1] ~rest[0,0,1,2] ~result[0,3]
-  (arg3) <- (do
-    low <- pure arg1
-    high <- pure arg2
+integers_iio = \low high -> do
+  -- solution: m[0,0,1,0] rest[0,0,1,1] result[0,0,1,2] result[0,0,1] result[0,0,2,0] result[0,0,2] result[0,0] result[0] result[] ~high[0,0,0,0] ~high[0,0,1,1] ~high[0,0] ~high[0] ~high[] ~low[0,0,0,0] ~low[0,0,1,0] ~low[0,0,1,2] ~low[0,0] ~low[0] ~low[] ~m[0,0,1,1] ~rest[0,0,1,2]
+  (result) <- (do
     (result) <- ifte ((do
       guard $ (<=) low high
       pure ()
@@ -66,10 +55,9 @@ integers_iio = \arg1 arg2 -> do
       result <- pure []
       pure (result)
      ))
-    arg3 <- pure result
-    pure (arg3)
+    pure (result)
    )
-  pure (arg3)
+  pure (result)
 
 {- remove/3
 remove arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = j0:js, j0 = j, mod j p m, remove p js njs, if (m = 0) then (result = njs) else (result = j1:njs, j1 = j), arg1 = p, arg3 = result)).
@@ -260,46 +248,36 @@ sift_io = \arg1 -> do
   pure (arg2)
 
 {- primes/2
-primes arg1 arg2 :- ((integers data0 limit js, data0 = 2, sift js ps, arg1 = limit, arg2 = ps)).
+primes limit ps :- ((integers data0 limit js, data0 = 2, sift js ps)).
 constraints:
-~(arg1[0,3] & limit[0,3])
-~(arg2[0,4] & ps[0,4])
 ~(data0[0,0] & data0[0,1])
 ~(js[0,0] & js[0,2])
-~(limit[0,0] & limit[0,3])
-~(ps[0,2] & ps[0,4])
 (~data0[0,0] & (~limit[0,0] & js[0,0]))
 (data0[0,0] | data0[0,1])
 (js[0,0] | js[0,2])
-(limit[0,0] | limit[0,3])
-(ps[0,2] | ps[0,4])
 ((~js[0,2] & ps[0,2]) | (~js[0,2] & ~ps[0,2]))
-(arg1[0] <-> arg1[0,3])
-(arg1[] <-> arg1[0])
-(arg2[0] <-> arg2[0,4])
-(arg2[] <-> arg2[0])
+(limit[0] <-> limit[0,0])
+(limit[] <-> limit[0])
+(ps[0] <-> ps[0,2])
+(ps[] <-> ps[0])
 1
 -}
-primes_ii = \arg1 arg2 -> do
-  -- solution: data0[0,1] js[0,0] limit[0,3] ps[0,2] ~arg1[0,3] ~arg1[0] ~arg1[] ~arg2[0,4] ~arg2[0] ~arg2[] ~data0[0,0] ~js[0,2] ~limit[0,0] ~ps[0,4]
+primes_ii = \limit ps -> do
+  -- solution: data0[0,1] js[0,0] ~data0[0,0] ~js[0,2] ~limit[0,0] ~limit[0] ~limit[] ~ps[0,2] ~ps[0] ~ps[]
   () <- (do
-    limit <- pure arg1
     data0 <- pure 2
     (js) <- integers_iio data0 limit
-    (ps) <- sift_io js
-    guard $ arg2 == ps
+    () <- sift_ii js ps
     pure ()
    )
   pure ()
 
-primes_io = \arg1 -> do
-  -- solution: arg2[0,4] arg2[0] arg2[] data0[0,1] js[0,0] limit[0,3] ps[0,2] ~arg1[0,3] ~arg1[0] ~arg1[] ~data0[0,0] ~js[0,2] ~limit[0,0] ~ps[0,4]
-  (arg2) <- (do
-    limit <- pure arg1
+primes_io = \limit -> do
+  -- solution: data0[0,1] js[0,0] ps[0,2] ps[0] ps[] ~data0[0,0] ~js[0,2] ~limit[0,0] ~limit[0] ~limit[]
+  (ps) <- (do
     data0 <- pure 2
     (js) <- integers_iio data0 limit
     (ps) <- sift_io js
-    arg2 <- pure ps
-    pure (arg2)
+    pure (ps)
    )
-  pure (arg2)
+  pure (ps)

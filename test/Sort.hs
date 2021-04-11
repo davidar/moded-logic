@@ -215,19 +215,15 @@ partition_iioo = \arg1 arg2 -> do
   pure (arg3,arg4)
 
 {- qsort/3
-qsort arg1 arg2 arg3 :- ((arg1 = [], arg2 = r, arg3 = r); (arg1 = x0:xs, x0 = x, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x1:r1, x1 = x, arg2 = r, arg3 = r0)).
+qsort arg1 r arg3 :- ((arg1 = [], arg3 = r); (arg1 = x0:xs, x0 = x, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x1:r1, x1 = x, arg3 = r0)).
 constraints:
 ~(arg1[1,0] & x0[1,0])
-~(arg2[0,1] & r[0,1])
-~(arg2[1,7] & r[1,7])
-~(arg3[0,2] & r[0,2])
-~(arg3[1,8] & r0[1,8])
+~(arg3[0,1] & r[0,1])
+~(arg3[1,7] & r0[1,7])
 ~(data0[1,4] & data0[1,5])
 ~(data0[1,5] & x1[1,5])
-~(r0[1,3] & r0[1,8])
+~(r0[1,3] & r0[1,7])
 ~(r1[1,3] & r1[1,5])
-~(r[0,1] & r[0,2])
-~(r[1,4] & r[1,7])
 ~(x0[1,0] & x0[1,1])
 ~(x0[1,1] & x[1,1])
 ~(x1[1,5] & x1[1,6])
@@ -239,10 +235,8 @@ constraints:
 ~(ys[1,2] & ys[1,4])
 ~(zs[1,2] & zs[1,3])
 (data0[1,4] | data0[1,5])
-(r0[1,3] | r0[1,8])
+(r0[1,3] | r0[1,7])
 (r1[1,3] | r1[1,5])
-(r[0,1] | r[0,2])
-(r[1,4] | r[1,7])
 (x0[1,0] | x0[1,1])
 (x1[1,5] | x1[1,6])
 (x[1,1] | (x[1,2] | x[1,6]))
@@ -254,18 +248,18 @@ constraints:
 (arg1[1] <-> arg1[1,0])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
-(arg2[0] <-> arg2[0,1])
-(arg2[1] <-> arg2[1,7])
-(arg2[] <-> arg2[0])
-(arg2[] <-> arg2[1])
-(arg3[0] <-> arg3[0,2])
-(arg3[1] <-> arg3[1,8])
+(arg3[0] <-> arg3[0,1])
+(arg3[1] <-> arg3[1,7])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
 (data0[1,4] <-> arg3[])
 (r0[1,3] <-> arg3[])
-(r1[1,3] <-> arg2[])
-(r[1,4] <-> arg2[])
+(r1[1,3] <-> r[])
+(r[0] <-> r[0,1])
+(r[1,4] <-> r[])
+(r[1] <-> r[1,4])
+(r[] <-> r[0])
+(r[] <-> r[1])
 (x0[1,0] <-> xs[1,0])
 (x1[1,5] <-> r1[1,5])
 (ys[1,4] <-> arg1[])
@@ -273,15 +267,13 @@ constraints:
 1
 -}
 -- mode ordering failure, cyclic dependency: [2] partition xs::in x::in ys::out zs::out -> [4] qsort ys::in r::in data0::out -> [5] data0::in = x1::out:r1::out -> [6] x1::in = x::out
-qsort_iio = \arg1 arg2 -> do
-  -- solution: arg3[0,2] arg3[0] arg3[1,8] arg3[1] arg3[] data0[1,4] r0[1,3] r1[1,5] r[0,1] r[1,7] x0[1,0] x1[1,5] x[1,1] xs[1,0] ys[1,2] zs[1,2] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[1,7] ~arg2[1] ~arg2[] ~data0[1,5] ~r0[1,8] ~r1[1,3] ~r[0,2] ~r[1,4] ~x0[1,1] ~x1[1,6] ~x[1,2] ~x[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
+qsort_iio = \arg1 r -> do
+  -- solution: arg3[0,1] arg3[0] arg3[1,7] arg3[1] arg3[] data0[1,4] r0[1,3] r1[1,5] x0[1,0] x1[1,5] x[1,1] xs[1,0] ys[1,2] zs[1,2] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~data0[1,5] ~r0[1,7] ~r1[1,3] ~r[0,1] ~r[0] ~r[1,4] ~r[1] ~r[] ~x0[1,1] ~x1[1,6] ~x[1,2] ~x[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
   (arg3) <- (do
-    r <- pure arg2
     arg3 <- pure r
     guard $ arg1 == []
     pure (arg3)
    ) <|> (do
-    r <- pure arg2
     (x0:xs) <- pure arg1
     x <- pure x0
     (ys,zs) <- partition_iioo xs x
@@ -295,12 +287,11 @@ qsort_iio = \arg1 arg2 -> do
   pure (arg3)
 
 qsort_ioi = \arg1 arg3 -> do
-  -- solution: arg2[0,1] arg2[0] arg2[1,7] arg2[1] arg2[] data0[1,5] r0[1,8] r1[1,3] r[0,2] r[1,4] x0[1,0] x1[1,6] x[1,1] xs[1,0] ys[1,2] zs[1,2] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg3[0,2] ~arg3[0] ~arg3[1,8] ~arg3[1] ~arg3[] ~data0[1,4] ~r0[1,3] ~r1[1,5] ~r[0,1] ~r[1,7] ~x0[1,1] ~x1[1,5] ~x[1,2] ~x[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
-  (arg2) <- (do
+  -- solution: data0[1,5] r0[1,7] r1[1,3] r[0,1] r[0] r[1,4] r[1] r[] x0[1,0] x1[1,6] x[1,1] xs[1,0] ys[1,2] zs[1,2] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg3[0,1] ~arg3[0] ~arg3[1,7] ~arg3[1] ~arg3[] ~data0[1,4] ~r0[1,3] ~r1[1,5] ~x0[1,1] ~x1[1,5] ~x[1,2] ~x[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
+  (r) <- (do
     r <- pure arg3
-    arg2 <- pure r
     guard $ arg1 == []
-    pure (arg2)
+    pure (r)
    ) <|> (do
     r0 <- pure arg3
     (x0:xs) <- pure arg1
@@ -310,47 +301,36 @@ qsort_ioi = \arg1 arg3 -> do
     (r1) <- qsort_ioi zs r0
     data0 <- pure (x1:r1)
     (r) <- qsort_ioi ys data0
-    arg2 <- pure r
-    pure (arg2)
+    pure (r)
    )
-  pure (arg2)
+  pure (r)
 
 {- sort/2
-sort arg1 arg2 :- ((qsort list sorted data0, data0 = [], arg1 = list, arg2 = sorted)).
+sort list sorted :- ((qsort list sorted data0, data0 = [])).
 constraints:
-~(arg1[0,2] & list[0,2])
-~(arg2[0,3] & sorted[0,3])
 ~(data0[0,0] & data0[0,1])
-~(list[0,0] & list[0,2])
-~(sorted[0,0] & sorted[0,3])
 (data0[0,0] | data0[0,1])
-(list[0,0] | list[0,2])
-(sorted[0,0] | sorted[0,3])
 ((~list[0,0] & (sorted[0,0] & ~data0[0,0])) | (~list[0,0] & (~sorted[0,0] & data0[0,0])))
-(arg1[0] <-> arg1[0,2])
-(arg1[] <-> arg1[0])
-(arg2[0] <-> arg2[0,3])
-(arg2[] <-> arg2[0])
+(list[0] <-> list[0,0])
+(list[] <-> list[0])
+(sorted[0] <-> sorted[0,0])
+(sorted[] <-> sorted[0])
 1
 -}
-sort_ii = \arg1 arg2 -> do
-  -- solution: data0[0,0] list[0,2] sorted[0,3] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~data0[0,1] ~list[0,0] ~sorted[0,0]
+sort_ii = \list sorted -> do
+  -- solution: data0[0,0] ~data0[0,1] ~list[0,0] ~list[0] ~list[] ~sorted[0,0] ~sorted[0] ~sorted[]
   () <- (do
-    list <- pure arg1
-    sorted <- pure arg2
     (data0) <- qsort_iio list sorted
     guard $ data0 == []
     pure ()
    )
   pure ()
 
-sort_io = \arg1 -> do
-  -- solution: arg2[0,3] arg2[0] arg2[] data0[0,1] list[0,2] sorted[0,0] ~arg1[0,2] ~arg1[0] ~arg1[] ~data0[0,0] ~list[0,0] ~sorted[0,3]
-  (arg2) <- (do
-    list <- pure arg1
+sort_io = \list -> do
+  -- solution: data0[0,1] sorted[0,0] sorted[0] sorted[] ~data0[0,0] ~list[0,0] ~list[0] ~list[]
+  (sorted) <- (do
     data0 <- pure []
     (sorted) <- qsort_ioi list data0
-    arg2 <- pure sorted
-    pure (arg2)
+    pure (sorted)
    )
-  pure (arg2)
+  pure (sorted)
