@@ -709,3 +709,96 @@ perm_oi = \arg2 -> do
     pure (arg1)
    )
   pure (arg1)
+
+{- map/3
+map p arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = x:xs, arg3 = y:ys, p x y, map p xs ys)).
+constraints:
+~p[]
+~(arg2[1,0] & x[1,0])
+~(arg3[1,1] & y[1,1])
+~(x[1,0] & x[1,2])
+~(xs[1,0] & xs[1,3])
+~(y[1,1] & y[1,2])
+~(ys[1,1] & ys[1,3])
+(x[1,0] | x[1,2])
+(xs[1,0] | xs[1,3])
+(y[1,1] | y[1,2])
+(ys[1,1] | ys[1,3])
+(arg2[0] <-> arg2[0,0])
+(arg2[1] <-> arg2[1,0])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(arg3[0] <-> arg3[0,1])
+(arg3[1] <-> arg3[1,1])
+(arg3[] <-> arg3[0])
+(arg3[] <-> arg3[1])
+(p[1,3] <-> p[])
+(p[1] <-> p[1,3])
+(p[] <-> p[1])
+(x[1,0] <-> xs[1,0])
+(x[1,2] <-> p.arg1[])
+(xs[1,3] <-> arg2[])
+(y[1,1] <-> ys[1,1])
+(y[1,2] <-> p.arg2[])
+(ys[1,3] <-> arg3[])
+1
+-}
+map_iii = \p arg2 arg3 -> do
+  -- solution: x[1,0] xs[1,0] y[1,1] ys[1,1] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~arg3[0,1] ~arg3[0] ~arg3[1,1] ~arg3[1] ~arg3[] ~p.arg1[] ~p.arg2[] ~p[1,3] ~p[1] ~p[] ~x[1,2] ~xs[1,3] ~y[1,2] ~ys[1,3]
+  () <- (do
+    guard $ arg2 == []
+    guard $ arg3 == []
+    pure ()
+   ) <|> (do
+    (x:xs) <- pure arg2
+    (y:ys) <- pure arg3
+    () <- map_iii p xs ys
+    () <- p x y
+    pure ()
+   )
+  pure ()
+
+map_iio = \p arg2 -> do
+  -- solution: arg3[0,1] arg3[0] arg3[1,1] arg3[1] arg3[] p.arg2[] x[1,0] xs[1,0] y[1,2] ys[1,3] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~p.arg1[] ~p[1,3] ~p[1] ~p[] ~x[1,2] ~xs[1,3] ~y[1,1] ~ys[1,1]
+  (arg3) <- (do
+    guard $ arg2 == []
+    arg3 <- pure []
+    pure (arg3)
+   ) <|> (do
+    (x:xs) <- pure arg2
+    (ys) <- map_iio p xs
+    (y) <- p x
+    arg3 <- pure (y:ys)
+    pure (arg3)
+   )
+  pure (arg3)
+
+map_ioi = \p arg3 -> do
+  -- solution: arg2[0,0] arg2[0] arg2[1,0] arg2[1] arg2[] p.arg1[] x[1,2] xs[1,3] y[1,1] ys[1,1] ~arg3[0,1] ~arg3[0] ~arg3[1,1] ~arg3[1] ~arg3[] ~p.arg2[] ~p[1,3] ~p[1] ~p[] ~x[1,0] ~xs[1,0] ~y[1,2] ~ys[1,3]
+  (arg2) <- (do
+    guard $ arg3 == []
+    arg2 <- pure []
+    pure (arg2)
+   ) <|> (do
+    (y:ys) <- pure arg3
+    (xs) <- map_ioi p ys
+    (x) <- p y
+    arg2 <- pure (x:xs)
+    pure (arg2)
+   )
+  pure (arg2)
+
+map_ioo = \p -> do
+  -- solution: arg2[0,0] arg2[0] arg2[1,0] arg2[1] arg2[] arg3[0,1] arg3[0] arg3[1,1] arg3[1] arg3[] p.arg1[] p.arg2[] x[1,2] xs[1,3] y[1,2] ys[1,3] ~p[1,3] ~p[1] ~p[] ~x[1,0] ~xs[1,0] ~y[1,1] ~ys[1,1]
+  (arg2,arg3) <- (do
+    arg2 <- pure []
+    arg3 <- pure []
+    pure (arg2,arg3)
+   ) <|> (do
+    (xs,ys) <- map_ioo p
+    (x,y) <- p 
+    arg2 <- pure (x:xs)
+    arg3 <- pure (y:ys)
+    pure (arg2,arg3)
+   )
+  pure (arg2,arg3)

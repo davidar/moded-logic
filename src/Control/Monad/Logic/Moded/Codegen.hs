@@ -41,26 +41,31 @@ modeString [] = ""
 modeString (In _:mvs) = 'i' : modeString mvs
 modeString (Out _:mvs) = 'o' : modeString mvs
 
-cgAtom :: Atom ModedVar -> Text
-cgAtom (Unif (Out u) v) = T.pack u <> " <- pure " <> mv v
-cgAtom (Unif u (Out v)) = T.pack v <> " <- pure " <> mv u
-cgAtom (Unif u v) = "guard $ " <> mv u <> " == " <> mv v
-cgAtom (Func name vs@(Out _:_) u) = cgFunc name vs <> " <- pure " <> mv u
-cgAtom (Func name vs (Out u)) = T.pack u <> " <- pure " <> cgFunc name vs
-cgAtom (Func name vs u) = "guard $ " <> mv u <> " == " <> cgFunc name vs
-cgAtom (Pred name vs)
-  | head name == '('
-  , last name == ')' =
-    "guard $ " <> T.unwords (T.pack <$> name : [v | In v <- vs])
-cgAtom (Pred name vs) =
-  "(" <>
-  T.intercalate "," [T.pack v | Out v <- vs] <>
-  ") <- " <> name' <> " " <> T.unwords [T.pack v | In v <- vs]
+cgAtom :: Path -> Rule ModedVar ModedVar -> Text
+cgAtom p r =
+  case a of
+    Unif (Out u) v -> T.pack u <> " <- pure " <> mv v
+    Unif u (Out v) -> T.pack v <> " <- pure " <> mv u
+    Unif u v -> "guard $ " <> mv u <> " == " <> mv v
+    Func name vs@(Out _:_) u -> cgFunc name vs <> " <- pure " <> mv u
+    Func name vs (Out u) -> T.pack u <> " <- pure " <> cgFunc name vs
+    Func name vs u -> "guard $ " <> mv u <> " == " <> cgFunc name vs
+    Pred name vs
+      | head name == '('
+      , last name == ')' ->
+        "guard $ " <> T.unwords (T.pack <$> name : [v | In v <- vs])
+    Pred name vs ->
+      "(" <>
+      T.intercalate "," [T.pack v | Out v <- vs] <>
+      ") <- " <> name' <> " " <> T.unwords [T.pack v | In v <- vs]
+      where name' =
+              T.pack $
+              case modeString vs of
+                [] -> name
+                _ | In name `elem` ruleArgs r -> name
+                ms -> name ++ "_" ++ ms
   where
-    name' =
-      case modeString vs of
-        [] -> T.pack name
-        ms -> T.pack name <> "_" <> T.pack ms
+    Atom a = extract p $ ruleBody r
 
 cgGoal :: Path -> Rule ModedVar ModedVar -> Text
 cgGoal p r =
@@ -76,7 +81,7 @@ cgGoal p r =
               let p' = p ++ [c]
               pure $
                 case extract p' $ ruleBody r of
-                  Atom a -> cgAtom a
+                  Atom _ -> cgAtom p' r
                   g ->
                     "(" <>
                     T.intercalate
@@ -112,7 +117,7 @@ cgGoal p r =
                 | V v <- Set.elems $ nonlocals' (p ++ [0]) r
                 , Out v `elem` c
                 ]
-    Atom a -> cgAtom a
+    Atom _ -> cgAtom p r
 
 cgRule :: [Pragma] -> Rule ModedVar ModedVar -> Text
 cgRule pragmas r@(Rule name vars body) =
@@ -128,13 +133,15 @@ cgRule pragmas r@(Rule name vars body) =
       ins = [T.pack v | In v <- vars]
       outs = T.intercalate "," [T.pack v | Out v <- vars]
       decorate
-        | Pragma ["memo", name] `elem` pragmas = case length ins of
-          0 -> ""
-          1 -> "memo $ "
-          k -> "memo" <> T.pack (show k) <> " $ "
+        | Pragma ["memo", name] `elem` pragmas =
+          case length ins of
+            0 -> ""
+            1 -> "memo $ "
+            k -> "memo" <> T.pack (show k) <> " $ "
         | otherwise = ""
-      args | null ins = ""
-           | otherwise = "\\" <> T.unwords ins <> " -> "
+      args
+        | null ins = ""
+        | otherwise = "\\" <> T.unwords ins <> " -> "
       transform
         | Pragma ["nub", name] `elem` pragmas = "choose . nub . observeAll $ do"
         | Pragma ["memo", name] `elem` pragmas = "choose . observeAll $ do"

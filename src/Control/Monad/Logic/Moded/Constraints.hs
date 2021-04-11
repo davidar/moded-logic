@@ -140,6 +140,10 @@ cAtom m p r =
                 _ -> error "invalid mode string"
       | head name == '('
       , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
+      | V name `elem` ruleArgs r ->
+        Set.fromList $ do
+          (i, v) <- zip [1..] vars
+          pure $ term p v `Sat.Iff` term [] (V $ name ++ ".arg" ++ show (i :: Integer))
       | otherwise ->
         error $ "unknown predicate " ++ name ++ "/" ++ show (length vars)
 

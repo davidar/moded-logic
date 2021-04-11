@@ -1,5 +1,6 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
 
+import Control.Monad.Logic.Moded.Prelude
 import Append
 import Euler
 import Kiselyov
@@ -47,6 +48,9 @@ programAppend =
   delete x (h:t) (h:r) :- delete x t r.
   perm [] [].
   perm xs (h:t) :- delete h xs ys, perm ys t.
+
+  map p [] [].
+  map p (x:xs) (y:ys) :- p x y, map p xs ys.
   |]
 
 programPrimes :: Prog Var Var
@@ -327,6 +331,9 @@ main = do
           List.sort (List.permutations [1 .. 5])
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` [()]
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
+      it "map" $ do
+        observeAll (map_iio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
+        observeAll (map_ioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
     describe "Primes" $ do
       it "compile" $ do
         let code = compile "Primes" programPrimes
