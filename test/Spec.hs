@@ -182,6 +182,17 @@ programKiselyov =
   elem x (x:_).
   elem x (_:xs) :- elem x xs.
 
+  insert e l (e:l).
+  insert e (h:t) (h:t') :- insert e t t'.
+
+  permute [] [].
+  permute (h:t) r :- permute t t', insert h t' r.
+
+  sorted [].
+  sorted [_].
+  sorted (a:b:r) :- a <= b, sorted (b:r).
+
+
   pythag i j k :-
     nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j,
     timesInt i i ii, timesInt j j jj, timesInt k k kk,
@@ -223,6 +234,8 @@ programKiselyov =
   oddsPrimeIO n :-
     odds n, n > 1,
     if nontrivialDivisor n d, print d then empty else.
+
+  bogosort l p :- permute l p, sorted p.
   |]
 
 programEuler =
@@ -352,6 +365,12 @@ main = do
         observeMany 10 oddsPrime_o `shouldBe`
           [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
         print =<< observeManyT 10 oddsPrimeIO_o
+      it "bogosort" $ do
+        observeAll (bogosort_io [5,0,3,4,0,1]) `shouldBe`
+          replicate 2 [0,0,1,3,4,5]
+        List.sort (observeAll (bogosort_oi [1 .. 5])) `shouldBe`
+          List.sort (List.permutations [1 .. 5])
+        observeAll (bogosort_oi [1,0]) `shouldBe` []
     describe "Euler" $ do
       it "compile" $ do
         let code = compile "Euler" programEuler

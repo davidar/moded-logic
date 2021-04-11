@@ -104,6 +104,285 @@ elem_oi = \arg2 -> do
    )
   pure (arg1)
 
+{- insert/3
+insert arg1 arg2 arg3 :- ((arg3 = e:l, arg1 = e, arg2 = l); (arg2 = h0:t, h0 = h, arg3 = h1:t', h1 = h, insert e t t', arg1 = e)).
+constraints:
+~(arg1[0,1] & e[0,1])
+~(arg1[1,5] & e[1,5])
+~(arg2[0,2] & l[0,2])
+~(arg2[1,0] & h0[1,0])
+~(arg3[0,0] & e[0,0])
+~(arg3[1,2] & h1[1,2])
+~(e[0,0] & e[0,1])
+~(e[1,4] & e[1,5])
+~(h0[1,0] & h0[1,1])
+~(h0[1,1] & h[1,1])
+~(h1[1,2] & h1[1,3])
+~(h1[1,3] & h[1,3])
+~(h[1,1] & h[1,3])
+~(l[0,0] & l[0,2])
+~(t'[1,2] & t'[1,4])
+~(t[1,0] & t[1,4])
+(e[0,0] | e[0,1])
+(e[1,4] | e[1,5])
+(h0[1,0] | h0[1,1])
+(h1[1,2] | h1[1,3])
+(h[1,1] | h[1,3])
+(l[0,0] | l[0,2])
+(t'[1,2] | t'[1,4])
+(t[1,0] | t[1,4])
+(arg1[0] <-> arg1[0,1])
+(arg1[1] <-> arg1[1,5])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg2[0] <-> arg2[0,2])
+(arg2[1] <-> arg2[1,0])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(arg3[0] <-> arg3[0,0])
+(arg3[1] <-> arg3[1,2])
+(arg3[] <-> arg3[0])
+(arg3[] <-> arg3[1])
+(e[0,0] <-> l[0,0])
+(e[1,4] <-> arg1[])
+(h0[1,0] <-> t[1,0])
+(h1[1,2] <-> t'[1,2])
+(t'[1,4] <-> arg3[])
+(t[1,4] <-> arg2[])
+1
+-}
+insert_iii = \arg1 arg2 arg3 -> do
+  -- solution: e[0,0] e[1,5] h0[1,0] h1[1,2] h[1,1] l[0,0] t'[1,2] t[1,0] ~arg1[0,1] ~arg1[0] ~arg1[1,5] ~arg1[1] ~arg1[] ~arg2[0,2] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~arg3[0,0] ~arg3[0] ~arg3[1,2] ~arg3[1] ~arg3[] ~e[0,1] ~e[1,4] ~h0[1,1] ~h1[1,3] ~h[1,3] ~l[0,2] ~t'[1,4] ~t[1,4]
+  () <- (do
+    (e:l) <- pure arg3
+    guard $ arg1 == e
+    guard $ arg2 == l
+    pure ()
+   ) <|> (do
+    e <- pure arg1
+    (h0:t) <- pure arg2
+    h <- pure h0
+    (h1:t') <- pure arg3
+    guard $ h1 == h
+    () <- insert_iii e t t'
+    pure ()
+   )
+  pure ()
+
+insert_iio = \arg1 arg2 -> do
+  -- solution: arg3[0,0] arg3[0] arg3[1,2] arg3[1] arg3[] e[0,1] e[1,5] h0[1,0] h1[1,3] h[1,1] l[0,2] t'[1,4] t[1,0] ~arg1[0,1] ~arg1[0] ~arg1[1,5] ~arg1[1] ~arg1[] ~arg2[0,2] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~e[0,0] ~e[1,4] ~h0[1,1] ~h1[1,2] ~h[1,3] ~l[0,0] ~t'[1,2] ~t[1,4]
+  (arg3) <- (do
+    e <- pure arg1
+    l <- pure arg2
+    arg3 <- pure (e:l)
+    pure (arg3)
+   ) <|> (do
+    e <- pure arg1
+    (h0:t) <- pure arg2
+    h <- pure h0
+    h1 <- pure h
+    (t') <- insert_iio e t
+    arg3 <- pure (h1:t')
+    pure (arg3)
+   )
+  pure (arg3)
+
+insert_ioi = \arg1 arg3 -> do
+  -- solution: arg2[0,2] arg2[0] arg2[1,0] arg2[1] arg2[] e[0,0] e[1,5] h0[1,1] h1[1,2] h[1,3] l[0,0] t'[1,2] t[1,4] ~arg1[0,1] ~arg1[0] ~arg1[1,5] ~arg1[1] ~arg1[] ~arg3[0,0] ~arg3[0] ~arg3[1,2] ~arg3[1] ~arg3[] ~e[0,1] ~e[1,4] ~h0[1,0] ~h1[1,3] ~h[1,1] ~l[0,2] ~t'[1,4] ~t[1,0]
+  (arg2) <- (do
+    (e:l) <- pure arg3
+    guard $ arg1 == e
+    arg2 <- pure l
+    pure (arg2)
+   ) <|> (do
+    e <- pure arg1
+    (h1:t') <- pure arg3
+    h <- pure h1
+    h0 <- pure h
+    (t) <- insert_ioi e t'
+    arg2 <- pure (h0:t)
+    pure (arg2)
+   )
+  pure (arg2)
+
+insert_oii = \arg2 arg3 -> do
+  -- solution: arg1[0,1] arg1[0] arg1[1,5] arg1[1] arg1[] e[0,0] e[1,4] h0[1,0] h1[1,2] h[1,1] l[0,0] t'[1,2] t[1,0] ~arg2[0,2] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~arg3[0,0] ~arg3[0] ~arg3[1,2] ~arg3[1] ~arg3[] ~e[0,1] ~e[1,5] ~h0[1,1] ~h1[1,3] ~h[1,3] ~l[0,2] ~t'[1,4] ~t[1,4]
+  (arg1) <- (do
+    (e:l) <- pure arg3
+    guard $ arg2 == l
+    arg1 <- pure e
+    pure (arg1)
+   ) <|> (do
+    (h0:t) <- pure arg2
+    h <- pure h0
+    (h1:t') <- pure arg3
+    guard $ h1 == h
+    (e) <- insert_oii t t'
+    arg1 <- pure e
+    pure (arg1)
+   )
+  pure (arg1)
+
+insert_ooi = \arg3 -> do
+  -- solution: arg1[0,1] arg1[0] arg1[1,5] arg1[1] arg1[] arg2[0,2] arg2[0] arg2[1,0] arg2[1] arg2[] e[0,0] e[1,4] h0[1,1] h1[1,2] h[1,3] l[0,0] t'[1,2] t[1,4] ~arg3[0,0] ~arg3[0] ~arg3[1,2] ~arg3[1] ~arg3[] ~e[0,1] ~e[1,5] ~h0[1,0] ~h1[1,3] ~h[1,1] ~l[0,2] ~t'[1,4] ~t[1,0]
+  (arg1,arg2) <- (do
+    (e:l) <- pure arg3
+    arg1 <- pure e
+    arg2 <- pure l
+    pure (arg1,arg2)
+   ) <|> (do
+    (h1:t') <- pure arg3
+    h <- pure h1
+    h0 <- pure h
+    (e,t) <- insert_ooi t'
+    arg1 <- pure e
+    arg2 <- pure (h0:t)
+    pure (arg1,arg2)
+   )
+  pure (arg1,arg2)
+
+{- permute/2
+permute arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h:t, permute t t', insert h t' r, arg2 = r)).
+constraints:
+~(arg1[1,0] & h[1,0])
+~(arg2[1,3] & r[1,3])
+~(h[1,0] & h[1,2])
+~(r[1,2] & r[1,3])
+~(t'[1,1] & t'[1,2])
+~(t[1,0] & t[1,1])
+(h[1,0] | h[1,2])
+(r[1,2] | r[1,3])
+(t'[1,1] | t'[1,2])
+(t[1,0] | t[1,1])
+((h[1,2] & (t'[1,2] & ~r[1,2])) | ((h[1,2] & (~t'[1,2] & ~r[1,2])) | ((~h[1,2] & (t'[1,2] & ~r[1,2])) | ((~h[1,2] & (~t'[1,2] & r[1,2])) | (~h[1,2] & (~t'[1,2] & ~r[1,2]))))))
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,3])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(h[1,0] <-> t[1,0])
+(t'[1,1] <-> arg2[])
+(t[1,1] <-> arg1[])
+1
+-}
+permute_ii = \arg1 arg2 -> do
+  -- solution: h[1,0] r[1,3] t'[1,2] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~arg2[0,1] ~arg2[0] ~arg2[1,3] ~arg2[1] ~arg2[] ~h[1,2] ~r[1,2] ~t'[1,1] ~t[1,1]
+  () <- (do
+    guard $ arg1 == []
+    guard $ arg2 == []
+    pure ()
+   ) <|> (do
+    r <- pure arg2
+    (h:t) <- pure arg1
+    (t') <- insert_ioi h r
+    () <- permute_ii t t'
+    pure ()
+   )
+  pure ()
+
+permute_io = \arg1 -> do
+  -- solution: arg2[0,1] arg2[0] arg2[1,3] arg2[1] arg2[] h[1,0] r[1,2] t'[1,1] t[1,0] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[] ~h[1,2] ~r[1,3] ~t'[1,2] ~t[1,1]
+  (arg2) <- (do
+    guard $ arg1 == []
+    arg2 <- pure []
+    pure (arg2)
+   ) <|> (do
+    (h:t) <- pure arg1
+    (t') <- permute_io t
+    (r) <- insert_iio h t'
+    arg2 <- pure r
+    pure (arg2)
+   )
+  pure (arg2)
+
+permute_oi = \arg2 -> do
+  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[] h[1,2] r[1,3] t'[1,2] t[1,1] ~arg2[0,1] ~arg2[0] ~arg2[1,3] ~arg2[1] ~arg2[] ~h[1,0] ~r[1,2] ~t'[1,1] ~t[1,0]
+  (arg1) <- (do
+    guard $ arg2 == []
+    arg1 <- pure []
+    pure (arg1)
+   ) <|> (do
+    r <- pure arg2
+    (h,t') <- insert_ooi r
+    (t) <- permute_oi t'
+    arg1 <- pure (h:t)
+    pure (arg1)
+   )
+  pure (arg1)
+
+{- sorted/1
+sorted arg1 :- ((arg1 = []); (arg1 = _:data0, data0 = []); (arg1 = a:data1, data1 = b0:r1, b0 = b, r1 = r, (<=) a b, sorted data2, data2 = b2:r3, b2 = b, r3 = r)).
+constraints:
+data0[1,0]
+~arg1[1,0]
+~(a[2,0] & a[2,4])
+~(arg1[2,0] & a[2,0])
+~(b0[2,1] & b0[2,2])
+~(b0[2,2] & b[2,2])
+~(b2[2,6] & b2[2,7])
+~(b2[2,7] & b[2,7])
+~(b[2,2] & b[2,4])
+~(b[2,2] & b[2,7])
+~(b[2,4] & b[2,7])
+~(data0[1,0] & data0[1,1])
+~(data1[2,0] & data1[2,1])
+~(data1[2,1] & b0[2,1])
+~(data2[2,5] & data2[2,6])
+~(data2[2,6] & b2[2,6])
+~(r1[2,1] & r1[2,3])
+~(r1[2,3] & r[2,3])
+~(r3[2,6] & r3[2,8])
+~(r3[2,8] & r[2,8])
+~(r[2,3] & r[2,8])
+(~a[2,4] & ~b[2,4])
+(a[2,0] | a[2,4])
+(b0[2,1] | b0[2,2])
+(b2[2,6] | b2[2,7])
+(b[2,2] | (b[2,4] | b[2,7]))
+(data0[1,0] | data0[1,1])
+(data1[2,0] | data1[2,1])
+(data2[2,5] | data2[2,6])
+(r1[2,1] | r1[2,3])
+(r3[2,6] | r3[2,8])
+(r[2,3] | r[2,8])
+(a[2,0] <-> data1[2,0])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[2] <-> arg1[2,0])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg1[] <-> arg1[2])
+(b0[2,1] <-> r1[2,1])
+(b2[2,6] <-> r3[2,6])
+(data2[2,5] <-> arg1[])
+1
+-}
+sorted_i = \arg1 -> do
+  -- solution: a[2,0] b0[2,1] b2[2,7] b[2,2] data0[1,0] data1[2,0] data2[2,6] r1[2,1] r3[2,8] r[2,3] ~a[2,4] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[2,0] ~arg1[2] ~arg1[] ~b0[2,2] ~b2[2,6] ~b[2,4] ~b[2,7] ~data0[1,1] ~data1[2,1] ~data2[2,5] ~r1[2,3] ~r3[2,6] ~r[2,8]
+  () <- (do
+    guard $ arg1 == []
+    pure ()
+   ) <|> (do
+    (_:data0) <- pure arg1
+    guard $ data0 == []
+    pure ()
+   ) <|> (do
+    (a:data1) <- pure arg1
+    (b0:r1) <- pure data1
+    b <- pure b0
+    b2 <- pure b
+    r <- pure r1
+    r3 <- pure r
+    data2 <- pure (b2:r3)
+    guard $ (<=) a b
+    () <- sorted_i data2
+    pure ()
+   )
+  pure ()
+
 {- pythag/3
 pythag arg1 arg2 arg3 :- ((nat i, (>) i data0, data0 = 0, nat j, (>) j data1, data1 = 0, nat k, (>) k data2, data2 = 0, (<) i j, timesInt i0 i1 ii, i0 = i, i1 = i, timesInt j2 j3 jj, j2 = j, j3 = j, timesInt k4 k5 kk, k4 = k, k5 = k, plus ii jj kk, arg1 = i, arg2 = j, arg3 = k)).
 constraints:
@@ -1176,6 +1455,58 @@ oddsPrimeIO_o = do
       
       pure ()
      ))
+    pure (arg1)
+   )
+  pure (arg1)
+
+{- bogosort/2
+bogosort arg1 arg2 :- ((permute l p, sorted p, arg1 = l, arg2 = p)).
+constraints:
+~p[0,1]
+~(arg1[0,2] & l[0,2])
+~(arg2[0,3] & p[0,3])
+~(l[0,0] & l[0,2])
+~(p[0,0] & p[0,1])
+~(p[0,0] & p[0,3])
+~(p[0,1] & p[0,3])
+(l[0,0] | l[0,2])
+(p[0,0] | (p[0,1] | p[0,3]))
+((l[0,0] & ~p[0,0]) | ((~l[0,0] & p[0,0]) | (~l[0,0] & ~p[0,0])))
+(arg1[0] <-> arg1[0,2])
+(arg1[] <-> arg1[0])
+(arg2[0] <-> arg2[0,3])
+(arg2[] <-> arg2[0])
+1
+-}
+bogosort_ii = \arg1 arg2 -> do
+  -- solution: l[0,0] p[0,3] ~arg1[0,2] ~arg1[0] ~arg1[] ~arg2[0,3] ~arg2[0] ~arg2[] ~l[0,2] ~p[0,0] ~p[0,1]
+  () <- (do
+    p <- pure arg2
+    () <- sorted_i p
+    (l) <- permute_oi p
+    guard $ arg1 == l
+    pure ()
+   )
+  pure ()
+
+bogosort_io = \arg1 -> do
+  -- solution: arg2[0,3] arg2[0] arg2[] l[0,2] p[0,0] ~arg1[0,2] ~arg1[0] ~arg1[] ~l[0,0] ~p[0,1] ~p[0,3]
+  (arg2) <- (do
+    l <- pure arg1
+    (p) <- permute_io l
+    arg2 <- pure p
+    () <- sorted_i p
+    pure (arg2)
+   )
+  pure (arg2)
+
+bogosort_oi = \arg2 -> do
+  -- solution: arg1[0,2] arg1[0] arg1[] l[0,0] p[0,3] ~arg2[0,3] ~arg2[0] ~arg2[] ~l[0,2] ~p[0,0] ~p[0,1]
+  (arg1) <- (do
+    p <- pure arg2
+    () <- sorted_i p
+    (l) <- permute_oi p
+    arg1 <- pure l
     pure (arg1)
    )
   pure (arg1)
