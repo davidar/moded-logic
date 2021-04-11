@@ -110,6 +110,7 @@ mode' procs rule@(Rule name vars _) =
       , ("timesInt", ["iio", "ioi", "oii"])
       , ("sum", ["io", "ii"])
       , ("empty", [""])
+      , ("print", ["i"])
       ]
     m =
       builtins ++ do

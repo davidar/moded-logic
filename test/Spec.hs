@@ -8,7 +8,7 @@ import Queens
 import Sort
 
 import Control.Monad (forM_, when)
-import Control.Monad.Logic (observeAll)
+import Control.Monad.Logic (observeMany, observeManyT, observeAll)
 import qualified Control.Monad.Logic.FBackTrackT as FBT
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
@@ -217,6 +217,12 @@ programKiselyov =
   oddsPrime n :-
     odds n, n > 1, succ n' n,
     if elem d [1..n'], d > 1, mod n d 0 then empty else.
+
+  nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0.
+
+  oddsPrimeIO n :-
+    odds n, n > 1,
+    if nontrivialDivisor n d, print d then empty else.
   |]
 
 programEuler =
@@ -343,8 +349,9 @@ main = do
       it "oddsPlusTest" $ do
         head (FBT.observeAll oddsPlusTest_o) `shouldBe` 2
       it "oddsPrime" $ do
-        take 10 (observeAll oddsPrime_o) `shouldBe`
+        observeMany 10 oddsPrime_o `shouldBe`
           [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+        print =<< observeManyT 10 oddsPrimeIO_o
     describe "Euler" $ do
       it "compile" $ do
         let code = compile "Euler" programEuler

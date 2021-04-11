@@ -1048,3 +1048,134 @@ oddsPrime_o = do
     pure (arg1)
    )
   pure (arg1)
+
+{- nontrivialDivisor/2
+nontrivialDivisor arg1 arg2 :- ((succ n' n, elem d data1, data0 = 2, data1 = .. data0 n', mod n d data2, data2 = 0, arg1 = n, arg2 = d)).
+constraints:
+~(arg1[0,6] & n[0,6])
+~(arg2[0,7] & d[0,7])
+~(d[0,1] & d[0,4])
+~(d[0,1] & d[0,7])
+~(d[0,4] & d[0,7])
+~(data0[0,2] & data0[0,3])
+~(data1[0,1] & data1[0,3])
+~(data1[0,3] & data0[0,3])
+~(data2[0,4] & data2[0,5])
+~(n'[0,0] & n'[0,3])
+~(n[0,0] & n[0,4])
+~(n[0,0] & n[0,6])
+~(n[0,4] & n[0,6])
+(d[0,1] | (d[0,4] | d[0,7]))
+(data0[0,2] | data0[0,3])
+(data1[0,1] | data1[0,3])
+(data2[0,4] | data2[0,5])
+(n'[0,0] | n'[0,3])
+(n[0,0] | (n[0,4] | n[0,6]))
+((d[0,1] & ~data1[0,1]) | (~d[0,1] & ~data1[0,1]))
+((n'[0,0] & ~n[0,0]) | ((~n'[0,0] & n[0,0]) | (~n'[0,0] & ~n[0,0])))
+((~n[0,4] & (~d[0,4] & data2[0,4])) | (~n[0,4] & (~d[0,4] & ~data2[0,4])))
+(arg1[0] <-> arg1[0,6])
+(arg1[] <-> arg1[0])
+(arg2[0] <-> arg2[0,7])
+(arg2[] <-> arg2[0])
+(data0[0,3] <-> n'[0,3])
+1
+-}
+nontrivialDivisor_ii = \arg1 arg2 -> do
+  -- solution: d[0,1] data0[0,2] data1[0,3] data2[0,4] n'[0,0] n[0,6] ~arg1[0,6] ~arg1[0] ~arg1[] ~arg2[0,7] ~arg2[0] ~arg2[] ~d[0,4] ~d[0,7] ~data0[0,3] ~data1[0,1] ~data2[0,5] ~n'[0,3] ~n[0,0] ~n[0,4]
+  () <- (do
+    n <- pure arg1
+    data0 <- pure 2
+    (n') <- succ_oi n
+    data1 <- pure [data0..n']
+    (d) <- elem_oi data1
+    guard $ arg2 == d
+    (data2) <- mod_iio n d
+    guard $ data2 == 0
+    pure ()
+   )
+  pure ()
+
+nontrivialDivisor_io = \arg1 -> do
+  -- solution: arg2[0,7] arg2[0] arg2[] d[0,1] data0[0,2] data1[0,3] data2[0,4] n'[0,0] n[0,6] ~arg1[0,6] ~arg1[0] ~arg1[] ~d[0,4] ~d[0,7] ~data0[0,3] ~data1[0,1] ~data2[0,5] ~n'[0,3] ~n[0,0] ~n[0,4]
+  (arg2) <- (do
+    n <- pure arg1
+    data0 <- pure 2
+    (n') <- succ_oi n
+    data1 <- pure [data0..n']
+    (d) <- elem_oi data1
+    arg2 <- pure d
+    (data2) <- mod_iio n d
+    guard $ data2 == 0
+    pure (arg2)
+   )
+  pure (arg2)
+
+{- oddsPrimeIO/1
+oddsPrimeIO arg1 :- ((odds n, (>) n data0, data0 = 1, if (nontrivialDivisor n d, print d) then (empty) else (), arg1 = n)).
+constraints:
+~d[0,3,0,1]
+~n[0,3,0,0]
+~n[0,3]
+~(arg1[0,4] & n[0,4])
+~(d[0,3,0,0] & d[0,3,0,1])
+~(data0[0,1] & data0[0,2])
+~(n[0,0] & n[0,1])
+~(n[0,0] & n[0,3])
+~(n[0,0] & n[0,4])
+~(n[0,1] & n[0,3])
+~(n[0,1] & n[0,4])
+~(n[0,3] & n[0,4])
+(~n[0,1] & ~data0[0,1])
+(d[0,3,0,0] | d[0,3,0,1])
+(data0[0,1] | data0[0,2])
+(n[0,0] | ~n[0,0])
+(n[0,0] | (n[0,1] | (n[0,3] | n[0,4])))
+((~n[0,3,0,0] & d[0,3,0,0]) | (~n[0,3,0,0] & ~d[0,3,0,0]))
+(arg1[0] <-> arg1[0,4])
+(arg1[] <-> arg1[0])
+1
+-}
+oddsPrimeIO_i = \arg1 -> do
+  -- solution: d[0,3,0,0] data0[0,2] n[0,0] ~arg1[0,4] ~arg1[0] ~arg1[] ~d[0,3,0,1] ~data0[0,1] ~n[0,1] ~n[0,3,0,0] ~n[0,3] ~n[0,4]
+  () <- (do
+    data0 <- pure 1
+    (n) <- odds_o 
+    guard $ arg1 == n
+    guard $ (>) n data0
+    () <- ifte ((do
+      (d) <- nontrivialDivisor_io n
+      () <- print_i d
+      pure ()
+     )) (\() -> (do
+      () <- empty 
+      pure ()
+     )) ((do
+      
+      pure ()
+     ))
+    pure ()
+   )
+  pure ()
+
+oddsPrimeIO_o = do
+  -- solution: arg1[0,4] arg1[0] arg1[] d[0,3,0,0] data0[0,2] n[0,0] ~d[0,3,0,1] ~data0[0,1] ~n[0,1] ~n[0,3,0,0] ~n[0,3] ~n[0,4]
+  (arg1) <- (do
+    data0 <- pure 1
+    (n) <- odds_o 
+    arg1 <- pure n
+    guard $ (>) n data0
+    () <- ifte ((do
+      (d) <- nontrivialDivisor_io n
+      () <- print_i d
+      pure ()
+     )) (\() -> (do
+      () <- empty 
+      pure ()
+     )) ((do
+      
+      pure ()
+     ))
+    pure (arg1)
+   )
+  pure (arg1)
