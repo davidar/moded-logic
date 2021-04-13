@@ -4,6 +4,7 @@ tasks:
   - init: |
       mkdir -p /workspace/.stack/
       ln -sv /workspace/.stack/ ~/.stack
+      stack setup
       stack build
     command: |
       ln -sv /workspace/.stack/ ~/.stack
@@ -11,5 +12,4 @@ tasks:
 
 vscode:
   extensions:
-    - haskell.haskell@1.2.0:ZPrUKYpwCCFQf9Q0phszuQ==
-    - justusadam.language-haskell@3.3.0:uqgpHstOoamig+7LyFNNVw==
+    - haskell.haskell
