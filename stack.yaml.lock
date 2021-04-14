@@ -11,6 +11,17 @@ packages:
       sha256: 4cb3a66ee7b3ca57b680ebe41815a5965b0860d191cdf08787bb78d0e2fb650b
   original:
     hackage: picosat-0.1.6
+- completed:
+    name: logict
+    version: 0.7.1.0
+    git: https://github.com/davidar/logict.git
+    pantry-tree:
+      size: 744
+      sha256: 00a4da610f6804daa2a688135f96e65e87edae28e2318bf93770e7317a556e3a
+    commit: 98aa8da4f84bacde51916058fa1353284ffa0adc
+  original:
+    git: https://github.com/davidar/logict.git
+    commit: 98aa8da4f84bacde51916058fa1353284ffa0adc
 snapshots:
 - completed:
     size: 565720

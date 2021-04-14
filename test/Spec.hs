@@ -12,18 +12,17 @@ import Control.Applicative ((<|>))
 import Control.Monad (forM_, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Logic (observeMany, observeManyT, observeAll, observeAllT)
-import qualified Control.Monad.Logic.FBackTrackT as FBT
+import qualified Control.Monad.Logic.Fair as FairLogic
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Parse (logic)
 import qualified Data.List as List
 import qualified Data.List.Ordered as OrdList
-import qualified Data.Set as Set
-import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn)
 
+updateCode :: Bool
 updateCode = False
 
 programAppend :: Prog Var Var
@@ -379,7 +378,7 @@ main = do
         expect <- TIO.readFile "test/Kiselyov.hs"
         code `shouldBe` expect
       it "pythag" $ do
-        take 7 (FBT.observeAll pythag_ooo) `shouldBe`
+        take 7 (FairLogic.observeAll pythag_ooo) `shouldBe`
           [(3,4,5),(6,8,10),(5,12,13),(9,12,15),(8,15,17),(12,16,20),(7,24,25)]
       it "ptriang" $ do
         observeAll ptriang_o `shouldBe`
@@ -387,9 +386,9 @@ main = do
       it "stepN" $ do
         observeAll (stepN_io 99) `shouldBe` [0..99]
       it "oddsTest" $ do
-        head (FBT.observeAll oddsTest_o) `shouldBe` 10
+        head (FairLogic.observeAll oddsTest_o) `shouldBe` 10
       it "oddsPlusTest" $ do
-        head (FBT.observeAll oddsPlusTest_o) `shouldBe` 2
+        head (FairLogic.observeAll oddsPlusTest_o) `shouldBe` 2
       it "oddsPrime" $ do
         let expect = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
         observeMany 10 oddsPrime_o `shouldBe` expect
