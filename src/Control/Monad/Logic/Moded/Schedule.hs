@@ -12,8 +12,8 @@ import Control.Monad (guard)
 import Control.Monad.Logic.Moded.AST (Atom(..), Goal(..), Name, Rule(..), Var(..))
 import Control.Monad.Logic.Moded.Constraints
   ( Constraints
+  , CAtom(..)
   , constraints
-  , term
   , unsafeSolveConstraints
   )
 import Control.Monad.Logic.Moded.Path (nonlocals)
@@ -72,10 +72,12 @@ mode r@(Rule name vars body) soln =
     Right body' -> Right $ Rule name (annotate [] <$> vars) body'
   where
     annotate p (V v)
-      | term p (V v) `Set.member` soln = Out v
-      | Sat.Neg (term p (V v)) `Set.member` soln = In v
+      | t `Set.member` soln = Out v
+      | Sat.Neg t `Set.member` soln = In v
       | v == "_" = Out v
-      | otherwise = error $ v ++ show p ++ " not in " ++ show soln
+      | otherwise = error $ show t ++ " not in " ++ show soln
+      where
+        t = Sat.Var $ Produce (V v) p
     walk p (Disj disj) =
       Disj <$> sequence [walk (p ++ [d]) g | (d, g) <- zip [0 ..] disj]
     walk p (Conj conj) = do
@@ -88,6 +90,15 @@ mode r@(Rule name vars body) soln =
       t' <- walk (p ++ [1]) t
       e' <- walk (p ++ [2]) e
       pure $ Ifte c' t' e'
+    walk p (Anon n vs g) = do
+      let vs' = do
+            (i, V v) <- zip [1..] vs
+            let t = Sat.Var $ ProduceArg n i
+            pure $ if t `Set.member` soln then Out v
+              else if Sat.Neg t `Set.member` soln then In v
+              else error $ show t ++ " not in " ++ show soln
+      g' <- walk (p ++ [0]) g
+      pure $ Anon (annotate p n) vs' g'
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
 mode' :: CState -> Rule Var Var -> CState

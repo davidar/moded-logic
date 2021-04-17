@@ -83,6 +83,11 @@ superhomogeneous r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
       t' <- tGoal t
       e' <- tGoal e
       return $ Ifte c' t' e'
+    tGoal (Anon name vs g) = do
+      name' <- tVal name
+      vs' <- mapM tVal vs
+      g' <- tGoal g
+      return $ Anon name' vs' g'
     tGoal (Atom a) = do
       (count, _) <- get
       put (count, [])
@@ -108,6 +113,9 @@ distinctVars r = r {ruleBody = evalState (tGoal $ ruleBody r) 0}
       t' <- tGoal t
       e' <- tGoal e
       return $ Ifte c' t' e'
+    tGoal (Anon name vs g) = do
+      g' <- tGoal g
+      return $ Anon name vs g'
     tGoal (Atom (Func name vs u)) = do
       (vs', body) <- tVars fdups vs
       return . Conj $ Atom <$> Func name vs' u : concat body

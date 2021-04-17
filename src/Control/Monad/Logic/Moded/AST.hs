@@ -31,6 +31,7 @@ data Goal v
   | Conj [Goal v]
   | Disj [Goal v]
   | Ifte (Goal v) (Goal v) (Goal v)
+  | Anon v [v] (Goal v)
   deriving (Eq, Ord, Functor, Foldable, Lift)
 
 data Rule u v =
@@ -65,6 +66,8 @@ instance (Show v) => Show (Goal v) where
   show (Disj gs) = "(" ++ intercalate "; " (map show gs) ++ ")"
   show (Ifte c t e) =
     "if " <> show c <> " then " <> show t <> " else " <> show e
+  show (Anon name vars g) =
+    "(" ++ unwords (show name : map show vars) ++ " :- " ++ show g ++ ")"
 
 instance (Show u, Show v) => Show (Rule u v) where
   show (Rule name vars g) =
@@ -80,4 +83,5 @@ subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs
 subgoals (Disj gs) = gs
 subgoals (Ifte c t e) = [c, t, e]
+subgoals (Anon _ _ g) = [g]
 subgoals (Atom _) = error "not a compound goal"

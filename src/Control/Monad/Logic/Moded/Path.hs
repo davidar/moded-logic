@@ -32,6 +32,7 @@ outside (d:ps) (Disj gs) = outside ps (gs !! d)
 outside (0:ps) (Ifte c t _) = Set.fromList (toList t) `Set.union` outside ps c
 outside (1:ps) (Ifte c t _) = Set.fromList (toList c) `Set.union` outside ps t
 outside (2:ps) (Ifte _ _ e) = outside ps e
+outside (0:ps) (Anon _ vs g) = Set.fromList vs `Set.union` outside ps g
 outside _ _ = error "invalid path"
 
 nonlocals :: Path -> Rule Var Var -> Set Var

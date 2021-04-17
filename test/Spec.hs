@@ -50,6 +50,8 @@ programAppend =
 
   map p [] [].
   map p (x:xs) (y:ys) :- p x y, map p xs ys.
+
+  succs xs ys :- (p x y :- succ x y), map p xs ys.
   |]
 
 programPrimes :: Prog Var Var

@@ -1,6 +1,6 @@
 module Control.Monad.Logic.Moded.Constraints
   ( Constraints
-  , term
+  , CAtom(..)
   , constraints
   , unsafeSolveConstraints
   ) where
@@ -81,6 +81,7 @@ cGoal m p r =
     Disj {} -> cDisj p r
     Conj {} -> cConj p r
     Ifte {} -> cIte p r
+    Anon {} -> cAnon p r
     Atom {} -> error "impossible"
 
 -- | Disjunction constraints (sec 5.2.3)
@@ -120,6 +121,13 @@ cIte p r =
     pc = p ++ [0]
     pt = p ++ [1]
     pe = p ++ [2]
+
+-- | Higher-order terms (omitted from paper)
+cAnon :: Path -> Rule Var Var -> Constraints
+cAnon p r = Set.fromList [Sat.Var (ProduceArg name i) `Sat.Iff` term p' v | (i,v) <- zip [1..] vs]
+  where
+    p' = p ++ [0]
+    Anon name vs _ = extract p (ruleBody r)
 
 -- | Atomic goals (sec 5.2.4)
 cAtom :: Modes -> Path -> Rule Var Var -> Constraints

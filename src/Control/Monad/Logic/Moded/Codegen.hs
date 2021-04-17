@@ -117,6 +117,7 @@ cgGoal p r =
                 | V v <- Set.elems $ nonlocals' (p ++ [0]) r
                 , Out v `elem` c
                 ]
+    g@Anon{} -> T.pack $ show g
     Atom _ -> cgAtom p r
 
 cgRule :: [Pragma] -> Rule ModedVar ModedVar -> Text

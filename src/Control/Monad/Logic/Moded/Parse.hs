@@ -137,8 +137,18 @@ softcut = do
 disj :: Parser (Goal Val)
 disj = Disj <$> parens (goal `sepBy` symbol ";")
 
+lambda :: Parser (Goal Val)
+lambda = do
+  symbol "("
+  name <- identifier
+  vars <- many value
+  symbol ":-"
+  body <- conj
+  symbol ")"
+  pure $ Anon (Var $ V name) vars body
+
 goal :: Parser (Goal Val)
-goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> disj
+goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> try disj <|> lambda
 
 conj :: Parser (Goal Val)
 conj = Conj <$> goal `sepBy` symbol ","
