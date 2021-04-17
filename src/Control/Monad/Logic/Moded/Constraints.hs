@@ -1,6 +1,10 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Control.Monad.Logic.Moded.Constraints
   ( Constraints
   , CAtom(..)
+  , Mode(..)
+  , ModeString(..)
   , constraints
   , unsafeSolveConstraints
   ) where
@@ -26,21 +30,33 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
+import Data.String (IsString(..))
 import System.IO.Unsafe (unsafePerformIO)
 
 type Constraint = Sat.Expr CAtom
 type Constraints = Set Constraint
-
-type Modes = [(Name, [String])]
 
 data CAtom
   = Produce Var Path
   | ProduceArg Var Int
   deriving (Eq, Ord)
 
+data Mode
+  = MIn
+  | MOut
+  | MPred [Mode]
+newtype ModeString = ModeString [Mode]
+type Modes = [(Name, [ModeString])]
+
 instance Show CAtom where
   show (Produce v p) = show v ++ show p
   show (ProduceArg v i) = show v ++"("++ show i ++")"
+
+instance IsString ModeString where
+  fromString = (ModeString .) . map $ \case
+    'i' -> MIn
+    'o' -> MOut
+    _ -> error "invalid modestring"
 
 term :: Path -> Var -> Constraint
 term p v = Sat.Var $ Produce v p
@@ -148,15 +164,20 @@ cAtom m p r =
           pure $ term p u `Sat.Iff` term [] v
       | Just modeset <- lookup name m ->
         Set.singleton . cOr . nub . sort $ do
-          modes <- modeset
+          ModeString modes <- modeset
           pure . cAnd $ do
             (v, mode) <- zip vars modes
             let t = term p v
-            pure $
-              case mode of
-                'i' -> Sat.Neg t
-                'o' -> t
-                _ -> error "invalid mode string"
+            case mode of
+              MIn -> pure $ Sat.Neg t
+              MOut -> pure t
+              MPred ms -> Sat.Neg t : do
+                (i, mode') <- zip [1..] ms
+                let t' = Sat.Var $ ProduceArg v i
+                pure $ case mode' of
+                  MIn -> Sat.Neg t'
+                  MOut -> t'
+                  MPred _ -> error "nested modestring"
       | head name == '('
       , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
       | V name `elem` ruleArgs r ->

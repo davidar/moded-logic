@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections, OverloadedStrings #-}
 
 module Control.Monad.Logic.Moded.Schedule
   ( ModedVar(..)
@@ -13,6 +13,8 @@ import Control.Monad.Logic.Moded.AST (Atom(..), Goal(..), Name, Rule(..), Var(..
 import Control.Monad.Logic.Moded.Constraints
   ( Constraints
   , CAtom(..)
+  , Mode(..)
+  , ModeString(..)
   , constraints
   , unsafeSolveConstraints
   )
@@ -127,13 +129,24 @@ mode' procs rule@(Rule name vars _) =
       builtins ++ do
         ((name', _), (_, procs')) <- procs
         pure . (name', ) $ do
-          (_, Right (Rule _ mvars _)) <- procs'
-          pure $ do
+          (soln, Right (Rule _ mvars _)) <- procs'
+          pure . ModeString $ do
             mv <- mvars
             pure $
               case mv of
-                In _ -> 'i'
-                Out _ -> 'o'
+                In v -> case predMode (V v) soln of
+                  [] -> MIn
+                  ms -> MPred ms
+                Out _ -> MOut
+
+predMode :: Var -> Constraints -> [Mode]
+predMode name soln = go 1
+  where
+    go i =
+      let t = Sat.Var $ ProduceArg name i
+       in if Sat.Neg t `Set.member` soln then MIn : go (i+1)
+          else if t `Set.member` soln then MOut : go (i+1)
+          else []
 
 sortConj :: [(Goal ModedVar, Set Var)] -> Either (Cycle DepNode) [Goal ModedVar]
 sortConj gs = map unDepNode <$> topSort (overlay vs es)
