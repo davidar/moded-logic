@@ -34,6 +34,7 @@ import Data.String (IsString(..))
 import System.IO.Unsafe (unsafePerformIO)
 
 type Constraint = Sat.Expr CAtom
+
 type Constraints = Set Constraint
 
 data CAtom
@@ -45,18 +46,22 @@ data Mode
   = MIn
   | MOut
   | MPred [Mode]
-newtype ModeString = ModeString [Mode]
-type Modes = [(Name, [ModeString])]
+
+newtype ModeString =
+  ModeString [Mode]
+
+type Modes = Map Name [ModeString]
 
 instance Show CAtom where
   show (Produce v p) = show v ++ show p
-  show (ProduceArg v i) = show v ++"("++ show i ++")"
+  show (ProduceArg v i) = show v ++ "(" ++ show i ++ ")"
 
 instance IsString ModeString where
-  fromString = (ModeString .) . map $ \case
-    'i' -> MIn
-    'o' -> MOut
-    _ -> error "invalid modestring"
+  fromString =
+    (ModeString .) . map $ \case
+      'i' -> MIn
+      'o' -> MOut
+      _ -> error "invalid modestring"
 
 term :: Path -> Var -> Constraint
 term p v = Sat.Var $ Produce v p
@@ -140,7 +145,9 @@ cIte p r =
 
 -- | Higher-order terms (omitted from paper)
 cAnon :: Path -> Rule Var Var -> Constraints
-cAnon p r = Set.fromList [Sat.Var (ProduceArg name i) `Sat.Iff` term p' v | (i,v) <- zip [1..] vs]
+cAnon p r =
+  Set.fromList
+    [Sat.Var (ProduceArg name i) `Sat.Iff` term p' v | (i, v) <- zip [1 ..] vs]
   where
     p' = p ++ [0]
     Anon name vs _ = extract p (ruleBody r)
@@ -162,7 +169,7 @@ cAtom m p r =
         Set.fromList $ do
           (u, v) <- zip vars rvars
           pure $ term p u `Sat.Iff` term [] v
-      | Just modeset <- lookup name m ->
+      | Just modeset <- Map.lookup name m ->
         Set.singleton . cOr . nub . sort $ do
           ModeString modes <- modeset
           pure . cAnd $ do
@@ -171,18 +178,20 @@ cAtom m p r =
             case mode of
               MIn -> pure $ Sat.Neg t
               MOut -> pure t
-              MPred ms -> Sat.Neg t : do
-                (i, mode') <- zip [1..] ms
-                let t' = Sat.Var $ ProduceArg v i
-                pure $ case mode' of
-                  MIn -> Sat.Neg t'
-                  MOut -> t'
-                  MPred _ -> error "nested modestring"
+              MPred ms ->
+                Sat.Neg t : do
+                  (i, mode') <- zip [1 ..] ms
+                  let t' = Sat.Var $ ProduceArg v i
+                  pure $
+                    case mode' of
+                      MIn -> Sat.Neg t'
+                      MOut -> t'
+                      MPred _ -> error "nested modestring"
       | head name == '('
       , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
       | V name `elem` ruleArgs r ->
         Set.fromList $ do
-          (i, v) <- zip [1..] vars
+          (i, v) <- zip [1 ..] vars
           pure $ term p v `Sat.Iff` Sat.Var (ProduceArg (V name) i)
       | otherwise ->
         error $ "unknown predicate " ++ name ++ "/" ++ show (length vars)

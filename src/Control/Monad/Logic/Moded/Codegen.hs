@@ -14,7 +14,13 @@ import Control.Monad.Logic.Moded.AST
   , Var(..)
   )
 import Control.Monad.Logic.Moded.Path (Path, extract, nonlocals)
-import Control.Monad.Logic.Moded.Schedule (ModedVar(..), mode', stripMode)
+import Control.Monad.Logic.Moded.Schedule
+  ( CompiledPredicate(..)
+  , ModedVar(..)
+  , Procedure(..)
+  , mode'
+  , stripMode
+  )
 import Data.List (groupBy, sort)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
@@ -62,7 +68,8 @@ cgAtom p r =
               T.pack $
               case modeString vs of
                 [] -> name
-                _ | In name `elem` ruleArgs r -> name
+                _
+                  | In name `elem` ruleArgs r -> name
                 ms -> name ++ "_" ++ ms
   where
     Atom a = extract p $ ruleBody r
@@ -120,7 +127,10 @@ cgGoal p r =
     Anon _ vars body ->
       let p' = p ++ [0]
           code = cgGoal p' r
-          rets = T.intercalate "," [T.pack v | V v <- Set.elems $ nonlocals' p' r, Out v `elem` body]
+          rets =
+            T.intercalate
+              ","
+              [T.pack v | V v <- Set.elems $ nonlocals' p' r, Out v `elem` body]
           ins = T.unwords [T.pack v | In v <- vars]
           outs = T.intercalate "," [T.pack v | Out v <- vars]
        in [text|
@@ -178,18 +188,23 @@ compile moduleName (Prog pragmas rules) =
     $code
   |]
   where
-    cstate = foldl mode' [] rules
     code =
       T.unlines $ do
-        ((name, arity), ((rule, constraints), procs)) <- cstate
+        (name, CompiledPredicate { unmodedRule = rule
+                                 , modeConstraints = constraints
+                                 , procedures = procs
+                                 }) <- foldl mode' [] rules
         let doc =
               T.pack <$>
-              ["{- " ++ name ++ "/" ++ show arity, show rule, "constraints:"] ++
+              [ "{- " ++ name ++ "/" ++ show (length (ruleArgs rule))
+              , show rule
+              , "constraints:"
+              ] ++
               map show (Set.elems constraints) ++ ["-}"]
             defs = do
               (def:_) <-
                 groupBy (\a b -> comparing (head . T.words) a b == EQ) . sort $ do
-                  (soln, p) <- procs
+                  Procedure {modeSolution = soln, modedRule = p} <- procs
                   pure $
                     case p of
                       Left e -> "-- " <> T.pack e

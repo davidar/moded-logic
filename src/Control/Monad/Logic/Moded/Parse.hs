@@ -9,8 +9,8 @@ module Control.Monad.Logic.Moded.Parse
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
-  , Prog(..)
   , Pragma(..)
+  , Prog(..)
   , Rule(..)
   , Var(..)
   )
@@ -18,8 +18,8 @@ import Control.Monad.Logic.Moded.Preprocess
   ( Val(..)
   , combineDefs
   , distinctVars
-  , superhomogeneous
   , simplify
+  , superhomogeneous
   )
 
 import Data.Char (isUpper)
@@ -94,7 +94,10 @@ value =
       elems <- value `sepBy` symbol ","
       symbol "]"
       let nil = Cons "[]" []
-      pure $ if null elems then nil else Cons ":" $ elems ++ [nil]) <|>
+      pure $
+        if null elems
+          then nil
+          else Cons ":" $ elems ++ [nil]) <|>
   (do v <- identifier
       if isUpper (head v)
         then do
@@ -181,7 +184,7 @@ parseProg fn lp = do
   let p2 = combineDefs p1
       p3 = map superhomogeneous p2
       p4 = map distinctVars p3
-      p5 = map (\r -> r { ruleBody = simplify (ruleBody r) }) p4
+      p5 = map (\r -> r {ruleBody = simplify (ruleBody r)}) p4
   pure $ Prog pragmas p5
 
 logic :: QuasiQuoter

@@ -2,6 +2,8 @@
 
 module Control.Monad.Logic.Moded.Schedule
   ( ModedVar(..)
+  , Procedure(..)
+  , CompiledPredicate(..)
   , stripMode
   , mode'
   ) where
@@ -9,10 +11,16 @@ module Control.Monad.Logic.Moded.Schedule
 import Algebra.Graph.AdjacencyMap (edges, overlay, vertices)
 import Algebra.Graph.AdjacencyMap.Algorithm (Cycle, topSort)
 import Control.Monad (guard)
-import Control.Monad.Logic.Moded.AST (Atom(..), Goal(..), Name, Rule(..), Var(..))
+import Control.Monad.Logic.Moded.AST
+  ( Atom(..)
+  , Goal(..)
+  , Name
+  , Rule(..)
+  , Var(..)
+  )
 import Control.Monad.Logic.Moded.Constraints
-  ( Constraints
-  , CAtom(..)
+  ( CAtom(..)
+  , Constraints
   , Mode(..)
   , ModeString(..)
   , constraints
@@ -22,6 +30,8 @@ import Control.Monad.Logic.Moded.Path (nonlocals)
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.Foldable (Foldable(toList))
 import Data.List (intercalate)
+import qualified Data.Map as Map
+import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
 
@@ -30,10 +40,20 @@ data ModedVar
   | Out String
   deriving (Eq, Ord)
 
-type CState
-   = [( (Name, Int)
-      , ( (Rule Var Var, Constraints)
-        , [(Constraints, Either String (Rule ModedVar ModedVar))]))]
+data Procedure =
+  Procedure
+    { modeSolution :: Constraints
+    , modedRule :: Either String (Rule ModedVar ModedVar)
+    }
+
+data CompiledPredicate =
+  CompiledPredicate
+    { unmodedRule :: Rule Var Var
+    , modeConstraints :: Constraints
+    , procedures :: [Procedure]
+    }
+
+type CompiledProgram = [(Name, CompiledPredicate)]
 
 instance Show ModedVar where
   show (In v) = v ++ "::in"
@@ -52,6 +72,21 @@ instance Ord DepNode where
       EQ -> (g, i) `compare` (g', j)
       r -> r
 
+builtins :: Map Name [ModeString]
+builtins =
+  Map.fromList
+    [ ("succ", ["io", "oi", "ii"])
+    , ("div", ["iio", "iii"])
+    , ("mod", ["iio", "iii"])
+    , ("divMod", ["iioo", "iioi", "iiio", "iiii"])
+    , ("plus", ["iio", "ioi", "oii"])
+    , ("times", ["iio", "ioi", "oii"])
+    , ("timesInt", ["iio", "ioi", "oii"])
+    , ("sum", ["io", "ii"])
+    , ("empty", [""])
+    , ("print", ["i"])
+    ]
+
 stripMode :: ModedVar -> Var
 stripMode (In v) = V v
 stripMode (Out v) = V v
@@ -60,8 +95,8 @@ unDepNode :: DepNode -> Goal ModedVar
 unDepNode (DepNode _ g) = g
 
 priority :: Goal ModedVar -> Int
-priority (Atom Unif{}) = 0
-priority (Atom Func{}) = 1
+priority (Atom Unif {}) = 0
+priority (Atom Func {}) = 1
 priority g = 2 + length [v | Out v <- toList g]
 
 mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
@@ -94,49 +129,44 @@ mode r@(Rule name vars body) soln =
       pure $ Ifte c' t' e'
     walk p (Anon n vs g) = do
       let vs' = do
-            (i, V v) <- zip [1..] vs
+            (i, V v) <- zip [1 ..] vs
             let t = Sat.Var $ ProduceArg n i
-            pure $ if t `Set.member` soln then Out v
-              else if Sat.Neg t `Set.member` soln then In v
-              else error $ show t ++ " not in " ++ show soln
+            pure $
+              if t `Set.member` soln
+                then Out v
+                else if Sat.Neg t `Set.member` soln
+                       then In v
+                       else error $ show t ++ " not in " ++ show soln
       g' <- walk (p ++ [0]) g
       pure $ Anon (annotate p n) vs' g'
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
-mode' :: CState -> Rule Var Var -> CState
-mode' procs rule@(Rule name vars _) =
-  procs ++
-  [ ( (name, length vars)
-    , ( (rule, constraints m rule)
-      , [ (soln, mode rule soln)
-        | soln <- Set.elems $ unsafeSolveConstraints m rule
-        ]))
-  ]
+mode' :: CompiledProgram -> Rule Var Var -> CompiledProgram
+mode' procs rule = procs ++ [(ruleName rule, obj)]
   where
-    builtins =
-      [ ("succ", ["io", "oi", "ii"])
-      , ("div",  ["iio", "iii"])
-      , ("mod",  ["iio", "iii"])
-      , ("divMod", ["iioo", "iioi", "iiio", "iiii"])
-      , ("plus", ["iio", "ioi", "oii"])
-      , ("times", ["iio", "ioi", "oii"])
-      , ("timesInt", ["iio", "ioi", "oii"])
-      , ("sum", ["io", "ii"])
-      , ("empty", [""])
-      , ("print", ["i"])
-      ]
+    obj =
+      CompiledPredicate
+        { unmodedRule = rule
+        , modeConstraints = constraints m rule
+        , procedures =
+            [ Procedure {modeSolution = soln, modedRule = mode rule soln}
+            | soln <- Set.elems $ unsafeSolveConstraints m rule
+            ]
+        }
     m =
-      builtins ++ do
-        ((name', _), (_, procs')) <- procs
+      flip Map.union builtins . Map.fromList $ do
+        (name', CompiledPredicate {procedures = procs'}) <- procs
         pure . (name', ) $ do
-          (soln, Right (Rule _ mvars _)) <- procs'
+          Procedure {modeSolution = soln, modedRule = Right (Rule _ mvars _)} <-
+            procs'
           pure . ModeString $ do
             mv <- mvars
             pure $
               case mv of
-                In v -> case predMode (V v) soln of
-                  [] -> MIn
-                  ms -> MPred ms
+                In v ->
+                  case predMode (V v) soln of
+                    [] -> MIn
+                    ms -> MPred ms
                 Out _ -> MOut
 
 predMode :: Var -> Constraints -> [Mode]
@@ -144,9 +174,11 @@ predMode name soln = go 1
   where
     go i =
       let t = Sat.Var $ ProduceArg name i
-       in if Sat.Neg t `Set.member` soln then MIn : go (i+1)
-          else if t `Set.member` soln then MOut : go (i+1)
-          else []
+       in if Sat.Neg t `Set.member` soln
+            then MIn : go (i + 1)
+            else if t `Set.member` soln
+                   then MOut : go (i + 1)
+                   else []
 
 sortConj :: [(Goal ModedVar, Set Var)] -> Either (Cycle DepNode) [Goal ModedVar]
 sortConj gs = map unDepNode <$> topSort (overlay vs es)
