@@ -1,8 +1,10 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 
 import Control.Monad.Logic.Moded.Prelude
 import Append
 import Euler
+import HigherOrder
 import Kiselyov
 import Primes
 import Queens
@@ -47,11 +49,32 @@ programAppend =
   delete x (h:t) (h:r) :- delete x t r.
   perm [] [].
   perm xs (h:t) :- delete h xs ys, perm ys t.
+  |]
+
+programHigherOrder :: Prog Var Var
+programHigherOrder =
+  [logic|
+  even n :- mod n 2 0.
 
   map p [] [].
   map p (x:xs) (y:ys) :- p x y, map p xs ys.
 
   succs xs ys :- (p x y :- succ x y), map p xs ys.
+
+  filter p [] [].
+  filter p (h:t) ts :-
+    if p h
+    then filter p t t', ts = (h:t')
+    else filter p t ts.
+
+  evens xs ys :- (p x :- even x), filter p xs ys.
+
+  foldl p [] a a.
+  foldl p (h:t) a a'' :- p h a a', foldl p t a' a''.
+
+  sum xs z r :- (p x a a' :- plus x a a'), foldl p xs z r.
+  split xs z r :- (p x a a' :- a = (x:a')), foldl p xs z r.
+  splitr xs z r :- (p x a a' :- a' = (x:a)), foldl p xs z r.
   |]
 
 programPrimes :: Prog Var Var
@@ -285,7 +308,7 @@ programEuler =
 main :: IO ()
 main = do
   putStrLn . unlines $
-    map show [programAppend, programPrimes, programSort, programQueens, programCrypt, programKiselyov, programEuler]
+    map show [programAppend, programHigherOrder, programPrimes, programSort, programQueens, programCrypt, programKiselyov, programEuler]
   hspec $ do
     describe "Append" $ do
       it "compile" $ do
@@ -334,11 +357,25 @@ main = do
           List.sort (List.permutations [1 .. 5])
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` [()]
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
+    describe "HigherOrder" $ do
+      it "compile" $ do
+        let code = compile "HigherOrder" programHigherOrder
+        when updateCode $ TIO.writeFile "test/HigherOrder.hs" code
+        expect <- TIO.readFile "test/HigherOrder.hs"
+        code `shouldBe` expect
       it "map" $ do
         observeAll (map_iio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (map_ioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
         observeAll (succs_io [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (succs_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
+      it "filter" $ do
+        observeAll (evens_io [1..9]) `shouldBe` [[2,4,6,8]]
+      it "foldl" $ do
+        observeAll (sum_iio [1..9] 0) `shouldBe` [sum [1..9]]
+        observeAll (sum_ioi [1..9] 999) `shouldBe` [999 - sum [1..9]]
+        observeAll (split_oio [1..9]) `shouldBe` [splitAt i [1..9] | i <- [0..9]]
+        observeMany 10 (splitr_ooi [1..9]) `shouldBe`
+          [let (a, b) = splitAt i [1..9] in (reverse a, b) | i <- [0..9]]
     describe "Primes" $ do
       it "compile" $ do
         let code = compile "Primes" programPrimes
