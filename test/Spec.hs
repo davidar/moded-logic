@@ -181,6 +181,7 @@ programCrypt =
     zeros z.
   |]
 
+programKiselyov :: Prog Var Var
 programKiselyov =
   [logic|
   nat 0.
@@ -265,6 +266,7 @@ programKiselyov =
     length t m, length str n, plus i m n.
   |]
 
+programEuler :: Prog Var Var
 programEuler =
   [logic|
   elem x (x:_).
@@ -335,6 +337,8 @@ main = do
       it "map" $ do
         observeAll (map_iio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (map_ioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
+        observeAll (succs_io [0 .. 9]) `shouldBe` [[1 .. 10]]
+        observeAll (succs_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
     describe "Primes" $ do
       it "compile" $ do
         let code = compile "Primes" programPrimes

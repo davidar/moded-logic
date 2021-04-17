@@ -117,7 +117,17 @@ cgGoal p r =
                 | V v <- Set.elems $ nonlocals' (p ++ [0]) r
                 , Out v `elem` c
                 ]
-    g@Anon{} -> T.pack $ show g
+    Anon _ vars body ->
+      let p' = p ++ [0]
+          code = cgGoal p' r
+          rets = T.intercalate "," [T.pack v | V v <- Set.elems $ nonlocals' p' r, Out v `elem` body]
+          ins = T.unwords [T.pack v | In v <- vars]
+          outs = T.intercalate "," [T.pack v | Out v <- vars]
+       in [text|
+            pure $ \$ins -> do
+              ($rets) <- $code
+              pure ($outs)
+        |]
     Atom _ -> cgAtom p r
 
 cgRule :: [Pragma] -> Rule ModedVar ModedVar -> Text

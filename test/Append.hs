@@ -802,3 +802,62 @@ map_ioo = \p -> do
     pure (arg2,arg3)
    )
   pure (arg2,arg3)
+
+{- succs/2
+succs xs ys :- ((map p xs ys, (p x y :- (succ x y)))).
+constraints:
+~(p[0,0] & p[0,1])
+(p[0,0] | p[0,1])
+((x[0,1,0,0] & ~y[0,1,0,0]) | ((~x[0,1,0,0] & y[0,1,0,0]) | (~x[0,1,0,0] & ~y[0,1,0,0])))
+((~p[0,0] & (p(1) & (p(2) & (xs[0,0] & ys[0,0])))) | ((~p[0,0] & (p(1) & (~p(2) & (xs[0,0] & ~ys[0,0])))) | ((~p[0,0] & (~p(1) & (p(2) & (~xs[0,0] & ys[0,0])))) | (~p[0,0] & (~p(1) & (~p(2) & (~xs[0,0] & ~ys[0,0])))))))
+(x[0,1,0] <-> x[0,1,0,0])
+(xs[] <-> xs[0])
+(xs[0] <-> xs[0,0])
+(y[0,1,0] <-> y[0,1,0,0])
+(ys[] <-> ys[0])
+(ys[0] <-> ys[0,0])
+(p(1) <-> x[0,1,0])
+(p(2) <-> y[0,1,0])
+1
+-}
+succs_ii = \xs ys -> do
+  -- solution: p[0,1] ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~p(1) ~p(2)
+  () <- (do
+    (p) <- pure $ \x y -> do
+      () <- (do
+        () <- succ_ii x y
+        pure ()
+       )
+      pure ()
+    () <- map_iii p xs ys
+    pure ()
+   )
+  pure ()
+
+succs_io = \xs -> do
+  -- solution: p[0,1] y[0,1,0] y[0,1,0,0] ys[] ys[0] ys[0,0] p(2) ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~p(1)
+  (ys) <- (do
+    (p) <- pure $ \x -> do
+      (y) <- (do
+        (y) <- succ_io x
+        pure (y)
+       )
+      pure (y)
+    (ys) <- map_iio p xs
+    pure (ys)
+   )
+  pure (ys)
+
+succs_oi = \ys -> do
+  -- solution: p[0,1] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] p(1) ~p[0,0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~p(2)
+  (xs) <- (do
+    (p) <- pure $ \y -> do
+      (x) <- (do
+        (x) <- succ_oi y
+        pure (x)
+       )
+      pure (x)
+    (xs) <- map_ioi p ys
+    pure (xs)
+   )
+  pure (xs)

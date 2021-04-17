@@ -146,4 +146,5 @@ simplify (Conj gs) = Conj $ conjs ++ other
     other = filter (not . isConj) gs'
 simplify (Disj gs) = Disj $ simplify <$> gs
 simplify (Ifte c t e) = Ifte (simplify c) (simplify t) (simplify e)
-simplify g = g
+simplify (Anon name vs g) = Anon name vs (simplify g)
+simplify (Atom a) = Atom a
