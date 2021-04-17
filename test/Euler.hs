@@ -16,20 +16,20 @@ xs[1,0]
 ~(arg2[0,0] & x[0,0])
 ~(xs[1,0] & xs[1,1])
 (xs[1,0] | xs[1,1])
-(arg2[0] <-> arg2[0,0])
-(arg2[1] <-> arg2[1,0])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
-(x[0] <-> x[0,0])
-(x[1,1] <-> x[])
-(x[1] <-> x[1,1])
+(arg2[0] <-> arg2[0,0])
+(arg2[1] <-> arg2[1,0])
 (x[] <-> x[0])
 (x[] <-> x[1])
+(x[0] <-> x[0,0])
+(x[1] <-> x[1,1])
+(x[1,1] <-> x[])
 (xs[1,1] <-> arg2[])
 1
 -}
 elem_oi = \arg2 -> do
-  -- solution: x[0,0] x[0] x[1,1] x[1] x[] xs[1,0] ~arg2[0,0] ~arg2[0] ~arg2[1,0] ~arg2[1] ~arg2[] ~xs[1,1]
+  -- solution: x[] x[0] x[0,0] x[1] x[1,1] xs[1,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~xs[1,1]
   (x) <- (do
     (x:_) <- pure arg2
     pure (x)
@@ -46,14 +46,14 @@ constraints:
 ~(data0[0,0] & data0[0,1])
 (data0[0,0] | data0[0,1])
 ((~x[0,0] & (~y[0,0] & data0[0,0])) | (~x[0,0] & (~y[0,0] & ~data0[0,0])))
-(x[0] <-> x[0,0])
 (x[] <-> x[0])
-(y[0] <-> y[0,0])
+(x[0] <-> x[0,0])
 (y[] <-> y[0])
+(y[0] <-> y[0,0])
 1
 -}
 multiple_ii = \x y -> do
-  -- solution: data0[0,0] ~data0[0,1] ~x[0,0] ~x[0] ~x[] ~y[0,0] ~y[0] ~y[]
+  -- solution: data0[0,0] ~data0[0,1] ~x[] ~x[0] ~x[0,0] ~y[] ~y[0] ~y[0,0]
   () <- (do
     (data0) <- mod_iio x y
     guard $ data0 == 0
@@ -77,16 +77,16 @@ constraints:
 (data2[0,0] | data2[0,3])
 (y[0,4] | y[0,5])
 (data0[0,3] <-> data1[0,3])
-(x[0] <-> (x[0,0] | x[0,4]))
 (x[] <-> x[0])
-(y[0,5,0] <-> y[0,5,0,0])
-(y[0,5,1] <-> y[0,5,1,0])
+(x[0] <-> (x[0,0] | x[0,4]))
 (y[0,5] <-> y[0,5,0])
 (y[0,5] <-> y[0,5,1])
+(y[0,5,0] <-> y[0,5,0,0])
+(y[0,5,1] <-> y[0,5,1,0])
 1
 -}
 euler1_o = do
-  -- solution: data0[0,1] data1[0,2] data2[0,3] x[0,0] x[0] x[] y[0,5,0,0] y[0,5,0] y[0,5,1,0] y[0,5,1] y[0,5] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~x[0,4] ~y[0,4]
+  -- solution: data0[0,1] data1[0,2] data2[0,3] x[] x[0] x[0,0] y[0,5] y[0,5,0] y[0,5,0,0] y[0,5,1] y[0,5,1,0] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~x[0,4] ~y[0,4]
   (x) <- (do
     data0 <- pure 0
     data1 <- pure 999
@@ -131,18 +131,18 @@ constraints:
 ((fi[2,6] & (~fj[2,6] & ~fk[2,6])) | ((~fi[2,6] & (fj[2,6] & ~fk[2,6])) | (~fi[2,6] & (~fj[2,6] & fk[2,6]))))
 ((i[2,2] & ~j[2,2]) | ((~i[2,2] & j[2,2]) | (~i[2,2] & ~j[2,2])))
 ((j[2,3] & ~k[2,3]) | ((~j[2,3] & k[2,3]) | (~j[2,3] & ~k[2,3])))
-(arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,0])
-(arg1[2] <-> arg1[2,7])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[] <-> arg1[2])
-(arg2[0] <-> arg2[0,1])
-(arg2[1] <-> arg2[1,1])
-(arg2[2] <-> arg2[2,8])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg1[2] <-> arg1[2,7])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[] <-> arg2[2])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,1])
+(arg2[2] <-> arg2[2,8])
 (fi[2,4] <-> arg2[])
 (fj[2,5] <-> arg2[])
 (i[2,4] <-> arg1[])
@@ -150,7 +150,7 @@ constraints:
 1
 -}
 fib_io = memo $ \arg1 -> choose . observeAll $ do
-  -- solution: arg2[0,1] arg2[0] arg2[1,1] arg2[1] arg2[2,8] arg2[2] arg2[] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,2] j[2,3] k[2,7] ~arg1[0,0] ~arg1[0] ~arg1[1,0] ~arg1[1] ~arg1[2,7] ~arg1[2] ~arg1[] ~data0[2,0] ~fi[2,6] ~fj[2,6] ~fk[2,8] ~i[2,4] ~j[2,2] ~j[2,5] ~k[2,0] ~k[2,3]
+  -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,8] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,2] j[2,3] k[2,7] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg1[2] ~arg1[2,7] ~data0[2,0] ~fi[2,6] ~fj[2,6] ~fk[2,8] ~i[2,4] ~j[2,2] ~j[2,5] ~k[2,0] ~k[2,3]
   (arg2) <- (do
     guard $ arg1 == 0
     arg2 <- pure 0
@@ -174,7 +174,7 @@ fib_io = memo $ \arg1 -> choose . observeAll $ do
   pure (arg2)
 
 fib_oo = choose . observeAll $ do
-  -- solution: arg1[0,0] arg1[0] arg1[1,0] arg1[1] arg1[2,7] arg1[2] arg1[] arg2[0,1] arg2[0] arg2[1,1] arg2[1] arg2[2,8] arg2[2] arg2[] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,4] j[2,5] k[2,3] ~data0[2,0] ~fi[2,6] ~fj[2,6] ~fk[2,8] ~i[2,2] ~j[2,2] ~j[2,3] ~k[2,0] ~k[2,7]
+  -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,7] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,8] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,4] j[2,5] k[2,3] ~data0[2,0] ~fi[2,6] ~fj[2,6] ~fk[2,8] ~i[2,2] ~j[2,2] ~j[2,3] ~k[2,0] ~k[2,7]
   (arg1,arg2) <- (do
     arg1 <- pure 0
     arg2 <- pure 0

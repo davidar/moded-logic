@@ -23,24 +23,35 @@ import Control.Monad.Logic.Moded.Path
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.List (nub, sort)
 import qualified Data.Map as Map
+import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
 import System.IO.Unsafe (unsafePerformIO)
 
-type Constraints = Set Sat.Expr
+type Constraint = Sat.Expr CAtom
+type Constraints = Set Constraint
 
 type Modes = [(Name, [String])]
 
-term :: Path -> Var -> Sat.Expr
-term p (V v) = Sat.Var . Sat.Ident $ v ++ show p
+data CAtom
+  = Produce Var Path
+  | ProduceArg Var Int
+  deriving (Eq, Ord)
 
-nand :: Path -> Var -> Var -> Sat.Expr
+instance Show CAtom where
+  show (Produce v p) = show v ++ show p
+  show (ProduceArg v i) = show v ++"("++ show i ++")"
+
+term :: Path -> Var -> Constraint
+term p v = Sat.Var $ Produce v p
+
+nand :: Path -> Var -> Var -> Constraint
 nand p u v = Sat.Neg $ term p u `Sat.Conj` term p v
 
-cOr :: [Sat.Expr] -> Sat.Expr
+cOr :: [Constraint] -> Constraint
 cOr = foldr Sat.Disj Sat.Bottom
 
-cAnd :: [Sat.Expr] -> Sat.Expr
+cAnd :: [Constraint] -> Constraint
 cAnd = foldr Sat.Conj Sat.Top
 
 -- | Complete set of constraints (sec 5.2.2)
@@ -143,7 +154,7 @@ cAtom m p r =
       | V name `elem` ruleArgs r ->
         Set.fromList $ do
           (i, v) <- zip [1..] vars
-          pure $ term p v `Sat.Iff` term [] (V $ name ++ ".arg" ++ show (i :: Integer))
+          pure $ term p v `Sat.Iff` Sat.Var (ProduceArg (V name) i)
       | otherwise ->
         error $ "unknown predicate " ++ name ++ "/" ++ show (length vars)
 
@@ -151,6 +162,7 @@ constraints :: Modes -> Rule Var Var -> Constraints
 constraints m rule = Set.map f cs
   where
     cs = cComp m [] rule
+    env :: Map CAtom Constraint
     env =
       Map.fromList $
       [(i, Sat.Top) | Sat.Var i <- Set.elems cs] ++
