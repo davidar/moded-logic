@@ -156,8 +156,8 @@ partition_iioi = \arg1 arg2 arg4 -> do
   -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] h[1,1] h0[1,0] h1[1,2,1,2] h2[1,2,2,1] hi[1,5] hi1[1,2,2,1] lo[1,2] lo[1,2,1] lo[1,2,1,1] lo[1,2,2] lo[1,2,2,0] lo1[1,2,1,0] p[1,3] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,1] ~h2[1,2,2,2] ~hi[1,2] ~hi[1,2,1] ~hi[1,2,1,0] ~hi[1,2,2] ~hi[1,2,2,1] ~hi1[1,2,2,0] ~lo[1,4] ~lo1[1,2,1,1] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
   (arg3) <- (do
     guard $ arg1 == []
-    guard $ arg4 == []
     arg3 <- pure []
+    guard $ arg4 == []
     pure (arg3)
    ) <|> (do
     p <- pure arg2
@@ -266,7 +266,7 @@ constraints:
 (zs[1,3] <-> arg1[])
 1
 -}
--- mode ordering failure, cyclic dependency: [2] partition xs::in x::in ys::out zs::out -> [4] qsort ys::in r::in data0::out -> [5] data0::in = x1::out:r1::out -> [6] x1::in = x::out
+-- mode ordering failure, cyclic dependency: [2] partition xs::i x::i ys::o zs::o -> [4] qsort ys::i r::i data0::o -> [5] data0::i = x1::o:r1::o -> [6] x1::i = x::o
 qsort_iio = \arg1 r -> do
   -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,7] data0[1,4] r0[1,3] r1[1,5] x[1,1] x0[1,0] x1[1,5] xs[1,0] ys[1,2] zs[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~data0[1,5] ~r[] ~r[0] ~r[0,1] ~r[1] ~r[1,4] ~r0[1,7] ~r1[1,3] ~x[1,2] ~x[1,6] ~x0[1,1] ~x1[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
   (arg3) <- (do

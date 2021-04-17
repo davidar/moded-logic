@@ -364,8 +364,8 @@ main = do
         expect <- TIO.readFile "test/HigherOrder.hs"
         code `shouldBe` expect
       it "map" $ do
-        observeAll (map_iio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
-        observeAll (map_ioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
+        observeAll (map_p2ioio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
+        observeAll (map_p2oioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
         observeAll (succs_io [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (succs_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
       it "filter" $ do

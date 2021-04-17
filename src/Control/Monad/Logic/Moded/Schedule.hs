@@ -5,6 +5,7 @@ module Control.Monad.Logic.Moded.Schedule
   , Procedure(..)
   , CompiledPredicate(..)
   , stripMode
+  , varMode
   , mode'
   ) where
 
@@ -35,29 +36,28 @@ import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
 
-data ModedVar
-  = In String
-  | Out String
+data ModedVar =
+  MV Name Mode
   deriving (Eq, Ord)
 
 data Procedure =
   Procedure
     { modeSolution :: Constraints
-    , modedRule :: Either String (Rule ModedVar ModedVar)
+    , procModeString :: ModeString
+    , modedRule :: Rule ModedVar ModedVar
     }
 
 data CompiledPredicate =
   CompiledPredicate
     { unmodedRule :: Rule Var Var
     , modeConstraints :: Constraints
-    , procedures :: [Procedure]
+    , procedures :: [Either String Procedure]
     }
 
 type CompiledProgram = [(Name, CompiledPredicate)]
 
 instance Show ModedVar where
-  show (In v) = v ++ "::in"
-  show (Out v) = v ++ "::out"
+  show (MV v m) = v ++ "::" ++ show m
 
 data DepNode =
   DepNode Int (Goal ModedVar)
@@ -88,8 +88,10 @@ builtins =
     ]
 
 stripMode :: ModedVar -> Var
-stripMode (In v) = V v
-stripMode (Out v) = V v
+stripMode (MV v _) = V v
+
+varMode :: ModedVar -> Mode
+varMode (MV _ m) = m
 
 unDepNode :: DepNode -> Goal ModedVar
 unDepNode (DepNode _ g) = g
@@ -97,7 +99,7 @@ unDepNode (DepNode _ g) = g
 priority :: Goal ModedVar -> Int
 priority (Atom Unif {}) = 0
 priority (Atom Func {}) = 1
-priority g = 2 + length [v | Out v <- toList g]
+priority g = 2 + length [v | MV v MOut <- toList g]
 
 mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
 mode r@(Rule name vars body) soln =
@@ -109,9 +111,13 @@ mode r@(Rule name vars body) soln =
     Right body' -> Right $ Rule name (annotate [] <$> vars) body'
   where
     annotate p (V v)
-      | t `Set.member` soln = Out v
-      | Sat.Neg t `Set.member` soln = In v
-      | v == "_" = Out v
+      | t `Set.member` soln = MV v MOut
+      | Sat.Neg t `Set.member` soln =
+        MV v $
+        case predMode (V v) soln of
+          [] -> MIn
+          ms' -> MPred ms'
+      | v == "_" = MV v MOut
       | otherwise = error $ show t ++ " not in " ++ show soln
       where
         t = Sat.Var $ Produce (V v) p
@@ -133,9 +139,9 @@ mode r@(Rule name vars body) soln =
             let t = Sat.Var $ ProduceArg n i
             pure $
               if t `Set.member` soln
-                then Out v
+                then MV v MOut
                 else if Sat.Neg t `Set.member` soln
-                       then In v
+                       then MV v MIn
                        else error $ show t ++ " not in " ++ show soln
       g' <- walk (p ++ [0]) g
       pure $ Anon (annotate p n) vs' g'
@@ -149,25 +155,21 @@ mode' procs rule = procs ++ [(ruleName rule, obj)]
         { unmodedRule = rule
         , modeConstraints = constraints m rule
         , procedures =
-            [ Procedure {modeSolution = soln, modedRule = mode rule soln}
-            | soln <- Set.elems $ unsafeSolveConstraints m rule
-            ]
+            do soln <- Set.elems $ unsafeSolveConstraints m rule
+               pure $ do
+                 mr <- mode rule soln
+                 let ms =
+                       ModeString $ do
+                         MV _ mv <- ruleArgs mr
+                         pure mv
+                 pure $
+                   Procedure
+                     {modeSolution = soln, procModeString = ms, modedRule = mr}
         }
     m =
       flip Map.union builtins . Map.fromList $ do
         (name', CompiledPredicate {procedures = procs'}) <- procs
-        pure . (name', ) $ do
-          Procedure {modeSolution = soln, modedRule = Right (Rule _ mvars _)} <-
-            procs'
-          pure . ModeString $ do
-            mv <- mvars
-            pure $
-              case mv of
-                In v ->
-                  case predMode (V v) soln of
-                    [] -> MIn
-                    ms -> MPred ms
-                Out _ -> MOut
+        pure (name', [procModeString p | Right p <- procs'])
 
 predMode :: Var -> Constraints -> [Mode]
 predMode name soln = go 1
@@ -188,11 +190,16 @@ sortConj gs = map unDepNode <$> topSort (overlay vs es)
       edges $ do
         let ins =
               [ Set.fromList
-                [v | V v <- Set.elems nl, In v `elem` g, Out v `notElem` g]
+                [ v
+                | MV v m <- toList g
+                , m /= MOut
+                , V v `Set.member` nl
+                , MV v MOut `notElem` g
+                ]
               | (g, nl) <- gs
               ]
             outs =
-              [ Set.fromList [v | V v <- Set.elems nl, Out v `elem` g]
+              [ Set.fromList [v | V v <- Set.elems nl, MV v MOut `elem` g]
               | (g, nl) <- gs
               ]
         (i, (g, _)) <- zip [0 ..] gs

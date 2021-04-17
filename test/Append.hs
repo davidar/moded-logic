@@ -302,8 +302,8 @@ reverse_io = \arg1 -> do
 reverse_oi = \arg2 -> do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] data0[1,5] data1[1,3] h[1,6] h0[1,1] h1[1,5] l[1,7] r[1,3] t[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,7] ~data0[1,4] ~data1[1,5] ~h[1,1] ~h0[1,0] ~h1[1,6] ~l[1,3] ~r[1,2] ~t[1,0]
   (arg1) <- (do
-    guard $ arg2 == []
     arg1 <- pure []
+    guard $ arg2 == []
     pure (arg1)
    ) <|> (do
     l <- pure arg2
@@ -333,7 +333,7 @@ constraints:
 (a[0] <-> (a[0,1] | a[0,2]))
 1
 -}
--- mode ordering failure, cyclic dependency: [0] reverse a0::in a1::out -> [2] a1::in = a::out -> [1] a0::out = a::in
+-- mode ordering failure, cyclic dependency: [0] reverse a0::i a1::o -> [2] a1::i = a::o -> [1] a0::o = a::i
 palindrome_i = \a -> do
   -- solution: a0[0,0] a1[0,2] ~a[] ~a[0] ~a[0,1] ~a[0,2] ~a0[0,1] ~a1[0,0]
   () <- (do
@@ -361,7 +361,7 @@ constraints:
 (b[0] <-> b[0,0])
 1
 -}
--- mode ordering failure, cyclic dependency: [0] append a0::in a1::out b::in -> [2] a1::in = a::out -> [1] a0::out = a::in
+-- mode ordering failure, cyclic dependency: [0] append a0::i a1::o b::i -> [2] a1::i = a::o -> [1] a0::o = a::i
 duplicate_ii = \a b -> do
   -- solution: a0[0,0] a1[0,0] ~a[] ~a[0] ~a[0,1] ~a[0,2] ~a0[0,1] ~a1[0,2] ~b[] ~b[0] ~b[0,0]
   () <- (do
@@ -698,8 +698,8 @@ perm_io = \arg1 -> do
 perm_oi = \arg2 -> do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] h[1,0] t[1,0] xs[1,1] ys[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~h[1,1] ~t[1,2] ~xs[1,3] ~ys[1,1]
   (arg1) <- (do
-    guard $ arg2 == []
     arg1 <- pure []
+    guard $ arg2 == []
     pure (arg1)
    ) <|> (do
     (h:t) <- pure arg2

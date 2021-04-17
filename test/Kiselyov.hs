@@ -232,8 +232,8 @@ permute_io = \arg1 -> do
 permute_oi = \arg2 -> do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,2] r[1,3] t[1,1] t'[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,3] ~h[1,0] ~r[1,2] ~t[1,0] ~t'[1,1]
   (arg1) <- (do
-    guard $ arg2 == []
     arg1 <- pure []
+    guard $ arg2 == []
     pure (arg1)
    ) <|> (do
     r <- pure arg2
@@ -561,7 +561,7 @@ constraints:
 (k[0] <-> (k[0,6] | (k[0,7] | (k[0,17] | k[0,18]))))
 1
 -}
--- mode ordering failure, cyclic dependency: [10] timesInt i0::in i1::out ii::in -> [12] i1::in = i::out -> [11] i0::out = i::in
+-- mode ordering failure, cyclic dependency: [10] timesInt i0::i i1::o ii::i -> [12] i1::i = i::o -> [11] i0::o = i::i
 pythag_iii = \i j k -> do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] ii[0,19] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
   () <- (do

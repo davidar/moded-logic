@@ -62,7 +62,7 @@ constraints:
 (ys[1,3] <-> arg3[])
 1
 -}
-map_iii = \p arg2 arg3 -> do
+map_p2iiii = \p arg2 arg3 -> do
   -- solution: x[1,0] xs[1,0] y[1,1] ys[1,1] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,2] ~ys[1,3] ~p(1) ~p(2)
   () <- (do
     guard $ arg2 == []
@@ -71,13 +71,13 @@ map_iii = \p arg2 arg3 -> do
    ) <|> (do
     (x:xs) <- pure arg2
     (y:ys) <- pure arg3
-    () <- map_iii p xs ys
+    () <- map_p2iiii p xs ys
     () <- p x y
     pure ()
    )
   pure ()
 
-map_iio = \p arg2 -> do
+map_p2ioio = \p arg2 -> do
   -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,1] x[1,0] xs[1,0] y[1,2] ys[1,3] p(2) ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,1] ~ys[1,1] ~p(1)
   (arg3) <- (do
     guard $ arg2 == []
@@ -85,36 +85,36 @@ map_iio = \p arg2 -> do
     pure (arg3)
    ) <|> (do
     (x:xs) <- pure arg2
-    (ys) <- map_iio p xs
+    (ys) <- map_p2ioio p xs
     (y) <- p x
     arg3 <- pure (y:ys)
     pure (arg3)
    )
   pure (arg3)
 
-map_ioi = \p arg3 -> do
+map_p2oioi = \p arg3 -> do
   -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] x[1,2] xs[1,3] y[1,1] ys[1,1] p(1) ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~p[] ~p[1] ~p[1,3] ~x[1,0] ~xs[1,0] ~y[1,2] ~ys[1,3] ~p(2)
   (arg2) <- (do
-    guard $ arg3 == []
     arg2 <- pure []
+    guard $ arg3 == []
     pure (arg2)
    ) <|> (do
     (y:ys) <- pure arg3
-    (xs) <- map_ioi p ys
+    (xs) <- map_p2oioi p ys
     (x) <- p y
     arg2 <- pure (x:xs)
     pure (arg2)
    )
   pure (arg2)
 
-map_ioo = \p -> do
+map_p2oooo = \p -> do
   -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,1] x[1,2] xs[1,3] y[1,2] ys[1,3] p(1) p(2) ~p[] ~p[1] ~p[1,3] ~x[1,0] ~xs[1,0] ~y[1,1] ~ys[1,1]
   (arg2,arg3) <- (do
     arg2 <- pure []
     arg3 <- pure []
     pure (arg2,arg3)
    ) <|> (do
-    (xs,ys) <- map_ioo p
+    (xs,ys) <- map_p2oooo p
     (x,y) <- p 
     arg2 <- pure (x:xs)
     arg3 <- pure (y:ys)
@@ -148,7 +148,7 @@ succs_ii = \xs ys -> do
         pure ()
        )
       pure ()
-    () <- map_iii p xs ys
+    () <- map_p2iiii p xs ys
     pure ()
    )
   pure ()
@@ -162,7 +162,7 @@ succs_io = \xs -> do
         pure (y)
        )
       pure (y)
-    (ys) <- map_iio p xs
+    (ys) <- map_p2ioio p xs
     pure (ys)
    )
   pure (ys)
@@ -176,7 +176,7 @@ succs_oi = \ys -> do
         pure (x)
        )
       pure (x)
-    (xs) <- map_ioi p ys
+    (xs) <- map_p2oioi p ys
     pure (xs)
    )
   pure (xs)
@@ -238,7 +238,7 @@ constraints:
 (ts[1,2,2,0] <-> arg3[])
 1
 -}
-filter_iii = \p arg2 arg3 -> do
+filter_p1iii = \p arg2 arg3 -> do
   -- solution: h[1,1] h0[1,0] h1[1,2,1,1] t[1,0] t'[1,2,1,1] ts[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,3] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,2] ~p[] ~p[1] ~p[1,2] ~p[1,2,1] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,0] ~ts[1,2] ~ts[1,2,1] ~ts[1,2,1,1] ~ts[1,2,2] ~ts[1,2,2,0] ~p(1)
   () <- (do
     guard $ arg2 == []
@@ -254,17 +254,17 @@ filter_iii = \p arg2 arg3 -> do
      )) (\() -> (do
       (h1:t') <- pure ts
       guard $ h1 == h
-      () <- filter_iii p t t'
+      () <- filter_p1iii p t t'
       pure ()
      )) ((do
-      () <- filter_iii p t ts
+      () <- filter_p1iii p t ts
       pure ()
      ))
     pure ()
    )
   pure ()
 
-filter_iio = \p arg2 -> do
+filter_p1iio = \p arg2 -> do
   -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,3] h[1,1] h0[1,0] h1[1,2,1,2] t[1,0] t'[1,2,1,0] ts[1,2] ts[1,2,1] ts[1,2,1,1] ts[1,2,2] ts[1,2,2,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,1] ~p[] ~p[1] ~p[1,2] ~p[1,2,1] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,1] ~ts[1,3] ~p(1)
   (arg3) <- (do
     guard $ arg2 == []
@@ -278,11 +278,11 @@ filter_iio = \p arg2 -> do
       pure ()
      )) (\() -> (do
       h1 <- pure h
-      (t') <- filter_iio p t
+      (t') <- filter_p1iio p t
       ts <- pure (h1:t')
       pure (ts)
      )) ((do
-      (ts) <- filter_iio p t
+      (ts) <- filter_p1iio p t
       pure (ts)
      ))
     arg3 <- pure ts
@@ -314,7 +314,7 @@ evens_ii = \xs ys -> do
         pure ()
        )
       pure ()
-    () <- filter_iii p xs ys
+    () <- filter_p1iii p xs ys
     pure ()
    )
   pure ()
@@ -328,7 +328,7 @@ evens_io = \xs -> do
         pure ()
        )
       pure ()
-    (ys) <- filter_iio p xs
+    (ys) <- filter_p1iio p xs
     pure (ys)
    )
   pure (ys)
@@ -372,7 +372,7 @@ constraints:
 (t[1,2] <-> arg2[])
 1
 -}
-foldl_iiii = \p arg2 a arg4 -> do
+foldl_p3iioiii = \p arg2 a arg4 -> do
   -- solution: a'[1,1] a''[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
   () <- (do
     guard $ arg4 == a
@@ -382,12 +382,12 @@ foldl_iiii = \p arg2 a arg4 -> do
     a'' <- pure arg4
     (h:t) <- pure arg2
     (a') <- p h a
-    () <- foldl_iiii p t a' a''
+    () <- foldl_p3iioiii p t a' a''
     pure ()
    )
   pure ()
 
-foldl_iiio = \p arg2 a -> do
+foldl_p3iioiio = \p arg2 a -> do
   -- solution: a'[1,1] a''[1,2] arg4[] arg4[0] arg4[0,1] arg4[1] arg4[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
   (arg4) <- (do
     arg4 <- pure a
@@ -396,13 +396,13 @@ foldl_iiio = \p arg2 a -> do
    ) <|> (do
     (h:t) <- pure arg2
     (a') <- p h a
-    (a'') <- foldl_iiio p t a'
+    (a'') <- foldl_p3iioiio p t a'
     arg4 <- pure a''
     pure (arg4)
    )
   pure (arg4)
 
-foldl_iioi = \p arg2 arg4 -> do
+foldl_p3ioiioi = \p arg2 arg4 -> do
   -- solution: a[] a[0] a[0,1] a[1] a[1,1] a'[1,2] a''[1,3] h[1,0] t[1,0] p(2) ~a'[1,1] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(3)
   (a) <- (do
     a <- pure arg4
@@ -411,13 +411,13 @@ foldl_iioi = \p arg2 arg4 -> do
    ) <|> (do
     a'' <- pure arg4
     (h:t) <- pure arg2
-    (a') <- foldl_iioi p t a''
+    (a') <- foldl_p3ioiioi p t a''
     (a) <- p h a'
     pure (a)
    )
   pure (a)
 
-foldl_ioii = \p a arg4 -> do
+foldl_p3oiooii = \p a arg4 -> do
   -- solution: a'[1,1] a''[1,3] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] t[1,2] p(1) p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(2)
   (arg2) <- (do
     guard $ arg4 == a
@@ -426,13 +426,13 @@ foldl_ioii = \p a arg4 -> do
    ) <|> (do
     a'' <- pure arg4
     (h,a') <- p a
-    (t) <- foldl_ioii p a' a''
+    (t) <- foldl_p3oiooii p a' a''
     arg2 <- pure (h:t)
     pure (arg2)
    )
   pure (arg2)
 
-foldl_ioio = \p a -> do
+foldl_p3oiooio = \p a -> do
   -- solution: a'[1,1] a''[1,2] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] arg4[] arg4[0] arg4[0,1] arg4[1] arg4[1,3] h[1,1] t[1,2] p(1) p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(2)
   (arg2,arg4) <- (do
     arg4 <- pure a
@@ -440,14 +440,14 @@ foldl_ioio = \p a -> do
     pure (arg2,arg4)
    ) <|> (do
     (h,a') <- p a
-    (t,a'') <- foldl_ioio p a'
+    (t,a'') <- foldl_p3oiooio p a'
     arg4 <- pure a''
     arg2 <- pure (h:t)
     pure (arg2,arg4)
    )
   pure (arg2,arg4)
 
-foldl_iooi = \p arg4 -> do
+foldl_p3ooiooi = \p arg4 -> do
   -- solution: a[] a[0] a[0,1] a[1] a[1,1] a'[1,2] a''[1,3] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] t[1,2] p(1) p(2) ~a'[1,1] ~a''[1,2] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(3)
   (a,arg2) <- (do
     a <- pure arg4
@@ -455,7 +455,7 @@ foldl_iooi = \p arg4 -> do
     pure (a,arg2)
    ) <|> (do
     a'' <- pure arg4
-    (t,a') <- foldl_iooi p a''
+    (t,a') <- foldl_p3ooiooi p a''
     (h,a) <- p a'
     arg2 <- pure (h:t)
     pure (a,arg2)
@@ -492,7 +492,7 @@ sum_iii = \xs z r -> do
         pure (a')
        )
       pure (a')
-    () <- foldl_iiii p xs z r
+    () <- foldl_p3iioiii p xs z r
     pure ()
    )
   pure ()
@@ -506,7 +506,7 @@ sum_iio = \xs z -> do
         pure (a')
        )
       pure (a')
-    (r) <- foldl_iiio p xs z
+    (r) <- foldl_p3iioiio p xs z
     pure (r)
    )
   pure (r)
@@ -520,7 +520,7 @@ sum_ioi = \xs r -> do
         pure (a)
        )
       pure (a)
-    (z) <- foldl_iioi p xs r
+    (z) <- foldl_p3ioiioi p xs r
     pure (z)
    )
   pure (z)
@@ -556,7 +556,7 @@ split_ioi = \xs r -> do
         pure (a)
        )
       pure (a)
-    (z) <- foldl_iioi p xs r
+    (z) <- foldl_p3ioiioi p xs r
     pure (z)
    )
   pure (z)
@@ -570,7 +570,7 @@ split_oii = \z r -> do
         pure (a',x)
        )
       pure (x,a')
-    (xs) <- foldl_ioii p z r
+    (xs) <- foldl_p3oiooii p z r
     pure (xs)
    )
   pure (xs)
@@ -584,7 +584,7 @@ split_oio = \z -> do
         pure (a',x)
        )
       pure (x,a')
-    (xs,r) <- foldl_ioio p z
+    (xs,r) <- foldl_p3oiooio p z
     pure (r,xs)
    )
   pure (xs,r)
@@ -620,7 +620,7 @@ splitr_iii = \xs z r -> do
         pure (a')
        )
       pure (a')
-    () <- foldl_iiii p xs z r
+    () <- foldl_p3iioiii p xs z r
     pure ()
    )
   pure ()
@@ -634,7 +634,7 @@ splitr_iio = \xs z -> do
         pure (a')
        )
       pure (a')
-    (r) <- foldl_iiio p xs z
+    (r) <- foldl_p3iioiio p xs z
     pure (r)
    )
   pure (r)
@@ -648,7 +648,7 @@ splitr_ooi = \r -> do
         pure (a,x)
        )
       pure (x,a)
-    (xs,z) <- foldl_iooi p r
+    (xs,z) <- foldl_p3ooiooi p r
     pure (xs,z)
    )
   pure (xs,z)

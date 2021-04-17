@@ -228,8 +228,8 @@ qperm_io = \arg1 -> do
 qperm_oi = \arg2 -> do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] h[1,0] t[1,0] xs[1,1] ys[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~h[1,1] ~t[1,2] ~xs[1,3] ~ys[1,1]
   (arg1) <- (do
-    guard $ arg2 == []
     arg1 <- pure []
+    guard $ arg2 == []
     pure (arg1)
    ) <|> (do
     (h:t) <- pure arg2
@@ -534,8 +534,8 @@ cqueens_iio = \arg1 arg2 -> do
 cqueens_oii = \arg2 arg3 -> do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,9] data0[1,5] data1[1,7] history[1,10] m[1,0] q[1,1] q0[1,0] q1[1,8] r[1,6] xs[1,3] ~arg2[] ~arg2[1] ~arg2[1,10] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,0] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,6] ~q[1,3] ~q[1,4] ~q[1,8] ~q0[1,1] ~q1[1,7] ~r[1,3] ~xs[1,2] ~xs[1,9]
   (arg1) <- (do
-    guard $ arg3 == []
     arg1 <- pure []
+    guard $ arg3 == []
     pure (arg1)
    ) <|> (do
     history <- pure arg2

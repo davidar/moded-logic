@@ -46,6 +46,7 @@ data Mode
   = MIn
   | MOut
   | MPred [Mode]
+  deriving (Eq, Ord)
 
 newtype ModeString =
   ModeString [Mode]
@@ -55,6 +56,14 @@ type Modes = Map Name [ModeString]
 instance Show CAtom where
   show (Produce v p) = show v ++ show p
   show (ProduceArg v i) = show v ++ "(" ++ show i ++ ")"
+
+instance Show Mode where
+  show MIn = "i"
+  show MOut = "o"
+  show (MPred ms) = "p" ++ show (length ms) ++ show (ModeString ms)
+
+instance Show ModeString where
+  show (ModeString ms) = concat $ show <$> ms
 
 instance IsString ModeString where
   fromString =
