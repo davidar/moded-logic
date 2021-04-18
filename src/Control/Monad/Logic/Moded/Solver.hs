@@ -1,4 +1,5 @@
-{-# LANGUAGE BangPatterns, DeriveDataTypeable, LambdaCase #-}
+{-# LANGUAGE BangPatterns, DeriveDataTypeable, DeriveFunctor,
+  DeriveFoldable, LambdaCase #-}
 
 -- adapted from picologic (c) 2014-2020, Stephen Diehl
 module Control.Monad.Logic.Moded.Solver
@@ -13,6 +14,7 @@ module Control.Monad.Logic.Moded.Solver
 import Control.Monad.State.Strict (MonadState(..), StateT, evalStateT)
 import Control.Monad.Writer.Strict (MonadWriter(..), Writer, runWriter)
 import Data.Data (Data, Typeable)
+import Data.Foldable (toList)
 import Data.List (group, sort)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
@@ -41,7 +43,7 @@ data Expr v
   | Top
     -- | Constant false
   | Bottom
-  deriving (Eq, Ord, Data, Typeable)
+  deriving (Eq, Ord, Data, Typeable, Functor, Foldable)
 
 type TS v a = StateT Int (Writer [Expr v]) a
 
@@ -56,36 +58,6 @@ instance Show v => Show (Expr v) where
       Iff e1 e2 -> "(" ++ show e1 ++ " <-> " ++ show e2 ++ ")"
       Top -> "1"
       Bottom -> "0"
-
--- | Evaluate expression.
-eval :: Ord v => Ctx v -> Expr v -> Bool
-eval vs (Var v) = Just True == M.lookup v vs
-eval vs (Neg expr) = not $ eval vs expr
-eval vs (Conj e1 e2) = eval vs e1 && eval vs e2
-eval vs (Disj e1 e2) = eval vs e1 || eval vs e2
-eval vs (Implies e1 e2) = not (eval vs e1) || eval vs e2
-eval vs (Iff e1 e2) = eval vs e1 == eval vs e2
-eval _ Top = True
-eval _ Bottom = False
-
--- | Variables in expression
-variables :: Ord v => Expr v -> [v]
-variables expr = map head . group . sort $ go expr []
-  where
-    go (Var v) !vs = v : vs
-    go (Neg e) !vs = go e vs
-    go (Conj e1 e2) !vs = go e1 vs ++ go e2 vs
-    go (Disj e1 e2) !vs = go e1 vs ++ go e2 vs
-    go (Iff e1 e2) !vs = go e1 vs ++ go e2 vs
-    go (Implies e1 e2) !vs = go e1 vs ++ go e2 vs
-    go Top !vs = vs
-    go Bottom !vs = vs
-
--- | Test if expression is constant.
-isConst :: Expr v -> Bool
-isConst Top = True
-isConst Bottom = True
-isConst _ = False
 
 -- | Transform expression up from the bottom.
 transformUp :: (Expr v -> Expr v) -> Expr v -> Expr v
@@ -150,23 +122,17 @@ solveProp p = solveCNF $ tseitinCNF p
 -- | Yield the solutions for an expression using the PicoSAT
 -- solver. The Expression must be in CNF form already.
 solveCNF :: (Ord v, Show v, Tseitin v) => Expr v -> IO (Solutions v)
+solveCNF Top = return $ Solutions [[]]
+solveCNF Bottom = return $ Solutions []
 solveCNF p =
-  if isConst p
-    then return $
-         if eval M.empty p
-           then Solutions [[]]
-           else Solutions []
-    else do
-      solutions <- solveAll ds
-      return $
-        dropTseitinVarsInSolutions $
-        Solutions $ mapMaybe (backSubst vs') solutions
+  dropTseitinVarsInSolutions . Solutions . mapMaybe (backSubst vs') <$>
+  solveAll ds
   where
     cs = clausesFromCNF p
     ds = cnfToDimacs vs cs
     vs = M.fromList $ zip vars [1 ..]
     vs' = M.fromList $ zip [1 ..] vars
-    vars = variables p
+    vars = map head . group . sort $ toList p
 
 clausesFromCNF :: Show v => Expr v -> [[Expr v]]
 clausesFromCNF p = do
