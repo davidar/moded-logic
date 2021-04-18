@@ -40,6 +40,7 @@ type Constraints = Set Constraint
 data CAtom
   = Produce Var Path
   | ProduceArg Var Int
+  | TseitinVar Int
   deriving (Eq, Ord)
 
 data Mode
@@ -56,6 +57,7 @@ type Modes = Map Name [ModeString]
 instance Show CAtom where
   show (Produce v p) = show v ++ show p
   show (ProduceArg v i) = show v ++ "(" ++ show i ++ ")"
+  show (TseitinVar i) = "ts*" ++ show i
 
 instance Show Mode where
   show MIn = "i"
@@ -71,6 +73,11 @@ instance IsString ModeString where
       'i' -> MIn
       'o' -> MOut
       _ -> error "invalid modestring"
+
+instance Sat.Tseitin CAtom where
+  tseitinVar = TseitinVar
+  isTseitinVar TseitinVar{} = True
+  isTseitinVar _ = False
 
 term :: Path -> Var -> Constraint
 term p v = Sat.Var $ Produce v p
@@ -209,13 +216,13 @@ constraints :: Modes -> Rule Var Var -> Constraints
 constraints m rule = Set.map f cs
   where
     cs = cComp m [] rule
-    env :: Map CAtom Constraint
+    env :: Sat.Ctx CAtom
     env =
       Map.fromList $
-      [(i, Sat.Top) | Sat.Var i <- Set.elems cs] ++
-      [(i, Sat.Bottom) | Sat.Neg (Sat.Var i) <- Set.elems cs]
+      [(i, True) | Sat.Var i <- Set.elems cs] ++
+      [(i, False) | Sat.Neg (Sat.Var i) <- Set.elems cs]
     f c =
-      case Sat.subst env c of
+      case Sat.partEval env c of
         Sat.Bottom -> error $ show c ++ " always fails with " ++ show env
         e -> e
 

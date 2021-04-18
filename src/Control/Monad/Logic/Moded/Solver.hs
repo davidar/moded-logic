@@ -2,32 +2,21 @@
 {-# OPTIONS_GHC -Wwarn #-}
 -- adapted from picologic (c) 2014-2020, Stephen Diehl
 module Control.Monad.Logic.Moded.Solver
-  ( Expr (..),
-    Solutions (..),
-    Ctx,
-    variables,
-    eval,
-    cnf,
-    nnf,
-    simp,
-    isConst,
-    propConst,
-    subst,
-    partEval,
+  ( Expr (..)
+  , Solutions (..)
+  , Ctx
+  , Tseitin(..)
+  , partEval
+  , solveProp
+  ) where
 
-    solveProp,
-    solveCNF,
-    solveOneCNF,
-    clausesExpr,
-    addVarsToSolutions,
-  )
-where
-
+import Prelude hiding (and, or)
 import Data.Data ( Data, Typeable )
 import Data.List ( (\\), group, sort )
 import qualified Data.Map as M
 import Data.Maybe ( fromMaybe, mapMaybe )
-import Control.Monad.Writer ()
+import Control.Monad.State.Strict
+import Control.Monad.Writer.Strict
 
 import Picosat ( Solution(..), solve, solveAll )
 
@@ -53,6 +42,8 @@ data Expr v
   | -- | Constant false
     Bottom
   deriving (Eq, Ord, Data, Typeable)
+
+type TS v a = StateT Int (Writer [Expr v]) a
 
 instance Show v => Show (Expr v) where
   show ex = case ex of
@@ -226,12 +217,12 @@ partEval vs = subst (M.map constants vs)
 
 
 -- | Yield the solutions for an expression using the PicoSAT solver.
-solveProp :: (Ord v, Show v) => Expr v -> IO (Solutions v)
-solveProp p = solveCNF $ cnf p
+solveProp :: (Ord v, Show v, Tseitin v) => Expr v -> IO (Solutions v)
+solveProp p = solveCNF $ tseitinCNF p
 
 -- | Yield the solutions for an expression using the PicoSAT
 -- solver. The Expression must be in CNF form already.
-solveCNF :: (Ord v, Show v) => Expr v -> IO (Solutions v)
+solveCNF :: (Ord v, Show v, Tseitin v) => Expr v -> IO (Solutions v)
 solveCNF p = if isConst p
              then
                return $ if eval M.empty p
@@ -239,7 +230,7 @@ solveCNF p = if isConst p
                         else Solutions []
              else do
                  solutions <- solveAll ds
-                 return $ Solutions $ mapMaybe (backSubst vs') solutions
+                 return $ dropTseitinVarsInSolutions $ Solutions $ mapMaybe (backSubst vs') solutions
   where
     cs = clausesFromCNF p
     ds = cnfToDimacs vs cs
@@ -311,3 +302,170 @@ addVarsToSolutions vars (Solutions sols) = Solutions $ concatMap addVarsToSoluti
   where
     addVarsToSolution sol = map (sol ++) $ sequence  [ [Var v, Neg(Var v)] | v <- newVars $ head sols ]
     newVars sol = vars \\ concatMap variables sol
+
+-- TODO: How efficient is the `mappend` used by Writer?
+-- TODO: For cases like (Conj (Conj a b) c) the introduction
+--       of one Tseitin var can be enough.
+-- TODO: The outermost (Conj (Conj ...) ...) needn't be
+--       Tseitin encoded at all.
+--       Also, the (Disj (Disj ...) ...) below, needn't be encoded
+--       when they use only variables or negated variables.
+--       Tseitin transformation can be used specifically there to
+--       turn other expressions into variables.
+
+class Tseitin v where
+  tseitinVar :: Int -> v
+  isTseitinVar :: v -> Bool
+
+evalTS :: TS v a -> (a, [Expr v])
+evalTS action =
+  runWriter (evalStateT action 1)
+
+var :: Tseitin v => TS v (Expr v)
+var = do
+  n <- get
+  put $ succ n
+  return $ Var $ tseitinVar n
+
+or :: [Expr v] -> Expr v
+or = foldl1 Disj
+and :: [Expr v] -> Expr v
+and = foldl1 Conj
+
+tseitinCNF :: Tseitin v => Expr v -> Expr v
+tseitinCNF e =
+  let (var, clauses) = evalTS $ tseitin $ propConst e
+  in and (var : clauses)
+
+neg :: Expr v -> Expr v
+neg (Neg x) = x
+neg x       = Neg x
+
+tseitin :: Tseitin v => Expr v -> TS v (Expr v)
+
+tseitin lit@(Var _) = return lit
+
+tseitin lit@(Neg (Var _)) = return lit
+
+tseitin (Conj x y) = do
+  a <- tseitin x
+  b <- tseitin y
+  c <- var
+  tell [or [neg a, neg b, c],
+        or [a, neg c],
+        or [b, neg c]]
+  return c
+
+tseitin (Neg (Conj x y)) = do
+  a <- tseitin x
+  b <- tseitin y
+  c <- var
+  tell [or [neg a, neg b, neg c],
+        or [a, c],
+        or [b, c]]
+  return c
+
+tseitin (Disj x y) = do
+  a <- tseitin x
+  b <- tseitin y
+  c <- var
+  tell [or [a, b, neg c],
+        or [neg a, c],
+        or [neg b, c]]
+  return c
+
+tseitin (Neg (Disj x y)) = do
+  a <- tseitin x
+  b <- tseitin y
+  c <- var
+  tell [or [a, b, c],
+        or [neg a, neg c],
+        or [neg b, neg c]]
+  return c
+
+
+-- |
+-- @
+-- (c -> (a -> b)) & (-c -> -(a->b))
+-- (-c | (-a | b)) & (c | (a&-b))
+-- (-a|b|-c) & (a|c) & (-b|c)
+-- @
+tseitin (Implies x y) = do
+  a <- tseitin x
+  b <- tseitin y
+  c <- var
+  tell [or [neg a, b, neg c],
+        or [a, c],
+        or [neg b, c]]
+  return c
+
+-- |
+-- @
+-- (c -> -(a -> b)) & (-c -> (a->b))
+-- (-c | (a&-b)) & (c | (-a|b))
+-- (a|-c) & (-b|-c) & (-a|b|c)
+-- @
+tseitin (Neg (Implies x y)) = do
+  a <- tseitin x
+  b <- tseitin y
+  c <- var
+  tell [or [a, neg c],
+        or [neg b, neg c],
+        or [neg a, b, c]]
+  return c
+
+-- |
+-- @
+-- (c -> a == b) & (-c -> a /= b)
+-- (-c | ((-a|b) & (a|-b))) & (c | ((a|b) & (-a|-b)))
+-- (-a|b|-c) & (a|-b|-c) & (a|b|c) & (-a|-b|c)
+-- @
+tseitin (Iff x y) = do
+  a <- tseitin x
+  b <- tseitin y
+  c <- var
+  tell [or [neg a, b, neg c],
+        or [a, neg b, neg c],
+        or [a, b, c],
+        or [neg a, neg b, c]]
+  return c
+
+-- |
+-- @
+-- (c -> a /= b) & (-c -> a == b)
+-- (-c | ((a|b) & (-a|-b))) & (c | ((-a|b) & (a|-b)))
+-- (a|b|-c) & (-a|-b|-c) & (-a|b|c) & (a|-b|c)
+-- @
+tseitin (Neg (Iff x y)) = do
+  a <- tseitin x
+  b <- tseitin y
+  c <- var
+  tell [or [a, b, neg c],
+        or [neg a, neg b, neg c],
+        or [neg a, b, c],
+        or [a, neg b, c]]
+  return c
+
+tseitin (Neg x) = do
+  a <- tseitin x
+  c <- var
+  tell [or [neg a, neg c],
+        or [a, c]]
+  return c
+
+tseitin Top = return Top
+
+tseitin Bottom = return Bottom
+
+dropTseitinVarsInSolutions :: Tseitin v => Solutions v -> Solutions v
+dropTseitinVarsInSolutions (Solutions xs) =
+  Solutions $ map dropTseitinVars xs
+
+dropTseitinVars :: Tseitin v => [Expr v] -> [Expr v]
+dropTseitinVars = filter (\x -> not $ isTseitinLiteral x)
+
+isTseitinLiteral :: Tseitin v => Expr v -> Bool
+isTseitinLiteral lit =
+  case lit of
+    (Var v) -> isTseitinVar v
+    (Neg (Var v)) -> isTseitinVar v
