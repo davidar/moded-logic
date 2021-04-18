@@ -142,12 +142,13 @@ constraints:
 succs_ii = \xs ys -> do
   -- solution: p[0,1] ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~p(1) ~p(2)
   () <- (do
-    (p) <- pure $ \x y -> do
-      () <- (do
-        () <- succ_ii x y
-        pure ()
-       )
-      pure ()
+    let p =
+          \x y -> do
+            () <- (do
+              () <- succ_ii x y
+              pure ()
+             )
+            pure ()
     () <- map_p2iiii p xs ys
     pure ()
    )
@@ -156,12 +157,13 @@ succs_ii = \xs ys -> do
 succs_io = \xs -> do
   -- solution: p[0,1] y[0,1,0] y[0,1,0,0] ys[] ys[0] ys[0,0] p(2) ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~p(1)
   (ys) <- (do
-    (p) <- pure $ \x -> do
-      (y) <- (do
-        (y) <- succ_io x
-        pure (y)
-       )
-      pure (y)
+    let p =
+          \x -> do
+            (y) <- (do
+              (y) <- succ_io x
+              pure (y)
+             )
+            pure (y)
     (ys) <- map_p2ioio p xs
     pure (ys)
    )
@@ -170,12 +172,13 @@ succs_io = \xs -> do
 succs_oi = \ys -> do
   -- solution: p[0,1] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] p(1) ~p[0,0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~p(2)
   (xs) <- (do
-    (p) <- pure $ \y -> do
-      (x) <- (do
-        (x) <- succ_oi y
-        pure (x)
-       )
-      pure (x)
+    let p =
+          \y -> do
+            (x) <- (do
+              (x) <- succ_oi y
+              pure (x)
+             )
+            pure (x)
     (xs) <- map_p2oioi p ys
     pure (xs)
    )
@@ -308,12 +311,13 @@ constraints:
 evens_ii = \xs ys -> do
   -- solution: p[0,1] ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~p(1)
   () <- (do
-    (p) <- pure $ \x -> do
-      () <- (do
-        () <- even_i x
-        pure ()
-       )
-      pure ()
+    let p =
+          \x -> do
+            () <- (do
+              () <- even_i x
+              pure ()
+             )
+            pure ()
     () <- filter_p1iii p xs ys
     pure ()
    )
@@ -322,12 +326,13 @@ evens_ii = \xs ys -> do
 evens_io = \xs -> do
   -- solution: p[0,1] ys[] ys[0] ys[0,0] ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~p(1)
   (ys) <- (do
-    (p) <- pure $ \x -> do
-      () <- (do
-        () <- even_i x
-        pure ()
-       )
-      pure ()
+    let p =
+          \x -> do
+            () <- (do
+              () <- even_i x
+              pure ()
+             )
+            pure ()
     (ys) <- filter_p1iio p xs
     pure (ys)
    )
@@ -486,12 +491,13 @@ constraints:
 sum_iii = \xs z r -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] p[0,1] p(3) ~a[0,1,0] ~a[0,1,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~p(1) ~p(2)
   () <- (do
-    (p) <- pure $ \x a -> do
-      (a') <- (do
-        (a') <- plus_iio x a
-        pure (a')
-       )
-      pure (a')
+    let p =
+          \x a -> do
+            (a') <- (do
+              (a') <- plus_iio x a
+              pure (a')
+             )
+            pure (a')
     () <- foldl_p3iioiii p xs z r
     pure ()
    )
@@ -500,12 +506,13 @@ sum_iii = \xs z r -> do
 sum_iio = \xs z -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] p[0,1] r[] r[0] r[0,0] p(3) ~a[0,1,0] ~a[0,1,0,0] ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~p(1) ~p(2)
   (r) <- (do
-    (p) <- pure $ \x a -> do
-      (a') <- (do
-        (a') <- plus_iio x a
-        pure (a')
-       )
-      pure (a')
+    let p =
+          \x a -> do
+            (a') <- (do
+              (a') <- plus_iio x a
+              pure (a')
+             )
+            pure (a')
     (r) <- foldl_p3iioiio p xs z
     pure (r)
    )
@@ -514,12 +521,13 @@ sum_iio = \xs z -> do
 sum_ioi = \xs r -> do
   -- solution: a[0,1,0] a[0,1,0,0] p[0,1] z[] z[0] z[0,0] p(2) ~a'[0,1,0] ~a'[0,1,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~p(1) ~p(3)
   (z) <- (do
-    (p) <- pure $ \x a' -> do
-      (a) <- (do
-        (a) <- plus_ioi x a'
-        pure (a)
-       )
-      pure (a)
+    let p =
+          \x a' -> do
+            (a) <- (do
+              (a) <- plus_ioi x a'
+              pure (a)
+             )
+            pure (a)
     (z) <- foldl_p3ioiioi p xs r
     pure (z)
    )
@@ -550,12 +558,13 @@ constraints:
 split_ioi = \xs r -> do
   -- solution: a[0,1,0] a[0,1,0,0] p[0,1] z[] z[0] z[0,0] p(2) ~a'[0,1,0] ~a'[0,1,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~p(1) ~p(3)
   (z) <- (do
-    (p) <- pure $ \x a' -> do
-      (a) <- (do
-        a <- pure (x:a')
-        pure (a)
-       )
-      pure (a)
+    let p =
+          \x a' -> do
+            (a) <- (do
+              a <- pure (x:a')
+              pure (a)
+             )
+            pure (a)
     (z) <- foldl_p3ioiioi p xs r
     pure (z)
    )
@@ -564,12 +573,13 @@ split_ioi = \xs r -> do
 split_oii = \z r -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] p[0,1] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] p(1) p(3) ~a[0,1,0] ~a[0,1,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,0] ~z[] ~z[0] ~z[0,0] ~p(2)
   (xs) <- (do
-    (p) <- pure $ \a -> do
-      (a',x) <- (do
-        (x:a') <- pure a
-        pure (a',x)
-       )
-      pure (x,a')
+    let p =
+          \a -> do
+            (a',x) <- (do
+              (x:a') <- pure a
+              pure (a',x)
+             )
+            pure (x,a')
     (xs) <- foldl_p3oiooii p z r
     pure (xs)
    )
@@ -578,12 +588,13 @@ split_oii = \z r -> do
 split_oio = \z -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] p[0,1] r[] r[0] r[0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] p(1) p(3) ~a[0,1,0] ~a[0,1,0,0] ~p[0,0] ~z[] ~z[0] ~z[0,0] ~p(2)
   (r,xs) <- (do
-    (p) <- pure $ \a -> do
-      (a',x) <- (do
-        (x:a') <- pure a
-        pure (a',x)
-       )
-      pure (x,a')
+    let p =
+          \a -> do
+            (a',x) <- (do
+              (x:a') <- pure a
+              pure (a',x)
+             )
+            pure (x,a')
     (xs,r) <- foldl_p3oiooio p z
     pure (r,xs)
    )
@@ -614,12 +625,13 @@ constraints:
 splitr_iii = \xs z r -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] p[0,1] p(3) ~a[0,1,0] ~a[0,1,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~p(1) ~p(2)
   () <- (do
-    (p) <- pure $ \x a -> do
-      (a') <- (do
-        a' <- pure (x:a)
-        pure (a')
-       )
-      pure (a')
+    let p =
+          \x a -> do
+            (a') <- (do
+              a' <- pure (x:a)
+              pure (a')
+             )
+            pure (a')
     () <- foldl_p3iioiii p xs z r
     pure ()
    )
@@ -628,12 +640,13 @@ splitr_iii = \xs z r -> do
 splitr_iio = \xs z -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] p[0,1] r[] r[0] r[0,0] p(3) ~a[0,1,0] ~a[0,1,0,0] ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~p(1) ~p(2)
   (r) <- (do
-    (p) <- pure $ \x a -> do
-      (a') <- (do
-        a' <- pure (x:a)
-        pure (a')
-       )
-      pure (a')
+    let p =
+          \x a -> do
+            (a') <- (do
+              a' <- pure (x:a)
+              pure (a')
+             )
+            pure (a')
     (r) <- foldl_p3iioiio p xs z
     pure (r)
    )
@@ -642,12 +655,13 @@ splitr_iio = \xs z -> do
 splitr_ooi = \r -> do
   -- solution: a[0,1,0] a[0,1,0,0] p[0,1] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] z[] z[0] z[0,0] p(1) p(2) ~a'[0,1,0] ~a'[0,1,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,0] ~p(3)
   (xs,z) <- (do
-    (p) <- pure $ \a' -> do
-      (a,x) <- (do
-        (x:a) <- pure a'
-        pure (a,x)
-       )
-      pure (x,a)
+    let p =
+          \a' -> do
+            (a,x) <- (do
+              (x:a) <- pure a'
+              pure (a,x)
+             )
+            pure (x,a)
     (xs,z) <- foldl_p3ooiooi p r
     pure (xs,z)
    )

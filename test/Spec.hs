@@ -291,8 +291,20 @@ programKiselyov =
 programEuler :: Prog Var Var
 programEuler =
   [logic|
+  #pragma type nat Integer.
+  nat 0.
+  nat n' :- nat n, succ n n'.
+
+  even x :- mod x 2 0.
+
   elem x (x:_).
   elem x (_:xs) :- elem x xs.
+
+  span p [] [] [].
+  span p (x:xs) ys zs :-
+    if p x
+    then span p xs yt zs, ys = (x:yt)
+    else ys = [], zs = (x:xs).
 
   multiple x y :- mod x y 0.
 
@@ -305,6 +317,12 @@ programEuler =
   fib 0 0.
   fib 1 1.
   fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk.
+
+  fib' f :- nat i, fib i f.
+
+  euler2 s :-
+    (p x :- fib' x, even x), observeAll p fs,
+    (q x :- x < 1000000), span q fs xs _, sum xs s.
   |]
 
 main :: IO ()
@@ -464,7 +482,8 @@ main = do
         code `shouldBe` expect
       it "1" $ do
         observeAll euler1'_o `shouldBe` [233168]
-      it "fib" $ do
+      it "2" $ do
         [observeAll (fib_io i) | i <- [0 .. 12 :: Integer]] `shouldBe`
           map pure [0,1,1,2,3,5,8,13,21,34,55,89,144]
         observeAll (fib_io (100 :: Integer)) `shouldBe` [354224848179261915075]
+        observeAll euler2_o `shouldBe` [1089154]

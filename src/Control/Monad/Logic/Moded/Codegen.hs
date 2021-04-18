@@ -24,6 +24,7 @@ import Control.Monad.Logic.Moded.Schedule
   , varMode
   )
 import Data.List (groupBy, sort)
+import Data.Maybe (listToMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Set (Set)
@@ -87,6 +88,13 @@ cgGoal p r =
               pure $
                 case extract p' $ ruleBody r of
                   Atom _ -> cgAtom p' r
+                  Anon (MV name _) _ _ ->
+                    let tname = T.pack name
+                        lam = cgGoal p' r
+                     in [text|
+                          let $tname =
+                                $lam
+                        |]
                   g ->
                     "(" <>
                     T.intercalate
@@ -135,10 +143,10 @@ cgGoal p r =
           ins = [T.pack v | MV v m <- vars, m /= MOut]
           outs = T.intercalate "," [T.pack v | MV v MOut <- vars]
           args
-            | null ins = ""
-            | otherwise = "\\" <> T.unwords ins <> " ->"
+            | null ins = "do"
+            | otherwise = "\\" <> T.unwords ins <> " -> do"
        in [text|
-            pure $ $args do
+            $args
               ($rets) <- $code
               pure ($outs)
         |]
@@ -156,8 +164,12 @@ cgProcedure pragmas procedure =
         T.intercalate
           ","
           [T.pack v | V v <- Set.elems $ nonlocals' [] r, MV v MOut `elem` body]
+      pragmaType = listToMaybe [ts | Pragma ("type":f:ts) <- pragmas, f == name]
       ins = [T.pack v | MV v m <- vars, m /= MOut]
-      outs = T.intercalate "," [T.pack v | MV v MOut <- vars]
+      outs = case pragmaType of
+        Nothing -> T.intercalate "," [T.pack v | MV v MOut <- vars]
+        Just ts -> T.intercalate "," [T.pack v <> " :: " <> T.pack t
+                                     | (MV v MOut, t) <- zip vars ts]
       decorate
         | Pragma ["memo", name] `elem` pragmas =
           case length ins of
