@@ -19,7 +19,6 @@ import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Parse (logic)
 import qualified Data.List as List
-import qualified Data.List.Ordered as OrdList
 import qualified Data.Text.IO as TIO
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn)
@@ -297,7 +296,10 @@ programEuler =
 
   multiple x y :- mod x y 0.
 
+  #pragma nub euler1.
   euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5).
+
+  euler1' s :- (p x :- euler1 x), observeAll p r, sum r s.
 
   #pragma memo fib.
   fib 0 0.
@@ -461,7 +463,7 @@ main = do
         expect <- TIO.readFile "test/Euler.hs"
         code `shouldBe` expect
       it "1" $ do
-        (sum . OrdList.nub $ observeAll euler1_o) `shouldBe` 233168
+        observeAll euler1'_o `shouldBe` [233168]
       it "fib" $ do
         [observeAll (fib_io i) | i <- [0 .. 12 :: Integer]] `shouldBe`
           map pure [0,1,1,2,3,5,8,13,21,34,55,89,144]

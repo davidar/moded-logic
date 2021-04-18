@@ -5,6 +5,7 @@ module Control.Monad.Logic.Moded.Prelude where
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.Logic
 
 choose = foldr ((<|>) . pure) empty
 
@@ -27,4 +28,6 @@ timesInt_iio a b = pure (a * b)
 timesInt_ioi a c = guard (mod c a == 0) >> pure (div c a)
 timesInt_oii b c = guard (mod c b == 0) >> pure (div c b)
 sum_io xs = pure (sum xs)
+sum_ii xs s = guard (sum xs == s)
 print_i x = liftIO (print x)
+observeAll_p1oo = pure . observeAll

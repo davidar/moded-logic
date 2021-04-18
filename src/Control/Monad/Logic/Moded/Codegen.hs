@@ -132,10 +132,13 @@ cgGoal p r =
               | V v <- Set.elems $ nonlocals' p' r
               , MV v MOut `elem` body
               ]
-          ins = T.unwords [T.pack v | MV v m <- vars, m /= MOut]
+          ins = [T.pack v | MV v m <- vars, m /= MOut]
           outs = T.intercalate "," [T.pack v | MV v MOut <- vars]
+          args
+            | null ins = ""
+            | otherwise = "\\" <> T.unwords ins <> " ->"
        in [text|
-            pure $ \$ins -> do
+            pure $ $args do
               ($rets) <- $code
               pure ($outs)
         |]

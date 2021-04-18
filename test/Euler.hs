@@ -85,7 +85,7 @@ constraints:
 (y[0,5,1] <-> y[0,5,1,0])
 1
 -}
-euler1_o = do
+euler1_o = choose . nub . observeAll $ do
   -- solution: data0[0,1] data1[0,2] data2[0,3] x[] x[0] x[0,0] y[0,5] y[0,5,0] y[0,5,0,0] y[0,5,1] y[0,5,1,0] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~x[0,4] ~y[0,4]
   (x) <- (do
     data0 <- pure 0
@@ -103,6 +103,52 @@ euler1_o = do
     pure (x)
    )
   pure (x)
+
+{- euler1'/1
+euler1' s :- ((observeAll p r, sum r s, (p x :- (euler1 x)))).
+constraints:
+x[0,2,0,0]
+~(p[0,0] & p[0,2])
+~(r[0,0] & r[0,1])
+(~p[0,0] & (p(1) & r[0,0]))
+(p[0,0] | p[0,2])
+(r[0,0] | r[0,1])
+((~r[0,1] & s[0,1]) | (~r[0,1] & ~s[0,1]))
+(s[] <-> s[0])
+(s[0] <-> s[0,1])
+(x[0,2,0] <-> x[0,2,0,0])
+(p(1) <-> x[0,2,0])
+1
+-}
+euler1'_i = \s -> do
+  -- solution: p[0,2] r[0,0] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1] ~s[] ~s[0] ~s[0,1]
+  () <- (do
+    (p) <- pure $  do
+      (x) <- (do
+        (x) <- euler1_o 
+        pure (x)
+       )
+      pure (x)
+    (r) <- observeAll_p1oo p
+    () <- sum_ii r s
+    pure ()
+   )
+  pure ()
+
+euler1'_o = do
+  -- solution: p[0,2] r[0,0] s[] s[0] s[0,1] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1]
+  (s) <- (do
+    (p) <- pure $  do
+      (x) <- (do
+        (x) <- euler1_o 
+        pure (x)
+       )
+      pure (x)
+    (r) <- observeAll_p1oo p
+    (s) <- sum_io r
+    pure (s)
+   )
+  pure (s)
 
 {- fib/2
 fib arg1 arg2 :- ((arg1 = 0, arg2 = 0); (arg1 = 1, arg2 = 1); ((>) k data0, data0 = 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk, arg1 = k, arg2 = fk)).

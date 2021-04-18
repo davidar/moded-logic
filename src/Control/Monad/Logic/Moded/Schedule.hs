@@ -85,6 +85,7 @@ builtins =
     , ("sum", ["io", "ii"])
     , ("empty", [""])
     , ("print", ["i"])
+    , ("observeAll", [ModeString [MPred [MOut], MOut]])
     ]
 
 stripMode :: ModedVar -> Var
