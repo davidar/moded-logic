@@ -1,5 +1,4 @@
 {-# LANGUAGE BangPatterns, DeriveDataTypeable #-}
-{-# OPTIONS_GHC -Wwarn #-}
 -- adapted from picologic (c) 2014-2020, Stephen Diehl
 module Control.Monad.Logic.Moded.Solver
   ( Expr (..)
@@ -11,14 +10,13 @@ module Control.Monad.Logic.Moded.Solver
   ) where
 
 import Prelude hiding (and, or)
-import Data.Data ( Data, Typeable )
-import Data.List ( (\\), group, sort )
+import Data.Data (Data, Typeable)
+import Data.List (group, sort)
 import qualified Data.Map as M
-import Data.Maybe ( fromMaybe, mapMaybe )
-import Control.Monad.State.Strict
-import Control.Monad.Writer.Strict
-
-import Picosat ( Solution(..), solve, solveAll )
+import Data.Maybe (mapMaybe)
+import Control.Monad.State.Strict (evalStateT, MonadState(..), StateT)
+import Control.Monad.Writer.Strict (runWriter, MonadWriter(..), Writer)
+import Picosat (Solution(..), solveAll)
 
 newtype Solutions v = Solutions [[Expr v]]
 
@@ -58,14 +56,14 @@ instance Show v => Show (Expr v) where
 
 -- | Evaluate expression.
 eval :: Ord v => Ctx v -> Expr v -> Bool
-eval vs (Var v) = fromMaybe False (M.lookup v vs)
+eval vs (Var v) = Just True == M.lookup v vs
 eval vs (Neg expr) = not $ eval vs expr
 eval vs (Conj e1 e2) = eval vs e1 && eval vs e2
 eval vs (Disj e1 e2) = eval vs e1 || eval vs e2
 eval vs (Implies e1 e2) = not (eval vs e1) || eval vs e2
 eval vs (Iff e1 e2) = eval vs e1 == eval vs e2
-eval vs (Top) = True
-eval vs (Bottom) = False
+eval _ Top = True
+eval _ Bottom = False
 
 -- | Variables in expression
 variables :: Ord v => Expr v -> [v]
@@ -77,62 +75,14 @@ variables expr = map head . group . sort $ go expr []
     go (Disj e1 e2) !vs = go e1 vs ++ go e2 vs
     go (Iff e1 e2) !vs = go e1 vs ++ go e2 vs
     go (Implies e1 e2) !vs = go e1 vs ++ go e2 vs
-    go (Top) !vs = vs
-    go (Bottom) !vs = vs
-
--- | Negation normal form.
--- (May result in exponential growth)
-nnf :: Expr v -> Expr v
-nnf = transformDown nnf1 . propConst
-
-nnf1 :: Expr v -> Expr v
-nnf1 ex = case ex of
-  Neg (Neg e) -> nnf1 e
-  Neg (Conj e1 e2) -> Neg e1 `Disj` Neg e2
-  Neg (Disj e1 e2) -> Neg e1 `Conj` Neg e2
-  Implies e1 e2 -> Neg e1 `Disj` e2
-  Neg (Implies e1 e2) -> e1 `Conj` Neg e2
-  Iff e1 e2 ->
-    let a = e1 `Disj` Neg e2
-        b = Neg e1 `Disj` e2
-     in a `Conj` b
-  Neg (Iff e1 e2) ->
-    let a = e1 `Disj` e2
-        b = Neg e1 `Disj` Neg e2
-     in a `Conj` b
-  e -> e
-
--- | Conjunctive normal form.
--- (May result in exponential growth)
-cnf :: Eq v => Expr v -> Expr v
-cnf = simp . cnf' . nnf
-  where
-    cnf' :: Expr v -> Expr v
-    cnf' (Conj e1 e2) = cnf' e1 `Conj` cnf' e2
-    cnf' (Disj e1 e2) = cnf' e1 `dist` cnf' e2
-    cnf' e = e
-
-    dist :: Expr v -> Expr v -> Expr v
-    dist (Conj e11 e12) e2 = (e11 `dist` e2) `Conj` (e12 `dist` e2)
-    dist e1 (Conj e21 e22) = (e1 `dist` e21) `Conj` (e1 `dist` e22)
-    dist e1 e2 = e1 `Disj` e2
-
--- | Remove tautologies.
-simp :: Eq v => Expr v -> Expr v
-simp = transformUp (propConst1 . simp1)
-
-simp1 :: Eq v => Expr v -> Expr v
-simp1 ex = case ex of
-  Disj e1 (Neg e2) | e1 == e2 -> Top
-  Disj (Neg e1) e2 | e1 == e2 -> Top
-  Conj e1 e2 | e1 == e2 -> e1
-  e -> e
+    go Top !vs = vs
+    go Bottom !vs = vs
 
 -- | Test if expression is constant.
 isConst :: Expr v -> Bool
 isConst Top = True
 isConst Bottom = True
-isConst e = False
+isConst _ = False
 
 -- | Transform expression up from the bottom.
 transformUp :: (Expr v -> Expr v) -> Expr v -> Expr v
@@ -145,31 +95,6 @@ transformUp f ex = case ex of
   Implies e1 e2 -> f $ Implies (transformUp f e1) (transformUp f e2)
   e -> f e
 
--- | Transform expression down from the top.
-transformDown :: (Expr v -> Expr v) -> Expr v -> Expr v
--- TODO: This could probably be done with Data.Data, but it's outside my capabilities for now.
-transformDown f ex = case f ex of
-  Neg e -> Neg (transformDown f e)
-  Conj e1 e2 -> Conj (transformDown f e1) (transformDown f e2)
-  Disj e1 e2 -> Disj (transformDown f e1) (transformDown f e2)
-  Iff e1 e2 -> Iff (transformDown f e1) (transformDown f e2)
-  Implies e1 e2 -> Implies (transformDown f e1) (transformDown f e2)
-  e -> e
-
--- | Convert expression to list of all subexpressions.
-toList :: Expr v -> [Expr v]
--- TODO: This could probably be done with Data.Data, but it's outside my capabilities for now.
-toList ex =
-  ex : case ex of
-    Var ident -> []
-    Neg e -> toList e
-    Conj e1 e2 -> toList e1 ++ toList e2
-    Disj e1 e2 -> toList e1 ++ toList e2
-    Iff e1 e2 -> toList e1 ++ toList e2
-    Implies e1 e2 -> toList e1 ++ toList e2
-    Top -> []
-    Bottom -> []
-
 -- | Propagate constants (to simplify expression).
 propConst :: Expr v -> Expr v
 propConst = transformUp propConst1
@@ -180,12 +105,12 @@ propConst1 ex = case ex of
   Neg Top -> Bottom
   Neg Bottom -> Top
   Conj Top e2 -> e2
-  Conj Bottom e2 -> Bottom
+  Conj Bottom _ -> Bottom
   Conj e1 Top -> e1
-  Conj e1 Bottom -> Bottom
-  Disj Top e2 -> Top
+  Conj _ Bottom -> Bottom
+  Disj Top _ -> Top
   Disj Bottom e2 -> e2
-  Disj e1 Top -> Top
+  Disj _ Top -> Top
   Disj e1 Bottom -> e1
   Iff Top Bottom -> Bottom
   Iff Bottom Top -> Bottom
@@ -195,8 +120,8 @@ propConst1 ex = case ex of
   Iff e1 Top -> e1
   Iff e1 Bottom -> Neg e1
   Implies Top e2 -> e2
-  Implies Bottom e2 -> Top
-  Implies e1 Top -> Top
+  Implies Bottom _ -> Top
+  Implies _ Top -> Top
   Implies e1 Bottom -> Neg e1
   e -> e
 
@@ -204,8 +129,8 @@ propConst1 ex = case ex of
 subst :: Ord v => M.Map v (Expr v) -> Expr v -> Expr v
 subst vs = transformUp (propConst1 . subst1 vs)
   where
-    subst1 vs ex = case ex of
-      Var ident -> M.findWithDefault ex ident vs
+    subst1 vs' ex = case ex of
+      Var ident -> M.findWithDefault ex ident vs'
       e -> e
 
 -- | Partially evaluate expression.
@@ -238,29 +163,11 @@ solveCNF p = if isConst p
     vs' = M.fromList $ zip [1..] vars
     vars = variables p
 
--- | Yield one single solution for an expression using the PicoSAT
--- solver. The Expression must be in CNF form already.
-solveOneCNF :: (Ord v, Show v) => Expr v -> IO (Maybe [Expr v])
-solveOneCNF p = if isConst p
-                then
-                  return $ if eval M.empty p
-                           then Just []
-                           else Nothing
-                else do
-                  solution <- solve ds
-                  return $ backSubst vs' solution
-  where
-    cs = clausesFromCNF p
-    ds = cnfToDimacs vs cs
-    vs  = M.fromList $ zip vars [1..]
-    vs' = M.fromList $ zip [1..] vars
-    vars = variables p
-
 clausesFromCNF :: Show v => Expr v -> [[Expr v]]
 clausesFromCNF p = [ [ case lit of
-                       v@(Var name) -> v
-                       v@(Neg (Var name)) -> v
-                       x -> error $ "input not in CNF: \n" ++ show p
+                       v@Var{} -> v
+                       v@(Neg Var{}) -> v
+                       _ -> error $ "input not in CNF: \n" ++ show p
                      | lit <- ors [clause] ]
                    | clause <- ands [p]]
 
@@ -278,30 +185,15 @@ cnfToDimacs :: Ord v => M.Map v Int -> [[Expr v]] -> [[Int]]
 cnfToDimacs vs = map (map encode)
   where encode (Var ident)       = vs M.! ident
         encode (Neg (Var ident)) = negate $ vs M.! ident
-
-
--- | Yield the integer clauses given to the SAT solver.
-clausesExpr :: (Ord v, Show v) => Expr v -> [[Int]]
-clausesExpr p = ds
-  where
-    cs = clausesFromCNF p
-    vs  = M.fromList $ zip vars [1..]
-    vars = variables p
-    ds = cnfToDimacs vs cs
+        encode _ = error "invalid input"
 
 backSubst :: M.Map Int v -> Solution -> Maybe [Expr v]
 backSubst env (Solution xs) = Just $ fmap go xs
   where
     go x | x >= 0 = Var (env M.! x)
-    go x | x < 0 = Neg (Var (env M.! abs x))
+         | otherwise = Neg (Var (env M.! abs x))
 backSubst _ Unsatisfiable = Nothing
 backSubst _ Unknown = Nothing
-
-addVarsToSolutions :: Ord v => [v] -> Solutions v -> Solutions v
-addVarsToSolutions vars (Solutions sols) = Solutions $ concatMap addVarsToSolution sols
-  where
-    addVarsToSolution sol = map (sol ++) $ sequence  [ [Var v, Neg(Var v)] | v <- newVars $ head sols ]
-    newVars sol = vars \\ concatMap variables sol
 
 -- TODO: How efficient is the `mappend` used by Writer?
 -- TODO: For cases like (Conj (Conj a b) c) the introduction
@@ -334,8 +226,8 @@ and = foldl1 Conj
 
 tseitinCNF :: Tseitin v => Expr v -> Expr v
 tseitinCNF e =
-  let (var, clauses) = evalTS $ tseitin $ propConst e
-  in and (var : clauses)
+  let (v, clauses) = evalTS $ tseitin $ propConst e
+  in and (v : clauses)
 
 neg :: Expr v -> Expr v
 neg (Neg x) = x
@@ -462,10 +354,9 @@ dropTseitinVarsInSolutions (Solutions xs) =
   Solutions $ map dropTseitinVars xs
 
 dropTseitinVars :: Tseitin v => [Expr v] -> [Expr v]
-dropTseitinVars = filter (\x -> not $ isTseitinLiteral x)
+dropTseitinVars = filter (not . isTseitinLiteral)
 
 isTseitinLiteral :: Tseitin v => Expr v -> Bool
-isTseitinLiteral lit =
-  case lit of
-    (Var v) -> isTseitinVar v
-    (Neg (Var v)) -> isTseitinVar v
+isTseitinLiteral (Var v) = isTseitinVar v
+isTseitinLiteral (Neg (Var v)) = isTseitinVar v
+isTseitinLiteral _ = False
