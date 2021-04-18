@@ -76,7 +76,7 @@ instance IsString ModeString where
 
 instance Sat.Tseitin CAtom where
   tseitinVar = TseitinVar
-  isTseitinVar TseitinVar{} = True
+  isTseitinVar TseitinVar {} = True
   isTseitinVar _ = False
 
 term :: Path -> Var -> Constraint
