@@ -90,7 +90,7 @@ constraints:
 (t[1,2,2,0] <-> arg1[])
 1
 -}
-partition_iiii = \arg1 arg2 arg3 arg4 -> do
+partition_iiii = \arg1 arg2 arg3 arg4 -> once $ do
   -- solution: h[1,1] h0[1,0] h1[1,2,1,1] h2[1,2,2,1] hi[1,5] hi1[1,2,2,1] lo[1,4] lo1[1,2,1,1] p[1,3] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,4] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,2] ~h2[1,2,2,2] ~hi[1,2] ~hi[1,2,1] ~hi[1,2,1,0] ~hi[1,2,2] ~hi[1,2,2,1] ~hi1[1,2,2,0] ~lo[1,2] ~lo[1,2,1] ~lo[1,2,1,1] ~lo[1,2,2] ~lo[1,2,2,0] ~lo1[1,2,1,0] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
   () <- (do
     guard $ arg1 == []
@@ -317,7 +317,7 @@ constraints:
 (sorted[0] <-> sorted[0,0])
 1
 -}
-sort_ii = \list sorted -> do
+sort_ii = \list sorted -> once $ do
   -- solution: data0[0,0] ~data0[0,1] ~list[] ~list[0] ~list[0,0] ~sorted[] ~sorted[0] ~sorted[0,0]
   () <- (do
     (data0) <- qsort_iio list sorted

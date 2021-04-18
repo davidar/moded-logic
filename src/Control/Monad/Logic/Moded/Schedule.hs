@@ -83,6 +83,7 @@ builtins =
     , ("times", ["iio", "ioi", "oii"])
     , ("timesInt", ["iio", "ioi", "oii"])
     , ("sum", ["io", "ii"])
+    , ("maximum", ["io", "ii"])
     , ("empty", [""])
     , ("print", ["i"])
     , ("observeAll", [ModeString [MPred [MOut], MOut]])

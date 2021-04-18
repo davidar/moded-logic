@@ -23,7 +23,7 @@ constraints:
 (n[1,0] <-> arg1[])
 1
 -}
-nat_i = \arg1 -> do
+nat_i = \arg1 -> once $ do
   -- solution: n[1,1] n'[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,2] ~n[1,0] ~n'[1,1]
   () <- (do
     guard $ arg1 == 0
@@ -61,7 +61,7 @@ constraints:
 (x[0] <-> x[0,0])
 1
 -}
-even_i = \x -> do
+even_i = \x -> once $ do
   -- solution: data0[0,1] data1[0,0] ~data0[0,0] ~data1[0,2] ~x[] ~x[0] ~x[0,0]
   () <- (do
     data0 <- pure 2
@@ -182,7 +182,7 @@ constraints:
 (zs[1,3,2] <-> zs[1,3,2,1])
 1
 -}
-span_p1iiii = \p arg2 arg3 arg4 -> do
+span_p1iiii = \p arg2 arg3 arg4 -> once $ do
   -- solution: x[1,1] x0[1,0] x2[1,3,1,1] x3[1,3,2,1] xs[1,2] xs1[1,0] xs4[1,3,2,1] ys[1,4] yt[1,3,1,1] zs[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,4] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~p[] ~p[1] ~p[1,3] ~p[1,3,1] ~p[1,3,1,0] ~x[1,3] ~x[1,3,0,0] ~x[1,3,1,2] ~x[1,3,2] ~x[1,3,2,2] ~x0[1,1] ~x2[1,3,1,2] ~x3[1,3,2,2] ~xs[1,3] ~xs[1,3,1] ~xs[1,3,1,0] ~xs[1,3,2] ~xs[1,3,2,3] ~xs1[1,2] ~xs4[1,3,2,3] ~ys[1,3] ~ys[1,3,1] ~ys[1,3,1,1] ~ys[1,3,2] ~ys[1,3,2,0] ~yt[1,3,1,0] ~zs[1,3] ~zs[1,3,1] ~zs[1,3,1,0] ~zs[1,3,2] ~zs[1,3,2,1] ~p(1)
   () <- (do
     guard $ arg2 == []
@@ -322,7 +322,7 @@ constraints:
 (y[0] <-> y[0,0])
 1
 -}
-multiple_ii = \x y -> do
+multiple_ii = \x y -> once $ do
   -- solution: data0[0,0] ~data0[0,1] ~x[] ~x[0] ~x[0,0] ~y[] ~y[0] ~y[0,0]
   () <- (do
     (data0) <- mod_iio x y
@@ -390,7 +390,7 @@ x[0,2,0,0]
 (p(1) <-> x[0,2,0])
 1
 -}
-euler1'_i = \s -> do
+euler1'_i = \s -> once $ do
   -- solution: p[0,2] r[0,0] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1] ~s[] ~s[0] ~s[0,1]
   () <- (do
     let p =
@@ -565,7 +565,7 @@ x[0,3,0,0]
 (q(1) <-> x[0,4,0])
 1
 -}
-euler2_i = \s -> do
+euler2_i = \s -> once $ do
   -- solution: data0[0,4,0,1] fs[0,0] p[0,3] q[0,4] x[0,3,0] x[0,3,0,0] x[0,4] xs[0,1] p(1) ~data0[0,4,0,0] ~fs[0,1] ~p[0,0] ~q[0,1] ~s[] ~s[0] ~s[0,2] ~x[0,3] ~x[0,3,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,2] ~q(1)
   () <- (do
     let p =
@@ -616,3 +616,152 @@ euler2_o = do
     pure (s)
    )
   pure (s)
+
+{- nontrivialDivisor/2
+nontrivialDivisor n d :- ((succ n' n, elem d data1, data0 = 2, data1 = .. data0 n', mod n d data2, data2 = 0)).
+constraints:
+~(d[0,1] & d[0,4])
+~(data0[0,2] & data0[0,3])
+~(data1[0,1] & data1[0,3])
+~(data1[0,3] & data0[0,3])
+~(data2[0,4] & data2[0,5])
+~(n[0,0] & n[0,4])
+~(n'[0,0] & n'[0,3])
+(d[0,1] & ~data1[0,1])
+(data0[0,2] | data0[0,3])
+(data1[0,1] | data1[0,3])
+(data2[0,4] | data2[0,5])
+(n'[0,0] | n'[0,3])
+((n'[0,0] & ~n[0,0]) | ((~n'[0,0] & n[0,0]) | (~n'[0,0] & ~n[0,0])))
+((~n[0,4] & (~d[0,4] & data2[0,4])) | (~n[0,4] & (~d[0,4] & ~data2[0,4])))
+(d[] <-> d[0])
+(d[0] <-> (d[0,1] | d[0,4]))
+(data0[0,3] <-> n'[0,3])
+(n[] <-> n[0])
+(n[0] <-> (n[0,0] | n[0,4]))
+1
+-}
+nontrivialDivisor_io = \n -> do
+  -- solution: d[] d[0] d[0,1] data0[0,2] data1[0,3] data2[0,4] n'[0,0] ~d[0,4] ~data0[0,3] ~data1[0,1] ~data2[0,5] ~n[] ~n[0] ~n[0,0] ~n[0,4] ~n'[0,3]
+  (d) <- (do
+    data0 <- pure 2
+    (n') <- succ_oi n
+    data1 <- pure [data0..n']
+    (d) <- elem_oi data1
+    (data2) <- mod_iio n d
+    guard $ data2 == 0
+    pure (d)
+   )
+  pure (d)
+
+{- prime/1
+prime n :- ((nat n, (>) n data0, data0 = 1, if (nontrivialDivisor n _) then (empty) else ())).
+constraints:
+~n[0,3]
+~n[0,3,0,0]
+~(data0[0,1] & data0[0,2])
+~(n[0,0] & n[0,1])
+~(n[0,0] & n[0,3])
+~(n[0,1] & n[0,3])
+(~n[0,1] & ~data0[0,1])
+(data0[0,1] | data0[0,2])
+(n[0,0] | ~n[0,0])
+(n[] <-> n[0])
+(n[0] <-> (n[0,0] | (n[0,1] | n[0,3])))
+1
+-}
+prime_i = \n -> once $ do
+  -- solution: data0[0,2] ~data0[0,1] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
+  () <- (do
+    data0 <- pure 1
+    guard $ (>) n data0
+    () <- nat_i n
+    () <- ifte ((do
+      (_) <- nontrivialDivisor_io n
+      pure ()
+     )) (\() -> (do
+      () <- empty 
+      pure ()
+     )) ((do
+      
+      pure ()
+     ))
+    pure ()
+   )
+  pure ()
+
+prime_o = do
+  -- solution: data0[0,2] n[] n[0] n[0,0] ~data0[0,1] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
+  (n) <- (do
+    data0 <- pure 1
+    (n) <- nat_o 
+    guard $ (>) n data0
+    () <- ifte ((do
+      (_) <- nontrivialDivisor_io n
+      pure ()
+     )) (\() -> (do
+      () <- empty 
+      pure ()
+     )) ((do
+      
+      pure ()
+     ))
+    pure (n)
+   )
+  pure (n)
+
+{- euler3/1
+euler3 r :- ((observeAll p fs, maximum fs r, (p x :- (nontrivialDivisor data0 x, data0 = 42, prime x)))).
+constraints:
+~(data0[0,2,0,0] & data0[0,2,0,1])
+~(fs[0,0] & fs[0,1])
+~(p[0,0] & p[0,2])
+~(x[0,2,0,0] & x[0,2,0,2])
+(~data0[0,2,0,0] & x[0,2,0,0])
+(~p[0,0] & (p(1) & fs[0,0]))
+(data0[0,2,0,0] | data0[0,2,0,1])
+(fs[0,0] | fs[0,1])
+(p[0,0] | p[0,2])
+(x[0,2,0,2] | ~x[0,2,0,2])
+((~fs[0,1] & r[0,1]) | (~fs[0,1] & ~r[0,1]))
+(r[] <-> r[0])
+(r[0] <-> r[0,1])
+(x[0,2,0] <-> (x[0,2,0,0] | x[0,2,0,2]))
+(p(1) <-> x[0,2,0])
+1
+-}
+euler3_i = \r -> once $ do
+  -- solution: data0[0,2,0,1] fs[0,0] p[0,2] x[0,2,0] x[0,2,0,0] p(1) ~data0[0,2,0,0] ~fs[0,1] ~p[0,0] ~r[] ~r[0] ~r[0,1] ~x[0,2,0,2]
+  () <- (do
+    let p =
+          do
+            (x) <- (do
+              data0 <- pure 42
+              (x) <- nontrivialDivisor_io data0
+              () <- prime_i x
+              pure (x)
+             )
+            pure (x)
+    (fs) <- observeAll_p1oo p
+    () <- maximum_ii fs r
+    pure ()
+   )
+  pure ()
+
+euler3_o = do
+  -- solution: data0[0,2,0,1] fs[0,0] p[0,2] r[] r[0] r[0,1] x[0,2,0] x[0,2,0,0] p(1) ~data0[0,2,0,0] ~fs[0,1] ~p[0,0] ~x[0,2,0,2]
+  (r) <- (do
+    let p =
+          do
+            (x) <- (do
+              data0 <- pure 42
+              (x) <- nontrivialDivisor_io data0
+              () <- prime_i x
+              pure (x)
+             )
+            pure (x)
+    (fs) <- observeAll_p1oo p
+    (r) <- maximum_io fs
+    pure (r)
+   )
+  pure (r)

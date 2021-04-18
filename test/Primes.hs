@@ -121,7 +121,7 @@ constraints:
 (result[1,4,2] <-> result[1,4,2,0])
 1
 -}
-remove_iii = \arg1 arg2 arg3 -> do
+remove_iii = \arg1 arg2 arg3 -> once $ do
   -- solution: j[1,1] j0[1,0] j1[1,4,2,0] js[1,0] m[1,2] njs[1,4] njs[1,4,1] njs[1,4,1,0] njs[1,4,2] njs[1,4,2,0] p[1,5] result[1,6] ~arg1[] ~arg1[1] ~arg1[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,6] ~j[1,2] ~j[1,4] ~j[1,4,2] ~j[1,4,2,1] ~j0[1,1] ~j1[1,4,2,1] ~js[1,3] ~m[1,4] ~m[1,4,0,0] ~njs[1,3] ~p[1,2] ~p[1,3] ~result[1,4] ~result[1,4,1] ~result[1,4,1,0] ~result[1,4,2] ~result[1,4,2,0]
   () <- (do
     guard $ arg2 == []
@@ -213,7 +213,7 @@ constraints:
 (ps[1,5] <-> arg2[])
 1
 -}
-sift_ii = \arg1 arg2 -> do
+sift_ii = \arg1 arg2 -> once $ do
   -- solution: js[1,0] new[1,4] p[1,1] p0[1,0] p1[1,2] ps[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,2] ~js[1,4] ~new[1,5] ~p[1,3] ~p[1,4] ~p0[1,1] ~p1[1,3] ~ps[1,5]
   () <- (do
     guard $ arg1 == []
@@ -262,7 +262,7 @@ constraints:
 (ps[0] <-> ps[0,2])
 1
 -}
-primes_ii = \limit ps -> do
+primes_ii = \limit ps -> once $ do
   -- solution: data0[0,1] js[0,0] ~data0[0,0] ~js[0,2] ~limit[] ~limit[0] ~limit[0,0] ~ps[] ~ps[0] ~ps[0,2]
   () <- (do
     data0 <- pure 2

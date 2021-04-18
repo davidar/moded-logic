@@ -29,5 +29,7 @@ timesInt_ioi a c = guard (mod c a == 0) >> pure (div c a)
 timesInt_oii b c = guard (mod c b == 0) >> pure (div c b)
 sum_io xs = pure (sum xs)
 sum_ii xs s = guard (sum xs == s)
+maximum_io xs = pure (maximum xs)
+maximum_ii xs m = guard (maximum xs == m)
 print_i x = liftIO (print x)
 observeAll_p1oo = pure . observeAll

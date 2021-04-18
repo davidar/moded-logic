@@ -63,7 +63,7 @@ constraints:
 (x[1,5] <-> arg1[])
 1
 -}
-qdelete_iii = \arg1 arg2 arg3 -> do
+qdelete_iii = \arg1 arg2 arg3 -> once $ do
   -- solution: h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~r[1,5] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,5]
   () <- (do
     (h0:t1) <- pure arg2
@@ -195,7 +195,7 @@ constraints:
 (ys[1,2] <-> arg1[])
 1
 -}
-qperm_ii = \arg1 arg2 -> do
+qperm_ii = \arg1 arg2 -> once $ do
   -- solution: h[1,0] t[1,0] xs[1,3] ys[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~h[1,1] ~t[1,2] ~xs[1,1] ~ys[1,2]
   () <- (do
     guard $ arg1 == []
@@ -321,7 +321,7 @@ constraints:
 (t[1,4,2,0,2,0] <-> arg3[])
 1
 -}
-nodiag_iii = \arg1 arg2 arg3 -> do
+nodiag_iii = \arg1 arg2 arg3 -> once $ do
   -- solution: b[1,5] bmh[1,2] d[1,6] d1[1,3] h[1,0] hmb[1,1] t[1,0] ~arg1[] ~arg1[1] ~arg1[1,5] ~arg2[] ~arg2[1] ~arg2[1,6] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,0] ~b[1,1] ~b[1,2] ~b[1,4] ~b[1,4,2] ~b[1,4,2,0] ~b[1,4,2,0,2] ~b[1,4,2,0,2,0] ~bmh[1,4] ~bmh[1,4,2] ~bmh[1,4,2,0] ~bmh[1,4,2,0,0,0] ~d[1,3] ~d[1,4] ~d[1,4,0,0] ~d[1,4,2] ~d[1,4,2,0] ~d[1,4,2,0,0,0] ~d1[1,4] ~d1[1,4,2] ~d1[1,4,2,0] ~d1[1,4,2,0,2] ~d1[1,4,2,0,2,0] ~h[1,1] ~h[1,2] ~hmb[1,4] ~hmb[1,4,0,0] ~t[1,4] ~t[1,4,2] ~t[1,4,2,0] ~t[1,4,2,0,2] ~t[1,4,2,0,2,0]
   () <- (do
     guard $ arg3 == []
@@ -377,7 +377,7 @@ constraints:
 (t[1,3] <-> arg1[])
 1
 -}
-safe_i = \arg1 -> do
+safe_i = \arg1 -> once $ do
   -- solution: data0[1,2] h[1,0] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~data0[1,1] ~h[1,1] ~t[1,1] ~t[1,3]
   () <- (do
     guard $ arg1 == []
@@ -403,7 +403,7 @@ constraints:
 (out[0] <-> (out[0,0] | out[0,1]))
 1
 -}
-queens1_ii = \dat out -> do
+queens1_ii = \dat out -> once $ do
   -- solution: ~dat[] ~dat[0] ~dat[0,0] ~out[] ~out[0] ~out[0,0] ~out[0,1]
   () <- (do
     () <- qperm_ii dat out
@@ -487,7 +487,7 @@ constraints:
 (r[1,6] <-> arg1[])
 1
 -}
-cqueens_iii = \arg1 arg2 arg3 -> do
+cqueens_iii = \arg1 arg2 arg3 -> once $ do
   -- solution: data0[1,5] data1[1,7] history[1,10] m[1,0] q[1,1] q0[1,0] q1[1,8] r[1,3] xs[1,9] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,9] ~arg2[] ~arg2[1] ~arg2[1,10] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,0] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,6] ~q[1,3] ~q[1,4] ~q[1,8] ~q0[1,1] ~q1[1,7] ~r[1,6] ~xs[1,2] ~xs[1,3]
   () <- (do
     guard $ arg1 == []
@@ -565,7 +565,7 @@ constraints:
 (out[0] <-> out[0,0])
 1
 -}
-queens2_ii = \dat out -> do
+queens2_ii = \dat out -> once $ do
   -- solution: data0[0,1] ~dat[] ~dat[0] ~dat[0,0] ~data0[0,0] ~out[] ~out[0] ~out[0,0]
   () <- (do
     data0 <- pure []

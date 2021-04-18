@@ -44,7 +44,7 @@ constraints:
 (tb[1,4] <-> arg3[])
 1
 -}
-append_iii = \arg1 b arg3 -> do
+append_iii = \arg1 b arg3 -> once $ do
   -- solution: h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~b[] ~b[0] ~b[0,1] ~b[1] ~b[1,4] ~h[1,3] ~h0[1,1] ~h1[1,3] ~t[1,4] ~tb[1,4]
   () <- (do
     guard $ arg3 == b
@@ -141,7 +141,7 @@ constraints:
 (c[0] <-> c[0,1])
 1
 -}
-append3_iiii = \a b c abc -> do
+append3_iiii = \a b c abc -> once $ do
   -- solution: ab[0,0] ~a[] ~a[0] ~a[0,0] ~ab[0,1] ~abc[] ~abc[0] ~abc[0,1] ~b[] ~b[0] ~b[0,0] ~c[] ~c[0] ~c[0,1]
   () <- (do
     (ab) <- append_iio a b
@@ -261,7 +261,7 @@ constraints:
 (t[1,2] <-> arg1[])
 1
 -}
-reverse_ii = \arg1 arg2 -> do
+reverse_ii = \arg1 arg2 -> once $ do
   -- solution: data0[1,4] data1[1,3] h[1,1] h0[1,0] h1[1,6] l[1,7] r[1,3] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,7] ~data0[1,5] ~data1[1,5] ~h[1,6] ~h0[1,1] ~h1[1,5] ~l[1,3] ~r[1,2] ~t[1,2]
   () <- (do
     guard $ arg1 == []
@@ -334,7 +334,7 @@ constraints:
 1
 -}
 -- mode ordering failure, cyclic dependency: [0] reverse a0::i a1::o -> [2] a1::i = a::o -> [1] a0::o = a::i
-palindrome_i = \a -> do
+palindrome_i = \a -> once $ do
   -- solution: a0[0,0] a1[0,2] ~a[] ~a[0] ~a[0,1] ~a[0,2] ~a0[0,1] ~a1[0,0]
   () <- (do
     a1 <- pure a
@@ -362,7 +362,7 @@ constraints:
 1
 -}
 -- mode ordering failure, cyclic dependency: [0] append a0::i a1::o b::i -> [2] a1::i = a::o -> [1] a0::o = a::i
-duplicate_ii = \a b -> do
+duplicate_ii = \a b -> once $ do
   -- solution: a0[0,0] a1[0,0] ~a[] ~a[0] ~a[0,1] ~a[0,2] ~a0[0,1] ~a1[0,2] ~b[] ~b[0] ~b[0,0]
   () <- (do
     (a0,a1) <- append_ooi b
@@ -423,7 +423,7 @@ h[0,0,2,0,0]
 (xs[0,0,2] <-> xs[0,0,2,0])
 1
 -}
-classify_ii = \xs r -> do
+classify_ii = \xs r -> once $ do
   -- solution: data0[0,0,1,0] h[0,0,2,0,0] h[0,0,2,0,0,0] ~data0[0,0,1,1] ~h[0,0,2,0,1,0] ~r[] ~r[0] ~r[0,0] ~r[0,0,1] ~r[0,0,1,0] ~r[0,0,2] ~r[0,0,2,0] ~r[0,0,2,0,1] ~r[0,0,2,0,1,0] ~r[0,0,2,0,2] ~r[0,0,2,0,2,0] ~xs[] ~xs[0] ~xs[0,0] ~xs[0,0,0,0] ~xs[0,0,2] ~xs[0,0,2,0] ~xs[0,0,2,0,0,0]
   () <- (do
     () <- ifte ((do
@@ -533,7 +533,7 @@ constraints:
 (x[1,5] <-> arg1[])
 1
 -}
-delete_iii = \arg1 arg2 arg3 -> do
+delete_iii = \arg1 arg2 arg3 -> once $ do
   -- solution: h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~r[1,5] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,5]
   () <- (do
     (h0:t1) <- pure arg2
@@ -665,7 +665,7 @@ constraints:
 (ys[1,2] <-> arg1[])
 1
 -}
-perm_ii = \arg1 arg2 -> do
+perm_ii = \arg1 arg2 -> once $ do
   -- solution: h[1,0] t[1,0] xs[1,3] ys[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~h[1,1] ~t[1,2] ~xs[1,1] ~ys[1,2]
   () <- (do
     guard $ arg1 == []

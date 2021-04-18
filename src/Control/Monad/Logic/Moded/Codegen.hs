@@ -183,6 +183,7 @@ cgProcedure pragmas procedure =
       transform
         | Pragma ["nub", name] `elem` pragmas = "choose . nub . observeAll $ do"
         | Pragma ["memo", name] `elem` pragmas = "choose . observeAll $ do"
+        | T.null outs = "once $ do"
         | otherwise = "do"
    in [text|
         $nameMode = $decorate$args$transform

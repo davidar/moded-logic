@@ -19,7 +19,7 @@ constraints:
 (n[0] <-> n[0,0])
 1
 -}
-even_i = \n -> do
+even_i = \n -> once $ do
   -- solution: data0[0,1] data1[0,0] ~data0[0,0] ~data1[0,2] ~n[] ~n[0] ~n[0,0]
   () <- (do
     data0 <- pure 2
@@ -62,7 +62,7 @@ constraints:
 (ys[1,3] <-> arg3[])
 1
 -}
-map_p2iiii = \p arg2 arg3 -> do
+map_p2iiii = \p arg2 arg3 -> once $ do
   -- solution: x[1,0] xs[1,0] y[1,1] ys[1,1] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,2] ~ys[1,3] ~p(1) ~p(2)
   () <- (do
     guard $ arg2 == []
@@ -139,7 +139,7 @@ constraints:
 (p(2) <-> y[0,1,0])
 1
 -}
-succs_ii = \xs ys -> do
+succs_ii = \xs ys -> once $ do
   -- solution: p[0,1] ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~p(1) ~p(2)
   () <- (do
     let p =
@@ -241,7 +241,7 @@ constraints:
 (ts[1,2,2,0] <-> arg3[])
 1
 -}
-filter_p1iii = \p arg2 arg3 -> do
+filter_p1iii = \p arg2 arg3 -> once $ do
   -- solution: h[1,1] h0[1,0] h1[1,2,1,1] t[1,0] t'[1,2,1,1] ts[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,3] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,2] ~p[] ~p[1] ~p[1,2] ~p[1,2,1] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,0] ~ts[1,2] ~ts[1,2,1] ~ts[1,2,1,1] ~ts[1,2,2] ~ts[1,2,2,0] ~p(1)
   () <- (do
     guard $ arg2 == []
@@ -308,7 +308,7 @@ constraints:
 (p(1) <-> x[0,1,0])
 1
 -}
-evens_ii = \xs ys -> do
+evens_ii = \xs ys -> once $ do
   -- solution: p[0,1] ~p[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~p(1)
   () <- (do
     let p =
@@ -377,7 +377,7 @@ constraints:
 (t[1,2] <-> arg2[])
 1
 -}
-foldl_p3iioiii = \p arg2 a arg4 -> do
+foldl_p3iioiii = \p arg2 a arg4 -> once $ do
   -- solution: a'[1,1] a''[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
   () <- (do
     guard $ arg4 == a
@@ -488,7 +488,7 @@ constraints:
 (p(3) <-> a'[0,1,0])
 1
 -}
-sum_iii = \xs z r -> do
+sum_iii = \xs z r -> once $ do
   -- solution: a'[0,1,0] a'[0,1,0,0] p[0,1] p(3) ~a[0,1,0] ~a[0,1,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~p(1) ~p(2)
   () <- (do
     let p =
@@ -622,7 +622,7 @@ constraints:
 (p(3) <-> a'[0,1,0])
 1
 -}
-splitr_iii = \xs z r -> do
+splitr_iii = \xs z r -> once $ do
   -- solution: a'[0,1,0] a'[0,1,0,0] p[0,1] p(3) ~a[0,1,0] ~a[0,1,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~p(1) ~p(2)
   () <- (do
     let p =

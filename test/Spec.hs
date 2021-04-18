@@ -323,7 +323,20 @@ programEuler =
   euler2 s :-
     (p x :- fib' x, even x), observeAll p fs,
     (q x :- x < 1000000), span q fs xs _, sum xs s.
+
+  nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0.
+
+  prime n :- nat n, n > 1, if nontrivialDivisor n _ then empty else.
+
+  euler3 r :-
+    (p x :- nontrivialDivisor 42 x, prime x),
+    observeAll p fs, maximum fs r.
   |]
+
+prime25 :: [Integer]
+prime25 =
+  [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41
+  , 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97 ]
 
 main :: IO ()
 main = do
@@ -403,10 +416,8 @@ main = do
         expect <- TIO.readFile "test/Primes.hs"
         code `shouldBe` expect
       it "primes" $ do
-        let p100 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41,
-                    43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
-        observeAll (primes_io 100) `shouldBe` [p100]
-        observeAll (primes_ii 100 p100) `shouldBe` [()]
+        observeAll (primes_io 100) `shouldBe` [prime25]
+        observeAll (primes_ii 100 prime25) `shouldBe` [()]
         observeAll (primes_ii 100 [2 .. 99]) `shouldBe` []
     describe "Sort" $ do
       it "compile" $ do
@@ -487,3 +498,6 @@ main = do
           map pure [0,1,1,2,3,5,8,13,21,34,55,89,144]
         observeAll (fib_io (100 :: Integer)) `shouldBe` [354224848179261915075]
         observeAll euler2_o `shouldBe` [1089154]
+      it "3" $ do
+        observeMany 25 prime_o `shouldBe` prime25
+        observeAll euler3_o `shouldBe` [7]
