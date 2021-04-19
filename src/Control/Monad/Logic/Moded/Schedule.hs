@@ -120,7 +120,8 @@ mode r@(Rule name vars body) soln =
           [] -> MIn
           ms' -> MPred ms'
       | v == "_" = MV v MOut
-      | otherwise = error $ show t ++ " not in " ++ show soln
+      | null p = MV v MIn
+      | otherwise = error $ show r ++ "\n" ++ show t ++ " not in " ++ show soln
       where
         t = Sat.Var $ Produce (V v) p
     walk p (Disj disj) =
@@ -135,10 +136,10 @@ mode r@(Rule name vars body) soln =
       t' <- walk (p ++ [1]) t
       e' <- walk (p ++ [2]) e
       pure $ Ifte c' t' e'
-    walk p (Anon n vs g) = do
+    walk p (Anon (V n) vs g) = do
       let vs' = do
             (i, V v) <- zip [1 ..] vs
-            let t = Sat.Var $ ProduceArg n i
+            let t = Sat.Var $ ProduceArg (V n) i
             pure $
               if t `Set.member` soln
                 then MV v MOut
@@ -146,7 +147,7 @@ mode r@(Rule name vars body) soln =
                        then MV v MIn
                        else error $ show t ++ " not in " ++ show soln
       g' <- walk (p ++ [0]) g
-      pure $ Anon (annotate p n) vs' g'
+      pure $ Anon (MV n MOut) vs' g'
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
 mode' :: CompiledProgram -> Rule Var Var -> CompiledProgram

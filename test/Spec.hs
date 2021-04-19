@@ -19,9 +19,10 @@ import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Parse (logic)
 import qualified Data.List as List
+import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Test.Hspec (describe, hspec, it)
-import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn)
+import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn, shouldSatisfy)
 
 updateCode :: Bool
 updateCode = False
@@ -328,8 +329,8 @@ programEuler =
 
   prime n :- nat n, n > 1, if nontrivialDivisor n _ then empty else.
 
-  euler3 r :-
-    (p x :- nontrivialDivisor 42 x, prime x),
+  euler3 n r :-
+    (p x :- nontrivialDivisor n x, prime x),
     observeAll p fs, maximum fs r.
   |]
 
@@ -338,17 +339,23 @@ prime25 =
   [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41
   , 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97 ]
 
+compileTest :: String -> Prog Var Var -> IO ()
+compileTest name program = do
+  let code = compile (T.pack name) program
+      file = "test/" ++ name ++ ".hs"
+  code `shouldSatisfy` (not . T.null)
+  when updateCode $
+    TIO.writeFile file code
+  expect <- TIO.readFile file
+  code `shouldBe` expect
+
 main :: IO ()
 main = do
   putStrLn . unlines $
     map show [programAppend, programHigherOrder, programPrimes, programSort, programQueens, programCrypt, programKiselyov, programEuler]
   hspec $ do
     describe "Append" $ do
-      it "compile" $ do
-        let code = compile "Append" programAppend
-        when updateCode $ TIO.writeFile "test/Append.hs" code
-        expect <- TIO.readFile "test/Append.hs"
-        code `shouldBe` expect
+      it "compile" $ compileTest "Append" programAppend
       it "append" $ do
         observeAll (append_iio [1 .. 3] [4 .. 6]) `shouldBe` [[1 .. 6]]
         observeAll (append_iii [1 .. 3] [4 .. 6] [1 .. 6]) `shouldBe` [()]
@@ -391,11 +398,7 @@ main = do
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` [()]
         observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
     describe "HigherOrder" $ do
-      it "compile" $ do
-        let code = compile "HigherOrder" programHigherOrder
-        when updateCode $ TIO.writeFile "test/HigherOrder.hs" code
-        expect <- TIO.readFile "test/HigherOrder.hs"
-        code `shouldBe` expect
+      it "compile" $ compileTest "HigherOrder" programHigherOrder
       it "map" $ do
         observeAll (map_p2ioio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (map_p2oioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
@@ -410,21 +413,13 @@ main = do
         observeMany 10 (splitr_ooi [1..9]) `shouldBe`
           [let (a, b) = splitAt i [1..9] in (reverse a, b) | i <- [0..9]]
     describe "Primes" $ do
-      it "compile" $ do
-        let code = compile "Primes" programPrimes
-        when updateCode $ TIO.writeFile "test/Primes.hs" code
-        expect <- TIO.readFile "test/Primes.hs"
-        code `shouldBe` expect
+      it "compile" $ compileTest "Primes" programPrimes
       it "primes" $ do
         observeAll (primes_io 100) `shouldBe` [prime25]
         observeAll (primes_ii 100 prime25) `shouldBe` [()]
         observeAll (primes_ii 100 [2 .. 99]) `shouldBe` []
     describe "Sort" $ do
-      it "compile" $ do
-        let code = compile "Sort" programSort
-        when updateCode $ TIO.writeFile "test/Sort.hs" code
-        expect <- TIO.readFile "test/Sort.hs"
-        code `shouldBe` expect
+      it "compile" $ compileTest "Sort" programSort
       it "sort" $ do
         let xs = [27,74,17,33,94,18,46,83,65,2,32,53,28,85,99,47,28,82,6,11,55,29,39,81,
                   90,37,10,0,66,51,7,21,85,27,31,63,75,4,95,99,11,28,61,74,18,92,40,53,59,8]
@@ -432,11 +427,7 @@ main = do
         observeAll (sort_ii xs (List.sort xs)) `shouldBe` [()]
         observeAll (sort_ii xs xs) `shouldBe` []
     describe "Queens" $ do
-      it "compile" $ do
-        let code = compile "Queens" programQueens
-        when updateCode $ TIO.writeFile "test/Queens.hs" code
-        expect <- TIO.readFile "test/Queens.hs"
-        code `shouldBe` expect
+      it "compile" $ compileTest "Queens" programQueens
       it "queens1" $ do
         observeAll (queens1_io [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
       it "queens2" $ do
@@ -446,11 +437,7 @@ main = do
         observeAll (queens1_io [1 .. n]) `shouldBe`
         observeAll (queens2_io [1 .. n])
     describe "Kiselyov" $ do
-      it "compile" $ do
-        let code = compile "Kiselyov" programKiselyov
-        when updateCode $ TIO.writeFile "test/Kiselyov.hs" code
-        expect <- TIO.readFile "test/Kiselyov.hs"
-        code `shouldBe` expect
+      it "compile" $ compileTest "Kiselyov" programKiselyov
       it "pythag" $ do
         take 7 (FairLogic.observeAll pythag_ooo) `shouldBe`
           [(3,4,5),(6,8,10),(5,12,13),(9,12,15),(8,15,17),(12,16,20),(7,24,25)]
@@ -486,11 +473,7 @@ main = do
             twosen = liftIO . print =<< findI_iio "or" =<< sentence1 <|> sentence2
         observeAllT twosen `shouldReturn` replicate 4 ()
     describe "Euler" $ do
-      it "compile" $ do
-        let code = compile "Euler" programEuler
-        when updateCode $ TIO.writeFile "test/Euler.hs" code
-        expect <- TIO.readFile "test/Euler.hs"
-        code `shouldBe` expect
+      it "compile" $ compileTest "Euler" programEuler
       it "1" $ do
         observeAll euler1'_o `shouldBe` [233168]
       it "2" $ do
@@ -500,4 +483,4 @@ main = do
         observeAll euler2_o `shouldBe` [1089154]
       it "3" $ do
         observeMany 25 prime_o `shouldBe` prime25
-        observeAll euler3_o `shouldBe` [7]
+        observeAll (euler3_io 42) `shouldBe` [7]

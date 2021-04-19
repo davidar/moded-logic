@@ -21,6 +21,7 @@ import Control.Monad.Logic.Moded.Path
   , extendPath
   , extract
   , inside
+  , insideNonneg
   , locals
   , nonlocals
   )
@@ -101,7 +102,7 @@ cGen p r = cLocal p r `Set.union` cExt p r
 
 -- | Local constraints (sec 5.2.2)
 cLocal :: Path -> Rule Var Var -> Constraints
-cLocal p r = term p `Set.map` locals p r
+cLocal p r = term p `Set.map` (locals p r `Set.intersection` insideNonneg (extract p $ ruleBody r))
 
 -- | External constraints (sec 5.2.2)
 cExt :: Path -> Rule Var Var -> Constraints
@@ -162,8 +163,10 @@ cIte p r =
 -- | Higher-order terms (omitted from paper)
 cAnon :: Path -> Rule Var Var -> Constraints
 cAnon p r =
-  Set.fromList
-    [Sat.Var (ProduceArg name i) `Sat.Iff` term p' v | (i, v) <- zip [1 ..] vs]
+  Set.fromList $
+  [Sat.Var (ProduceArg name i) `Sat.Iff` term p' v | (i, v) <- zip [1 ..] vs] ++
+  [term p name] ++
+  [Sat.Neg $ term p v | v <- vs ++ Set.elems (nonlocals p' r)]
   where
     p' = p ++ [0]
     Anon name vs _ = extract p (ruleBody r)
@@ -223,7 +226,7 @@ constraints m rule = Set.map f cs
       [(i, False) | Sat.Neg (Sat.Var i) <- Set.elems cs]
     f c =
       case Sat.partEval env c of
-        Sat.Bottom -> error $ show c ++ " always fails with " ++ show env
+        Sat.Bottom -> error $ show rule ++ "\n" ++ show c ++ " always fails with " ++ show env
         e -> e
 
 solveConstraints :: Modes -> Rule Var Var -> IO (Set Constraints)

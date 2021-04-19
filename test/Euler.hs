@@ -378,10 +378,10 @@ euler1_o = choose . nub . observeAll $ do
 euler1' s :- ((observeAll p r, sum r s, (p x :- (euler1 x)))).
 constraints:
 x[0,2,0,0]
-~(p[0,0] & p[0,2])
+~p[0,0]
+~x[0]
 ~(r[0,0] & r[0,1])
 (~p[0,0] & (p(1) & r[0,0]))
-(p[0,0] | p[0,2])
 (r[0,0] | r[0,1])
 ((~r[0,1] & s[0,1]) | (~r[0,1] & ~s[0,1]))
 (s[] <-> s[0])
@@ -391,7 +391,7 @@ x[0,2,0,0]
 1
 -}
 euler1'_i = \s -> once $ do
-  -- solution: p[0,2] r[0,0] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1] ~s[] ~s[0] ~s[0,1]
+  -- solution: r[0,0] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1] ~s[] ~s[0] ~s[0,1] ~x[0]
   () <- (do
     let p =
           do
@@ -407,7 +407,7 @@ euler1'_i = \s -> once $ do
   pure ()
 
 euler1'_o = do
-  -- solution: p[0,2] r[0,0] s[] s[0] s[0,1] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1]
+  -- solution: r[0,0] s[] s[0] s[0,1] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1] ~x[0]
   (s) <- (do
     let p =
           do
@@ -539,24 +539,22 @@ fib'_o = do
 euler2 s :- ((observeAll p fs, span q fs xs _, sum xs s, (p x :- (fib' x, even x)), (q x :- ((<) x data0, data0 = 1000000)))).
 constraints:
 x[0,3,0,0]
+~p[0,0]
+~q[0,1]
+~x[0]
 ~x[0,3,0,1]
 ~(data0[0,4,0,0] & data0[0,4,0,1])
 ~(fs[0,0] & fs[0,1])
-~(p[0,0] & p[0,3])
-~(q[0,1] & q[0,4])
-~(x[0,3] & x[0,4])
 ~(x[0,3,0,0] & x[0,3,0,1])
 ~(xs[0,1] & xs[0,2])
 (~p[0,0] & (p(1) & fs[0,0]))
 (~x[0,4,0,0] & ~data0[0,4,0,0])
 (data0[0,4,0,0] | data0[0,4,0,1])
 (fs[0,0] | fs[0,1])
-(p[0,0] | p[0,3])
-(q[0,1] | q[0,4])
-(x[0,3] | x[0,4])
 (xs[0,1] | xs[0,2])
 ((~q[0,1] & (~q(1) & (~fs[0,1] & xs[0,1]))) | (~q[0,1] & (~q(1) & (~fs[0,1] & ~xs[0,1]))))
 ((~xs[0,2] & s[0,2]) | (~xs[0,2] & ~s[0,2]))
+(data0[0] <-> data0[0,4])
 (s[] <-> s[0])
 (s[0] <-> s[0,2])
 (x[0,3,0] <-> (x[0,3,0,0] | x[0,3,0,1]))
@@ -566,7 +564,7 @@ x[0,3,0,0]
 1
 -}
 euler2_i = \s -> once $ do
-  -- solution: data0[0,4,0,1] fs[0,0] p[0,3] q[0,4] x[0,3,0] x[0,3,0,0] x[0,4] xs[0,1] p(1) ~data0[0,4,0,0] ~fs[0,1] ~p[0,0] ~q[0,1] ~s[] ~s[0] ~s[0,2] ~x[0,3] ~x[0,3,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,2] ~q(1)
+  -- solution: data0[0,4,0,1] fs[0,0] x[0,3,0] x[0,3,0,0] xs[0,1] p(1) ~data0[0] ~data0[0,4] ~data0[0,4,0,0] ~fs[0,1] ~p[0,0] ~q[0,1] ~s[] ~s[0] ~s[0,2] ~x[0] ~x[0,3,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,2] ~q(1)
   () <- (do
     let p =
           do
@@ -592,7 +590,7 @@ euler2_i = \s -> once $ do
   pure ()
 
 euler2_o = do
-  -- solution: data0[0,4,0,1] fs[0,0] p[0,3] q[0,4] s[] s[0] s[0,2] x[0,3,0] x[0,3,0,0] x[0,4] xs[0,1] p(1) ~data0[0,4,0,0] ~fs[0,1] ~p[0,0] ~q[0,1] ~x[0,3] ~x[0,3,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,2] ~q(1)
+  -- solution: data0[0,4,0,1] fs[0,0] s[] s[0] s[0,2] x[0,3,0] x[0,3,0,0] xs[0,1] p(1) ~data0[0] ~data0[0,4] ~data0[0,4,0,0] ~fs[0,1] ~p[0,0] ~q[0,1] ~x[0] ~x[0,3,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,2] ~q(1)
   (s) <- (do
     let p =
           do
@@ -657,6 +655,7 @@ nontrivialDivisor_io = \n -> do
 {- prime/1
 prime n :- ((nat n, (>) n data0, data0 = 1, if (nontrivialDivisor n _) then (empty) else ())).
 constraints:
+_[0,3]
 ~n[0,3]
 ~n[0,3,0,0]
 ~(data0[0,1] & data0[0,2])
@@ -666,12 +665,13 @@ constraints:
 (~n[0,1] & ~data0[0,1])
 (data0[0,1] | data0[0,2])
 (n[0,0] | ~n[0,0])
+(_[0] <-> _[0,3])
 (n[] <-> n[0])
 (n[0] <-> (n[0,0] | (n[0,1] | n[0,3])))
 1
 -}
 prime_i = \n -> once $ do
-  -- solution: data0[0,2] ~data0[0,1] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
+  -- solution: _[0] _[0,3] data0[0,2] ~data0[0,1] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
   () <- (do
     data0 <- pure 1
     guard $ (>) n data0
@@ -691,7 +691,7 @@ prime_i = \n -> once $ do
   pure ()
 
 prime_o = do
-  -- solution: data0[0,2] n[] n[0] n[0,0] ~data0[0,1] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
+  -- solution: _[0] _[0,3] data0[0,2] n[] n[0] n[0,0] ~data0[0,1] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
   (n) <- (do
     data0 <- pure 1
     (n) <- nat_o 
@@ -710,34 +710,34 @@ prime_o = do
    )
   pure (n)
 
-{- euler3/1
-euler3 r :- ((observeAll p fs, maximum fs r, (p x :- (nontrivialDivisor data0 x, data0 = 42, prime x)))).
+{- euler3/2
+euler3 n r :- ((observeAll p fs, maximum fs r, (p x :- (nontrivialDivisor n x, prime x)))).
 constraints:
-~(data0[0,2,0,0] & data0[0,2,0,1])
+~n[0]
+~p[0,0]
+~x[0]
 ~(fs[0,0] & fs[0,1])
-~(p[0,0] & p[0,2])
-~(x[0,2,0,0] & x[0,2,0,2])
-(~data0[0,2,0,0] & x[0,2,0,0])
+~(x[0,2,0,0] & x[0,2,0,1])
+(~n[0,2,0,0] & x[0,2,0,0])
 (~p[0,0] & (p(1) & fs[0,0]))
-(data0[0,2,0,0] | data0[0,2,0,1])
 (fs[0,0] | fs[0,1])
-(p[0,0] | p[0,2])
-(x[0,2,0,2] | ~x[0,2,0,2])
+(x[0,2,0,1] | ~x[0,2,0,1])
 ((~fs[0,1] & r[0,1]) | (~fs[0,1] & ~r[0,1]))
+(n[] <-> n[0])
+(n[0,2,0] <-> n[0,2,0,0])
 (r[] <-> r[0])
 (r[0] <-> r[0,1])
-(x[0,2,0] <-> (x[0,2,0,0] | x[0,2,0,2]))
+(x[0,2,0] <-> (x[0,2,0,0] | x[0,2,0,1]))
 (p(1) <-> x[0,2,0])
 1
 -}
-euler3_i = \r -> once $ do
-  -- solution: data0[0,2,0,1] fs[0,0] p[0,2] x[0,2,0] x[0,2,0,0] p(1) ~data0[0,2,0,0] ~fs[0,1] ~p[0,0] ~r[] ~r[0] ~r[0,1] ~x[0,2,0,2]
+euler3_ii = \n r -> once $ do
+  -- solution: fs[0,0] x[0,2,0] x[0,2,0,0] p(1) ~fs[0,1] ~n[] ~n[0] ~n[0,2,0] ~n[0,2,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,1] ~x[0] ~x[0,2,0,1]
   () <- (do
     let p =
           do
             (x) <- (do
-              data0 <- pure 42
-              (x) <- nontrivialDivisor_io data0
+              (x) <- nontrivialDivisor_io n
               () <- prime_i x
               pure (x)
              )
@@ -748,14 +748,13 @@ euler3_i = \r -> once $ do
    )
   pure ()
 
-euler3_o = do
-  -- solution: data0[0,2,0,1] fs[0,0] p[0,2] r[] r[0] r[0,1] x[0,2,0] x[0,2,0,0] p(1) ~data0[0,2,0,0] ~fs[0,1] ~p[0,0] ~x[0,2,0,2]
+euler3_io = \n -> do
+  -- solution: fs[0,0] r[] r[0] r[0,1] x[0,2,0] x[0,2,0,0] p(1) ~fs[0,1] ~n[] ~n[0] ~n[0,2,0] ~n[0,2,0,0] ~p[0,0] ~x[0] ~x[0,2,0,1]
   (r) <- (do
     let p =
           do
             (x) <- (do
-              data0 <- pure 42
-              (x) <- nontrivialDivisor_io data0
+              (x) <- nontrivialDivisor_io n
               () <- prime_i x
               pure (x)
              )
