@@ -138,7 +138,7 @@ softcut = do
   pure $ Ifte c t e
 
 disj :: Parser (Goal Val)
-disj = Disj <$> parens (goal `sepBy` symbol ";")
+disj = Disj <$> parens (conj `sepBy` symbol ";")
 
 lambda :: Parser (Goal Val)
 lambda = do

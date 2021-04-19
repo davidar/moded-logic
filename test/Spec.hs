@@ -296,6 +296,9 @@ programEuler =
   nat 0.
   nat n' :- nat n, succ n n'.
 
+  oddNat 1.
+  oddNat n' :- oddNat n, plus n 2 n'.
+
   even x :- mod x 2 0.
 
   elem x (x:_).
@@ -327,10 +330,25 @@ programEuler =
 
   nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0.
 
-  prime n :- nat n, n > 1, if nontrivialDivisor n _ then empty else.
+  primeSlow n :- nat n, n > 1, if nontrivialDivisor n _ then empty else.
+
+  factor (p:ps) n f :-
+    if times p p pp, pp > n then f = n
+    else if divMod n p d 0 then (f = p; factor (p:ps) d f)
+    else factor ps n f.
+
+  #pragma memo prime.
+  prime 2.
+  prime p :-
+    oddNat p, p > 2,
+    (q x :- prime x), observeAll q primes,
+    if factor primes p d, p /= d then empty else.
+
+  primeFactor n d :-
+    (p x :- prime x), observeAll p primes, factor primes n d.
 
   euler3 n r :-
-    (p x :- nontrivialDivisor n x, prime x),
+    (p d :- primeFactor n d),
     observeAll p fs, maximum fs r.
   |]
 
@@ -483,4 +501,5 @@ main = do
         observeAll euler2_o `shouldBe` [1089154]
       it "3" $ do
         observeMany 25 prime_o `shouldBe` prime25
-        observeAll (euler3_io 42) `shouldBe` [7]
+        observeMany 25 primeSlow_o `shouldBe` prime25
+        observeAll (euler3_io 600851475143) `shouldBe` [6857]
