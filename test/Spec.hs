@@ -59,7 +59,7 @@ programHigherOrder =
   map p [] [].
   map p (x:xs) (y:ys) :- p x y, map p xs ys.
 
-  succs xs ys :- (p x y :- succ x y), map p xs ys.
+  succs xs ys :- map (\x y :- succ x y) xs ys.
 
   filter p [] [].
   filter p (h:t) ts :-
@@ -67,14 +67,14 @@ programHigherOrder =
     then filter p t t', ts = (h:t')
     else filter p t ts.
 
-  evens xs ys :- (p x :- even x), filter p xs ys.
+  evens xs ys :- filter (\x :- even x) xs ys.
 
   foldl p [] a a.
   foldl p (h:t) a a'' :- p h a a', foldl p t a' a''.
 
-  sum xs z r :- (p x a a' :- plus x a a'), foldl p xs z r.
-  split xs z r :- (p x a a' :- a = (x:a')), foldl p xs z r.
-  splitr xs z r :- (p x a a' :- a' = (x:a)), foldl p xs z r.
+  sum xs z r :- foldl (\x a a' :- plus x a a') xs z r.
+  split xs z r :- foldl (\x a a' :- a = (x:a')) xs z r.
+  splitr xs z r :- foldl (\x a a' :- a' = (x:a)) xs z r.
   |]
 
 programPrimes :: Prog Var Var
@@ -315,7 +315,7 @@ programEuler =
   #pragma nub euler1.
   euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5).
 
-  euler1' s :- (p x :- euler1 x), observeAll p r, sum r s.
+  euler1' s :- observeAll (\x :- euler1 x) r, sum r s.
 
   #pragma memo fib.
   fib 0 0.
@@ -325,8 +325,8 @@ programEuler =
   fib' f :- nat i, fib i f.
 
   euler2 s :-
-    (p x :- fib' x, even x), observeAll p fs,
-    (q x :- x < 1000000), span q fs xs _, sum xs s.
+    observeAll (\x :- fib' x, even x) fs,
+    span (\x :- x < 1000000) fs xs _, sum xs s.
 
   nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0.
 
@@ -341,15 +341,13 @@ programEuler =
   prime 2.
   prime p :-
     oddNat p, p > 2,
-    (q x :- prime x), observeAll q primes,
+    observeAll (\x :- prime x) primes,
     if factor primes p d, p /= d then empty else.
 
   primeFactor n d :-
-    (p x :- prime x), observeAll p primes, factor primes n d.
+    observeAll (\x :- prime x) primes, factor primes n d.
 
-  euler3 n r :-
-    (p d :- primeFactor n d),
-    observeAll p fs, maximum fs r.
+  euler3 n r :- observeAll (\d :- primeFactor n d) fs, maximum fs r.
   |]
 
 prime25 :: [Integer]

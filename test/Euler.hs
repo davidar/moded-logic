@@ -421,48 +421,48 @@ euler1_o = choose . nub . observeAll $ do
   pure (x)
 
 {- euler1'/1
-euler1' s :- ((observeAll p r, sum r s, (p x :- (euler1 x)))).
+euler1' s :- ((observeAll pred0 r, (pred0 x :- (euler1 x)), sum r s)).
 constraints:
-x[0,2,0,0]
-~p[0,0]
+x[0,1,0,0]
+~pred0[0,0]
 ~x[0]
-~(r[0,0] & r[0,1])
-(~p[0,0] & (p(1) & r[0,0]))
-(r[0,0] | r[0,1])
-((~r[0,1] & s[0,1]) | (~r[0,1] & ~s[0,1]))
+~(r[0,0] & r[0,2])
+(~pred0[0,0] & (pred0(1) & r[0,0]))
+(r[0,0] | r[0,2])
+((~r[0,2] & s[0,2]) | (~r[0,2] & ~s[0,2]))
 (s[] <-> s[0])
-(s[0] <-> s[0,1])
-(x[0,2,0] <-> x[0,2,0,0])
-(p(1) <-> x[0,2,0])
+(s[0] <-> s[0,2])
+(x[0,1,0] <-> x[0,1,0,0])
+(pred0(1) <-> x[0,1,0])
 1
 -}
 euler1'_i = \s -> once $ do
-  -- solution: r[0,0] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1] ~s[] ~s[0] ~s[0,1] ~x[0]
+  -- solution: r[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~pred0[0,0] ~r[0,2] ~s[] ~s[0] ~s[0,2] ~x[0]
   () <- (do
-    let p =
+    let pred0 =
           do
             (x) <- (do
               (x) <- euler1_o 
               pure (x)
              )
             pure (x)
-    (r) <- observeAll_p1oo p
+    (r) <- observeAll_p1oo pred0
     () <- sum_ii r s
     pure ()
    )
   pure ()
 
 euler1'_o = do
-  -- solution: r[0,0] s[] s[0] s[0,1] x[0,2,0] x[0,2,0,0] p(1) ~p[0,0] ~r[0,1] ~x[0]
+  -- solution: r[0,0] s[] s[0] s[0,2] x[0,1,0] x[0,1,0,0] pred0(1) ~pred0[0,0] ~r[0,2] ~x[0]
   (s) <- (do
-    let p =
+    let pred0 =
           do
             (x) <- (do
               (x) <- euler1_o 
               pure (x)
              )
             pure (x)
-    (r) <- observeAll_p1oo p
+    (r) <- observeAll_p1oo pred0
     (s) <- sum_io r
     pure (s)
    )
@@ -582,37 +582,38 @@ fib'_o = do
   pure (f)
 
 {- euler2/1
-euler2 s :- ((observeAll p fs, span q fs xs _, sum xs s, (p x :- (fib' x, even x)), (q x :- ((<) x data0, data0 = 1000000)))).
+euler2 s :- ((observeAll pred0 fs, (pred0 x :- (fib' x, even x)), span pred2 fs xs _, data1 = 1000000, (pred2 x :- ((<) x data1, data1 = 1000000)), sum xs s)).
 constraints:
-x[0,3,0,0]
-~p[0,0]
-~q[0,1]
+data1[0,3]
+x[0,1,0,0]
+~pred0[0,0]
+~pred2[0,2]
 ~x[0]
-~x[0,3,0,1]
-~(data0[0,4,0,0] & data0[0,4,0,1])
-~(fs[0,0] & fs[0,1])
-~(x[0,3,0,0] & x[0,3,0,1])
-~(xs[0,1] & xs[0,2])
-(~p[0,0] & (p(1) & fs[0,0]))
-(~x[0,4,0,0] & ~data0[0,4,0,0])
-(data0[0,4,0,0] | data0[0,4,0,1])
-(fs[0,0] | fs[0,1])
-(xs[0,1] | xs[0,2])
-((~q[0,1] & (~q(1) & (~fs[0,1] & xs[0,1]))) | (~q[0,1] & (~q(1) & (~fs[0,1] & ~xs[0,1]))))
-((~xs[0,2] & s[0,2]) | (~xs[0,2] & ~s[0,2]))
-(data0[0] <-> data0[0,4])
+~x[0,1,0,1]
+~(data1[0,4,0,0] & data1[0,4,0,1])
+~(fs[0,0] & fs[0,2])
+~(x[0,1,0,0] & x[0,1,0,1])
+~(xs[0,2] & xs[0,5])
+(~pred0[0,0] & (pred0(1) & fs[0,0]))
+(~x[0,4,0,0] & ~data1[0,4,0,0])
+(fs[0,0] | fs[0,2])
+(xs[0,2] | xs[0,5])
+((~pred2[0,2] & (~pred2(1) & (~fs[0,2] & xs[0,2]))) | (~pred2[0,2] & (~pred2(1) & (~fs[0,2] & ~xs[0,2]))))
+((~xs[0,5] & s[0,5]) | (~xs[0,5] & ~s[0,5]))
+(data1[0,4,0] <-> (data1[0,4,0,0] | data1[0,4,0,1]))
 (s[] <-> s[0])
-(s[0] <-> s[0,2])
-(x[0,3,0] <-> (x[0,3,0,0] | x[0,3,0,1]))
+(s[0] <-> s[0,5])
+(x[0,1,0] <-> (x[0,1,0,0] | x[0,1,0,1]))
 (x[0,4,0] <-> x[0,4,0,0])
-(p(1) <-> x[0,3,0])
-(q(1) <-> x[0,4,0])
+(pred0(1) <-> x[0,1,0])
+(pred2(1) <-> x[0,4,0])
 1
 -}
 euler2_i = \s -> once $ do
-  -- solution: data0[0,4,0,1] fs[0,0] x[0,3,0] x[0,3,0,0] xs[0,1] p(1) ~data0[0] ~data0[0,4] ~data0[0,4,0,0] ~fs[0,1] ~p[0,0] ~q[0,1] ~s[] ~s[0] ~s[0,2] ~x[0] ~x[0,3,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,2] ~q(1)
+  -- solution: data1[0,3] data1[0,4,0] data1[0,4,0,1] fs[0,0] x[0,1,0] x[0,1,0,0] xs[0,2] pred0(1) ~data1[0,4,0,0] ~fs[0,2] ~pred0[0,0] ~pred2[0,2] ~s[] ~s[0] ~s[0,5] ~x[0] ~x[0,1,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,5] ~pred2(1)
   () <- (do
-    let p =
+    data1 <- pure 1000000
+    let pred0 =
           do
             (x) <- (do
               (x) <- fib'_o 
@@ -620,25 +621,26 @@ euler2_i = \s -> once $ do
               pure (x)
              )
             pure (x)
-    (fs) <- observeAll_p1oo p
-    let q =
+    (fs) <- observeAll_p1oo pred0
+    let pred2 =
           \x -> do
-            () <- (do
-              data0 <- pure 1000000
-              guard $ (<) x data0
-              pure ()
+            (data1) <- (do
+              data1 <- pure 1000000
+              guard $ (<) x data1
+              pure (data1)
              )
             pure ()
-    (xs,_) <- span_p1iioo q fs
+    (xs,_) <- span_p1iioo pred2 fs
     () <- sum_ii xs s
     pure ()
    )
   pure ()
 
 euler2_o = do
-  -- solution: data0[0,4,0,1] fs[0,0] s[] s[0] s[0,2] x[0,3,0] x[0,3,0,0] xs[0,1] p(1) ~data0[0] ~data0[0,4] ~data0[0,4,0,0] ~fs[0,1] ~p[0,0] ~q[0,1] ~x[0] ~x[0,3,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,2] ~q(1)
+  -- solution: data1[0,3] data1[0,4,0] data1[0,4,0,1] fs[0,0] s[] s[0] s[0,5] x[0,1,0] x[0,1,0,0] xs[0,2] pred0(1) ~data1[0,4,0,0] ~fs[0,2] ~pred0[0,0] ~pred2[0,2] ~x[0] ~x[0,1,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,5] ~pred2(1)
   (s) <- (do
-    let p =
+    data1 <- pure 1000000
+    let pred0 =
           do
             (x) <- (do
               (x) <- fib'_o 
@@ -646,16 +648,16 @@ euler2_o = do
               pure (x)
              )
             pure (x)
-    (fs) <- observeAll_p1oo p
-    let q =
+    (fs) <- observeAll_p1oo pred0
+    let pred2 =
           \x -> do
-            () <- (do
-              data0 <- pure 1000000
-              guard $ (<) x data0
-              pure ()
+            (data1) <- (do
+              data1 <- pure 1000000
+              guard $ (<) x data1
+              pure (data1)
              )
             pure ()
-    (xs,_) <- span_p1iioo q fs
+    (xs,_) <- span_p1iioo pred2 fs
     (s) <- sum_io xs
     pure (s)
    )
@@ -953,13 +955,13 @@ factor_iio = \arg1 n -> do
   pure (f)
 
 {- prime/1
-prime arg1 :- ((arg1 = 2); (oddNat p, (>) p data0, data0 = 2, observeAll q primes, (q x :- (prime x)), if (factor primes p d, (/=) p d) then (empty) else (), arg1 = p)).
+prime arg1 :- ((arg1 = 2); (oddNat p, (>) p data0, data0 = 2, observeAll pred1 primes, (pred1 x :- (prime x)), if (factor primes p d, (/=) p d) then (empty) else (), arg1 = p)).
 constraints:
 d[1,5]
 ~p[1,5]
+~pred1[1,3]
 ~primes[1,5]
 ~primes[1,5,0,0]
-~q[1,3]
 ~x[1]
 ~(arg1[1,6] & p[1,6])
 ~(d[1,5,0,0] & d[1,5,0,1])
@@ -975,7 +977,7 @@ d[1,5]
 ~(p[1,5,0,0] | p[1,5,0,1])
 (~p[1,1] & ~data0[1,1])
 (~p[1,5,0,1] & ~d[1,5,0,1])
-(~q[1,3] & (q(1) & primes[1,3]))
+(~pred1[1,3] & (pred1(1) & primes[1,3]))
 (d[1,5,0,0] | d[1,5,0,1])
 (data0[1,1] | data0[1,2])
 (p[1,0] | ~p[1,0])
@@ -989,11 +991,11 @@ d[1,5]
 (d[1] <-> d[1,5])
 (x[1,4,0] <-> x[1,4,0,0])
 (x[1,4,0,0] <-> arg1[])
-(q(1) <-> x[1,4,0])
+(pred1(1) <-> x[1,4,0])
 1
 -}
 prime_o = choose . observeAll $ do
-  -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,6] d[1] d[1,5] d[1,5,0,0] data0[1,2] p[1,0] primes[1,3] x[1,4,0] x[1,4,0,0] q(1) ~d[1,5,0,1] ~data0[1,1] ~p[1,1] ~p[1,5] ~p[1,5,0,0] ~p[1,5,0,1] ~p[1,6] ~primes[1,5] ~primes[1,5,0,0] ~q[1,3] ~x[1]
+  -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,6] d[1] d[1,5] d[1,5,0,0] data0[1,2] p[1,0] primes[1,3] x[1,4,0] x[1,4,0,0] pred1(1) ~d[1,5,0,1] ~data0[1,1] ~p[1,1] ~p[1,5] ~p[1,5,0,0] ~p[1,5,0,1] ~p[1,6] ~pred1[1,3] ~primes[1,5] ~primes[1,5,0,0] ~x[1]
   (arg1) <- (do
     arg1 <- pure 2
     pure (arg1)
@@ -1002,14 +1004,14 @@ prime_o = choose . observeAll $ do
     (p) <- oddNat_o 
     arg1 <- pure p
     guard $ (>) p data0
-    let q =
+    let pred1 =
           do
             (x) <- (do
               (x) <- prime_o 
               pure (x)
              )
             pure (x)
-    (primes) <- observeAll_p1oo q
+    (primes) <- observeAll_p1oo pred1
     () <- ifte ((do
       (d) <- factor_iio primes p
       guard $ (/=) p d
@@ -1026,101 +1028,101 @@ prime_o = choose . observeAll $ do
   pure (arg1)
 
 {- primeFactor/2
-primeFactor n d :- ((observeAll p primes, factor primes n d, (p x :- (prime x)))).
+primeFactor n d :- ((observeAll pred0 primes, (pred0 x :- (prime x)), factor primes n d)).
 constraints:
-x[0,2,0,0]
-~p[0,0]
+x[0,1,0,0]
+~pred0[0,0]
 ~x[0]
-~(primes[0,0] & primes[0,1])
-(~p[0,0] & (p(1) & primes[0,0]))
-(primes[0,0] | primes[0,1])
-((~primes[0,1] & (~n[0,1] & d[0,1])) | (~primes[0,1] & (~n[0,1] & ~d[0,1])))
+~(primes[0,0] & primes[0,2])
+(~pred0[0,0] & (pred0(1) & primes[0,0]))
+(primes[0,0] | primes[0,2])
+((~primes[0,2] & (~n[0,2] & d[0,2])) | (~primes[0,2] & (~n[0,2] & ~d[0,2])))
 (d[] <-> d[0])
-(d[0] <-> d[0,1])
+(d[0] <-> d[0,2])
 (n[] <-> n[0])
-(n[0] <-> n[0,1])
-(x[0,2,0] <-> x[0,2,0,0])
-(p(1) <-> x[0,2,0])
+(n[0] <-> n[0,2])
+(x[0,1,0] <-> x[0,1,0,0])
+(pred0(1) <-> x[0,1,0])
 1
 -}
 primeFactor_ii = \n d -> once $ do
-  -- solution: primes[0,0] x[0,2,0] x[0,2,0,0] p(1) ~d[] ~d[0] ~d[0,1] ~n[] ~n[0] ~n[0,1] ~p[0,0] ~primes[0,1] ~x[0]
+  -- solution: primes[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~d[] ~d[0] ~d[0,2] ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~primes[0,2] ~x[0]
   () <- (do
-    let p =
+    let pred0 =
           do
             (x) <- (do
               (x) <- prime_o 
               pure (x)
              )
             pure (x)
-    (primes) <- observeAll_p1oo p
+    (primes) <- observeAll_p1oo pred0
     () <- factor_iii primes n d
     pure ()
    )
   pure ()
 
 primeFactor_io = \n -> do
-  -- solution: d[] d[0] d[0,1] primes[0,0] x[0,2,0] x[0,2,0,0] p(1) ~n[] ~n[0] ~n[0,1] ~p[0,0] ~primes[0,1] ~x[0]
+  -- solution: d[] d[0] d[0,2] primes[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~primes[0,2] ~x[0]
   (d) <- (do
-    let p =
+    let pred0 =
           do
             (x) <- (do
               (x) <- prime_o 
               pure (x)
              )
             pure (x)
-    (primes) <- observeAll_p1oo p
+    (primes) <- observeAll_p1oo pred0
     (d) <- factor_iio primes n
     pure (d)
    )
   pure (d)
 
 {- euler3/2
-euler3 n r :- ((observeAll p fs, maximum fs r, (p d :- (primeFactor n d)))).
+euler3 n r :- ((observeAll pred0 fs, (pred0 d :- (primeFactor n d)), maximum fs r)).
 constraints:
 ~d[0]
 ~n[0]
-~p[0,0]
-~(fs[0,0] & fs[0,1])
-(~p[0,0] & (p(1) & fs[0,0]))
-(fs[0,0] | fs[0,1])
-((~fs[0,1] & r[0,1]) | (~fs[0,1] & ~r[0,1]))
-((~n[0,2,0,0] & d[0,2,0,0]) | (~n[0,2,0,0] & ~d[0,2,0,0]))
-(d[0,2,0] <-> d[0,2,0,0])
+~pred0[0,0]
+~(fs[0,0] & fs[0,2])
+(~pred0[0,0] & (pred0(1) & fs[0,0]))
+(fs[0,0] | fs[0,2])
+((~fs[0,2] & r[0,2]) | (~fs[0,2] & ~r[0,2]))
+((~n[0,1,0,0] & d[0,1,0,0]) | (~n[0,1,0,0] & ~d[0,1,0,0]))
+(d[0,1,0] <-> d[0,1,0,0])
 (n[] <-> n[0])
-(n[0,2,0] <-> n[0,2,0,0])
+(n[0,1,0] <-> n[0,1,0,0])
 (r[] <-> r[0])
-(r[0] <-> r[0,1])
-(p(1) <-> d[0,2,0])
+(r[0] <-> r[0,2])
+(pred0(1) <-> d[0,1,0])
 1
 -}
 euler3_ii = \n r -> once $ do
-  -- solution: d[0,2,0] d[0,2,0,0] fs[0,0] p(1) ~d[0] ~fs[0,1] ~n[] ~n[0] ~n[0,2,0] ~n[0,2,0,0] ~p[0,0] ~r[] ~r[0] ~r[0,1]
+  -- solution: d[0,1,0] d[0,1,0,0] fs[0,0] pred0(1) ~d[0] ~fs[0,2] ~n[] ~n[0] ~n[0,1,0] ~n[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,2]
   () <- (do
-    let p =
+    let pred0 =
           do
             (d) <- (do
               (d) <- primeFactor_io n
               pure (d)
              )
             pure (d)
-    (fs) <- observeAll_p1oo p
+    (fs) <- observeAll_p1oo pred0
     () <- maximum_ii fs r
     pure ()
    )
   pure ()
 
 euler3_io = \n -> do
-  -- solution: d[0,2,0] d[0,2,0,0] fs[0,0] r[] r[0] r[0,1] p(1) ~d[0] ~fs[0,1] ~n[] ~n[0] ~n[0,2,0] ~n[0,2,0,0] ~p[0,0]
+  -- solution: d[0,1,0] d[0,1,0,0] fs[0,0] r[] r[0] r[0,2] pred0(1) ~d[0] ~fs[0,2] ~n[] ~n[0] ~n[0,1,0] ~n[0,1,0,0] ~pred0[0,0]
   (r) <- (do
-    let p =
+    let pred0 =
           do
             (d) <- (do
               (d) <- primeFactor_io n
               pure (d)
              )
             pure (d)
-    (fs) <- observeAll_p1oo p
+    (fs) <- observeAll_p1oo pred0
     (r) <- maximum_io fs
     pure (r)
    )

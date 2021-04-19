@@ -98,6 +98,11 @@ value =
         if null elems
           then nil
           else Cons ":" $ elems ++ [nil]) <|>
+  try
+    (do symbol "\\"
+        vars <- many value
+        symbol ":-"
+        Lambda vars <$> conj) <|>
   (do v <- identifier
       if isUpper (head v)
         then do
