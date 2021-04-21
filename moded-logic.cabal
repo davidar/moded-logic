@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df9c28dde241345ee1e84b45247c2d3338c120d002577afa3f33ec82bd54b0c4
+-- hash: bada420721fd7c893f337192b484fd31f4e4378c43b2cec0faeda9f88e019c03
 
 name:           moded-logic
 version:        0.1.0.0
@@ -47,6 +47,7 @@ library
     , base >=4.7 && <5
     , containers
     , data-ordlist
+    , extra
     , hspec
     , hspec-expectations-pretty-diff
     , logict
@@ -71,6 +72,7 @@ executable moded-logic-exe
     , base >=4.7 && <5
     , containers
     , data-ordlist
+    , extra
     , hspec
     , hspec-expectations-pretty-diff
     , logict
@@ -89,6 +91,7 @@ test-suite moded-logic-test
   other-modules:
       Append
       Euler
+      HigherOrder
       Kiselyov
       Primes
       Queens
@@ -103,6 +106,7 @@ test-suite moded-logic-test
     , base >=4.7 && <5
     , containers
     , data-ordlist
+    , extra
     , hspec
     , hspec-expectations-pretty-diff
     , logict

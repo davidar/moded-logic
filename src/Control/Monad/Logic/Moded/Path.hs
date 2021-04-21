@@ -1,6 +1,7 @@
 module Control.Monad.Logic.Moded.Path
   ( Path
   , inside
+  , insideNonneg
   , nonlocals
   , locals
   , extract
@@ -20,18 +21,37 @@ dropIndex i xs = h ++ drop 1 t
     (h, t) = splitAt i xs
 
 -- | Variables inside a goal
-inside :: (Ord v) => Path -> Rule u v -> Set v
-inside p = Set.fromList . toList . extract p . ruleBody
+inside :: Path -> Rule Var Var -> Set Var
+inside p = insideGoal . extract p . ruleBody
 
--- | Variables accessible from parent/sibling contexts
+insideGoal :: Goal Var -> Set Var
+insideGoal = Set.fromList . toList
+
+-- | Variables inside a goal, but not in a negated context
+{- An occurrence of a variable is in a negated context if it is in a negation,
+   in a universal quantification, in the condition of an if-then-else,
+   in an inequality, or in a lambda expression. -}
+insideNonneg :: Goal Var -> Set Var
+insideNonneg (Atom a) = Set.fromList $ toList a
+insideNonneg (Conj gs) = Set.unions $ insideNonneg <$> gs
+insideNonneg (Disj gs) = Set.unions $ insideNonneg <$> gs
+insideNonneg (Ifte _ t e) = insideNonneg t `Set.union` insideNonneg e
+insideNonneg (Anon name _ _) = Set.singleton name
+
+-- | Variables accessible from parent/sibling contexts (not in a parallel goal)
+{- Two goals are parallel if they are different disjuncts of the same disjunction,
+   or if one is the “else” part of an if-then-else and
+   the other goal is either the “then” part or the condition of the if-then-else,
+   or if they are the goals of disjoint (distinct and non-overlapping) lambda expressions. -}
 outside :: Path -> Goal Var -> Set Var
 outside [] _ = Set.empty
 outside (c:ps) (Conj gs) =
-  Set.fromList (dropIndex c gs >>= toList) `Set.union` outside ps (gs !! c)
+  Set.unions (insideGoal <$> dropIndex c gs) `Set.union` outside ps (gs !! c)
 outside (d:ps) (Disj gs) = outside ps (gs !! d)
-outside (0:ps) (Ifte c t _) = Set.fromList (toList t) `Set.union` outside ps c
-outside (1:ps) (Ifte c t _) = Set.fromList (toList c) `Set.union` outside ps t
+outside (0:ps) (Ifte c t _) = insideGoal t `Set.union` outside ps c
+outside (1:ps) (Ifte c t _) = insideGoal c `Set.union` outside ps t
 outside (2:ps) (Ifte _ _ e) = outside ps e
+outside (0:ps) (Anon _ vs g) = Set.fromList vs `Set.union` outside ps g
 outside _ _ = error "invalid path"
 
 nonlocals :: Path -> Rule Var Var -> Set Var

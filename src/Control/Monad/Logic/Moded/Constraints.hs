@@ -1,6 +1,10 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Control.Monad.Logic.Moded.Constraints
   ( Constraints
-  , term
+  , CAtom(..)
+  , Mode(..)
+  , ModeString(..)
   , constraints
   , unsafeSolveConstraints
   ) where
@@ -17,6 +21,7 @@ import Control.Monad.Logic.Moded.Path
   , extendPath
   , extract
   , inside
+  , insideNonneg
   , locals
   , nonlocals
   )
@@ -26,21 +31,55 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
+import Data.String (IsString(..))
 import System.IO.Unsafe (unsafePerformIO)
 
 type Constraint = Sat.Expr CAtom
-type Constraints = Set Constraint
 
-type Modes = [(Name, [String])]
+type Constraints = Set Constraint
 
 data CAtom
   = Produce Var Path
   | ProduceArg Var Int
+  | TseitinVar Int
   deriving (Eq, Ord)
+
+data Mode
+  = MIn
+  | MOut
+  | MPred [Mode]
+  deriving (Eq, Ord)
+
+newtype ModeString =
+  ModeString [Mode]
+  deriving (Eq, Ord)
+
+type Modes = Map Name [ModeString]
 
 instance Show CAtom where
   show (Produce v p) = show v ++ show p
-  show (ProduceArg v i) = show v ++"("++ show i ++")"
+  show (ProduceArg v i) = show v ++ "(" ++ show i ++ ")"
+  show (TseitinVar i) = "ts*" ++ show i
+
+instance Show Mode where
+  show MIn = "i"
+  show MOut = "o"
+  show (MPred ms) = "p" ++ show (length ms) ++ show (ModeString ms)
+
+instance Show ModeString where
+  show (ModeString ms) = concat $ show <$> ms
+
+instance IsString ModeString where
+  fromString =
+    (ModeString .) . map $ \case
+      'i' -> MIn
+      'o' -> MOut
+      _ -> error "invalid modestring"
+
+instance Sat.Tseitin CAtom where
+  tseitinVar = TseitinVar
+  isTseitinVar TseitinVar {} = True
+  isTseitinVar _ = False
 
 term :: Path -> Var -> Constraint
 term p v = Sat.Var $ Produce v p
@@ -64,7 +103,9 @@ cGen p r = cLocal p r `Set.union` cExt p r
 
 -- | Local constraints (sec 5.2.2)
 cLocal :: Path -> Rule Var Var -> Constraints
-cLocal p r = term p `Set.map` locals p r
+cLocal p r =
+  term p `Set.map`
+  (locals p r `Set.intersection` insideNonneg (extract p $ ruleBody r))
 
 -- | External constraints (sec 5.2.2)
 cExt :: Path -> Rule Var Var -> Constraints
@@ -81,6 +122,7 @@ cGoal m p r =
     Disj {} -> cDisj p r
     Conj {} -> cConj p r
     Ifte {} -> cIte p r
+    Anon {} -> cAnon p r
     Atom {} -> error "impossible"
 
 -- | Disjunction constraints (sec 5.2.3)
@@ -121,6 +163,16 @@ cIte p r =
     pt = p ++ [1]
     pe = p ++ [2]
 
+-- | Higher-order terms (omitted from paper)
+cAnon :: Path -> Rule Var Var -> Constraints
+cAnon p r =
+  Set.fromList $
+  [Sat.Var (ProduceArg name i) `Sat.Iff` term p' v | (i, v) <- zip [1 ..] vs] ++
+  [term p name] ++ [Sat.Neg $ term p v | v <- vs ++ Set.elems (nonlocals p' r)]
+  where
+    p' = p ++ [0]
+    Anon name vs _ = extract p (ruleBody r)
+
 -- | Atomic goals (sec 5.2.4)
 cAtom :: Modes -> Path -> Rule Var Var -> Constraints
 cAtom m p r =
@@ -138,22 +190,29 @@ cAtom m p r =
         Set.fromList $ do
           (u, v) <- zip vars rvars
           pure $ term p u `Sat.Iff` term [] v
-      | Just modeset <- lookup name m ->
+      | Just modeset <- Map.lookup name m ->
         Set.singleton . cOr . nub . sort $ do
-          modes <- modeset
+          ModeString modes <- modeset
           pure . cAnd $ do
             (v, mode) <- zip vars modes
             let t = term p v
-            pure $
-              case mode of
-                'i' -> Sat.Neg t
-                'o' -> t
-                _ -> error "invalid mode string"
+            case mode of
+              MIn -> pure $ Sat.Neg t
+              MOut -> pure t
+              MPred ms ->
+                Sat.Neg t : do
+                  (i, mode') <- zip [1 ..] ms
+                  let t' = Sat.Var $ ProduceArg v i
+                  pure $
+                    case mode' of
+                      MIn -> Sat.Neg t'
+                      MOut -> t'
+                      MPred _ -> error "nested modestring"
       | head name == '('
       , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
       | V name `elem` ruleArgs r ->
         Set.fromList $ do
-          (i, v) <- zip [1..] vars
+          (i, v) <- zip [1 ..] vars
           pure $ term p v `Sat.Iff` Sat.Var (ProduceArg (V name) i)
       | otherwise ->
         error $ "unknown predicate " ++ name ++ "/" ++ show (length vars)
@@ -162,14 +221,16 @@ constraints :: Modes -> Rule Var Var -> Constraints
 constraints m rule = Set.map f cs
   where
     cs = cComp m [] rule
-    env :: Map CAtom Constraint
+    env :: Sat.Ctx CAtom
     env =
       Map.fromList $
-      [(i, Sat.Top) | Sat.Var i <- Set.elems cs] ++
-      [(i, Sat.Bottom) | Sat.Neg (Sat.Var i) <- Set.elems cs]
+      [(i, True) | Sat.Var i <- Set.elems cs] ++
+      [(i, False) | Sat.Neg (Sat.Var i) <- Set.elems cs]
     f c =
-      case Sat.subst env c of
-        Sat.Bottom -> error $ show c ++ " always fails with " ++ show env
+      case Sat.partEval env c of
+        Sat.Bottom ->
+          error $
+          show rule ++ "\n" ++ show c ++ " always fails with " ++ show env
         e -> e
 
 solveConstraints :: Modes -> Rule Var Var -> IO (Set Constraints)

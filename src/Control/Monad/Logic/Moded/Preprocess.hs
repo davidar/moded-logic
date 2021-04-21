@@ -20,11 +20,13 @@ import Data.List (group, groupBy, sort, transpose)
 data Val
   = Var Var
   | Cons Name [Val]
+  | Lambda [Val] (Goal Val)
   deriving (Eq, Ord)
 
 instance Show Val where
   show (Var v) = show v
   show (Cons name vs) = unwords (name : map show vs)
+  show (Lambda vs g) = unwords (map show vs) ++ " :- " ++ show g
 
 combineDefs :: [Rule Val Val] -> [Rule Var Val]
 combineDefs rules = do
@@ -54,15 +56,22 @@ combineDefs rules = do
 superhomogeneous :: Rule Var Val -> Rule Var Var
 superhomogeneous r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
   where
-    tVal :: Val -> State (Int, [Atom Var]) Var
+    tVal :: Val -> State (Int, [Goal Var]) Var
     tVal (Var v) = return v
     tVal (Cons name vs) = do
       vs' <- mapM tVal vs
       (count, body) <- get
       let u = V $ "data" ++ show count
-      put (count + 1, body ++ [Func name vs' u])
+      put (count + 1, body ++ [Atom $ Func name vs' u])
       return u
-    tAtom :: Atom Val -> State (Int, [Atom Var]) (Atom Var)
+    tVal (Lambda vs g) = do
+      vs' <- mapM tVal vs
+      g' <- tGoal g
+      (count, body) <- get
+      let name = V $ "pred" ++ show count
+      put (count + 1, body ++ [Anon name vs' g'])
+      return name
+    tAtom :: Atom Val -> State (Int, [Goal Var]) (Atom Var)
     tAtom (Unif (Var u) (Var v)) = return $ Unif u v
     tAtom (Unif (Var u) (Cons name vs)) = do
       vs' <- mapM tVal vs
@@ -75,7 +84,7 @@ superhomogeneous r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
     tAtom (Pred name vs) = do
       vs' <- mapM tVal vs
       return $ Pred name vs'
-    tGoal :: Goal Val -> State (Int, [Atom Var]) (Goal Var)
+    tGoal :: Goal Val -> State (Int, [Goal Var]) (Goal Var)
     tGoal (Disj gs) = Disj <$> mapM tGoal gs
     tGoal (Conj gs) = Conj <$> mapM tGoal gs
     tGoal (Ifte c t e) = do
@@ -83,6 +92,11 @@ superhomogeneous r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
       t' <- tGoal t
       e' <- tGoal e
       return $ Ifte c' t' e'
+    tGoal (Anon name vs g) = do
+      name' <- tVal name
+      vs' <- mapM tVal vs
+      g' <- tGoal g
+      return $ Anon name' vs' g'
     tGoal (Atom a) = do
       (count, _) <- get
       put (count, [])
@@ -91,7 +105,7 @@ superhomogeneous r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
       return $
         if null body
           then Atom a'
-          else Conj $ Atom <$> a' : body
+          else Conj $ Atom a' : body
 
 distinctVars :: Rule Var Var -> Rule Var Var
 distinctVars r = r {ruleBody = evalState (tGoal $ ruleBody r) 0}
@@ -108,6 +122,9 @@ distinctVars r = r {ruleBody = evalState (tGoal $ ruleBody r) 0}
       t' <- tGoal t
       e' <- tGoal e
       return $ Ifte c' t' e'
+    tGoal (Anon name vs g) = do
+      g' <- tGoal g
+      return $ Anon name vs g'
     tGoal (Atom (Func name vs u)) = do
       (vs', body) <- tVars fdups vs
       return . Conj $ Atom <$> Func name vs' u : concat body
@@ -138,4 +155,5 @@ simplify (Conj gs) = Conj $ conjs ++ other
     other = filter (not . isConj) gs'
 simplify (Disj gs) = Disj $ simplify <$> gs
 simplify (Ifte c t e) = Ifte (simplify c) (simplify t) (simplify e)
-simplify g = g
+simplify (Anon name vs g) = Anon name vs (simplify g)
+simplify (Atom a) = Atom a
