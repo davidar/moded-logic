@@ -2,13 +2,13 @@
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 
 import Control.Monad.Logic.Moded.Prelude
-import Append
-import Euler
-import HigherOrder
-import Kiselyov
-import Primes
-import Queens
-import Sort
+import qualified Append
+import qualified Euler
+import qualified HigherOrder
+import qualified Kiselyov
+import qualified Primes
+import qualified Queens
+import qualified Sort
 
 import Control.Applicative ((<|>))
 import Control.Monad (forM_, when)
@@ -310,6 +310,10 @@ programEuler =
     then span p xs yt zs, ys = (x:yt)
     else ys = [], zs = (x:xs).
 
+  reverseDL [] xs xs.
+  reverseDL (h:t) rest r :- reverseDL t (h:rest) r.
+  reverse s r :- reverseDL s [] r.
+
   multiple x y :- mod x y 0.
 
   #pragma nub euler1.
@@ -348,6 +352,12 @@ programEuler =
     observeAll (\x :- prime x) primes, factor primes n d.
 
   euler3 n r :- observeAll (\d :- primeFactor n d) fs, maximum fs r.
+
+  euler4 n :-
+    elem x [10..99], elem y [10..99], times x y n,
+    show n s, reverse s s.
+
+  euler4' n :- observeAll (\x :- euler4 x) s, maximum s n.
   |]
 
 prime25 :: [Integer]
@@ -373,18 +383,18 @@ main = do
     describe "Append" $ do
       it "compile" $ compileTest "Append" programAppend
       it "append" $ do
-        observeAll (append_iio [1 .. 3] [4 .. 6]) `shouldBe` [[1 .. 6]]
-        observeAll (append_iii [1 .. 3] [4 .. 6] [1 .. 6]) `shouldBe` [()]
-        observeAll (append_iii [1 .. 3] [4 .. 6] [0 .. 6]) `shouldBe` []
-        observeAll (append_ooi [1 .. 6]) `shouldBe`
+        observeAll (Append.append_iio [1 .. 3] [4 .. 6]) `shouldBe` [[1 .. 6]]
+        observeAll (Append.append_iii [1 .. 3] [4 .. 6] [1 .. 6]) `shouldBe` [()]
+        observeAll (Append.append_iii [1 .. 3] [4 .. 6] [0 .. 6]) `shouldBe` []
+        observeAll (Append.append_ooi [1 .. 6]) `shouldBe`
           [splitAt i [1 .. 6] | i <- [0 .. 6]]
-        observeAll (append_ioi [1 .. 3] [1 .. 6]) `shouldBe` [[4 .. 6]]
-        observeAll (append_oii [4 .. 6] [1 .. 6]) `shouldBe` [[1 .. 3]]
+        observeAll (Append.append_ioi [1 .. 3] [1 .. 6]) `shouldBe` [[4 .. 6]]
+        observeAll (Append.append_oii [4 .. 6] [1 .. 6]) `shouldBe` [[1 .. 3]]
       it "append3" $ do
-        observeAll (append3_iiio [1, 2] [3, 4] [5, 6]) `shouldBe` [[1 .. 6]]
-        observeAll (append3_iiii [1, 2] [3, 4] [5, 6] [1 .. 6]) `shouldBe` [()]
-        observeAll (append3_iiii [1, 2] [3, 4] [5, 6] [0 .. 6]) `shouldBe` []
-        ((List.sort . observeAll $ append3_oooi [1 .. 6]) `shouldBe`) .
+        observeAll (Append.append3_iiio [1, 2] [3, 4] [5, 6]) `shouldBe` [[1 .. 6]]
+        observeAll (Append.append3_iiii [1, 2] [3, 4] [5, 6] [1 .. 6]) `shouldBe` [()]
+        observeAll (Append.append3_iiii [1, 2] [3, 4] [5, 6] [0 .. 6]) `shouldBe` []
+        ((List.sort . observeAll $ Append.append3_oooi [1 .. 6]) `shouldBe`) .
           List.sort $ do
           i <- [0 .. 6]
           let (a, bc) = splitAt i [1 .. 6]
@@ -392,112 +402,116 @@ main = do
           let (b, c) = splitAt j bc
           pure (a, b, c)
       it "reverse" $ do
-        observeAll (reverse_oi [0 .. 9]) `shouldBe` [[9,8 .. 0]]
-        observeAll (reverse_io [0 .. 9]) `shouldBe` [[9,8 .. 0]]
-        observeAll (reverse_ii [0 .. 9] [9,8 .. 0]) `shouldBe` [()]
-        observeAll (reverse_ii [0 .. 9] [9,8 .. 1]) `shouldBe` []
+        observeAll (Append.reverse_oi [0 .. 9]) `shouldBe` [[9,8 .. 0]]
+        observeAll (Append.reverse_io [0 .. 9]) `shouldBe` [[9,8 .. 0]]
+        observeAll (Append.reverse_ii [0 .. 9] [9,8 .. 0]) `shouldBe` [()]
+        observeAll (Append.reverse_ii [0 .. 9] [9,8 .. 1]) `shouldBe` []
       it "palindrome" $ do
-        observeAll (palindrome_i [1, 2, 3, 2, 1]) `shouldBe` [()]
-        observeAll (palindrome_i [1, 2, 3, 4, 5]) `shouldBe` []
+        observeAll (Append.palindrome_i [1, 2, 3, 2, 1]) `shouldBe` [()]
+        observeAll (Append.palindrome_i [1, 2, 3, 4, 5]) `shouldBe` []
       it "duplicate" $ do
-        observeAll (duplicate_oi [0, 1, 0, 1]) `shouldBe` [[0, 1]]
-        observeAll (duplicate_oi [0, 1, 2, 3]) `shouldBe` []
+        observeAll (Append.duplicate_oi [0, 1, 0, 1]) `shouldBe` [[0, 1]]
+        observeAll (Append.duplicate_oi [0, 1, 2, 3]) `shouldBe` []
       it "classify" $ do
-        observeAll (classify_io [1, 2, 3, 2, 1]) `shouldBe` [Just []]
-        observeAll (classify_io [1, 2, 1, 2]) `shouldBe` [Just [1, 2]]
-        observeAll (classify_io [1, 2, 3]) `shouldBe` [Nothing]
+        observeAll (Append.classify_io [1, 2, 3, 2, 1]) `shouldBe` [Just []]
+        observeAll (Append.classify_io [1, 2, 1, 2]) `shouldBe` [Just [1, 2]]
+        observeAll (Append.classify_io [1, 2, 3]) `shouldBe` [Nothing]
       it "perm" $ do
-        List.sort (observeAll (perm_io [1 .. 5])) `shouldBe`
+        List.sort (observeAll (Append.perm_io [1 .. 5])) `shouldBe`
           List.sort (List.permutations [1 .. 5])
-        List.sort (observeAll (perm_oi [1 .. 5])) `shouldBe`
+        List.sort (observeAll (Append.perm_oi [1 .. 5])) `shouldBe`
           List.sort (List.permutations [1 .. 5])
-        observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` [()]
-        observeAll (perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
+        observeAll (Append.perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` [()]
+        observeAll (Append.perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
     describe "HigherOrder" $ do
       it "compile" $ compileTest "HigherOrder" programHigherOrder
       it "map" $ do
-        observeAll (map_p2ioio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
-        observeAll (map_p2oioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
-        observeAll (succs_io [0 .. 9]) `shouldBe` [[1 .. 10]]
-        observeAll (succs_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
+        observeAll (HigherOrder.map_p2ioio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
+        observeAll (HigherOrder.map_p2oioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
+        observeAll (HigherOrder.succs_io [0 .. 9]) `shouldBe` [[1 .. 10]]
+        observeAll (HigherOrder.succs_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
       it "filter" $ do
-        observeAll (evens_io [1..9]) `shouldBe` [[2,4,6,8]]
+        observeAll (HigherOrder.evens_io [1..9]) `shouldBe` [[2,4,6,8]]
       it "foldl" $ do
-        observeAll (sum_iio [1..9] 0) `shouldBe` [sum [1..9]]
-        observeAll (sum_ioi [1..9] 999) `shouldBe` [999 - sum [1..9]]
-        observeAll (split_oio [1..9]) `shouldBe` [splitAt i [1..9] | i <- [0..9]]
-        observeMany 10 (splitr_ooi [1..9]) `shouldBe`
+        observeAll (HigherOrder.sum_iio [1..9] 0) `shouldBe` [sum [1..9]]
+        observeAll (HigherOrder.sum_ioi [1..9] 999) `shouldBe` [999 - sum [1..9]]
+        observeAll (HigherOrder.split_oio [1..9]) `shouldBe` [splitAt i [1..9] | i <- [0..9]]
+        observeMany 10 (HigherOrder.splitr_ooi [1..9]) `shouldBe`
           [let (a, b) = splitAt i [1..9] in (reverse a, b) | i <- [0..9]]
     describe "Primes" $ do
       it "compile" $ compileTest "Primes" programPrimes
       it "primes" $ do
-        observeAll (primes_io 100) `shouldBe` [prime25]
-        observeAll (primes_ii 100 prime25) `shouldBe` [()]
-        observeAll (primes_ii 100 [2 .. 99]) `shouldBe` []
+        observeAll (Primes.primes_io 100) `shouldBe` [prime25]
+        observeAll (Primes.primes_ii 100 prime25) `shouldBe` [()]
+        observeAll (Primes.primes_ii 100 [2 .. 99]) `shouldBe` []
     describe "Sort" $ do
       it "compile" $ compileTest "Sort" programSort
       it "sort" $ do
         let xs = [27,74,17,33,94,18,46,83,65,2,32,53,28,85,99,47,28,82,6,11,55,29,39,81,
                   90,37,10,0,66,51,7,21,85,27,31,63,75,4,95,99,11,28,61,74,18,92,40,53,59,8]
-        observeAll (sort_io xs) `shouldBe` [List.sort xs]
-        observeAll (sort_ii xs (List.sort xs)) `shouldBe` [()]
-        observeAll (sort_ii xs xs) `shouldBe` []
+        observeAll (Sort.sort_io xs) `shouldBe` [List.sort xs]
+        observeAll (Sort.sort_ii xs (List.sort xs)) `shouldBe` [()]
+        observeAll (Sort.sort_ii xs xs) `shouldBe` []
     describe "Queens" $ do
       it "compile" $ compileTest "Queens" programQueens
       it "queens1" $ do
-        observeAll (queens1_io [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
+        observeAll (Queens.queens1_io [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
       it "queens2" $ do
-        observeAll (queens2_io [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
+        observeAll (Queens.queens2_io [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
       forM_ [1 .. 6] $ \n ->
         it ("n=" ++ show n) $
-        observeAll (queens1_io [1 .. n]) `shouldBe`
-        observeAll (queens2_io [1 .. n])
+        observeAll (Queens.queens1_io [1 .. n]) `shouldBe`
+        observeAll (Queens.queens2_io [1 .. n])
     describe "Kiselyov" $ do
       it "compile" $ compileTest "Kiselyov" programKiselyov
       it "pythag" $ do
-        take 7 (FairLogic.observeAll pythag_ooo) `shouldBe`
+        FairLogic.observeMany 7 Kiselyov.pythag_ooo `shouldBe`
           [(3,4,5),(6,8,10),(5,12,13),(9,12,15),(8,15,17),(12,16,20),(7,24,25)]
       it "ptriang" $ do
-        observeAll ptriang_o `shouldBe`
+        observeAll Kiselyov.ptriang_o `shouldBe`
           [3,6,8,10,11,13,15,16,18,20,21,23,26,27,28]
       it "stepN" $ do
-        observeAll (stepN_io 99) `shouldBe` [0..99]
+        observeAll (Kiselyov.stepN_io 99) `shouldBe` [0..99]
       it "oddsTest" $ do
-        head (FairLogic.observeAll oddsTest_o) `shouldBe` 10
+        FairLogic.observe Kiselyov.oddsTest_o `shouldBe` 10
       it "oddsPlusTest" $ do
-        head (FairLogic.observeAll oddsPlusTest_o) `shouldBe` 2
+        FairLogic.observe Kiselyov.oddsPlusTest_o `shouldBe` 2
       it "oddsPrime" $ do
         let expect = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
-        observeMany 10 oddsPrime_o `shouldBe` expect
-        observeManyT 10 oddsPrimeIO_o `shouldReturn` expect
+        observeMany 10 Kiselyov.oddsPrime_o `shouldBe` expect
+        observeManyT 10 Kiselyov.oddsPrimeIO_o `shouldReturn` expect
       it "bogosort" $ do
-        observeAll (bogosort_io [5,0,3,4,0,1]) `shouldBe`
+        observeAll (Kiselyov.bogosort_io [5,0,3,4,0,1]) `shouldBe`
           replicate 2 [0,0,1,3,4,5]
-        List.sort (observeAll (bogosort_oi [1 .. 5])) `shouldBe`
+        List.sort (observeAll (Kiselyov.bogosort_oi [1 .. 5])) `shouldBe`
           List.sort (List.permutations [1 .. 5])
-        observeAll (bogosort_oi [1,0]) `shouldBe` []
+        observeAll (Kiselyov.bogosort_oi [1,0]) `shouldBe` []
       it "tcomp" $ do
-        observeAll tcomp_ex1_o `shouldBe` [Just 1]
+        observeAll Kiselyov.tcomp_ex1_o `shouldBe` [Just 1]
       it "findI" $ do
-        observeAll (prefix_io "hello") `shouldBe` List.inits "hello"
-        observeAll (suffix_io "hello") `shouldBe` List.tails "hello"
+        observeAll (Kiselyov.prefix_io "hello") `shouldBe` List.inits "hello"
+        observeAll (Kiselyov.suffix_io "hello") `shouldBe` List.tails "hello"
         let sentence = "Store it in the neighboring harbor"
-        observeAll (findI_iio "or" sentence) `shouldBe`
+        observeAll (Kiselyov.findI_iio "or" sentence) `shouldBe`
           List.findIndices ("or" `List.isPrefixOf`) (List.tails sentence)
         let sentence1 = liftIO (putStrLn "sentence1") >> return sentence
             sentence2 = liftIO (putStrLn "sentence2") >> return "Sort of"
-            twosen = liftIO . print =<< findI_iio "or" =<< sentence1 <|> sentence2
+            twosen = liftIO . print =<< Kiselyov.findI_iio "or" =<< sentence1 <|> sentence2
         observeAllT twosen `shouldReturn` replicate 4 ()
     describe "Euler" $ do
       it "compile" $ compileTest "Euler" programEuler
       it "1" $ do
-        observeAll euler1'_o `shouldBe` [233168]
+        observeAll Euler.euler1'_o `shouldBe` [233168]
       it "2" $ do
-        [observeAll (fib_io i) | i <- [0 .. 12 :: Integer]] `shouldBe`
+        [observeAll (Euler.fib_io i) | i <- [0 .. 12 :: Integer]] `shouldBe`
           map pure [0,1,1,2,3,5,8,13,21,34,55,89,144]
-        observeAll (fib_io (100 :: Integer)) `shouldBe` [354224848179261915075]
-        observeAll euler2_o `shouldBe` [1089154]
+        observeAll (Euler.fib_io (100 :: Integer)) `shouldBe` [354224848179261915075]
+        observeAll Euler.euler2_o `shouldBe` [1089154]
       it "3" $ do
-        observeMany 25 prime_o `shouldBe` prime25
-        observeMany 25 primeSlow_o `shouldBe` prime25
-        observeAll (euler3_io 600851475143) `shouldBe` [6857]
+        observeMany 25 Euler.prime_o `shouldBe` prime25
+        observeMany 25 Euler.primeSlow_o `shouldBe` prime25
+        observeAll (Euler.euler3_io 600851475143) `shouldBe` [6857]
+      it "4" $ do
+        observeAll (Euler.reverse_io "hello") `shouldBe` ["olleh"]
+        -- observeAll (Euler.reverse_oi "hello") `shouldBe` ["olleh"]
+        observeAll Euler.euler4'_o `shouldBe` [9009]

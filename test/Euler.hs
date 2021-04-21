@@ -25,6 +25,7 @@ constraints:
 -}
 nat_i = \arg1 -> once $ do
   -- solution: n[1,1] n'[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,2] ~n[1,0] ~n'[1,1]
+  -- cost: 3
   () <- (do
     guard $ arg1 == 0
     pure ()
@@ -38,6 +39,7 @@ nat_i = \arg1 -> once $ do
 
 nat_o = do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,2] n[1,0] n'[1,1] ~n[1,1] ~n'[1,2]
+  -- cost: 4
   (arg1) <- (do
     arg1 <- pure 0
     pure (arg1)
@@ -69,6 +71,7 @@ constraints:
 -}
 oddNat_i = \arg1 -> once $ do
   -- solution: data0[1,2] n[1,1] n'[1,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~data0[1,1] ~n[1,0] ~n'[1,1]
+  -- cost: 3
   () <- (do
     guard $ arg1 == 1
     pure ()
@@ -83,6 +86,7 @@ oddNat_i = \arg1 -> once $ do
 
 oddNat_o = do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] data0[1,2] n[1,0] n'[1,1] ~data0[1,1] ~n[1,1] ~n'[1,3]
+  -- cost: 4
   (arg1) <- (do
     arg1 <- pure 1
     pure (arg1)
@@ -108,11 +112,12 @@ constraints:
 1
 -}
 even_i = \x -> once $ do
-  -- solution: data0[0,1] data1[0,0] ~data0[0,0] ~data1[0,2] ~x[] ~x[0] ~x[0,0]
+  -- solution: data0[0,1] data1[0,2] ~data0[0,0] ~data1[0,0] ~x[] ~x[0] ~x[0,0]
+  -- cost: 1
   () <- (do
+    data1 <- pure 0
     data0 <- pure 2
-    (data1) <- mod_iio x data0
-    guard $ data1 == 0
+    () <- mod_iii x data0 data1
     pure ()
    )
   pure ()
@@ -140,6 +145,7 @@ xs[1,0]
 -}
 elem_oi = \arg2 -> do
   -- solution: x[] x[0] x[0,0] x[1] x[1,1] xs[1,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~xs[1,1]
+  -- cost: 2
   (x) <- (do
     (x:_) <- pure arg2
     pure (x)
@@ -230,6 +236,7 @@ constraints:
 -}
 span_p1iiii = \p arg2 arg3 arg4 -> once $ do
   -- solution: x[1,1] x0[1,0] x2[1,3,1,1] x3[1,3,2,1] xs[1,2] xs1[1,0] xs4[1,3,2,1] ys[1,4] yt[1,3,1,1] zs[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,4] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~p[] ~p[1] ~p[1,3] ~p[1,3,1] ~p[1,3,1,0] ~x[1,3] ~x[1,3,0,0] ~x[1,3,1,2] ~x[1,3,2] ~x[1,3,2,2] ~x0[1,1] ~x2[1,3,1,2] ~x3[1,3,2,2] ~xs[1,3] ~xs[1,3,1] ~xs[1,3,1,0] ~xs[1,3,2] ~xs[1,3,2,3] ~xs1[1,2] ~xs4[1,3,2,3] ~ys[1,3] ~ys[1,3,1] ~ys[1,3,1,1] ~ys[1,3,2] ~ys[1,3,2,0] ~yt[1,3,1,0] ~zs[1,3] ~zs[1,3,1] ~zs[1,3,1,0] ~zs[1,3,2] ~zs[1,3,2,1] ~p(1)
+  -- cost: 2
   () <- (do
     guard $ arg2 == []
     guard $ arg3 == []
@@ -262,6 +269,7 @@ span_p1iiii = \p arg2 arg3 arg4 -> once $ do
 
 span_p1iiio = \p arg2 arg3 -> do
   -- solution: arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] x[1,1] x0[1,0] x2[1,3,1,1] x3[1,3,2,2] xs[1,2] xs1[1,0] xs4[1,3,2,3] ys[1,4] yt[1,3,1,1] zs[1,3] zs[1,3,1] zs[1,3,1,0] zs[1,3,2] zs[1,3,2,1] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,4] ~p[] ~p[1] ~p[1,3] ~p[1,3,1] ~p[1,3,1,0] ~x[1,3] ~x[1,3,0,0] ~x[1,3,1,2] ~x[1,3,2] ~x[1,3,2,2] ~x0[1,1] ~x2[1,3,1,2] ~x3[1,3,2,1] ~xs[1,3] ~xs[1,3,1] ~xs[1,3,1,0] ~xs[1,3,2] ~xs[1,3,2,3] ~xs1[1,2] ~xs4[1,3,2,1] ~ys[1,3] ~ys[1,3,1] ~ys[1,3,1,1] ~ys[1,3,2] ~ys[1,3,2,0] ~yt[1,3,1,0] ~zs[1,5] ~p(1)
+  -- cost: 3
   (arg4) <- (do
     guard $ arg2 == []
     guard $ arg3 == []
@@ -294,6 +302,7 @@ span_p1iiio = \p arg2 arg3 -> do
 
 span_p1iioi = \p arg2 arg4 -> do
   -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] x[1,1] x0[1,0] x2[1,3,1,2] x3[1,3,2,1] xs[1,2] xs1[1,0] xs4[1,3,2,1] ys[1,3] ys[1,3,1] ys[1,3,1,1] ys[1,3,2] ys[1,3,2,0] yt[1,3,1,0] zs[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~p[] ~p[1] ~p[1,3] ~p[1,3,1] ~p[1,3,1,0] ~x[1,3] ~x[1,3,0,0] ~x[1,3,1,2] ~x[1,3,2] ~x[1,3,2,2] ~x0[1,1] ~x2[1,3,1,1] ~x3[1,3,2,2] ~xs[1,3] ~xs[1,3,1] ~xs[1,3,1,0] ~xs[1,3,2] ~xs[1,3,2,3] ~xs1[1,2] ~xs4[1,3,2,3] ~ys[1,4] ~yt[1,3,1,1] ~zs[1,3] ~zs[1,3,1] ~zs[1,3,1,0] ~zs[1,3,2] ~zs[1,3,2,1] ~p(1)
+  -- cost: 3
   (arg3) <- (do
     guard $ arg2 == []
     arg3 <- pure []
@@ -326,6 +335,7 @@ span_p1iioi = \p arg2 arg4 -> do
 
 span_p1iioo = \p arg2 -> do
   -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] x[1,1] x0[1,0] x2[1,3,1,2] x3[1,3,2,2] xs[1,2] xs1[1,0] xs4[1,3,2,3] ys[1,3] ys[1,3,1] ys[1,3,1,1] ys[1,3,2] ys[1,3,2,0] yt[1,3,1,0] zs[1,3] zs[1,3,1] zs[1,3,1,0] zs[1,3,2] zs[1,3,2,1] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~p[] ~p[1] ~p[1,3] ~p[1,3,1] ~p[1,3,1,0] ~x[1,3] ~x[1,3,0,0] ~x[1,3,1,2] ~x[1,3,2] ~x[1,3,2,2] ~x0[1,1] ~x2[1,3,1,1] ~x3[1,3,2,1] ~xs[1,3] ~xs[1,3,1] ~xs[1,3,1,0] ~xs[1,3,2] ~xs[1,3,2,3] ~xs1[1,2] ~xs4[1,3,2,1] ~ys[1,4] ~yt[1,3,1,1] ~zs[1,5] ~p(1)
+  -- cost: 4
   (arg3,arg4) <- (do
     guard $ arg2 == []
     arg3 <- pure []
@@ -356,6 +366,174 @@ span_p1iioo = \p arg2 -> do
    )
   pure (arg3,arg4)
 
+{- reverseDL/3
+reverseDL arg1 arg2 arg3 :- ((arg1 = [], arg2 = xs, arg3 = xs); (arg1 = h0:t, h0 = h, reverseDL t data0 r, data0 = h1:rest, h1 = h, arg2 = rest, arg3 = r)).
+constraints:
+~(arg1[1,0] & h0[1,0])
+~(arg2[0,1] & xs[0,1])
+~(arg2[1,5] & rest[1,5])
+~(arg3[0,2] & xs[0,2])
+~(arg3[1,6] & r[1,6])
+~(data0[1,2] & data0[1,3])
+~(data0[1,3] & h1[1,3])
+~(h[1,1] & h[1,4])
+~(h0[1,0] & h0[1,1])
+~(h0[1,1] & h[1,1])
+~(h1[1,3] & h1[1,4])
+~(h1[1,4] & h[1,4])
+~(r[1,2] & r[1,6])
+~(rest[1,3] & rest[1,5])
+~(t[1,0] & t[1,2])
+~(xs[0,1] & xs[0,2])
+(data0[1,2] | data0[1,3])
+(h[1,1] | h[1,4])
+(h0[1,0] | h0[1,1])
+(h1[1,3] | h1[1,4])
+(r[1,2] | r[1,6])
+(rest[1,3] | rest[1,5])
+(t[1,0] | t[1,2])
+(xs[0,1] | xs[0,2])
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,5])
+(arg3[] <-> arg3[0])
+(arg3[] <-> arg3[1])
+(arg3[0] <-> arg3[0,2])
+(arg3[1] <-> arg3[1,6])
+(data0[1,2] <-> arg2[])
+(h0[1,0] <-> t[1,0])
+(h1[1,3] <-> rest[1,3])
+(r[1,2] <-> arg3[])
+(t[1,2] <-> arg1[])
+1
+-}
+reverseDL_iii = \arg1 arg2 arg3 -> once $ do
+  -- solution: data0[1,3] h[1,1] h0[1,0] h1[1,4] r[1,6] rest[1,5] t[1,0] xs[0,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,5] ~arg3[] ~arg3[0] ~arg3[0,2] ~arg3[1] ~arg3[1,6] ~data0[1,2] ~h[1,4] ~h0[1,1] ~h1[1,3] ~r[1,2] ~rest[1,3] ~t[1,2] ~xs[0,2]
+  -- cost: 1
+  () <- (do
+    xs <- pure arg2
+    guard $ arg3 == xs
+    guard $ arg1 == []
+    pure ()
+   ) <|> (do
+    rest <- pure arg2
+    r <- pure arg3
+    (h0:t) <- pure arg1
+    h <- pure h0
+    h1 <- pure h
+    data0 <- pure (h1:rest)
+    () <- reverseDL_iii t data0 r
+    pure ()
+   )
+  pure ()
+
+reverseDL_iio = \arg1 arg2 -> do
+  -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,6] data0[1,3] h[1,1] h0[1,0] h1[1,4] r[1,2] rest[1,5] t[1,0] xs[0,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,5] ~data0[1,2] ~h[1,4] ~h0[1,1] ~h1[1,3] ~r[1,6] ~rest[1,3] ~t[1,2] ~xs[0,2]
+  -- cost: 2
+  (arg3) <- (do
+    xs <- pure arg2
+    arg3 <- pure xs
+    guard $ arg1 == []
+    pure (arg3)
+   ) <|> (do
+    rest <- pure arg2
+    (h0:t) <- pure arg1
+    h <- pure h0
+    h1 <- pure h
+    data0 <- pure (h1:rest)
+    (r) <- reverseDL_iio t data0
+    arg3 <- pure r
+    pure (arg3)
+   )
+  pure (arg3)
+
+reverseDL_ioi = \arg1 arg3 -> do
+  -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,5] data0[1,2] h[1,1] h0[1,0] h1[1,3] r[1,6] rest[1,3] t[1,0] xs[0,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg3[] ~arg3[0] ~arg3[0,2] ~arg3[1] ~arg3[1,6] ~data0[1,3] ~h[1,4] ~h0[1,1] ~h1[1,4] ~r[1,2] ~rest[1,5] ~t[1,2] ~xs[0,1]
+  -- cost: 2
+  (arg2) <- (do
+    xs <- pure arg3
+    arg2 <- pure xs
+    guard $ arg1 == []
+    pure (arg2)
+   ) <|> (do
+    r <- pure arg3
+    (h0:t) <- pure arg1
+    h <- pure h0
+    (data0) <- reverseDL_ioi t r
+    (h1:rest) <- pure data0
+    arg2 <- pure rest
+    guard $ h1 == h
+    pure (arg2)
+   )
+  pure (arg2)
+
+reverseDL_ooi = \arg3 -> do
+  -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,5] data0[1,2] h[1,4] h0[1,1] h1[1,3] r[1,6] rest[1,3] t[1,2] xs[0,2] ~arg3[] ~arg3[0] ~arg3[0,2] ~arg3[1] ~arg3[1,6] ~data0[1,3] ~h[1,1] ~h0[1,0] ~h1[1,4] ~r[1,2] ~rest[1,5] ~t[1,0] ~xs[0,1]
+  -- cost: 3
+  (arg1,arg2) <- (do
+    xs <- pure arg3
+    arg2 <- pure xs
+    arg1 <- pure []
+    pure (arg1,arg2)
+   ) <|> (do
+    r <- pure arg3
+    (t,data0) <- reverseDL_ooi r
+    (h1:rest) <- pure data0
+    arg2 <- pure rest
+    h <- pure h1
+    h0 <- pure h
+    arg1 <- pure (h0:t)
+    pure (arg1,arg2)
+   )
+  pure (arg1,arg2)
+
+{- reverse/2
+reverse s r :- ((reverseDL s data0 r, data0 = [])).
+constraints:
+~(data0[0,0] & data0[0,1])
+(data0[0,0] | data0[0,1])
+((s[0,0] & (data0[0,0] & ~r[0,0])) | ((~s[0,0] & (data0[0,0] & ~r[0,0])) | ((~s[0,0] & (~data0[0,0] & r[0,0])) | (~s[0,0] & (~data0[0,0] & ~r[0,0])))))
+(r[] <-> r[0])
+(r[0] <-> r[0,0])
+(s[] <-> s[0])
+(s[0] <-> s[0,0])
+1
+-}
+reverse_ii = \s r -> once $ do
+  -- solution: data0[0,1] ~data0[0,0] ~r[] ~r[0] ~r[0,0] ~s[] ~s[0] ~s[0,0]
+  -- cost: 1
+  () <- (do
+    data0 <- pure []
+    () <- reverseDL_iii s data0 r
+    pure ()
+   )
+  pure ()
+
+reverse_io = \s -> do
+  -- solution: data0[0,1] r[] r[0] r[0,0] ~data0[0,0] ~s[] ~s[0] ~s[0,0]
+  -- cost: 2
+  (r) <- (do
+    data0 <- pure []
+    (r) <- reverseDL_iio s data0
+    pure (r)
+   )
+  pure (r)
+
+reverse_oi = \r -> do
+  -- solution: data0[0,0] s[] s[0] s[0,0] ~data0[0,1] ~r[] ~r[0] ~r[0,0]
+  -- cost: 3
+  (s) <- (do
+    (s,data0) <- reverseDL_ooi r
+    guard $ data0 == []
+    pure (s)
+   )
+  pure (s)
+
 {- multiple/2
 multiple x y :- ((mod x y data0, data0 = 0)).
 constraints:
@@ -369,10 +547,11 @@ constraints:
 1
 -}
 multiple_ii = \x y -> once $ do
-  -- solution: data0[0,0] ~data0[0,1] ~x[] ~x[0] ~x[0,0] ~y[] ~y[0] ~y[0,0]
+  -- solution: data0[0,1] ~data0[0,0] ~x[] ~x[0] ~x[0,0] ~y[] ~y[0] ~y[0,0]
+  -- cost: 1
   () <- (do
-    (data0) <- mod_iio x y
-    guard $ data0 == 0
+    data0 <- pure 0
+    () <- mod_iii x y data0
     pure ()
    )
   pure ()
@@ -403,11 +582,11 @@ constraints:
 -}
 euler1_o = choose . nub . observeAll $ do
   -- solution: data0[0,1] data1[0,2] data2[0,3] x[] x[0] x[0,0] y[0,5] y[0,5,0] y[0,5,0,0] y[0,5,1] y[0,5,1,0] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~x[0,4] ~y[0,4]
+  -- cost: 3
   (x) <- (do
     data0 <- pure 0
     data1 <- pure 999
     data2 <- pure [data0..data1]
-    (x) <- elem_oi data2
     (y) <- (do
       y <- pure 3
       pure (y)
@@ -415,6 +594,7 @@ euler1_o = choose . nub . observeAll $ do
       y <- pure 5
       pure (y)
      )
+    (x) <- elem_oi data2
     () <- multiple_ii x y
     pure (x)
    )
@@ -438,6 +618,7 @@ x[0,1,0,0]
 -}
 euler1'_i = \s -> once $ do
   -- solution: r[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~pred0[0,0] ~r[0,2] ~s[] ~s[0] ~s[0,2] ~x[0]
+  -- cost: 5
   () <- (do
     let pred0 =
           do
@@ -454,6 +635,7 @@ euler1'_i = \s -> once $ do
 
 euler1'_o = do
   -- solution: r[0,0] s[] s[0] s[0,2] x[0,1,0] x[0,1,0,0] pred0(1) ~pred0[0,0] ~r[0,2] ~x[0]
+  -- cost: 6
   (s) <- (do
     let pred0 =
           do
@@ -515,6 +697,7 @@ constraints:
 -}
 fib_io = memo $ \arg1 -> choose . observeAll $ do
   -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,8] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,2] j[2,3] k[2,7] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg1[2] ~arg1[2,7] ~data0[2,0] ~fi[2,6] ~fj[2,6] ~fk[2,8] ~i[2,4] ~j[2,2] ~j[2,5] ~k[2,0] ~k[2,3]
+  -- cost: 11
   (arg2) <- (do
     guard $ arg1 == 0
     arg2 <- pure 0
@@ -539,6 +722,7 @@ fib_io = memo $ \arg1 -> choose . observeAll $ do
 
 fib_oo = choose . observeAll $ do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,7] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,8] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,4] j[2,5] k[2,3] ~data0[2,0] ~fi[2,6] ~fj[2,6] ~fk[2,8] ~i[2,2] ~j[2,2] ~j[2,3] ~k[2,0] ~k[2,7]
+  -- cost: 12
   (arg1,arg2) <- (do
     arg1 <- pure 0
     arg2 <- pure 0
@@ -574,6 +758,7 @@ constraints:
 -}
 fib'_o = do
   -- solution: f[] f[0] f[0,1] i[0,0] ~i[0,1]
+  -- cost: 4
   (f) <- (do
     (i) <- nat_o 
     (f) <- fib_io i
@@ -611,6 +796,7 @@ x[0,1,0,0]
 -}
 euler2_i = \s -> once $ do
   -- solution: data1[0,3] data1[0,4,0] data1[0,4,0,1] fs[0,0] x[0,1,0] x[0,1,0,0] xs[0,2] pred0(1) ~data1[0,4,0,0] ~fs[0,2] ~pred0[0,0] ~pred2[0,2] ~s[] ~s[0] ~s[0,5] ~x[0] ~x[0,1,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,5] ~pred2(1)
+  -- cost: 10
   () <- (do
     data1 <- pure 1000000
     let pred0 =
@@ -621,7 +807,6 @@ euler2_i = \s -> once $ do
               pure (x)
              )
             pure (x)
-    (fs) <- observeAll_p1oo pred0
     let pred2 =
           \x -> do
             (data1) <- (do
@@ -630,6 +815,7 @@ euler2_i = \s -> once $ do
               pure (data1)
              )
             pure ()
+    (fs) <- observeAll_p1oo pred0
     (xs,_) <- span_p1iioo pred2 fs
     () <- sum_ii xs s
     pure ()
@@ -638,6 +824,7 @@ euler2_i = \s -> once $ do
 
 euler2_o = do
   -- solution: data1[0,3] data1[0,4,0] data1[0,4,0,1] fs[0,0] s[] s[0] s[0,5] x[0,1,0] x[0,1,0,0] xs[0,2] pred0(1) ~data1[0,4,0,0] ~fs[0,2] ~pred0[0,0] ~pred2[0,2] ~x[0] ~x[0,1,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,5] ~pred2(1)
+  -- cost: 11
   (s) <- (do
     data1 <- pure 1000000
     let pred0 =
@@ -648,7 +835,6 @@ euler2_o = do
               pure (x)
              )
             pure (x)
-    (fs) <- observeAll_p1oo pred0
     let pred2 =
           \x -> do
             (data1) <- (do
@@ -657,6 +843,7 @@ euler2_o = do
               pure (data1)
              )
             pure ()
+    (fs) <- observeAll_p1oo pred0
     (xs,_) <- span_p1iioo pred2 fs
     (s) <- sum_io xs
     pure (s)
@@ -688,14 +875,15 @@ constraints:
 1
 -}
 nontrivialDivisor_io = \n -> do
-  -- solution: d[] d[0] d[0,1] data0[0,2] data1[0,3] data2[0,4] n'[0,0] ~d[0,4] ~data0[0,3] ~data1[0,1] ~data2[0,5] ~n[] ~n[0] ~n[0,0] ~n[0,4] ~n'[0,3]
+  -- solution: d[] d[0] d[0,1] data0[0,2] data1[0,3] data2[0,5] n'[0,0] ~d[0,4] ~data0[0,3] ~data1[0,1] ~data2[0,4] ~n[] ~n[0] ~n[0,0] ~n[0,4] ~n'[0,3]
+  -- cost: 5
   (d) <- (do
+    data2 <- pure 0
     data0 <- pure 2
     (n') <- succ_oi n
     data1 <- pure [data0..n']
     (d) <- elem_oi data1
-    (data2) <- mod_iio n d
-    guard $ data2 == 0
+    () <- mod_iii n d data2
     pure (d)
    )
   pure (d)
@@ -720,6 +908,7 @@ _[0,3]
 -}
 primeSlow_i = \n -> once $ do
   -- solution: _[0] _[0,3] data0[0,2] ~data0[0,1] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
+  -- cost: 5
   () <- (do
     data0 <- pure 1
     guard $ (>) n data0
@@ -740,6 +929,7 @@ primeSlow_i = \n -> once $ do
 
 primeSlow_o = do
   -- solution: _[0] _[0,3] data0[0,2] n[] n[0] n[0,0] ~data0[0,1] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
+  -- cost: 6
   (n) <- (do
     data0 <- pure 1
     (n) <- nat_o 
@@ -871,7 +1061,8 @@ pp[0,3]
 1
 -}
 factor_iii = \arg1 n f -> once $ do
-  -- solution: d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,0] data1[0,3,2,0,1,0,1,1] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~d[0,3,2,0,1,0] ~d[0,3,2,0,1,0,1] ~d[0,3,2,0,1,0,1,0] ~data0[0,3,2,0,0,1] ~data1[0,3,2,0,1,0,1,0] ~f[] ~f[0] ~f[0,3] ~f[0,3,1] ~f[0,3,1,0] ~f[0,3,2] ~f[0,3,2,0] ~f[0,3,2,0,1] ~f[0,3,2,0,1,0] ~f[0,3,2,0,1,0,0] ~f[0,3,2,0,1,0,0,0] ~f[0,3,2,0,1,0,1] ~f[0,3,2,0,1,0,1,0] ~f[0,3,2,0,2] ~f[0,3,2,0,2,0] ~n[] ~n[0] ~n[0,3] ~n[0,3,0,3] ~n[0,3,1,0] ~n[0,3,2] ~n[0,3,2,0] ~n[0,3,2,0,0,0] ~n[0,3,2,0,2] ~n[0,3,2,0,2,0] ~p[0,3] ~p[0,3,0,1] ~p[0,3,0,2] ~p[0,3,2] ~p[0,3,2,0] ~p[0,3,2,0,0,0] ~p[0,3,2,0,1,0] ~p[0,3,2,0,1,0,0] ~p[0,3,2,0,1,0,0,0] ~p[0,3,2,0,1,0,1] ~p[0,3,2,0,1,0,1,2] ~p0[0,1] ~p2[0,3,0,0] ~p3[0,3,0,0] ~p4[0,3,2,0,1,0,1,1] ~pp[0,3,0,3] ~ps[0,3] ~ps[0,3,2] ~ps[0,3,2,0] ~ps[0,3,2,0,1] ~ps[0,3,2,0,1,0] ~ps[0,3,2,0,1,0,1] ~ps[0,3,2,0,1,0,1,3] ~ps[0,3,2,0,2] ~ps[0,3,2,0,2,0] ~ps1[0,2] ~ps5[0,3,2,0,1,0,1,1]
+  -- solution: d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,1] data1[0,3,2,0,1,0,1,1] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~d[0,3,2,0,1,0] ~d[0,3,2,0,1,0,1] ~d[0,3,2,0,1,0,1,0] ~data0[0,3,2,0,0,0] ~data1[0,3,2,0,1,0,1,0] ~f[] ~f[0] ~f[0,3] ~f[0,3,1] ~f[0,3,1,0] ~f[0,3,2] ~f[0,3,2,0] ~f[0,3,2,0,1] ~f[0,3,2,0,1,0] ~f[0,3,2,0,1,0,0] ~f[0,3,2,0,1,0,0,0] ~f[0,3,2,0,1,0,1] ~f[0,3,2,0,1,0,1,0] ~f[0,3,2,0,2] ~f[0,3,2,0,2,0] ~n[] ~n[0] ~n[0,3] ~n[0,3,0,3] ~n[0,3,1,0] ~n[0,3,2] ~n[0,3,2,0] ~n[0,3,2,0,0,0] ~n[0,3,2,0,2] ~n[0,3,2,0,2,0] ~p[0,3] ~p[0,3,0,1] ~p[0,3,0,2] ~p[0,3,2] ~p[0,3,2,0] ~p[0,3,2,0,0,0] ~p[0,3,2,0,1,0] ~p[0,3,2,0,1,0,0] ~p[0,3,2,0,1,0,0,0] ~p[0,3,2,0,1,0,1] ~p[0,3,2,0,1,0,1,2] ~p0[0,1] ~p2[0,3,0,0] ~p3[0,3,0,0] ~p4[0,3,2,0,1,0,1,1] ~pp[0,3,0,3] ~ps[0,3] ~ps[0,3,2] ~ps[0,3,2,0] ~ps[0,3,2,0,1] ~ps[0,3,2,0,1,0] ~ps[0,3,2,0,1,0,1] ~ps[0,3,2,0,1,0,1,3] ~ps[0,3,2,0,2] ~ps[0,3,2,0,2,0] ~ps1[0,2] ~ps5[0,3,2,0,1,0,1,1]
+  -- cost: 7
   () <- (do
     (p0:ps1) <- pure arg1
     p <- pure p0
@@ -887,8 +1078,8 @@ factor_iii = \arg1 n f -> once $ do
       pure ()
      )) ((do
       () <- ifte ((do
-        (d,data0) <- divMod_iioo n p
-        guard $ data0 == 0
+        data0 <- pure 0
+        (d) <- divMod_iioi n p data0
         pure (d)
        )) (\(d) -> (do
         () <- (do
@@ -913,7 +1104,8 @@ factor_iii = \arg1 n f -> once $ do
   pure ()
 
 factor_iio = \arg1 n -> do
-  -- solution: d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,0] data1[0,3,2,0,1,0,1,1] f[] f[0] f[0,3] f[0,3,1] f[0,3,1,0] f[0,3,2] f[0,3,2,0] f[0,3,2,0,1] f[0,3,2,0,1,0] f[0,3,2,0,1,0,0] f[0,3,2,0,1,0,0,0] f[0,3,2,0,1,0,1] f[0,3,2,0,1,0,1,0] f[0,3,2,0,2] f[0,3,2,0,2,0] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~d[0,3,2,0,1,0] ~d[0,3,2,0,1,0,1] ~d[0,3,2,0,1,0,1,0] ~data0[0,3,2,0,0,1] ~data1[0,3,2,0,1,0,1,0] ~n[] ~n[0] ~n[0,3] ~n[0,3,0,3] ~n[0,3,1,0] ~n[0,3,2] ~n[0,3,2,0] ~n[0,3,2,0,0,0] ~n[0,3,2,0,2] ~n[0,3,2,0,2,0] ~p[0,3] ~p[0,3,0,1] ~p[0,3,0,2] ~p[0,3,2] ~p[0,3,2,0] ~p[0,3,2,0,0,0] ~p[0,3,2,0,1,0] ~p[0,3,2,0,1,0,0] ~p[0,3,2,0,1,0,0,0] ~p[0,3,2,0,1,0,1] ~p[0,3,2,0,1,0,1,2] ~p0[0,1] ~p2[0,3,0,0] ~p3[0,3,0,0] ~p4[0,3,2,0,1,0,1,1] ~pp[0,3,0,3] ~ps[0,3] ~ps[0,3,2] ~ps[0,3,2,0] ~ps[0,3,2,0,1] ~ps[0,3,2,0,1,0] ~ps[0,3,2,0,1,0,1] ~ps[0,3,2,0,1,0,1,3] ~ps[0,3,2,0,2] ~ps[0,3,2,0,2,0] ~ps1[0,2] ~ps5[0,3,2,0,1,0,1,1]
+  -- solution: d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,1] data1[0,3,2,0,1,0,1,1] f[] f[0] f[0,3] f[0,3,1] f[0,3,1,0] f[0,3,2] f[0,3,2,0] f[0,3,2,0,1] f[0,3,2,0,1,0] f[0,3,2,0,1,0,0] f[0,3,2,0,1,0,0,0] f[0,3,2,0,1,0,1] f[0,3,2,0,1,0,1,0] f[0,3,2,0,2] f[0,3,2,0,2,0] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~d[0,3,2,0,1,0] ~d[0,3,2,0,1,0,1] ~d[0,3,2,0,1,0,1,0] ~data0[0,3,2,0,0,0] ~data1[0,3,2,0,1,0,1,0] ~n[] ~n[0] ~n[0,3] ~n[0,3,0,3] ~n[0,3,1,0] ~n[0,3,2] ~n[0,3,2,0] ~n[0,3,2,0,0,0] ~n[0,3,2,0,2] ~n[0,3,2,0,2,0] ~p[0,3] ~p[0,3,0,1] ~p[0,3,0,2] ~p[0,3,2] ~p[0,3,2,0] ~p[0,3,2,0,0,0] ~p[0,3,2,0,1,0] ~p[0,3,2,0,1,0,0] ~p[0,3,2,0,1,0,0,0] ~p[0,3,2,0,1,0,1] ~p[0,3,2,0,1,0,1,2] ~p0[0,1] ~p2[0,3,0,0] ~p3[0,3,0,0] ~p4[0,3,2,0,1,0,1,1] ~pp[0,3,0,3] ~ps[0,3] ~ps[0,3,2] ~ps[0,3,2,0] ~ps[0,3,2,0,1] ~ps[0,3,2,0,1,0] ~ps[0,3,2,0,1,0,1] ~ps[0,3,2,0,1,0,1,3] ~ps[0,3,2,0,2] ~ps[0,3,2,0,2,0] ~ps1[0,2] ~ps5[0,3,2,0,1,0,1,1]
+  -- cost: 9
   (f) <- (do
     (p0:ps1) <- pure arg1
     p <- pure p0
@@ -929,8 +1121,8 @@ factor_iio = \arg1 n -> do
       pure (f)
      )) ((do
       (f) <- ifte ((do
-        (d,data0) <- divMod_iioo n p
-        guard $ data0 == 0
+        data0 <- pure 0
+        (d) <- divMod_iioi n p data0
         pure (d)
        )) (\(d) -> (do
         (f) <- (do
@@ -996,6 +1188,7 @@ d[1,5]
 -}
 prime_o = choose . observeAll $ do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,6] d[1] d[1,5] d[1,5,0,0] data0[1,2] p[1,0] primes[1,3] x[1,4,0] x[1,4,0,0] pred1(1) ~d[1,5,0,1] ~data0[1,1] ~p[1,1] ~p[1,5] ~p[1,5,0,0] ~p[1,5,0,1] ~p[1,6] ~pred1[1,3] ~primes[1,5] ~primes[1,5,0,0] ~x[1]
+  -- cost: 11
   (arg1) <- (do
     arg1 <- pure 2
     pure (arg1)
@@ -1047,6 +1240,7 @@ x[0,1,0,0]
 -}
 primeFactor_ii = \n d -> once $ do
   -- solution: primes[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~d[] ~d[0] ~d[0,2] ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~primes[0,2] ~x[0]
+  -- cost: 5
   () <- (do
     let pred0 =
           do
@@ -1063,6 +1257,7 @@ primeFactor_ii = \n d -> once $ do
 
 primeFactor_io = \n -> do
   -- solution: d[] d[0] d[0,2] primes[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~primes[0,2] ~x[0]
+  -- cost: 6
   (d) <- (do
     let pred0 =
           do
@@ -1098,6 +1293,7 @@ constraints:
 -}
 euler3_ii = \n r -> once $ do
   -- solution: d[0,1,0] d[0,1,0,0] fs[0,0] pred0(1) ~d[0] ~fs[0,2] ~n[] ~n[0] ~n[0,1,0] ~n[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,2]
+  -- cost: 5
   () <- (do
     let pred0 =
           do
@@ -1114,6 +1310,7 @@ euler3_ii = \n r -> once $ do
 
 euler3_io = \n -> do
   -- solution: d[0,1,0] d[0,1,0,0] fs[0,0] r[] r[0] r[0,2] pred0(1) ~d[0] ~fs[0,2] ~n[] ~n[0] ~n[0,1,0] ~n[0,1,0,0] ~pred0[0,0]
+  -- cost: 6
   (r) <- (do
     let pred0 =
           do
@@ -1127,3 +1324,119 @@ euler3_io = \n -> do
     pure (r)
    )
   pure (r)
+
+{- euler4/1
+euler4 n :- ((elem x data2, data0 = 10, data1 = 99, data2 = .. data0 data1, elem y data5, data3 = 10, data4 = 99, data5 = .. data3 data4, times x y n, show n s, reverse s0 s1, s0 = s, s1 = s)).
+constraints:
+~(data0[0,1] & data0[0,3])
+~(data1[0,2] & data1[0,3])
+~(data2[0,0] & data2[0,3])
+~(data2[0,3] & data0[0,3])
+~(data3[0,5] & data3[0,7])
+~(data4[0,6] & data4[0,7])
+~(data5[0,4] & data5[0,7])
+~(data5[0,7] & data3[0,7])
+~(n[0,8] & n[0,9])
+~(s[0,9] & s[0,11])
+~(s[0,9] & s[0,12])
+~(s[0,11] & s[0,12])
+~(s0[0,10] & s0[0,11])
+~(s0[0,11] & s[0,11])
+~(s1[0,10] & s1[0,12])
+~(s1[0,12] & s[0,12])
+~(x[0,0] & x[0,8])
+~(y[0,4] & y[0,8])
+(x[0,0] & ~data2[0,0])
+(y[0,4] & ~data5[0,4])
+(data0[0,1] | data0[0,3])
+(data1[0,2] | data1[0,3])
+(data2[0,0] | data2[0,3])
+(data3[0,5] | data3[0,7])
+(data4[0,6] | data4[0,7])
+(data5[0,4] | data5[0,7])
+(s[0,9] | (s[0,11] | s[0,12]))
+(s0[0,10] | s0[0,11])
+(s1[0,10] | s1[0,12])
+(x[0,0] | x[0,8])
+(y[0,4] | y[0,8])
+((n[0,9] & ~s[0,9]) | ((~n[0,9] & s[0,9]) | (~n[0,9] & ~s[0,9])))
+((s0[0,10] & ~s1[0,10]) | ((~s0[0,10] & s1[0,10]) | (~s0[0,10] & ~s1[0,10])))
+((x[0,8] & (~y[0,8] & ~n[0,8])) | ((~x[0,8] & (y[0,8] & ~n[0,8])) | (~x[0,8] & (~y[0,8] & n[0,8]))))
+(data0[0,3] <-> data1[0,3])
+(data3[0,7] <-> data4[0,7])
+(n[] <-> n[0])
+(n[0] <-> (n[0,8] | n[0,9]))
+1
+-}
+--mode ordering failure, cyclic dependency: [10] reverse s0::o s1::i -> [11] s0::i = s::o -> [12] s1::o = s::i
+--mode ordering failure, cyclic dependency: [10] reverse s0::i s1::o -> [12] s1::i = s::o -> [11] s0::o = s::i
+euler4_o = do
+  -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,7] n[] n[0] n[0,8] s[0,9] s0[0,11] s1[0,12] x[0,0] y[0,4] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,7] ~data4[0,7] ~data5[0,4] ~n[0,9] ~s[0,11] ~s[0,12] ~s0[0,10] ~s1[0,10] ~x[0,8] ~y[0,8]
+  -- cost: 9
+  (n) <- (do
+    data0 <- pure 10
+    data3 <- pure 10
+    data1 <- pure 99
+    data2 <- pure [data0..data1]
+    data4 <- pure 99
+    data5 <- pure [data3..data4]
+    (x) <- elem_oi data2
+    (y) <- elem_oi data5
+    (n) <- times_iio x y
+    (s) <- show_io n
+    s0 <- pure s
+    s1 <- pure s
+    () <- reverse_ii s0 s1
+    pure (n)
+   )
+  pure (n)
+
+{- euler4'/1
+euler4' n :- ((observeAll pred0 s, (pred0 x :- (euler4 x)), maximum s n)).
+constraints:
+x[0,1,0,0]
+~pred0[0,0]
+~x[0]
+~(s[0,0] & s[0,2])
+(~pred0[0,0] & (pred0(1) & s[0,0]))
+(s[0,0] | s[0,2])
+((~s[0,2] & n[0,2]) | (~s[0,2] & ~n[0,2]))
+(n[] <-> n[0])
+(n[0] <-> n[0,2])
+(x[0,1,0] <-> x[0,1,0,0])
+(pred0(1) <-> x[0,1,0])
+1
+-}
+euler4'_i = \n -> once $ do
+  -- solution: s[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~s[0,2] ~x[0]
+  -- cost: 5
+  () <- (do
+    let pred0 =
+          do
+            (x) <- (do
+              (x) <- euler4_o 
+              pure (x)
+             )
+            pure (x)
+    (s) <- observeAll_p1oo pred0
+    () <- maximum_ii s n
+    pure ()
+   )
+  pure ()
+
+euler4'_o = do
+  -- solution: n[] n[0] n[0,2] s[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~pred0[0,0] ~s[0,2] ~x[0]
+  -- cost: 6
+  (n) <- (do
+    let pred0 =
+          do
+            (x) <- (do
+              (x) <- euler4_o 
+              pure (x)
+             )
+            pure (x)
+    (s) <- observeAll_p1oo pred0
+    (n) <- maximum_io s
+    pure (n)
+   )
+  pure (n)

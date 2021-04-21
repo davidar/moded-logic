@@ -15,6 +15,7 @@ succ_ii a b = guard (succ a == b)
 div_iio a b = pure (div a b)
 div_iii a b c = guard (div a b == c)
 mod_iio a b = pure (mod a b)
+mod_iii a b c = guard (mod a b == c)
 divMod_iioo a b = pure (divMod a b)
 divMod_iioi a b m = guard (mod a b == m) >> pure (div a b)
 divMod_iiii a b d m = guard (divMod a b == (d,m))
@@ -32,4 +33,6 @@ sum_ii xs s = guard (sum xs == s)
 maximum_io xs = pure (maximum xs)
 maximum_ii xs m = guard (maximum xs == m)
 print_i x = liftIO (print x)
+show_io = pure . show
+show_oi = pure . read
 observeAll_p1oo = pure . observeAll

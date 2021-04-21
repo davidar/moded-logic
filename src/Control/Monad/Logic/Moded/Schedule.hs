@@ -6,6 +6,7 @@ module Control.Monad.Logic.Moded.Schedule
   , CompiledPredicate(..)
   , stripMode
   , varMode
+  , cost
   , mode'
   ) where
 
@@ -18,6 +19,7 @@ import Control.Monad.Logic.Moded.AST
   , Name
   , Rule(..)
   , Var(..)
+  , subgoals
   )
 import Control.Monad.Logic.Moded.Constraints
   ( CAtom(..)
@@ -31,6 +33,7 @@ import Control.Monad.Logic.Moded.Path (nonlocals)
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.Foldable (Foldable(toList))
 import Data.List (intercalate)
+import Data.List.Extra (groupSort)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
@@ -43,7 +46,6 @@ data ModedVar =
 data Procedure =
   Procedure
     { modeSolution :: Constraints
-    , procModeString :: ModeString
     , modedRule :: Rule ModedVar ModedVar
     }
 
@@ -51,7 +53,8 @@ data CompiledPredicate =
   CompiledPredicate
     { unmodedRule :: Rule Var Var
     , modeConstraints :: Constraints
-    , procedures :: [Either String Procedure]
+    , procedures :: Map ModeString [Procedure]
+    , errors :: [String]
     }
 
 type CompiledProgram = [(Name, CompiledPredicate)]
@@ -68,7 +71,7 @@ instance Show DepNode where
 
 instance Ord DepNode where
   DepNode i g `compare` DepNode j g' =
-    case priority g `compare` priority g' of
+    case cost g `compare` cost g' of
       EQ -> (g, i) `compare` (g', j)
       r -> r
 
@@ -86,6 +89,7 @@ builtins =
     , ("maximum", ["io", "ii"])
     , ("empty", [""])
     , ("print", ["i"])
+    , ("show", ["io", "oi", "ii"])
     , ("observeAll", [ModeString [MPred [MOut], MOut]])
     ]
 
@@ -98,10 +102,11 @@ varMode (MV _ m) = m
 unDepNode :: DepNode -> Goal ModedVar
 unDepNode (DepNode _ g) = g
 
-priority :: Goal ModedVar -> Int
-priority (Atom Unif {}) = 0
-priority (Atom Func {}) = 1
-priority g = 2 + length [v | MV v MOut <- toList g]
+cost :: Goal ModedVar -> Int
+cost (Atom Unif {}) = 0
+cost (Atom Func {}) = 0
+cost g@(Atom Pred {}) = 1 + length [v | MV v MOut <- toList g]
+cost g = sum $ cost <$> subgoals g
 
 mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
 mode r@(Rule name vars body) soln =
@@ -153,26 +158,26 @@ mode r@(Rule name vars body) soln =
 mode' :: CompiledProgram -> Rule Var Var -> CompiledProgram
 mode' procs rule = procs ++ [(ruleName rule, obj)]
   where
+    eithers = do
+      soln <- Set.elems $ unsafeSolveConstraints m rule
+      pure $ do
+        mr <- mode rule soln
+        let ms =
+              ModeString $ do
+                MV _ mv <- ruleArgs mr
+                pure mv
+        pure (ms, Procedure {modeSolution = soln, modedRule = mr})
     obj =
       CompiledPredicate
         { unmodedRule = rule
         , modeConstraints = constraints m rule
-        , procedures =
-            do soln <- Set.elems $ unsafeSolveConstraints m rule
-               pure $ do
-                 mr <- mode rule soln
-                 let ms =
-                       ModeString $ do
-                         MV _ mv <- ruleArgs mr
-                         pure mv
-                 pure $
-                   Procedure
-                     {modeSolution = soln, procModeString = ms, modedRule = mr}
+        , procedures = Map.fromList $ groupSort [kv | Right kv <- eithers]
+        , errors = [e | Left e <- eithers]
         }
     m =
       flip Map.union builtins . Map.fromList $ do
-        (name', CompiledPredicate {procedures = procs'}) <- procs
-        pure (name', [procModeString p | Right p <- procs'])
+        (name', c) <- procs
+        pure (name', Map.keys (procedures c))
 
 predMode :: Var -> Constraints -> [Mode]
 predMode name soln = go 1

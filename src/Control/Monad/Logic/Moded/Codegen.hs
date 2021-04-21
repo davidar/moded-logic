@@ -19,13 +19,14 @@ import Control.Monad.Logic.Moded.Schedule
   ( CompiledPredicate(..)
   , ModedVar(..)
   , Procedure(..)
+  , cost
   , mode'
   , stripMode
   , varMode
   )
-import Data.List (groupBy, sort)
+import Data.List (sortOn)
+import qualified Data.Map as Map
 import Data.Maybe (listToMaybe)
-import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Set (Set)
 import qualified Data.Text as T
@@ -152,13 +153,13 @@ cgGoal p r =
         |]
     Atom _ -> cgAtom p r
 
-cgProcedure :: [Pragma] -> Procedure -> Text
-cgProcedure pragmas procedure =
+cgProcedure :: [Pragma] -> ModeString -> Procedure -> Text
+cgProcedure pragmas ms procedure =
   let r@(Rule name vars body) = modedRule procedure
       nameMode =
-        case procModeString procedure of
+        case ms of
           ModeString [] -> T.pack name
-          ms -> T.pack name <> "_" <> T.pack (show ms)
+          _ -> T.pack name <> "_" <> T.pack (show ms)
       code = cgGoal [] r
       rets =
         T.intercalate
@@ -166,10 +167,13 @@ cgProcedure pragmas procedure =
           [T.pack v | V v <- Set.elems $ nonlocals' [] r, MV v MOut `elem` body]
       pragmaType = listToMaybe [ts | Pragma ("type":f:ts) <- pragmas, f == name]
       ins = [T.pack v | MV v m <- vars, m /= MOut]
-      outs = case pragmaType of
-        Nothing -> T.intercalate "," [T.pack v | MV v MOut <- vars]
-        Just ts -> T.intercalate "," [T.pack v <> " :: " <> T.pack t
-                                     | (MV v MOut, t) <- zip vars ts]
+      outs =
+        case pragmaType of
+          Nothing -> T.intercalate "," [T.pack v | MV v MOut <- vars]
+          Just ts ->
+            T.intercalate
+              ","
+              [T.pack v <> " :: " <> T.pack t | (MV v MOut, t) <- zip vars ts]
       decorate
         | Pragma ["memo", name] `elem` pragmas =
           case length ins of
@@ -208,35 +212,34 @@ compile moduleName (Prog pragmas rules) =
   where
     code =
       T.unlines $ do
-        (name, CompiledPredicate { unmodedRule = rule
-                                 , modeConstraints = constraints
-                                 , procedures = procs
-                                 }) <- foldl mode' [] rules
-        let doc =
+        (name, c) <- foldl mode' [] rules
+        let arity = length . ruleArgs $ unmodedRule c
+            doc =
               T.pack <$>
-              [ "{- " ++ name ++ "/" ++ show (length (ruleArgs rule))
-              , show rule
+              [ "{- " ++ name ++ "/" ++ show arity
+              , show (unmodedRule c)
               , "constraints:"
               ] ++
-              map show (Set.elems constraints) ++ ["-}"]
+              map show (Set.elems $ modeConstraints c) ++ ["-}"]
+            errs = commentLine . T.pack <$> errors c
             defs = do
-              (def:_) <-
-                groupBy (\a b -> comparing (head . T.words) a b == EQ) . sort $ do
-                  p <- procs
-                  pure $
-                    case p of
-                      Left e -> "-- " <> T.pack e
-                      Right procedure ->
-                        T.unlines $
-                        let (hd:tl) = T.lines $ cgProcedure pragmas procedure
-                            meta =
-                              "  -- solution: " <>
-                              T.unwords
-                                (T.pack . show <$>
-                                 Set.elems (modeSolution procedure))
-                         in hd : meta : tl
-              pure def -- : (T.unlines . map commentLine . T.lines <$> defs)
-            --commentLine l
-            --  | "--" `T.isPrefixOf` l = l
-            --  | otherwise = "--" <> l
-        doc ++ defs
+              (ms, procs) <- Map.assocs (procedures c)
+              let (def:_) = do
+                    procedure <- sortOn (cost . ruleBody . modedRule) procs
+                    pure . T.unlines $
+                      let (hd:tl) = T.lines $ cgProcedure pragmas ms procedure
+                          meta =
+                            "  -- solution: " <>
+                            T.unwords
+                              (T.pack . show <$>
+                               Set.elems (modeSolution procedure))
+                          meta2 =
+                            "  -- cost: " <>
+                            T.pack
+                              (show . cost . ruleBody $ modedRule procedure)
+                       in hd : meta : meta2 : tl
+              pure def -- : (T.unlines . map commentLine . T.lines <$> defs')
+            commentLine l
+              | "--" `T.isPrefixOf` l = l
+              | otherwise = "--" <> l
+        doc ++ errs ++ defs

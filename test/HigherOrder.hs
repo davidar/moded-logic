@@ -20,11 +20,12 @@ constraints:
 1
 -}
 even_i = \n -> once $ do
-  -- solution: data0[0,1] data1[0,0] ~data0[0,0] ~data1[0,2] ~n[] ~n[0] ~n[0,0]
+  -- solution: data0[0,1] data1[0,2] ~data0[0,0] ~data1[0,0] ~n[] ~n[0] ~n[0,0]
+  -- cost: 1
   () <- (do
+    data1 <- pure 0
     data0 <- pure 2
-    (data1) <- mod_iio n data0
-    guard $ data1 == 0
+    () <- mod_iii n data0 data1
     pure ()
    )
   pure ()
@@ -64,6 +65,7 @@ constraints:
 -}
 map_p2iiii = \p arg2 arg3 -> once $ do
   -- solution: x[1,0] xs[1,0] y[1,1] ys[1,1] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,2] ~ys[1,3] ~p(1) ~p(2)
+  -- cost: 2
   () <- (do
     guard $ arg2 == []
     guard $ arg3 == []
@@ -79,6 +81,7 @@ map_p2iiii = \p arg2 arg3 -> once $ do
 
 map_p2ioio = \p arg2 -> do
   -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,1] x[1,0] xs[1,0] y[1,2] ys[1,3] p(2) ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,1] ~ys[1,1] ~p(1)
+  -- cost: 4
   (arg3) <- (do
     guard $ arg2 == []
     arg3 <- pure []
@@ -94,6 +97,7 @@ map_p2ioio = \p arg2 -> do
 
 map_p2oioi = \p arg3 -> do
   -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] x[1,2] xs[1,3] y[1,1] ys[1,1] p(1) ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~p[] ~p[1] ~p[1,3] ~x[1,0] ~xs[1,0] ~y[1,2] ~ys[1,3] ~p(2)
+  -- cost: 4
   (arg2) <- (do
     arg2 <- pure []
     guard $ arg3 == []
@@ -109,6 +113,7 @@ map_p2oioi = \p arg3 -> do
 
 map_p2oooo = \p -> do
   -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,1] x[1,2] xs[1,3] y[1,2] ys[1,3] p(1) p(2) ~p[] ~p[1] ~p[1,3] ~x[1,0] ~xs[1,0] ~y[1,1] ~ys[1,1]
+  -- cost: 6
   (arg2,arg3) <- (do
     arg2 <- pure []
     arg3 <- pure []
@@ -142,6 +147,7 @@ constraints:
 -}
 succs_ii = \xs ys -> once $ do
   -- solution: ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~y[0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1) ~pred0(2)
+  -- cost: 2
   () <- (do
     let pred0 =
           \x y -> do
@@ -157,6 +163,7 @@ succs_ii = \xs ys -> once $ do
 
 succs_io = \xs -> do
   -- solution: y[0,1,0] y[0,1,0,0] ys[] ys[0] ys[0,0] pred0(2) ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~y[0] ~pred0(1)
+  -- cost: 4
   (ys) <- (do
     let pred0 =
           \x -> do
@@ -172,6 +179,7 @@ succs_io = \xs -> do
 
 succs_oi = \ys -> do
   -- solution: x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) ~pred0[0,0] ~x[0] ~y[0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(2)
+  -- cost: 4
   (xs) <- (do
     let pred0 =
           \y -> do
@@ -244,6 +252,7 @@ constraints:
 -}
 filter_p1iii = \p arg2 arg3 -> once $ do
   -- solution: h[1,1] h0[1,0] h1[1,2,1,1] t[1,0] t'[1,2,1,1] ts[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,3] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,2] ~p[] ~p[1] ~p[1,2] ~p[1,2,1] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,0] ~ts[1,2] ~ts[1,2,1] ~ts[1,2,1,1] ~ts[1,2,2] ~ts[1,2,2,0] ~p(1)
+  -- cost: 3
   () <- (do
     guard $ arg2 == []
     guard $ arg3 == []
@@ -270,6 +279,7 @@ filter_p1iii = \p arg2 arg3 -> once $ do
 
 filter_p1iio = \p arg2 -> do
   -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,3] h[1,1] h0[1,0] h1[1,2,1,2] t[1,0] t'[1,2,1,0] ts[1,2] ts[1,2,1] ts[1,2,1,1] ts[1,2,2] ts[1,2,2,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,1] ~p[] ~p[1] ~p[1,2] ~p[1,2,1] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,1] ~ts[1,3] ~p(1)
+  -- cost: 5
   (arg3) <- (do
     guard $ arg2 == []
     arg3 <- pure []
@@ -311,6 +321,7 @@ constraints:
 -}
 evens_ii = \xs ys -> once $ do
   -- solution: ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1)
+  -- cost: 2
   () <- (do
     let pred0 =
           \x -> do
@@ -326,6 +337,7 @@ evens_ii = \xs ys -> once $ do
 
 evens_io = \xs -> do
   -- solution: ys[] ys[0] ys[0,0] ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1)
+  -- cost: 3
   (ys) <- (do
     let pred0 =
           \x -> do
@@ -380,6 +392,7 @@ constraints:
 -}
 foldl_p3iioiii = \p arg2 a arg4 -> once $ do
   -- solution: a'[1,1] a''[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
+  -- cost: 3
   () <- (do
     guard $ arg4 == a
     guard $ arg2 == []
@@ -395,6 +408,7 @@ foldl_p3iioiii = \p arg2 a arg4 -> once $ do
 
 foldl_p3iioiio = \p arg2 a -> do
   -- solution: a'[1,1] a''[1,2] arg4[] arg4[0] arg4[0,1] arg4[1] arg4[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
+  -- cost: 4
   (arg4) <- (do
     arg4 <- pure a
     guard $ arg2 == []
@@ -410,6 +424,7 @@ foldl_p3iioiio = \p arg2 a -> do
 
 foldl_p3ioiioi = \p arg2 arg4 -> do
   -- solution: a[] a[0] a[0,1] a[1] a[1,1] a'[1,2] a''[1,3] h[1,0] t[1,0] p(2) ~a'[1,1] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(3)
+  -- cost: 4
   (a) <- (do
     a <- pure arg4
     guard $ arg2 == []
@@ -425,6 +440,7 @@ foldl_p3ioiioi = \p arg2 arg4 -> do
 
 foldl_p3oiooii = \p a arg4 -> do
   -- solution: a'[1,1] a''[1,3] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] t[1,2] p(1) p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(2)
+  -- cost: 5
   (arg2) <- (do
     guard $ arg4 == a
     arg2 <- pure []
@@ -440,6 +456,7 @@ foldl_p3oiooii = \p a arg4 -> do
 
 foldl_p3oiooio = \p a -> do
   -- solution: a'[1,1] a''[1,2] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] arg4[] arg4[0] arg4[0,1] arg4[1] arg4[1,3] h[1,1] t[1,2] p(1) p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(2)
+  -- cost: 6
   (arg2,arg4) <- (do
     arg4 <- pure a
     arg2 <- pure []
@@ -455,6 +472,7 @@ foldl_p3oiooio = \p a -> do
 
 foldl_p3ooiooi = \p arg4 -> do
   -- solution: a[] a[0] a[0,1] a[1] a[1,1] a'[1,2] a''[1,3] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] t[1,2] p(1) p(2) ~a'[1,1] ~a''[1,2] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(3)
+  -- cost: 6
   (a,arg2) <- (do
     a <- pure arg4
     arg2 <- pure []
@@ -493,6 +511,7 @@ constraints:
 -}
 sum_iii = \xs z r -> once $ do
   -- solution: a'[0,1,0] a'[0,1,0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+  -- cost: 3
   () <- (do
     let pred0 =
           \x a -> do
@@ -508,6 +527,7 @@ sum_iii = \xs z r -> once $ do
 
 sum_iio = \xs z -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] r[] r[0] r[0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+  -- cost: 4
   (r) <- (do
     let pred0 =
           \x a -> do
@@ -523,6 +543,7 @@ sum_iio = \xs z -> do
 
 sum_ioi = \xs r -> do
   -- solution: a[0,1,0] a[0,1,0,0] z[] z[0] z[0,0] pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
+  -- cost: 4
   (z) <- (do
     let pred0 =
           \x a' -> do
@@ -562,6 +583,7 @@ constraints:
 -}
 split_ioi = \xs r -> do
   -- solution: a[0,1,0] a[0,1,0,0] z[] z[0] z[0,0] pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
+  -- cost: 2
   (z) <- (do
     let pred0 =
           \x a' -> do
@@ -577,6 +599,7 @@ split_ioi = \xs r -> do
 
 split_oii = \z r -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~z[] ~z[0] ~z[0,0] ~pred0(2)
+  -- cost: 2
   (xs) <- (do
     let pred0 =
           \a -> do
@@ -592,6 +615,7 @@ split_oii = \z r -> do
 
 split_oio = \z -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] r[] r[0] r[0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~x[0] ~z[] ~z[0] ~z[0,0] ~pred0(2)
+  -- cost: 3
   (r,xs) <- (do
     let pred0 =
           \a -> do
@@ -631,6 +655,7 @@ constraints:
 -}
 splitr_iii = \xs z r -> once $ do
   -- solution: a'[0,1,0] a'[0,1,0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+  -- cost: 1
   () <- (do
     let pred0 =
           \x a -> do
@@ -646,6 +671,7 @@ splitr_iii = \xs z r -> once $ do
 
 splitr_iio = \xs z -> do
   -- solution: a'[0,1,0] a'[0,1,0,0] r[] r[0] r[0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+  -- cost: 2
   (r) <- (do
     let pred0 =
           \x a -> do
@@ -661,6 +687,7 @@ splitr_iio = \xs z -> do
 
 splitr_ooi = \r -> do
   -- solution: a[0,1,0] a[0,1,0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] z[] z[0] z[0,0] pred0(1) pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~pred0(3)
+  -- cost: 3
   (xs,z) <- (do
     let pred0 =
           \a' -> do

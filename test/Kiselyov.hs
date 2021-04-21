@@ -25,6 +25,7 @@ constraints:
 -}
 nat_i = \arg1 -> once $ do
   -- solution: n[1,1] n'[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,2] ~n[1,0] ~n'[1,1]
+  -- cost: 3
   () <- (do
     guard $ arg1 == 0
     pure ()
@@ -38,6 +39,7 @@ nat_i = \arg1 -> once $ do
 
 nat_o = do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,2] n[1,0] n'[1,1] ~n[1,1] ~n'[1,2]
+  -- cost: 4
   (arg1) <- (do
     arg1 <- pure 0
     pure (arg1)
@@ -72,6 +74,7 @@ xs[1,0]
 -}
 elem_oi = \arg2 -> do
   -- solution: x[] x[0] x[0,0] x[1] x[1,1] xs[1,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~xs[1,1]
+  -- cost: 2
   (x) <- (do
     (x:_) <- pure arg2
     pure (x)
@@ -125,6 +128,7 @@ constraints:
 -}
 insert_iii = \e arg2 arg3 -> once $ do
   -- solution: h[1,1] h0[1,0] h1[1,2] l[0,1] t[1,0] t'[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,2] ~e[] ~e[0] ~e[0,0] ~e[1] ~e[1,4] ~h[1,3] ~h0[1,1] ~h1[1,3] ~l[0,0] ~t[1,4] ~t'[1,4]
+  -- cost: 1
   () <- (do
     l <- pure arg2
     guard $ arg3 == (e:l)
@@ -141,6 +145,7 @@ insert_iii = \e arg2 arg3 -> once $ do
 
 insert_iio = \e arg2 -> do
   -- solution: arg3[] arg3[0] arg3[0,0] arg3[1] arg3[1,2] h[1,1] h0[1,0] h1[1,3] l[0,1] t[1,0] t'[1,4] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~e[] ~e[0] ~e[0,0] ~e[1] ~e[1,4] ~h[1,3] ~h0[1,1] ~h1[1,2] ~l[0,0] ~t[1,4] ~t'[1,2]
+  -- cost: 2
   (arg3) <- (do
     l <- pure arg2
     arg3 <- pure (e:l)
@@ -157,6 +162,7 @@ insert_iio = \e arg2 -> do
 
 insert_oii = \arg2 arg3 -> do
   -- solution: e[] e[0] e[0,0] e[1] e[1,4] h[1,1] h0[1,0] h1[1,2] l[0,0] t[1,0] t'[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,2] ~h[1,3] ~h0[1,1] ~h1[1,3] ~l[0,1] ~t[1,4] ~t'[1,4]
+  -- cost: 2
   (e) <- (do
     (e:l) <- pure arg3
     guard $ arg2 == l
@@ -173,6 +179,7 @@ insert_oii = \arg2 arg3 -> do
 
 insert_ooi = \arg3 -> do
   -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,0] e[] e[0] e[0,0] e[1] e[1,4] h[1,3] h0[1,1] h1[1,2] l[0,0] t[1,4] t'[1,2] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,2] ~h[1,1] ~h0[1,0] ~h1[1,3] ~l[0,1] ~t[1,0] ~t'[1,4]
+  -- cost: 3
   (arg2,e) <- (do
     (e:l) <- pure arg3
     arg2 <- pure l
@@ -216,6 +223,7 @@ constraints:
 -}
 permute_io = \arg1 -> do
   -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,3] h[1,0] r[1,2] t[1,0] t'[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~h[1,2] ~r[1,3] ~t[1,1] ~t'[1,2]
+  -- cost: 4
   (arg2) <- (do
     guard $ arg1 == []
     arg2 <- pure []
@@ -231,6 +239,7 @@ permute_io = \arg1 -> do
 
 permute_oi = \arg2 -> do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,2] r[1,3] t[1,1] t'[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,3] ~h[1,0] ~r[1,2] ~t[1,0] ~t'[1,1]
+  -- cost: 5
   (arg1) <- (do
     arg1 <- pure []
     guard $ arg2 == []
@@ -293,6 +302,7 @@ data0[1,0]
 -}
 sorted_i = \arg1 -> once $ do
   -- solution: a[2,0] b[2,2] b0[2,1] b2[2,7] data0[1,0] data1[2,0] data2[2,6] r[2,3] r1[2,1] r3[2,8] ~a[2,4] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg1[2] ~arg1[2,0] ~b[2,4] ~b[2,7] ~b0[2,2] ~b2[2,6] ~data0[1,1] ~data1[2,1] ~data2[2,5] ~r[2,8] ~r1[2,3] ~r3[2,6]
+  -- cost: 2
   () <- (do
     guard $ arg1 == []
     pure ()
@@ -342,6 +352,7 @@ t[1,0]
 -}
 suffix_ii = \arg1 arg2 -> once $ do
   -- solution: l[0,0] r[1,2] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,2] ~l[0,1] ~r[1,1] ~t[1,1]
+  -- cost: 1
   () <- (do
     l <- pure arg1
     guard $ arg2 == l
@@ -356,6 +367,7 @@ suffix_ii = \arg1 arg2 -> once $ do
 
 suffix_io = \arg1 -> do
   -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] l[0,0] r[1,1] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~l[0,1] ~r[1,2] ~t[1,1]
+  -- cost: 2
   (arg2) <- (do
     l <- pure arg1
     arg2 <- pure l
@@ -400,6 +412,7 @@ constraints:
 -}
 prefix_ii = \arg1 arg2 -> once $ do
   -- solution: h[1,1] h0[1,0] h1[1,2] t[1,0] t'[1,2] ~arg1[] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,2] ~h[1,3] ~h0[1,1] ~h1[1,3] ~t[1,4] ~t'[1,4]
+  -- cost: 1
   () <- (do
     guard $ arg2 == []
     pure ()
@@ -415,6 +428,7 @@ prefix_ii = \arg1 arg2 -> once $ do
 
 prefix_io = \arg1 -> do
   -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,2] h[1,1] h0[1,0] h1[1,3] t[1,0] t'[1,4] ~arg1[] ~arg1[1] ~arg1[1,0] ~h[1,3] ~h0[1,1] ~h1[1,2] ~t[1,4] ~t'[1,2]
+  -- cost: 2
   (arg2) <- (do
     arg2 <- pure []
     pure (arg2)
@@ -455,6 +469,7 @@ t[1,0]
 -}
 length_ii = \arg1 arg2 -> once $ do
   -- solution: n[1,2] n'[1,3] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,3] ~n[1,1] ~n'[1,2] ~t[1,1]
+  -- cost: 3
   () <- (do
     guard $ arg2 == 0
     guard $ arg1 == []
@@ -470,6 +485,7 @@ length_ii = \arg1 arg2 -> once $ do
 
 length_io = \arg1 -> do
   -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,3] n[1,1] n'[1,2] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~n[1,2] ~n'[1,3] ~t[1,1]
+  -- cost: 4
   (arg2) <- (do
     arg2 <- pure 0
     guard $ arg1 == []
@@ -561,9 +577,33 @@ constraints:
 (k[0] <-> (k[0,6] | (k[0,7] | (k[0,17] | k[0,18]))))
 1
 -}
--- mode ordering failure, cyclic dependency: [10] timesInt i0::i i1::o ii::i -> [12] i1::i = i::o -> [11] i0::o = i::i
+--mode ordering failure, cyclic dependency: [16] timesInt k4::o k5::i kk::i -> [17] k4::i = k::o -> [18] k5::o = k::i
+--mode ordering failure, cyclic dependency: [16] timesInt k4::i k5::o kk::i -> [18] k5::i = k::o -> [17] k4::o = k::i
+--mode ordering failure, cyclic dependency: [13] timesInt j2::o j3::i jj::i -> [14] j2::i = j::o -> [15] j3::o = j::i
+--mode ordering failure, cyclic dependency: [13] timesInt j2::o j3::i jj::i -> [14] j2::i = j::o -> [15] j3::o = j::i
+--mode ordering failure, cyclic dependency: [13] timesInt j2::i j3::o jj::i -> [15] j3::i = j::o -> [14] j2::o = j::i
+--mode ordering failure, cyclic dependency: [13] timesInt j2::i j3::o jj::i -> [15] j3::i = j::o -> [14] j2::o = j::i
+--mode ordering failure, cyclic dependency: [16] timesInt k4::o k5::i kk::i -> [17] k4::i = k::o -> [18] k5::o = k::i
+--mode ordering failure, cyclic dependency: [16] timesInt k4::i k5::o kk::i -> [18] k5::i = k::o -> [17] k4::o = k::i
+--mode ordering failure, cyclic dependency: [10] timesInt i0::o i1::i ii::i -> [11] i0::i = i::o -> [12] i1::o = i::i
+--mode ordering failure, cyclic dependency: [10] timesInt i0::o i1::i ii::i -> [11] i0::i = i::o -> [12] i1::o = i::i
+--mode ordering failure, cyclic dependency: [10] timesInt i0::o i1::i ii::i -> [11] i0::i = i::o -> [12] i1::o = i::i
+--mode ordering failure, cyclic dependency: [10] timesInt i0::o i1::i ii::i -> [11] i0::i = i::o -> [12] i1::o = i::i
+--mode ordering failure, cyclic dependency: [10] timesInt i0::i i1::o ii::i -> [12] i1::i = i::o -> [11] i0::o = i::i
+--mode ordering failure, cyclic dependency: [10] timesInt i0::i i1::o ii::i -> [12] i1::i = i::o -> [11] i0::o = i::i
+--mode ordering failure, cyclic dependency: [10] timesInt i0::i i1::o ii::i -> [12] i1::i = i::o -> [11] i0::o = i::i
+--mode ordering failure, cyclic dependency: [10] timesInt i0::i i1::o ii::i -> [12] i1::i = i::o -> [11] i0::o = i::i
+--mode ordering failure, cyclic dependency: [16] timesInt k4::o k5::i kk::i -> [17] k4::i = k::o -> [18] k5::o = k::i
+--mode ordering failure, cyclic dependency: [16] timesInt k4::i k5::o kk::i -> [18] k5::i = k::o -> [17] k4::o = k::i
+--mode ordering failure, cyclic dependency: [13] timesInt j2::o j3::i jj::i -> [14] j2::i = j::o -> [15] j3::o = j::i
+--mode ordering failure, cyclic dependency: [13] timesInt j2::o j3::i jj::i -> [14] j2::i = j::o -> [15] j3::o = j::i
+--mode ordering failure, cyclic dependency: [13] timesInt j2::i j3::o jj::i -> [15] j3::i = j::o -> [14] j2::o = j::i
+--mode ordering failure, cyclic dependency: [13] timesInt j2::i j3::o jj::i -> [15] j3::i = j::o -> [14] j2::o = j::i
+--mode ordering failure, cyclic dependency: [16] timesInt k4::o k5::i kk::i -> [17] k4::i = k::o -> [18] k5::o = k::i
+--mode ordering failure, cyclic dependency: [16] timesInt k4::i k5::o kk::i -> [18] k5::i = k::o -> [17] k4::o = k::i
 pythag_iii = \i j k -> once $ do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] ii[0,19] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
+  -- cost: 15
   () <- (do
     i1 <- pure i
     j2 <- pure j
@@ -591,6 +631,7 @@ pythag_iii = \i j k -> once $ do
 
 pythag_iio = \i j -> do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] ii[0,19] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
+  -- cost: 16
   (k) <- (do
     i1 <- pure i
     j2 <- pure j
@@ -618,6 +659,7 @@ pythag_iio = \i j -> do
 
 pythag_ioi = \i k -> do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] ii[0,19] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
+  -- cost: 16
   (j) <- (do
     i1 <- pure i
     k4 <- pure k
@@ -645,6 +687,7 @@ pythag_ioi = \i k -> do
 
 pythag_ioo = \i -> do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,10] i1[0,12] ii[0,19] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
+  -- cost: 17
   (j,k) <- (do
     i1 <- pure i
     data0 <- pure 0
@@ -672,6 +715,7 @@ pythag_ioo = \i -> do
 
 pythag_oii = \j k -> do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,10] i1[0,12] ii[0,19] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
+  -- cost: 16
   (i) <- (do
     j2 <- pure j
     j3 <- pure j
@@ -699,6 +743,7 @@ pythag_oii = \j k -> do
 
 pythag_oio = \j -> do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,10] i1[0,12] ii[0,19] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
+  -- cost: 17
   (i,k) <- (do
     j2 <- pure j
     j3 <- pure j
@@ -726,6 +771,7 @@ pythag_oio = \j -> do
 
 pythag_ooi = \k -> do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,10] i1[0,12] ii[0,19] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
+  -- cost: 17
   (i,j) <- (do
     k4 <- pure k
     k5 <- pure k
@@ -753,6 +799,7 @@ pythag_ooi = \k -> do
 
 pythag_ooo = do
   -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,10] i1[0,12] ii[0,19] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,11] ~i1[0,10] ~ii[0,10] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19]
+  -- cost: 18
   (i,j,k) <- (do
     data0 <- pure 0
     data1 <- pure 0
@@ -799,6 +846,7 @@ constraints:
 -}
 triang_ii = \n r -> once $ do
   -- solution: data0[0,3] n'[0,0] nn'[0,1] ~data0[0,2] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n'[0,1] ~nn'[0,2] ~r[] ~r[0] ~r[0,2]
+  -- cost: 5
   () <- (do
     data0 <- pure 2
     (n') <- succ_io n
@@ -810,6 +858,7 @@ triang_ii = \n r -> once $ do
 
 triang_io = \n -> do
   -- solution: data0[0,3] n'[0,0] nn'[0,1] r[] r[0] r[0,2] ~data0[0,2] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n'[0,1] ~nn'[0,2]
+  -- cost: 6
   (r) <- (do
     data0 <- pure 2
     (n') <- succ_io n
@@ -870,6 +919,7 @@ constraints:
 -}
 ptriang_o = choose . nub . observeAll $ do
   -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,8] data6[0,9] i[0,4] j[0,7] k[] k[0] k[0,0] ti[0,10] tj[0,11] tk[0,13] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,6] ~data4[0,4] ~data5[0,9] ~data6[0,7] ~i[0,9] ~i[0,10] ~j[0,11] ~k[0,6] ~k[0,12] ~ti[0,13] ~tj[0,13] ~tk[0,12]
+  -- cost: 13
   (k) <- (do
     data0 <- pure 1
     data3 <- pure 1
@@ -935,6 +985,7 @@ constraints:
 -}
 stepN_io = \arg1 -> choose . nub . observeAll $ do
   -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,2] n'[1,8] r[1,5] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,8] ~data0[1,0] ~data1[1,7] ~data2[1,5] ~i[1,4] ~i[1,7] ~i'[1,7] ~n[1,3] ~n'[1,0] ~n'[1,2] ~r[1,9]
+  -- cost: 9
   (arg2) <- (do
     guard $ arg1 == 0
     arg2 <- pure 0
@@ -956,6 +1007,7 @@ stepN_io = \arg1 -> choose . nub . observeAll $ do
 
 stepN_oo = choose . nub . observeAll $ do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,8] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,3] n'[1,2] r[1,5] ~data0[1,0] ~data1[1,7] ~data2[1,5] ~i[1,4] ~i[1,7] ~i'[1,7] ~n[1,2] ~n'[1,0] ~n'[1,8] ~r[1,9]
+  -- cost: 10
   (arg1,arg2) <- (do
     arg1 <- pure 0
     arg2 <- pure 0
@@ -987,6 +1039,7 @@ constraints:
 -}
 test_i = \arg1 -> once $ do
   -- solution: ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg1[2] ~arg1[2,0]
+  -- cost: 0
   () <- (do
     guard $ arg1 == 10
     pure ()
@@ -1001,6 +1054,7 @@ test_i = \arg1 -> once $ do
 
 test_o = do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0]
+  -- cost: 0
   (arg1) <- (do
     arg1 <- pure 10
     pure (arg1)
@@ -1033,6 +1087,7 @@ constraints:
 -}
 odds_i = \arg1 -> once $ do
   -- solution: data0[1,2] m[1,1] n[1,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~data0[1,1] ~m[1,0] ~n[1,1]
+  -- cost: 3
   () <- (do
     guard $ arg1 == 1
     pure ()
@@ -1047,6 +1102,7 @@ odds_i = \arg1 -> once $ do
 
 odds_o = do
   -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] data0[1,2] m[1,0] n[1,1] ~data0[1,1] ~m[1,1] ~n[1,3]
+  -- cost: 4
   (arg1) <- (do
     arg1 <- pure 1
     pure (arg1)
@@ -1072,11 +1128,12 @@ constraints:
 1
 -}
 even_i = \n -> once $ do
-  -- solution: data0[0,1] data1[0,0] ~data0[0,0] ~data1[0,2] ~n[] ~n[0] ~n[0,0]
+  -- solution: data0[0,1] data1[0,2] ~data0[0,0] ~data1[0,0] ~n[] ~n[0] ~n[0,0]
+  -- cost: 1
   () <- (do
+    data1 <- pure 0
     data0 <- pure 2
-    (data1) <- mod_iio n data0
-    guard $ data1 == 0
+    () <- mod_iii n data0 data1
     pure ()
    )
   pure ()
@@ -1097,6 +1154,7 @@ constraints:
 -}
 oddsTest_i = \x -> once $ do
   -- solution: ~x[] ~x[0] ~x[0,0] ~x[0,1] ~x[0,1,0] ~x[0,1,0,0] ~x[0,1,1] ~x[0,1,1,0]
+  -- cost: 3
   () <- (do
     () <- even_i x
     () <- (do
@@ -1112,6 +1170,7 @@ oddsTest_i = \x -> once $ do
 
 oddsTest_o = do
   -- solution: x[] x[0] x[0,1] x[0,1,0] x[0,1,0,0] x[0,1,1] x[0,1,1,0] ~x[0,0]
+  -- cost: 5
   (x) <- (do
     (x) <- (do
       (x) <- odds_o 
@@ -1140,6 +1199,7 @@ constraints:
 -}
 oddsPlus_ii = \n x -> once $ do
   -- solution: a[0,1] ~a[0,0] ~n[] ~n[0] ~n[0,1] ~x[] ~x[0] ~x[0,1]
+  -- cost: 3
   () <- (do
     (a) <- plus_oii n x
     () <- odds_i a
@@ -1149,6 +1209,7 @@ oddsPlus_ii = \n x -> once $ do
 
 oddsPlus_io = \n -> do
   -- solution: a[0,0] x[] x[0] x[0,1] ~a[0,1] ~n[] ~n[0] ~n[0,1]
+  -- cost: 4
   (x) <- (do
     (a) <- odds_o 
     (x) <- plus_iio a n
@@ -1158,6 +1219,7 @@ oddsPlus_io = \n -> do
 
 oddsPlus_oi = \x -> do
   -- solution: a[0,0] n[] n[0] n[0,1] ~a[0,1] ~x[] ~x[0] ~x[0,1]
+  -- cost: 4
   (n) <- (do
     (a) <- odds_o 
     (n) <- plus_ioi a x
@@ -1182,23 +1244,25 @@ constraints:
 1
 -}
 oddsPlusTest_i = \x -> once $ do
-  -- solution: n[0,0] ~n[0,2] ~n[0,2,0] ~n[0,2,0,0] ~n[0,2,1] ~n[0,2,1,0] ~x[] ~x[0] ~x[0,0] ~x[0,1]
+  -- solution: n[0,2] n[0,2,0] n[0,2,0,0] n[0,2,1] n[0,2,1,0] ~n[0,0] ~x[] ~x[0] ~x[0,0] ~x[0,1]
+  -- cost: 2
   () <- (do
-    () <- even_i x
-    (n) <- oddsPlus_oi x
-    () <- (do
-      guard $ n == 0
-      pure ()
+    (n) <- (do
+      n <- pure 0
+      pure (n)
      ) <|> (do
-      guard $ n == 1
-      pure ()
+      n <- pure 1
+      pure (n)
      )
+    () <- even_i x
+    () <- oddsPlus_ii n x
     pure ()
    )
   pure ()
 
 oddsPlusTest_o = do
   -- solution: n[0,2] n[0,2,0] n[0,2,0,0] n[0,2,1] n[0,2,1,0] x[] x[0] x[0,0] ~n[0,0] ~x[0,1]
+  -- cost: 3
   (x) <- (do
     (n) <- (do
       n <- pure 0
@@ -1265,20 +1329,21 @@ data4[0,4]
 1
 -}
 oddsPrime_i = \n -> once $ do
-  -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,5] n'[0,3] ~d[0,4,0,3] ~d[0,4,0,5] ~data0[0,1] ~data1[0,4,0,2] ~data2[0,4,0,0] ~data3[0,4,0,3] ~data4[0,4,0,6] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,4] ~n[0,4,0,5] ~n'[0,4] ~n'[0,4,0,2]
+  -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,6] n'[0,3] ~d[0,4,0,3] ~d[0,4,0,5] ~data0[0,1] ~data1[0,4,0,2] ~data2[0,4,0,0] ~data3[0,4,0,3] ~data4[0,4,0,5] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,4] ~n[0,4,0,5] ~n'[0,4] ~n'[0,4,0,2]
+  -- cost: 9
   () <- (do
     data0 <- pure 1
     guard $ (>) n data0
     () <- odds_i n
     (n') <- succ_oi n
     () <- ifte ((do
+      data4 <- pure 0
       data1 <- pure 1
       data2 <- pure [data1..n']
       data3 <- pure 1
       (d) <- elem_oi data2
       guard $ (>) d data3
-      (data4) <- mod_iio n d
-      guard $ data4 == 0
+      () <- mod_iii n d data4
       pure ()
      )) (\() -> (do
       () <- empty 
@@ -1292,20 +1357,21 @@ oddsPrime_i = \n -> once $ do
   pure ()
 
 oddsPrime_o = do
-  -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,5] n[] n[0] n[0,0] n'[0,3] ~d[0,4,0,3] ~d[0,4,0,5] ~data0[0,1] ~data1[0,4,0,2] ~data2[0,4,0,0] ~data3[0,4,0,3] ~data4[0,4,0,6] ~n[0,1] ~n[0,3] ~n[0,4] ~n[0,4,0,5] ~n'[0,4] ~n'[0,4,0,2]
+  -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,6] n[] n[0] n[0,0] n'[0,3] ~d[0,4,0,3] ~d[0,4,0,5] ~data0[0,1] ~data1[0,4,0,2] ~data2[0,4,0,0] ~data3[0,4,0,3] ~data4[0,4,0,5] ~n[0,1] ~n[0,3] ~n[0,4] ~n[0,4,0,5] ~n'[0,4] ~n'[0,4,0,2]
+  -- cost: 10
   (n) <- (do
     data0 <- pure 1
     (n) <- odds_o 
     guard $ (>) n data0
     (n') <- succ_oi n
     () <- ifte ((do
+      data4 <- pure 0
       data1 <- pure 1
       data2 <- pure [data1..n']
       data3 <- pure 1
       (d) <- elem_oi data2
       guard $ (>) d data3
-      (data4) <- mod_iio n d
-      guard $ data4 == 0
+      () <- mod_iii n d data4
       pure ()
      )) (\() -> (do
       () <- empty 
@@ -1343,14 +1409,15 @@ constraints:
 1
 -}
 nontrivialDivisor_io = \n -> do
-  -- solution: d[] d[0] d[0,1] data0[0,2] data1[0,3] data2[0,4] n'[0,0] ~d[0,4] ~data0[0,3] ~data1[0,1] ~data2[0,5] ~n[] ~n[0] ~n[0,0] ~n[0,4] ~n'[0,3]
+  -- solution: d[] d[0] d[0,1] data0[0,2] data1[0,3] data2[0,5] n'[0,0] ~d[0,4] ~data0[0,3] ~data1[0,1] ~data2[0,4] ~n[] ~n[0] ~n[0,0] ~n[0,4] ~n'[0,3]
+  -- cost: 5
   (d) <- (do
+    data2 <- pure 0
     data0 <- pure 2
     (n') <- succ_oi n
     data1 <- pure [data0..n']
     (d) <- elem_oi data1
-    (data2) <- mod_iio n d
-    guard $ data2 == 0
+    () <- mod_iii n d data2
     pure (d)
    )
   pure (d)
@@ -1379,6 +1446,7 @@ d[0,3]
 -}
 oddsPrimeIO_i = \n -> once $ do
   -- solution: d[0] d[0,3] d[0,3,0,0] data0[0,2] ~d[0,3,0,1] ~data0[0,1] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
+  -- cost: 6
   () <- (do
     data0 <- pure 1
     guard $ (>) n data0
@@ -1400,6 +1468,7 @@ oddsPrimeIO_i = \n -> once $ do
 
 oddsPrimeIO_o = do
   -- solution: d[0] d[0,3] d[0,3,0,0] data0[0,2] n[] n[0] n[0,0] ~d[0,3,0,1] ~data0[0,1] ~n[0,1] ~n[0,3] ~n[0,3,0,0]
+  -- cost: 7
   (n) <- (do
     data0 <- pure 1
     (n) <- odds_o 
@@ -1433,6 +1502,7 @@ constraints:
 -}
 bogosort_io = \l -> do
   -- solution: p[] p[0] p[0,0] ~l[] ~l[0] ~l[0,0] ~p[0,1]
+  -- cost: 3
   (p) <- (do
     (p) <- permute_io l
     () <- sorted_i p
@@ -1442,6 +1512,7 @@ bogosort_io = \l -> do
 
 bogosort_oi = \p -> do
   -- solution: l[] l[0] l[0,0] ~p[] ~p[0] ~p[0,0] ~p[0,1]
+  -- cost: 3
   (l) <- (do
     () <- sorted_i p
     (l) <- permute_oi p
@@ -1482,6 +1553,7 @@ j[0,0]
 -}
 tcomp_ex1_i = \r -> once $ do
   -- solution: i[0,0,0] i[0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,0,0] i[0,0,0,0,1] i[0,0,0,0,1,0] i[0,0,0,0,2] i[0,0,0,0,2,0] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0] ~i[0,0,0,2] ~i[0,0,1,0] ~j[0,0,0,2] ~r[] ~r[0] ~r[0,0] ~r[0,0,1] ~r[0,0,1,0] ~r[0,0,2] ~r[0,0,2,0]
+  -- cost: 0
   () <- (do
     () <- ifte ((do
       (j) <- (do
@@ -1516,6 +1588,7 @@ tcomp_ex1_i = \r -> once $ do
 
 tcomp_ex1_o = do
   -- solution: i[0,0,0] i[0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,0,0] i[0,0,0,0,1] i[0,0,0,0,1,0] i[0,0,0,0,2] i[0,0,0,0,2,0] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0] ~i[0,0,0,2] ~i[0,0,1,0] ~j[0,0,0,2]
+  -- cost: 0
   (r) <- (do
     (r) <- ifte ((do
       (j) <- (do
@@ -1575,6 +1648,7 @@ constraints:
 -}
 findI_iii = \pat str i -> once $ do
   -- solution: m[0,2] n[0,4] t[0,0] ~i[] ~i[0] ~i[0,4] ~m[0,4] ~n[0,3] ~pat[] ~pat[0] ~pat[0,1] ~str[] ~str[0] ~str[0,0] ~str[0,3] ~t[0,1] ~t[0,2]
+  -- cost: 8
   () <- (do
     (t) <- suffix_io str
     () <- prefix_ii t pat
@@ -1587,6 +1661,7 @@ findI_iii = \pat str i -> once $ do
 
 findI_iio = \pat str -> do
   -- solution: i[] i[0] i[0,4] m[0,2] n[0,3] t[0,0] ~m[0,4] ~n[0,4] ~pat[] ~pat[0] ~pat[0,1] ~str[] ~str[0] ~str[0,0] ~str[0,3] ~t[0,1] ~t[0,2]
+  -- cost: 9
   (i) <- (do
     (n) <- length_io str
     (t) <- suffix_io str
@@ -1599,6 +1674,7 @@ findI_iio = \pat str -> do
 
 findI_oii = \str i -> do
   -- solution: m[0,2] n[0,4] pat[] pat[0] pat[0,1] t[0,0] ~i[] ~i[0] ~i[0,4] ~m[0,4] ~n[0,3] ~str[] ~str[0] ~str[0,0] ~str[0,3] ~t[0,1] ~t[0,2]
+  -- cost: 9
   (pat) <- (do
     (t) <- suffix_io str
     (m) <- length_io t
@@ -1611,6 +1687,7 @@ findI_oii = \str i -> do
 
 findI_oio = \str -> do
   -- solution: i[] i[0] i[0,4] m[0,2] n[0,3] pat[] pat[0] pat[0,1] t[0,0] ~m[0,4] ~n[0,4] ~str[] ~str[0] ~str[0,0] ~str[0,3] ~t[0,1] ~t[0,2]
+  -- cost: 10
   (i,pat) <- (do
     (n) <- length_io str
     (t) <- suffix_io str
