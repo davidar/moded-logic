@@ -10,8 +10,8 @@ import qualified Primes
 import qualified Queens
 import qualified Sort
 
-import Control.Applicative ((<|>))
-import Control.Monad (forM_, when)
+import Control.Applicative ((<|>), empty)
+import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, observeAllT)
 import qualified Control.Monad.Logic.Fair as FairLogic
@@ -389,16 +389,16 @@ main = do
       it "compile" $ compileTest "Append" programAppend
       it "append" $ do
         observeAll (Append.append_iio [1 .. 3] [4 .. 6]) `shouldBe` [[1 .. 6]]
-        observeAll (Append.append_iii [1 .. 3] [4 .. 6] [1 .. 6]) `shouldBe` [()]
-        observeAll (Append.append_iii [1 .. 3] [4 .. 6] [0 .. 6]) `shouldBe` []
+        observeAll (Append.append_iii [1 .. 3] [4 .. 6] [1 .. 6]) `shouldBe` guard True
+        observeAll (Append.append_iii [1 .. 3] [4 .. 6] [0 .. 6]) `shouldBe` guard False
         observeAll (Append.append_ooi [1 .. 6]) `shouldBe`
           [splitAt i [1 .. 6] | i <- [0 .. 6]]
         observeAll (Append.append_ioi [1 .. 3] [1 .. 6]) `shouldBe` [[4 .. 6]]
         observeAll (Append.append_oii [4 .. 6] [1 .. 6]) `shouldBe` [[1 .. 3]]
       it "append3" $ do
         observeAll (Append.append3_iiio [1, 2] [3, 4] [5, 6]) `shouldBe` [[1 .. 6]]
-        observeAll (Append.append3_iiii [1, 2] [3, 4] [5, 6] [1 .. 6]) `shouldBe` [()]
-        observeAll (Append.append3_iiii [1, 2] [3, 4] [5, 6] [0 .. 6]) `shouldBe` []
+        observeAll (Append.append3_iiii [1, 2] [3, 4] [5, 6] [1 .. 6]) `shouldBe` guard True
+        observeAll (Append.append3_iiii [1, 2] [3, 4] [5, 6] [0 .. 6]) `shouldBe` guard False
         ((List.sort . observeAll $ Append.append3_oooi [1 .. 6]) `shouldBe`) .
           List.sort $ do
           i <- [0 .. 6]
@@ -409,14 +409,14 @@ main = do
       it "reverse" $ do
         observeAll (Append.reverse_oi [0 .. 9]) `shouldBe` [[9,8 .. 0]]
         observeAll (Append.reverse_io [0 .. 9]) `shouldBe` [[9,8 .. 0]]
-        observeAll (Append.reverse_ii [0 .. 9] [9,8 .. 0]) `shouldBe` [()]
-        observeAll (Append.reverse_ii [0 .. 9] [9,8 .. 1]) `shouldBe` []
+        observeAll (Append.reverse_ii [0 .. 9] [9,8 .. 0]) `shouldBe` guard True
+        observeAll (Append.reverse_ii [0 .. 9] [9,8 .. 1]) `shouldBe` guard False
       it "palindrome" $ do
-        observeAll (Append.palindrome_i [1, 2, 3, 2, 1]) `shouldBe` [()]
-        observeAll (Append.palindrome_i [1, 2, 3, 4, 5]) `shouldBe` []
+        observeAll (Append.palindrome_i [1, 2, 3, 2, 1]) `shouldBe` guard True
+        observeAll (Append.palindrome_i [1, 2, 3, 4, 5]) `shouldBe` guard False
       it "duplicate" $ do
         observeAll (Append.duplicate_oi [0, 1, 0, 1]) `shouldBe` [[0, 1]]
-        observeAll (Append.duplicate_oi [0, 1, 2, 3]) `shouldBe` []
+        observeAll (Append.duplicate_oi [0, 1, 2, 3]) `shouldBe` empty
       it "classify" $ do
         observeAll (Append.classify_io [1, 2, 3, 2, 1]) `shouldBe` [Just []]
         observeAll (Append.classify_io [1, 2, 1, 2]) `shouldBe` [Just [1, 2]]
@@ -426,8 +426,8 @@ main = do
           List.sort (List.permutations [1 .. 5])
         List.sort (observeAll (Append.perm_oi [1 .. 5])) `shouldBe`
           List.sort (List.permutations [1 .. 5])
-        observeAll (Append.perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` [()]
-        observeAll (Append.perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` []
+        observeAll (Append.perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` guard True
+        observeAll (Append.perm_ii [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` guard False
     describe "HigherOrder" $ do
       it "compile" $ compileTest "HigherOrder" programHigherOrder
       it "map" $ do
@@ -447,16 +447,16 @@ main = do
       it "compile" $ compileTest "Primes" programPrimes
       it "primes" $ do
         observeAll (Primes.primes_io 100) `shouldBe` [prime25]
-        observeAll (Primes.primes_ii 100 prime25) `shouldBe` [()]
-        observeAll (Primes.primes_ii 100 [2 .. 99]) `shouldBe` []
+        observeAll (Primes.primes_ii 100 prime25) `shouldBe` guard True
+        observeAll (Primes.primes_ii 100 [2 .. 99]) `shouldBe` guard False
     describe "Sort" $ do
       it "compile" $ compileTest "Sort" programSort
       it "sort" $ do
         let xs = [27,74,17,33,94,18,46,83,65,2,32,53,28,85,99,47,28,82,6,11,55,29,39,81,
                   90,37,10,0,66,51,7,21,85,27,31,63,75,4,95,99,11,28,61,74,18,92,40,53,59,8]
         observeAll (Sort.sort_io xs) `shouldBe` [List.sort xs]
-        observeAll (Sort.sort_ii xs (List.sort xs)) `shouldBe` [()]
-        observeAll (Sort.sort_ii xs xs) `shouldBe` []
+        observeAll (Sort.sort_ii xs (List.sort xs)) `shouldBe` guard True
+        observeAll (Sort.sort_ii xs xs) `shouldBe` guard False
     describe "Queens" $ do
       it "compile" $ compileTest "Queens" programQueens
       it "queens1" $ do
@@ -490,7 +490,7 @@ main = do
           replicate 2 [0,0,1,3,4,5]
         List.sort (observeAll (Kiselyov.bogosort_oi [1 .. 5])) `shouldBe`
           List.sort (List.permutations [1 .. 5])
-        observeAll (Kiselyov.bogosort_oi [1,0]) `shouldBe` []
+        observeAll (Kiselyov.bogosort_oi [1,0]) `shouldBe` empty
       it "tcomp" $ do
         observeAll Kiselyov.tcomp_ex1_o `shouldBe` [Just 1]
       it "findI" $ do
