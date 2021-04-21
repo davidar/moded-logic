@@ -13,7 +13,7 @@ import qualified Sort
 import Control.Applicative ((<|>))
 import Control.Monad (forM_, when)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Logic (observeMany, observeManyT, observeAll, observeAllT)
+import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, observeAllT)
 import qualified Control.Monad.Logic.Fair as FairLogic
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
@@ -314,6 +314,9 @@ programEuler =
   reverseDL (h:t) rest r :- reverseDL t (h:rest) r.
   reverse s r :- reverseDL s [] r.
 
+  all p [].
+  all p (h:t) :- if p h then all p t else empty.
+
   multiple x y :- mod x y 0.
 
   #pragma nub euler1.
@@ -358,6 +361,8 @@ programEuler =
     show n s, reverse s s.
 
   euler4' n :- observeAll (\x :- euler4 x) s, maximum s n.
+
+  euler5 n :- nat n, n > 0, all (\x :- multiple n x) [1..5].
   |]
 
 prime25 :: [Integer]
@@ -515,3 +520,5 @@ main = do
         observeAll (Euler.reverse_io "hello") `shouldBe` ["olleh"]
         -- observeAll (Euler.reverse_oi "hello") `shouldBe` ["olleh"]
         observeAll Euler.euler4'_o `shouldBe` [9009]
+      it "5" $ do
+        observe Euler.euler5_o `shouldBe` 60

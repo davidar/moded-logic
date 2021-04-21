@@ -70,7 +70,10 @@ identifier = (lexeme . try) (p >>= check)
         else return x
 
 operator :: Parser String
-operator = lexeme . some $ oneOf "!#$%&*+./<=>?@\\^|-~:"
+operator = lexeme $ some (oneOf "!#$%&*+./<=>?@\\^|-~:") >>= check
+  where
+    check "." = fail "cannot use '.' as operator"
+    check x = return x
 
 variable :: Parser Val
 variable = (symbol "_" >> pure (Var (V "_"))) <|> (Var . V <$> identifier)

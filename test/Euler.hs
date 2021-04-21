@@ -534,6 +534,57 @@ reverse_oi = \r -> do
    )
   pure (s)
 
+{- all/2
+all p arg2 :- ((arg2 = []); (arg2 = h:t, if (p h) then (all p t) else (empty))).
+constraints:
+~h[1,1]
+~h[1,1,0,0]
+~p[]
+~p[1,1,1]
+~t[1,1,1]
+~(arg2[1,0] & h[1,0])
+~(h[1,0] & h[1,1])
+~(t[1,0] & t[1,1])
+(h[1,0] | h[1,1])
+(t[1,0] | t[1,1])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(arg2[0] <-> arg2[0,0])
+(arg2[1] <-> arg2[1,0])
+(h[1,0] <-> t[1,0])
+(h[1,1,0,0] <-> p(1))
+(p[] <-> p[1])
+(p[1] <-> p[1,1])
+(p[1,1] <-> p[1,1,1])
+(p[1,1,1] <-> p[1,1,1,0])
+(p[1,1,1,0] <-> p[])
+(t[1,1] <-> t[1,1,1])
+(t[1,1,1] <-> t[1,1,1,0])
+(t[1,1,1,0] <-> arg2[])
+1
+-}
+all_p1ii = \p arg2 -> once $ do
+  -- solution: h[1,0] t[1,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[1,1] ~h[1,1,0,0] ~p[] ~p[1] ~p[1,1] ~p[1,1,1] ~p[1,1,1,0] ~t[1,1] ~t[1,1,1] ~t[1,1,1,0] ~p(1)
+  -- cost: 3
+  () <- (do
+    guard $ arg2 == []
+    pure ()
+   ) <|> (do
+    (h:t) <- pure arg2
+    () <- ifte ((do
+      () <- p h
+      pure ()
+     )) (\() -> (do
+      () <- all_p1ii p t
+      pure ()
+     )) ((do
+      () <- empty 
+      pure ()
+     ))
+    pure ()
+   )
+  pure ()
+
 {- multiple/2
 multiple x y :- ((mod x y data0, data0 = 0)).
 constraints:
@@ -1437,6 +1488,77 @@ euler4'_o = do
             pure (x)
     (s) <- observeAll_p1oo pred0
     (n) <- maximum_io s
+    pure (n)
+   )
+  pure (n)
+
+{- euler5/1
+euler5 n :- ((nat n, (>) n data0, data0 = 0, all pred1 data4, data2 = 1, data3 = 5, data4 = .. data2 data3, (pred1 x :- (multiple n x)))).
+constraints:
+~pred1[0,3]
+~x[0]
+~(data0[0,1] & data0[0,2])
+~(data2[0,4] & data2[0,6])
+~(data3[0,5] & data3[0,6])
+~(data4[0,3] & data4[0,6])
+~(data4[0,6] & data2[0,6])
+~(n[0,0] & n[0,1])
+(~n[0,1] & ~data0[0,1])
+(~n[0,7,0,0] & ~x[0,7,0,0])
+(~pred1[0,3] & (~pred1(1) & ~data4[0,3]))
+(data0[0,1] | data0[0,2])
+(data2[0,4] | data2[0,6])
+(data3[0,5] | data3[0,6])
+(data4[0,3] | data4[0,6])
+(n[0,0] | ~n[0,0])
+(data2[0,6] <-> data3[0,6])
+(n[] <-> n[0])
+(n[0] <-> (n[0,0] | n[0,1]))
+(n[0,7,0] <-> n[0,7,0,0])
+(x[0,7,0] <-> x[0,7,0,0])
+(pred1(1) <-> x[0,7,0])
+1
+-}
+euler5_i = \n -> once $ do
+  -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6] ~data0[0,1] ~data2[0,6] ~data3[0,6] ~data4[0,3] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,7,0] ~n[0,7,0,0] ~pred1[0,3] ~x[0] ~x[0,7,0] ~x[0,7,0,0] ~pred1(1)
+  -- cost: 4
+  () <- (do
+    data0 <- pure 0
+    data2 <- pure 1
+    data3 <- pure 5
+    data4 <- pure [data2..data3]
+    guard $ (>) n data0
+    () <- nat_i n
+    let pred1 =
+          \x -> do
+            () <- (do
+              () <- multiple_ii n x
+              pure ()
+             )
+            pure ()
+    () <- all_p1ii pred1 data4
+    pure ()
+   )
+  pure ()
+
+euler5_o = do
+  -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6] n[] n[0] n[0,0] ~data0[0,1] ~data2[0,6] ~data3[0,6] ~data4[0,3] ~n[0,1] ~n[0,7,0] ~n[0,7,0,0] ~pred1[0,3] ~x[0] ~x[0,7,0] ~x[0,7,0,0] ~pred1(1)
+  -- cost: 5
+  (n) <- (do
+    data0 <- pure 0
+    data2 <- pure 1
+    data3 <- pure 5
+    data4 <- pure [data2..data3]
+    (n) <- nat_o 
+    guard $ (>) n data0
+    let pred1 =
+          \x -> do
+            () <- (do
+              () <- multiple_ii n x
+              pure ()
+             )
+            pure ()
+    () <- all_p1ii pred1 data4
     pure (n)
    )
   pure (n)
