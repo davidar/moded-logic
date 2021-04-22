@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bada420721fd7c893f337192b484fd31f4e4378c43b2cec0faeda9f88e019c03
+-- hash: fe8c320f4ca7f0f1950998e525a57fedd9d72e90d59014c62532583822803fcc
 
 name:           moded-logic
 version:        0.1.0.0
@@ -34,6 +34,7 @@ library
       Control.Monad.Logic.Moded.Path
       Control.Monad.Logic.Moded.Prelude
       Control.Monad.Logic.Moded.Preprocess
+      Control.Monad.Logic.Moded.Relation
       Control.Monad.Logic.Moded.Schedule
       Control.Monad.Logic.Moded.Solver
   other-modules:

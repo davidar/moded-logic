@@ -10,19 +10,36 @@ import qualified Primes
 import qualified Queens
 import qualified Sort
 
-import Control.Applicative ((<|>), empty)
+import Control.Applicative (Alternative, (<|>), empty)
 import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, observeAllT)
+import Control.Monad.Logic.Class (MonadLogic)
 import qualified Control.Monad.Logic.Fair as FairLogic
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Parse (logic)
+import Control.Monad.Logic.Moded.Relation
 import qualified Data.List as List
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn, shouldSatisfy)
+
+succ' :: (Alternative m, Eq a, Enum a) => Relation2 m a a
+succ' = R2
+  { callII = succ_ii
+  , callIO = succ_io
+  , callOI = succ_oi
+  }
+
+map' :: (MonadLogic m, MonadFail m, Eq a, Eq b) => Relation3 m (Relation2 m a b) [a] [b]
+map' = R3
+  { callIII = HigherOrder.map_p2iiii . callII
+  , callIIO = HigherOrder.map_p2ioio . callIO
+  , callIOI = HigherOrder.map_p2oioi . callOI
+  , callIOO = HigherOrder.map_p2oooo . callOO
+  }
 
 updateCode :: Bool
 updateCode = False
@@ -431,8 +448,8 @@ main = do
     describe "HigherOrder" $ do
       it "compile" $ compileTest "HigherOrder" programHigherOrder
       it "map" $ do
-        observeAll (HigherOrder.map_p2ioio succ_io [0 .. 9]) `shouldBe` [[1 .. 10]]
-        observeAll (HigherOrder.map_p2oioi succ_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
+        observeAll (callIIO map' succ' [0 .. 9]) `shouldBe` [[1 .. 10]]
+        observeAll (callIOI map' succ' [1 .. 10]) `shouldBe` [[0 .. 9]]
         observeAll (HigherOrder.succs_io [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (HigherOrder.succs_oi [1 .. 10]) `shouldBe` [[0 .. 9]]
       it "filter" $ do
