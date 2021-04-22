@@ -51,7 +51,7 @@ data Mode
   deriving (Eq, Ord)
 
 newtype ModeString =
-  ModeString [Mode]
+  ModeString { unModeString :: [Mode] }
   deriving (Eq, Ord)
 
 type Modes = Map Name [ModeString]
@@ -62,9 +62,9 @@ instance Show CAtom where
   show (TseitinVar i) = "ts*" ++ show i
 
 instance Show Mode where
-  show MIn = "i"
-  show MOut = "o"
-  show (MPred ms) = "p" ++ show (length ms) ++ show (ModeString ms)
+  show MIn = "I"
+  show MOut = "O"
+  show (MPred ms) = "P" ++ show (length ms) ++ show (ModeString ms)
 
 instance Show ModeString where
   show (ModeString ms) = concat $ show <$> ms

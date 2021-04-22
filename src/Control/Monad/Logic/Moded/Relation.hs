@@ -22,3 +22,22 @@ data Relation3 m a b c = R3
   , callOOI :: c -> m (a, b)
   , callOOO :: m (a, b, c)
   }
+
+data Relation4 m a b c d = R4
+  { callIIII :: a -> b -> c -> d -> m ()
+  , callIIIO :: a -> b -> c -> m d
+  , callIIOI :: a -> b -> d -> m c
+  , callIIOO :: a -> b -> m (c, d)
+  , callIOII :: a -> c -> d -> m b
+  , callIOIO :: a -> c -> m (b, d)
+  , callIOOI :: a -> d -> m (b, c)
+  , callIOOO :: a -> m (b, c, d)
+  , callOIII :: b -> c -> d -> m a
+  , callOIIO :: b -> c -> m (a, d)
+  , callOIOI :: b -> d -> m (a, c)
+  , callOIOO :: b -> m (a, c, d)
+  , callOOII :: c -> d -> m (a, b)
+  , callOOIO :: c -> m (a, b, d)
+  , callOOOI :: d -> m (a, b, c)
+  , callOOOO :: m (a, b, c, d)
+  }
