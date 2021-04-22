@@ -51,7 +51,9 @@ data Mode
   deriving (Eq, Ord)
 
 newtype ModeString =
-  ModeString { unModeString :: [Mode] }
+  ModeString
+    { unModeString :: [Mode]
+    }
   deriving (Eq, Ord)
 
 type Modes = Map Name [ModeString]

@@ -43,11 +43,13 @@ mv = T.pack . show . stripMode
 callMode :: ModeString -> Text
 callMode (ModeString ms) = "call" <> T.pack (show ms')
   where
-    ms' = ModeString $ do
-      m <- ms
-      pure $ case m of
-        MOut -> MOut
-        _ -> MIn
+    ms' =
+      ModeString $ do
+        m <- ms
+        pure $
+          case m of
+            MOut -> MOut
+            _ -> MIn
 
 cgFunc :: Name -> [ModedVar] -> Text
 cgFunc ":" vs = "(" <> T.intercalate ":" (map mv vs) <> ")"
@@ -191,8 +193,10 @@ cgProcedure pragmas ms procedure =
         | null ins = ""
         | otherwise = "\\" <> T.unwords ins <> " -> "
       transform
-        | Pragma ["nub", name] `elem` pragmas = "choose . nub . Logic.observeAll $ do"
-        | Pragma ["memo", name] `elem` pragmas = "choose . Logic.observeAll $ do"
+        | Pragma ["nub", name] `elem` pragmas =
+          "choose . nub . Logic.observeAll $ do"
+        | Pragma ["memo", name] `elem` pragmas =
+          "choose . Logic.observeAll $ do"
         | T.null outs = "Logic.once $ do"
         | otherwise = "do"
    in [text|
@@ -223,7 +227,8 @@ compile moduleName (Prog pragmas rules) =
       T.unlines $ do
         (name, c) <- foldl mode' [] rules
         let arity = length . ruleArgs $ unmodedRule c
-            doc = T.unlines $
+            doc =
+              T.unlines $
               T.pack <$>
               [ "{- " ++ name ++ "/" ++ show arity
               , show (unmodedRule c)
@@ -231,34 +236,39 @@ compile moduleName (Prog pragmas rules) =
               ] ++
               map show (Set.elems $ modeConstraints c) ++ ["-}"]
             errs = T.unlines $ commentLine . T.pack <$> errors c
-            fields = T.intercalate ", " $ do
-              ms <- Map.keys (procedures c)
-              pure $ callMode ms <> " = " <> T.pack name <> T.pack (show ms)
-            rel = T.pack name <> " = R" <> T.pack (show arity) <> " { " <> fields <> " }"
-            defs = T.unlines $ do
-              (ms, procs) <- Map.assocs (procedures c)
-              let (def:_) = do
-                    procedure <- sortOn (cost . ruleBody . modedRule) procs
-                    pure . T.unlines $
-                      let (hd:tl) = T.lines $ cgProcedure pragmas ms procedure
-                          meta =
-                            "  -- solution: " <>
-                            T.unwords
-                              (T.pack . show <$>
-                               Set.elems (modeSolution procedure))
-                          meta2 =
-                            "  -- cost: " <>
-                            T.pack
-                              (show . cost . ruleBody $ modedRule procedure)
-                       in hd : meta : meta2 : tl
-              pure def -- : (T.unlines . map commentLine . T.lines <$> defs')
+            fields =
+              T.intercalate ", " $ do
+                ms <- Map.keys (procedures c)
+                pure $ callMode ms <> " = " <> T.pack name <> T.pack (show ms)
+            rel =
+              T.pack name <>
+              " = R" <> T.pack (show arity) <> " { " <> fields <> " }"
+            defs =
+              T.unlines $ do
+                (ms, procs) <- Map.assocs (procedures c)
+                let (def:_) = do
+                      procedure <- sortOn (cost . ruleBody . modedRule) procs
+                      pure . T.unlines $
+                        let (hd:tl) = T.lines $ cgProcedure pragmas ms procedure
+                            meta =
+                              "  -- solution: " <>
+                              T.unwords
+                                (T.pack . show <$>
+                                 Set.elems (modeSolution procedure))
+                            meta2 =
+                              "  -- cost: " <>
+                              T.pack
+                                (show . cost . ruleBody $ modedRule procedure)
+                         in hd : meta : meta2 : tl
+                pure def -- : (T.unlines . map commentLine . T.lines <$> defs')
             commentLine l
               | "--" `T.isPrefixOf` l = l
               | otherwise = "--" <> l
-        pure [text|
-                $doc
-                $errs
-                $rel
-                  where
-                    $defs
-             |]
+        pure
+          [text|
+            $doc
+            $errs
+            $rel
+              where
+                $defs
+          |]
