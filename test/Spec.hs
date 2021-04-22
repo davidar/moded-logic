@@ -359,7 +359,7 @@ programEuler =
   euler3 n r :- observeAll (\d :- primeFactor n d) fs, maximum fs r.
 
   euler4 n :-
-    elem x [10..99], elem y [10..99], times x y n,
+    elem x [10..99], elem y [10..99], timesInt x y n,
     show n s, reverse s s.
 
   euler4' n :- observeAll (\x :- euler4 x) s, maximum s n.

@@ -1451,7 +1451,7 @@ euler3 = R2 { callII = euler3II, callIO = euler3IO }
       pure (r)
     
 {- euler4/1
-euler4 n :- ((elem x data2, data0 = 10, data1 = 99, data2 = .. data0 data1, elem y data5, data3 = 10, data4 = 99, data5 = .. data3 data4, times x y n, show n s, reverse s0 s1, s0 = s, s1 = s)).
+euler4 n :- ((elem x data2, data0 = 10, data1 = 99, data2 = .. data0 data1, elem y data5, data3 = 10, data4 = 99, data5 = .. data3 data4, timesInt x y n, show n s, reverse s0 s1, s0 = s, s1 = s)).
 constraints:
 ~(data0[0,1] & data0[0,3])
 ~(data1[0,2] & data1[0,3])
@@ -1509,7 +1509,7 @@ euler4 = R1 { callO = euler4O }
         data5 <- pure [data3..data4]
         (x) <- callOI elem data2
         (y) <- callOI elem data5
-        (n) <- callIIO times x y
+        (n) <- callIIO timesInt x y
         (s) <- callIO show n
         s0 <- pure s
         s1 <- pure s
