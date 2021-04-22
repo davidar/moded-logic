@@ -1057,7 +1057,7 @@ primeSlow = R1 { callI = primeSlowI, callO = primeSlowO }
       pure (n)
     
 {- factor/3
-factor arg1 n f :- ((arg1 = p0:ps1, p0 = p, ps1 = ps, if (times p2 p3 pp, p2 = p, p3 = p, (>) pp n) then (f = n) else (if (divMod n p d data0, data0 = 0) then (((f = p); (factor data1 d f, data1 = p4:ps5, p4 = p, ps5 = ps))) else (factor ps n f)))).
+factor arg1 n f :- ((arg1 = p0:ps1, p0 = p, ps1 = ps, if (timesInt p2 p3 pp, p2 = p, p3 = p, (>) pp n) then (f = n) else (if (divMod n p d data0, data0 = 0) then (((f = p); (factor data1 d f, data1 = p4:ps5, p4 = p, ps5 = ps))) else (factor ps n f)))).
 constraints:
 d[0,3,2,0,0]
 data0[0,3,2,0]
@@ -1181,7 +1181,7 @@ factor = R3 { callIII = factorIII, callIIO = factorIIO }
         () <- Logic.ifte ((do
           p2 <- pure p
           p3 <- pure p
-          (pp) <- callIIO times p2 p3
+          (pp) <- callIIO timesInt p2 p3
           guard $ (>) pp n
           pure ()
          )) (\() -> (do
@@ -1224,7 +1224,7 @@ factor = R3 { callIII = factorIII, callIIO = factorIIO }
         (f) <- Logic.ifte ((do
           p2 <- pure p
           p3 <- pure p
-          (pp) <- callIIO times p2 p3
+          (pp) <- callIIO timesInt p2 p3
           guard $ (>) pp n
           pure ()
          )) (\() -> (do

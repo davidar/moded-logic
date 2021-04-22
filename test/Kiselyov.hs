@@ -855,7 +855,7 @@ pythag = R3 { callIII = pythagIII, callIIO = pythagIIO, callIOI = pythagIOI, cal
       pure (i,j,k)
     
 {- triang/2
-triang n r :- ((succ n n', times n n' nn', div nn' data0 r, data0 = 2)).
+triang n r :- ((succ n n', timesInt n n' nn', div nn' data0 r, data0 = 2)).
 constraints:
 ~(data0[0,2] & data0[0,3])
 ~(n[0,0] & n[0,1])
@@ -882,7 +882,7 @@ triang = R2 { callII = triangII, callIO = triangIO }
       () <- (do
         data0 <- pure 2
         (n') <- callIO succ n
-        (nn') <- callIIO times n n'
+        (nn') <- callIIO timesInt n n'
         () <- callIII div nn' data0 r
         pure ()
        )
@@ -894,7 +894,7 @@ triang = R2 { callII = triangII, callIO = triangIO }
       (r) <- (do
         data0 <- pure 2
         (n') <- callIO succ n
-        (nn') <- callIIO times n n'
+        (nn') <- callIIO timesInt n n'
         (r) <- callIIO div nn' data0
         pure (r)
        )
