@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction, TypeOperators, DataKinds #-}
+{-# LANGUAGE NoMonomorphismRestriction, TypeOperators, DataKinds, FlexibleContexts, TypeFamilies #-}
 {-# OPTIONS_GHC -Wwarn #-}
 
 module Control.Monad.Logic.Moded.Prelude where
@@ -87,7 +87,7 @@ show = RIO
       (RNil $ pure (() :* Prelude.show a)))
     (RI $ \s -> RNil $ pure (() :* Prelude.read s))
 
-observeAll :: (Alternative m, Eq a) => Relation m '[Relation Logic.Logic '[a], [a]]
+observeAll :: (Alternative m, Eq a, CallRelation '[Out] r, CallResult '[Out] r ~ Logic.Logic (() :* a)) => CurriedRelation m () '[r, [a]]
 observeAll = RI $ \p ->
   let q = do
         () :* x <- call (Out :> Nil) p

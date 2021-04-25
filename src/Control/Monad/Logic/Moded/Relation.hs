@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, DataKinds, KindSignatures, TypeFamilies, GADTs, MultiParamTypeClasses, FlexibleInstances, FunctionalDependencies, UndecidableInstances #-}
+{-# LANGUAGE TypeOperators, DataKinds, KindSignatures, TypeFamilies, GADTs, MultiParamTypeClasses, FlexibleInstances, FlexibleContexts #-}
 
 module Control.Monad.Logic.Moded.Relation where
 
@@ -22,14 +22,19 @@ infixr 5 :>
 data In = In
 data Out = Out
 
-class CallRelation ms r f | ms r -> f, ms f -> r where
-  call :: HList ms -> r -> f
+type family CallResult ms r where
+  CallResult '[] (CurriedRelation m z '[]) = m z
+  CallResult (In : ms) (CurriedRelation m z (a : as)) = a -> CallResult ms (CurriedRelation m z as)
+  CallResult (Out : ms) (CurriedRelation m z (a : as)) = CallResult ms (CurriedRelation m (z :* a) as)
 
-instance CallRelation '[] (CurriedRelation m z '[]) (m z) where
+class CallRelation ms r where
+  call :: HList ms -> r -> CallResult ms r
+
+instance CallRelation '[] (CurriedRelation m z '[]) where
   call Nil r = callNil r
 
-instance CallRelation ms (CurriedRelation m z as) f => CallRelation (In : ms) (CurriedRelation m z (a : as)) (a -> f) where
+instance CallRelation ms (CurriedRelation m z as) => CallRelation (In : ms) (CurriedRelation m z (a : as)) where
   call (In :> ms) r a = call ms (callI r a)
 
-instance CallRelation ms (CurriedRelation m (z :* a) as) f => CallRelation (Out : ms) (CurriedRelation m z (a : as)) f where
+instance CallRelation ms (CurriedRelation m (z :* a) as) => CallRelation (Out : ms) (CurriedRelation m z (a : as)) where
   call (Out :> ms) r = call ms (callO r)
