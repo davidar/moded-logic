@@ -35,6 +35,7 @@ dependencies:
 - picosat
 - template-haskell
 - text
+- vinyl
 
 library:
   source-dirs: src
