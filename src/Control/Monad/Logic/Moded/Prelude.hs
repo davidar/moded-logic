@@ -17,78 +17,81 @@ choose = Prelude.foldr ((<|>) . pure) empty
 
 succ :: (Alternative m, Prelude.Enum a, Eq a)
      => Relation m '[a, a] '[ '[In, In], '[In, Out], '[Out, In] ]
-succ = (procedure @[In, In] \a b -> guard (Prelude.succ a == b))
-    :& (procedure @[In, Out] \a -> pure (() :* Prelude.succ a))
-    :& (procedure @[Out, In] \b -> pure (() :* Prelude.pred b))
+succ = (Procedure @'[In, In] \a b -> guard (Prelude.succ a == b))
+    :& (Procedure @'[In, Out] \a -> pure (() :* Prelude.succ a))
+    :& (Procedure @'[Out, In] \b -> pure (() :* Prelude.pred b))
     :& RNil
 
 div :: (Alternative m, Prelude.Integral a)
     => Relation m '[a, a, a] '[ '[In, In, In], '[In, In, Out] ]
-div = (procedure @[In, In, In] \a b c -> guard (Prelude.div a b == c))
-   :& (procedure @[In, In, Out] \a b -> pure (() :* Prelude.div a b))
+div = (Procedure @'[In, In, In] \a b c -> guard (Prelude.div a b == c))
+   :& (Procedure @'[In, In, Out] \a b -> pure (() :* Prelude.div a b))
    :& RNil
 
 mod :: (Alternative m, Prelude.Integral a)
     => Relation m '[a, a, a] '[ '[In, In, In], '[In, In, Out] ]
-mod = (procedure @[In, In, In] \a b c -> guard (Prelude.mod a b == c))
-   :& (procedure @[In, In, Out] \a b -> pure (() :* Prelude.mod a b))
+mod = (Procedure @'[In, In, In] \a b c -> guard (Prelude.mod a b == c))
+   :& (Procedure @'[In, In, Out] \a b -> pure (() :* Prelude.mod a b))
    :& RNil
 
 divMod :: (Alternative m, Prelude.Integral a)
        => Relation m '[a, a, a, a] '[ '[In, In, In, In], '[In, In, Out, In], '[In, In, Out, Out] ]
-divMod = (procedure @[In, In, In, In] \a b d m -> guard (Prelude.divMod a b == (d, m)))
-      :& (procedure @[In, In, Out, In] \a b m ->
+divMod = (Procedure @'[In, In, In, In] \a b d m -> guard (Prelude.divMod a b == (d, m)))
+      :& (Procedure @'[In, In, Out, In] \a b m ->
           if Prelude.mod a b == m then pure (() :* Prelude.div a b) else empty)
-      :& (procedure @[In, In, Out, Out] \a b ->
+      :& (Procedure @'[In, In, Out, Out] \a b ->
           let (d, m) = Prelude.divMod a b in pure (() :* d :* m))
       :& RNil
 
-plus = RIO
-  (\a -> RIO
-    (\b -> RIO
-      (\c -> RN $ guard (a + b == c))
-      (RN $ pure (a + b)))
-    (RI $ \c -> RN $ pure (c - a)))
-  (RI $ \b -> RI $ \c -> RN $ pure (c - b))
+plus :: (Alternative m, Num a, Eq a)
+     => Relation m '[a, a, a] '[ '[In, In, In], '[In, In, Out], '[In, Out, In], '[Out, In, In] ]
+plus = (Procedure @'[In, In, In] \a b c -> guard (a + b == c))
+    :& (Procedure @'[In, In, Out] \a b -> pure (() :* a + b))
+    :& (Procedure @'[In, Out, In] \a c -> pure (() :* c - a))
+    :& (Procedure @'[Out, In, In] \b c -> pure (() :* c - b))
+    :& RNil
 
-times = RIO
-  (\a -> RIO
-    (\b -> RIO
-      (\c -> RN $ guard (a * b == c))
-      (RN $ pure (a * b)))
-    (RI $ \c -> RN $ pure (c / a)))
-  (RI $ \b -> RI $ \c -> RN $ pure (c / b))
-
---rget' :: (r ∈ rs) => Rec (Procedure m z as) rs -> Procedure m z as r
---rget' = rget
+times :: (Alternative m, Fractional a, Eq a)
+     => Relation m '[a, a, a] '[ '[In, In, In], '[In, In, Out], '[In, Out, In], '[Out, In, In] ]
+times = (Procedure @'[In, In, In] \a b c -> guard (a * b == c))
+    :& (Procedure @'[In, In, Out] \a b -> pure (() :* a * b))
+    :& (Procedure @'[In, Out, In] \a c -> pure (() :* c / a))
+    :& (Procedure @'[Out, In, In] \b c -> pure (() :* c / b))
+    :& RNil
 
 timesInt :: (Alternative m, Prelude.Integral a)
          => Relation m '[a, a, a] '[ '[In, In, In], '[In, In, Out], '[In, Out, In], '[Out, In, In] ]
-timesInt = (procedure @[In, In, In] \a b c -> guard (a * b == c))
-        :& (procedure @[In, In, Out] \a b -> pure (() :* a * b))
-        :& (procedure @[In, Out, In] \a c -> call' (rget @[In, In, Out, In] divMod) c a 0)
-        :& (procedure @[Out, In, In] \b c -> call' (rget @[In, In, Out, In] divMod) c b 0)
+timesInt = (Procedure @'[In, In, In] \a b c -> guard (a * b == c))
+        :& (Procedure @'[In, In, Out] \a b -> pure (() :* a * b))
+        :& (Procedure @'[In, Out, In] \a c -> call' (rget @'[In, In, Out, In] divMod) c a 0)
+        :& (Procedure @'[Out, In, In] \b c -> call' (rget @'[In, In, Out, In] divMod) c b 0)
         :& RNil
 
-sum = RI $ \xs -> RIO
-  (\s -> RN $ guard (Prelude.sum xs == s))
-  (RN $ pure (Prelude.sum xs))
+sum :: (Alternative m, Prelude.Foldable t, Num a, Eq a)
+    => Relation m '[t a, a] '[ '[In, In], '[In, Out] ]
+sum = (Procedure @'[In, In] \xs s -> guard (Prelude.sum xs == s))
+   :& (Procedure @'[In, Out] \xs -> pure (() :* Prelude.sum xs))
+   :& RNil
 
-maximum = RI $ \xs -> RIO
-  (\s -> RN $ guard (Prelude.maximum xs == s))
-  (RN $ pure (Prelude.maximum xs))
+maximum :: (Alternative m, Prelude.Foldable t, Ord a)
+        => Relation m '[t a, a] '[ '[In, In], '[In, Out] ]
+maximum = (Procedure @'[In, In] \xs s -> guard (Prelude.maximum xs == s))
+       :& (Procedure @'[In, Out] \xs -> pure (() :* Prelude.maximum xs))
+       :& RNil
 
-print = RI $ \a -> RN $ liftIO $ Prelude.print a
+print :: (MonadIO m, Prelude.Show a) => Relation m '[a] '[ '[In] ]
+print = (Procedure @'[In] $ liftIO . Prelude.print) :& RNil
 
-show = RIO
-    (\a -> RIO
-      (\s -> RN $ guard (Prelude.show a == s))
-      (RN $ pure (Prelude.show a)))
-    (RI $ \s -> RN $ pure (Prelude.read s))
+show :: (Alternative m, Prelude.Read a, Prelude.Show a)
+     => Relation m '[a, Prelude.String] '[ '[In, In], '[In, Out], '[Out, In] ]
+show = (Procedure @'[In, In] \a s -> guard (Prelude.show a == s))
+    :& (Procedure @'[In, Out] \a -> pure (() :* Prelude.show a))
+    :& (Procedure @'[Out, In] \s -> pure (() :* Prelude.read s))
+    :& RNil
 
 observeAll :: (Applicative m, '[Out] ∈ rs) =>
   Relation m '[Relation Logic.Logic '[a] rs, [a]] '[ '[In, Out] ]
-observeAll = (procedure @[In, Out] \p ->
+observeAll = (Procedure @'[In, Out] \p ->
               let q = do
                     () :* x <- pcall (Out :> Nil) p
                     pure x
