@@ -1,58 +1,35 @@
-{-# LANGUAGE TypeOperators, DataKinds, KindSignatures, TypeFamilies, GADTs #-}
+{-# LANGUAGE TypeOperators, DataKinds, KindSignatures, TypeFamilies, GADTs, MultiParamTypeClasses, FlexibleInstances, FunctionalDependencies, UndecidableInstances #-}
 
 module Control.Monad.Logic.Moded.Relation where
 
-data a :* b = a :* b
+data a :* b = a :* b deriving (Show)
 infixl 5 :*
 
-data Relation m z (as :: [*]) where
-  RIO  :: { callI :: a -> Relation m z as
-          , callO :: Relation m (z :* a) as } -> Relation m z (a ': as)
-  RI   :: { callI :: a -> Relation m z as }   -> Relation m z (a ': as)
-  RNil :: { call :: m z }                     -> Relation m z '[]
+data CurriedRelation m z (as :: [*]) where
+  RIO  :: { callI :: a -> CurriedRelation m z as
+          , callO :: CurriedRelation m (z :* a) as } -> CurriedRelation m z (a : as)
+  RI   :: { callI :: a -> CurriedRelation m z as }   -> CurriedRelation m z (a : as)
+  RNil :: { callNil :: m z }                         -> CurriedRelation m z '[]
 
-{-
-data Relation1 m z a =
-  R1
-    { callI :: a -> m z
-    , callO :: m (z :* a)
-    }
+type Relation m as = CurriedRelation m () as
 
-data Relation2 m z a b =
-  R2
-    { callI_ :: a -> Relation1 m z b
-    , callO_ :: Relation1 m (z :* a) b
-    }
+data HList (as :: [*]) where
+  Nil :: HList '[]
+  (:>) :: a -> HList as -> HList (a ': as)
 
-data Relation3 m z a b c =
-  R3
-    { callIII :: a -> b -> c -> m z
-    , callIIO :: a -> b -> m (z :* c)
-    , callIOI :: a -> c -> m (z :* b)
-    , callIOO :: a -> m (z :* b :* c)
-    , callOII :: b -> c -> m (z :* a)
-    , callOIO :: b -> m (z :* a :* c)
-    , callOOI :: c -> m (z :* a :* b)
-    , callOOO :: m (z :* a :* b :* c)
-    }
+infixr 5 :>
 
-data Relation4 m z a b c d =
-  R4
-    { callIIII :: a -> b -> c -> d -> m z
-    , callIIIO :: a -> b -> c -> m (z :* d)
-    , callIIOI :: a -> b -> d -> m (z :* c)
-    , callIIOO :: a -> b -> m (z :* c :* d)
-    , callIOII :: a -> c -> d -> m (z :* b)
-    , callIOIO :: a -> c -> m (z :* b :* d)
-    , callIOOI :: a -> d -> m (z :* b :* c)
-    , callIOOO :: a -> m (z :* b :* c :* d)
-    , callOIII :: b -> c -> d -> m (z :* a)
-    , callOIIO :: b -> c -> m (z :* a :* d)
-    , callOIOI :: b -> d -> m (z :* a :* c)
-    , callOIOO :: b -> m (z :* a :* c :* d)
-    , callOOII :: c -> d -> m (z :* a :* b)
-    , callOOIO :: c -> m (z :* a :* b :* d)
-    , callOOOI :: d -> m (z :* a :* b :* c)
-    , callOOOO :: m (z :* a :* b :* c :* d)
-    }
--}
+data In = In
+data Out = Out
+
+class CallRelation ms r f | ms r -> f, ms f -> r where
+  call :: HList ms -> r -> f
+
+instance CallRelation '[] (CurriedRelation m z '[]) (m z) where
+  call Nil r = callNil r
+
+instance CallRelation ms (CurriedRelation m z as) f => CallRelation (In : ms) (CurriedRelation m z (a : as)) (a -> f) where
+  call (In :> ms) r a = call ms (callI r a)
+
+instance CallRelation ms (CurriedRelation m (z :* a) as) f => CallRelation (Out : ms) (CurriedRelation m z (a : as)) f where
+  call (Out :> ms) r = call ms (callO r)
