@@ -3,15 +3,14 @@
 module Control.Monad.Logic.Moded.Relation
   ( Relation
   , ConstructProcedure(..)
-  , In
-  , Out
+  , PredType
   ) where
 
+import Control.Monad.Logic.Moded.AST (Mode(..))
 import Data.Tuple.OneTuple (OneTuple(..))
 import Data.Vinyl (Rec)
 
-data In
-data Out
+data PredType m z as
 
 data a :* b = a :* b
 infixl 5 :*
@@ -44,9 +43,10 @@ instance Snoc () () where
   snoc () = ()
   unsnoc () = ()
 
-data Procedure m z (as :: [*]) (ms :: [*]) where
-  PI :: (a -> Procedure m z as ms) -> Procedure m z (a : as) (In : ms)
-  PO :: Procedure m (z :* a) as ms -> Procedure m z (a : as) (Out : ms)
+data Procedure m z (as :: [*]) (ms :: [Mode]) where
+  PI :: (a -> Procedure m z as ms) -> Procedure m z (a : as) ('In : ms)
+  PP :: (Procedure m' z' as' ms' -> Procedure m z as ms) -> Procedure m z (PredType m' z' as' : as) ('PredMode ms' : ms)
+  PO :: Procedure m (z :* a) as ms -> Procedure m z (a : as) ('Out : ms)
   PN :: m z -> Procedure m z '[] '[]
 
 type Relation m as rs = Rec (Procedure m () as) rs
@@ -56,11 +56,15 @@ class ConstructProcedure ms m z as f where
   call :: Procedure m z as ms -> f
 
 -- https://lexi-lambda.github.io/blog/2021/03/25/an-introduction-to-typeclass-metaprogramming/#guiding-type-inference
-instance (ConstructProcedure ms m z as f, bs ~ (a : as), g ~ (a -> f)) => ConstructProcedure (In : ms) m z bs g where
+instance (ConstructProcedure ms m z as f, bs ~ (a : as), g ~ (a -> f)) => ConstructProcedure ('In : ms) m z bs g where
   procedure f = PI $ \a -> procedure (f a :: f)
   call (PI f) = call . f
 
-instance (ConstructProcedure ms m (z :* a) as f, bs ~ (a : as)) => ConstructProcedure (Out : ms) m z bs f where
+instance (ConstructProcedure ms m z as f, bs ~ (PredType m' z' as' : as), g ~ (Procedure m' z' as' ms' -> f)) => ConstructProcedure ('PredMode ms' : ms) m z bs g where
+  procedure f = PP $ \a -> procedure (f a :: f)
+  call (PP f) = call . f
+
+instance (ConstructProcedure ms m (z :* a) as f, bs ~ (a : as)) => ConstructProcedure ('Out : ms) m z bs f where
   procedure f = PO $ procedure f
   call (PO f) = call f
 

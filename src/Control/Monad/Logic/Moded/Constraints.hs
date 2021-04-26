@@ -12,6 +12,8 @@ module Control.Monad.Logic.Moded.Constraints
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
+  , Mode(..)
+  , ModeString(..)
   , Name
   , Rule(..)
   , Var(..)
@@ -31,7 +33,6 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
-import Data.String (IsString(..))
 import System.IO.Unsafe (unsafePerformIO)
 
 type Constraint = Sat.Expr CAtom
@@ -44,39 +45,12 @@ data CAtom
   | TseitinVar Int
   deriving (Eq, Ord)
 
-data Mode
-  = MIn
-  | MOut
-  | MPred [Mode]
-  deriving (Eq, Ord)
-
-newtype ModeString =
-  ModeString
-    { unModeString :: [Mode]
-    }
-  deriving (Eq, Ord)
-
 type Modes = Map Name [ModeString]
 
 instance Show CAtom where
   show (Produce v p) = show v ++ show p
   show (ProduceArg v i) = show v ++ "(" ++ show i ++ ")"
   show (TseitinVar i) = "ts*" ++ show i
-
-instance Show Mode where
-  show MIn = "I"
-  show MOut = "O"
-  show (MPred ms) = "P" ++ show (length ms) ++ show (ModeString ms)
-
-instance Show ModeString where
-  show (ModeString ms) = concat $ show <$> ms
-
-instance IsString ModeString where
-  fromString =
-    (ModeString .) . map $ \case
-      'i' -> MIn
-      'o' -> MOut
-      _ -> error "invalid modestring"
 
 instance Sat.Tseitin CAtom where
   tseitinVar = TseitinVar
@@ -199,17 +173,17 @@ cAtom m p r =
             (v, mode) <- zip vars modes
             let t = term p v
             case mode of
-              MIn -> pure $ Sat.Neg t
-              MOut -> pure t
-              MPred ms ->
+              In -> pure $ Sat.Neg t
+              Out -> pure t
+              PredMode ms ->
                 Sat.Neg t : do
                   (i, mode') <- zip [1 ..] ms
                   let t' = Sat.Var $ ProduceArg v i
                   pure $
                     case mode' of
-                      MIn -> Sat.Neg t'
-                      MOut -> t'
-                      MPred _ -> error "nested modestring"
+                      In -> Sat.Neg t'
+                      Out -> t'
+                      PredMode _ -> error "nested modestring"
       | head name == '('
       , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
       | V name `elem` ruleArgs r ->

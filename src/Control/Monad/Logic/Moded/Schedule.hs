@@ -90,7 +90,7 @@ builtins =
     , ("empty", [""])
     , ("print", ["i"])
     , ("show", ["io", "oi", "ii"])
-    , ("observeAll", [ModeString [MPred [MOut], MOut]])
+    , ("observeAll", [ModeString [PredMode [Out], Out]])
     ]
 
 stripMode :: ModedVar -> Var
@@ -105,7 +105,7 @@ unDepNode (DepNode _ g) = g
 cost :: Goal ModedVar -> Int
 cost (Atom Unif {}) = 0
 cost (Atom Func {}) = 0
-cost g@(Atom Pred {}) = 1 + length [v | MV v MOut <- toList g]
+cost g@(Atom Pred {}) = 1 + length [v | MV v Out <- toList g]
 cost g = sum $ cost <$> subgoals g
 
 mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
@@ -118,14 +118,14 @@ mode r@(Rule name vars body) soln =
     Right body' -> Right $ Rule name (annotate [] <$> vars) body'
   where
     annotate p (V v)
-      | t `Set.member` soln = MV v MOut
+      | t `Set.member` soln = MV v Out
       | Sat.Neg t `Set.member` soln =
         MV v $
         case predMode (V v) soln of
-          [] -> MIn
-          ms' -> MPred ms'
-      | v == "_" = MV v MOut
-      | null p = MV v MIn
+          [] -> In
+          ms' -> PredMode ms'
+      | v == "_" = MV v Out
+      | null p = MV v In
       | otherwise = error $ show r ++ "\n" ++ show t ++ " not in " ++ show soln
       where
         t = Sat.Var $ Produce (V v) p
@@ -147,12 +147,12 @@ mode r@(Rule name vars body) soln =
             let t = Sat.Var $ ProduceArg (V n) i
             pure $
               if t `Set.member` soln
-                then MV v MOut
+                then MV v Out
                 else if Sat.Neg t `Set.member` soln
-                       then MV v MIn
+                       then MV v In
                        else error $ show t ++ " not in " ++ show soln
       g' <- walk (p ++ [0]) g
-      pure $ Anon (MV n MOut) vs' g'
+      pure $ Anon (MV n Out) vs' g'
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
 mode' :: CompiledProgram -> Rule Var Var -> CompiledProgram
@@ -185,9 +185,9 @@ predMode name soln = go 1
     go i =
       let t = Sat.Var $ ProduceArg name i
        in if Sat.Neg t `Set.member` soln
-            then MIn : go (i + 1)
+            then In : go (i + 1)
             else if t `Set.member` soln
-                   then MOut : go (i + 1)
+                   then Out : go (i + 1)
                    else []
 
 sortConj :: [(Goal ModedVar, Set Var)] -> Either (Cycle DepNode) [Goal ModedVar]
@@ -200,14 +200,14 @@ sortConj gs = map unDepNode <$> topSort (overlay vs es)
               [ Set.fromList
                 [ v
                 | MV v m <- toList g
-                , m /= MOut
+                , m /= Out
                 , V v `Set.member` nl
-                , MV v MOut `notElem` g
+                , MV v Out `notElem` g
                 ]
               | (g, nl) <- gs
               ]
             outs =
-              [ Set.fromList [v | V v <- Set.elems nl, MV v MOut `elem` g]
+              [ Set.fromList [v | V v <- Set.elems nl, MV v Out `elem` g]
               | (g, nl) <- gs
               ]
         (i, (g, _)) <- zip [0 ..] gs

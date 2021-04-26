@@ -7,11 +7,12 @@ import Control.Applicative (Applicative(..), Alternative(..))
 import Control.Monad (guard)
 import Control.Monad.IO.Class (MonadIO(..))
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.Relation (Relation, Out, In, ConstructProcedure(..))
-import Data.Tuple.OneTuple
-import Data.Vinyl (rget, type (∈), Rec(..))
+import Control.Monad.Logic.Moded.AST (Mode(..))
+import Control.Monad.Logic.Moded.Relation (Relation, ConstructProcedure(..), PredType)
+import Data.Tuple.OneTuple (OneTuple(..), only)
+import Data.Vinyl (rget, Rec(..))
 import qualified Prelude
-import Prelude (Eq(..), Fractional(..), Num(..), Ord(..), (.), ($))
+import Prelude (Eq(..), Fractional(..), Num(..), Ord(..), (.), ($), (<$>))
 
 choose :: (Prelude.Foldable t, Alternative f) => t a -> f a
 choose = Prelude.foldr ((<|>) . pure) empty
@@ -89,8 +90,8 @@ show = (procedure @'[In, In] \a s -> guard (Prelude.show a == s))
     :& (procedure @'[Out, In] \s -> pure (OneTuple $ Prelude.read s))
     :& RNil
 
-observeAll :: (Applicative m, '[Out] ∈ rs) =>
-  Relation m '[Relation Logic.Logic '[a] rs, [a]] '[ '[In, Out] ]
-observeAll = (procedure @'[In, Out] \p ->
-              pure (OneTuple $ Logic.observeAll (Prelude.fmap only $ call (rget @'[Out] p))))
+observeAll :: Applicative m
+           => Relation m '[PredType Logic.Logic () '[a], [a]] '[ '[PredMode '[Out], Out] ]
+observeAll = (procedure @'[PredMode '[Out], Out] \p ->
+              pure (OneTuple $ Logic.observeAll (only <$> call p)))
           :& RNil
