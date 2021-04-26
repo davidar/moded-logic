@@ -26,7 +26,7 @@ constraints:
 1
 -}
 
-even = (procedure @'[ 'In ] evenI) :& RNil
+even = rget $ (procedure @'[ 'In ] evenI) :& RNil
   where
     evenI = \n -> Logic.once $ do
       -- solution: data0[0,1] data1[0,2] ~data0[0,0] ~data1[0,0] ~n[] ~n[0] ~n[0,0]
@@ -34,7 +34,7 @@ even = (procedure @'[ 'In ] evenI) :& RNil
       () <- (do
         data1 <- pure 0
         data0 <- pure 2
-        () <- runProcedure (rget @'[ 'In, 'In, 'In ] mod) n data0 data1
+        () <- runProcedure @'[ 'In, 'In, 'In ] mod n data0 data1
         pure ()
        )
       pure ()
@@ -73,7 +73,7 @@ constraints:
 1
 -}
 
-map = (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (procedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] mapP2IOIO) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] mapP2OIOI) :& (procedure @'[ 'PredMode '[ 'Out, 'Out ], 'Out, 'Out ] mapP2OOOO) :& RNil
+map = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (procedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] mapP2IOIO) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] mapP2OIOI) :& (procedure @'[ 'PredMode '[ 'Out, 'Out ], 'Out, 'Out ] mapP2OOOO) :& RNil
   where
     mapP2IIII = \p arg2 arg3 -> Logic.once $ do
       -- solution: x[1,0] xs[1,0] y[1,1] ys[1,1] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,2] ~ys[1,3] ~p(1) ~p(2)
@@ -85,7 +85,7 @@ map = (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (procedur
        ) <|> (do
         (x:xs) <- pure arg2
         (y:ys) <- pure arg3
-        () <- runProcedure (rget @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] map) p xs ys
+        () <- mapP2IIII p xs ys
         () <- runProcedure p x y
         pure ()
        )
@@ -100,7 +100,7 @@ map = (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (procedur
         pure (arg3)
        ) <|> (do
         (x:xs) <- pure arg2
-        (OneTuple (ys)) <- runProcedure (rget @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] map) p xs
+        (OneTuple (ys)) <- mapP2IOIO p xs
         (OneTuple (y)) <- runProcedure p x
         arg3 <- pure (y:ys)
         pure (arg3)
@@ -116,7 +116,7 @@ map = (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (procedur
         pure (arg2)
        ) <|> (do
         (y:ys) <- pure arg3
-        (OneTuple (xs)) <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] map) p ys
+        (OneTuple (xs)) <- mapP2OIOI p ys
         (OneTuple (x)) <- runProcedure p y
         arg2 <- pure (x:xs)
         pure (arg2)
@@ -131,7 +131,7 @@ map = (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (procedur
         arg3 <- pure []
         pure (arg2,arg3)
        ) <|> (do
-        (xs,ys) <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'Out ], 'Out, 'Out ] map) p
+        (xs,ys) <- mapP2OOOO p
         (x,y) <- runProcedure p 
         arg2 <- pure (x:xs)
         arg3 <- pure (y:ys)
@@ -158,7 +158,7 @@ constraints:
 1
 -}
 
-succs = (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] succsIO) :& (procedure @'[ 'Out, 'In ] succsOI) :& RNil
+succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] succsIO) :& (procedure @'[ 'Out, 'In ] succsOI) :& RNil
   where
     succsII = \xs ys -> Logic.once $ do
       -- solution: ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~y[0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1) ~pred0(2)
@@ -167,11 +167,11 @@ succs = (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] succsIO
         let pred0 = procedure @'[ 'In, 'In ] $
               \x y -> do
                 () <- (do
-                  () <- runProcedure (rget @'[ 'In, 'In ] succ) x y
+                  () <- runProcedure @'[ 'In, 'In ] succ x y
                   pure ()
                  )
                 pure ()
-        () <- runProcedure (rget @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] map) pred0 xs ys
+        () <- runProcedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] map pred0 xs ys
         pure ()
        )
       pure ()
@@ -183,11 +183,11 @@ succs = (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] succsIO
         let pred0 = procedure @'[ 'In, 'Out ] $
               \x -> do
                 (y) <- (do
-                  (OneTuple (y)) <- runProcedure (rget @'[ 'In, 'Out ] succ) x
+                  (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ x
                   pure (y)
                  )
                 pure (OneTuple (y))
-        (OneTuple (ys)) <- runProcedure (rget @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] map) pred0 xs
+        (OneTuple (ys)) <- runProcedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] map pred0 xs
         pure (ys)
        )
       pure (OneTuple (ys))
@@ -199,11 +199,11 @@ succs = (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] succsIO
         let pred0 = procedure @'[ 'Out, 'In ] $
               \y -> do
                 (x) <- (do
-                  (OneTuple (x)) <- runProcedure (rget @'[ 'Out, 'In ] succ) y
+                  (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ y
                   pure (x)
                  )
                 pure (OneTuple (x))
-        (OneTuple (xs)) <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] map) pred0 ys
+        (OneTuple (xs)) <- runProcedure @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] map pred0 ys
         pure (xs)
        )
       pure (OneTuple (xs))
@@ -266,7 +266,7 @@ constraints:
 1
 -}
 
-filter = (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (procedure @'[ 'PredMode '[ 'In ], 'In, 'Out ] filterP1IIO) :& RNil
+filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (procedure @'[ 'PredMode '[ 'In ], 'In, 'Out ] filterP1IIO) :& RNil
   where
     filterP1III = \p arg2 arg3 -> Logic.once $ do
       -- solution: h[1,1] h0[1,0] h1[1,2,1,1] t[1,0] t'[1,2,1,1] ts[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,3] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,2] ~p[] ~p[1] ~p[1,2] ~p[1,2,1] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,0] ~ts[1,2] ~ts[1,2,1] ~ts[1,2,1,1] ~ts[1,2,2] ~ts[1,2,2,0] ~p(1)
@@ -285,10 +285,10 @@ filter = (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (procedur
          )) (\() -> (do
           (h1:t') <- pure ts
           guard $ h1 == h
-          () <- runProcedure (rget @'[ 'PredMode '[ 'In ], 'In, 'In ] filter) p t t'
+          () <- filterP1III p t t'
           pure ()
          )) ((do
-          () <- runProcedure (rget @'[ 'PredMode '[ 'In ], 'In, 'In ] filter) p t ts
+          () <- filterP1III p t ts
           pure ()
          ))
         pure ()
@@ -310,11 +310,11 @@ filter = (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (procedur
           pure ()
          )) (\() -> (do
           h1 <- pure h
-          (OneTuple (t')) <- runProcedure (rget @'[ 'PredMode '[ 'In ], 'In, 'Out ] filter) p t
+          (OneTuple (t')) <- filterP1IIO p t
           ts <- pure (h1:t')
           pure (ts)
          )) ((do
-          (OneTuple (ts)) <- runProcedure (rget @'[ 'PredMode '[ 'In ], 'In, 'Out ] filter) p t
+          (OneTuple (ts)) <- filterP1IIO p t
           pure (ts)
          ))
         arg3 <- pure ts
@@ -338,7 +338,7 @@ constraints:
 1
 -}
 
-evens = (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] evensIO) :& RNil
+evens = rget $ (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] evensIO) :& RNil
   where
     evensII = \xs ys -> Logic.once $ do
       -- solution: ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1)
@@ -347,11 +347,11 @@ evens = (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] evensIO
         let pred0 = procedure @'[ 'In ] $
               \x -> do
                 () <- (do
-                  () <- runProcedure (rget @'[ 'In ] even) x
+                  () <- runProcedure @'[ 'In ] even x
                   pure ()
                  )
                 pure ()
-        () <- runProcedure (rget @'[ 'PredMode '[ 'In ], 'In, 'In ] filter) pred0 xs ys
+        () <- runProcedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filter pred0 xs ys
         pure ()
        )
       pure ()
@@ -363,11 +363,11 @@ evens = (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] evensIO
         let pred0 = procedure @'[ 'In ] $
               \x -> do
                 () <- (do
-                  () <- runProcedure (rget @'[ 'In ] even) x
+                  () <- runProcedure @'[ 'In ] even x
                   pure ()
                  )
                 pure ()
-        (OneTuple (ys)) <- runProcedure (rget @'[ 'PredMode '[ 'In ], 'In, 'Out ] filter) pred0 xs
+        (OneTuple (ys)) <- runProcedure @'[ 'PredMode '[ 'In ], 'In, 'Out ] filter pred0 xs
         pure (ys)
        )
       pure (OneTuple (ys))
@@ -412,7 +412,7 @@ constraints:
 1
 -}
 
-foldl = (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIOIII) :& (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldlP3IIOIIO) :& (procedure @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldlP3IOIIOI) :& (procedure @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'In ] foldlP3OIOOII) :& (procedure @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'Out ] foldlP3OIOOIO) :& (procedure @'[ 'PredMode '[ 'Out, 'Out, 'In ], 'Out, 'Out, 'In ] foldlP3OOIOOI) :& RNil
+foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIOIII) :& (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldlP3IIOIIO) :& (procedure @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldlP3IOIIOI) :& (procedure @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'In ] foldlP3OIOOII) :& (procedure @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'Out ] foldlP3OIOOIO) :& (procedure @'[ 'PredMode '[ 'Out, 'Out, 'In ], 'Out, 'Out, 'In ] foldlP3OOIOOI) :& RNil
   where
     foldlP3IIOIII = \p arg2 a arg4 -> Logic.once $ do
       -- solution: a'[1,1] a''[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
@@ -425,7 +425,7 @@ foldl = (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIO
         a'' <- pure arg4
         (h:t) <- pure arg2
         (OneTuple (a')) <- runProcedure p h a
-        () <- runProcedure (rget @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldl) p t a' a''
+        () <- foldlP3IIOIII p t a' a''
         pure ()
        )
       pure ()
@@ -440,7 +440,7 @@ foldl = (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIO
        ) <|> (do
         (h:t) <- pure arg2
         (OneTuple (a')) <- runProcedure p h a
-        (OneTuple (a'')) <- runProcedure (rget @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldl) p t a'
+        (OneTuple (a'')) <- foldlP3IIOIIO p t a'
         arg4 <- pure a''
         pure (arg4)
        )
@@ -456,7 +456,7 @@ foldl = (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIO
        ) <|> (do
         a'' <- pure arg4
         (h:t) <- pure arg2
-        (OneTuple (a')) <- runProcedure (rget @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldl) p t a''
+        (OneTuple (a')) <- foldlP3IOIIOI p t a''
         (OneTuple (a)) <- runProcedure p h a'
         pure (a)
        )
@@ -472,7 +472,7 @@ foldl = (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIO
        ) <|> (do
         a'' <- pure arg4
         (h,a') <- runProcedure p a
-        (OneTuple (t)) <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'In ] foldl) p a' a''
+        (OneTuple (t)) <- foldlP3OIOOII p a' a''
         arg2 <- pure (h:t)
         pure (arg2)
        )
@@ -487,7 +487,7 @@ foldl = (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIO
         pure (arg2,arg4)
        ) <|> (do
         (h,a') <- runProcedure p a
-        (t,a'') <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'Out ] foldl) p a'
+        (t,a'') <- foldlP3OIOOIO p a'
         arg4 <- pure a''
         arg2 <- pure (h:t)
         pure (arg2,arg4)
@@ -503,7 +503,7 @@ foldl = (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIO
         pure (a,arg2)
        ) <|> (do
         a'' <- pure arg4
-        (t,a') <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'Out, 'In ], 'Out, 'Out, 'In ] foldl) p a''
+        (t,a') <- foldlP3OOIOOI p a''
         (h,a) <- runProcedure p a'
         arg2 <- pure (h:t)
         pure (a,arg2)
@@ -534,7 +534,7 @@ constraints:
 1
 -}
 
-sum = (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 'Out ] sumIIO) :& (procedure @'[ 'In, 'Out, 'In ] sumIOI) :& RNil
+sum = rget $ (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 'Out ] sumIIO) :& (procedure @'[ 'In, 'Out, 'In ] sumIOI) :& RNil
   where
     sumIII = \xs z r -> Logic.once $ do
       -- solution: a'[0,1,0] a'[0,1,0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
@@ -543,11 +543,11 @@ sum = (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 'Out ] 
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
               \x a -> do
                 (a') <- (do
-                  (OneTuple (a')) <- runProcedure (rget @'[ 'In, 'In, 'Out ] plus) x a
+                  (OneTuple (a')) <- runProcedure @'[ 'In, 'In, 'Out ] plus x a
                   pure (a')
                  )
                 pure (OneTuple (a'))
-        () <- runProcedure (rget @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldl) pred0 xs z r
+        () <- runProcedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldl pred0 xs z r
         pure ()
        )
       pure ()
@@ -559,11 +559,11 @@ sum = (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 'Out ] 
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
               \x a -> do
                 (a') <- (do
-                  (OneTuple (a')) <- runProcedure (rget @'[ 'In, 'In, 'Out ] plus) x a
+                  (OneTuple (a')) <- runProcedure @'[ 'In, 'In, 'Out ] plus x a
                   pure (a')
                  )
                 pure (OneTuple (a'))
-        (OneTuple (r)) <- runProcedure (rget @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldl) pred0 xs z
+        (OneTuple (r)) <- runProcedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldl pred0 xs z
         pure (r)
        )
       pure (OneTuple (r))
@@ -575,11 +575,11 @@ sum = (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 'Out ] 
         let pred0 = procedure @'[ 'In, 'Out, 'In ] $
               \x a' -> do
                 (a) <- (do
-                  (OneTuple (a)) <- runProcedure (rget @'[ 'In, 'Out, 'In ] plus) x a'
+                  (OneTuple (a)) <- runProcedure @'[ 'In, 'Out, 'In ] plus x a'
                   pure (a)
                  )
                 pure (OneTuple (a))
-        (OneTuple (z)) <- runProcedure (rget @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldl) pred0 xs r
+        (OneTuple (z)) <- runProcedure @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldl pred0 xs r
         pure (z)
        )
       pure (OneTuple (z))
@@ -609,7 +609,7 @@ constraints:
 1
 -}
 
-split = (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out, 'In, 'In ] splitOII) :& (procedure @'[ 'Out, 'In, 'Out ] splitOIO) :& RNil
+split = rget $ (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out, 'In, 'In ] splitOII) :& (procedure @'[ 'Out, 'In, 'Out ] splitOIO) :& RNil
   where
     splitIOI = \xs r -> do
       -- solution: a[0,1,0] a[0,1,0,0] z[] z[0] z[0,0] pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
@@ -622,7 +622,7 @@ split = (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out, 'In, '
                   pure (a)
                  )
                 pure (OneTuple (a))
-        (OneTuple (z)) <- runProcedure (rget @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldl) pred0 xs r
+        (OneTuple (z)) <- runProcedure @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldl pred0 xs r
         pure (z)
        )
       pure (OneTuple (z))
@@ -638,7 +638,7 @@ split = (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out, 'In, '
                   pure (a',x)
                  )
                 pure (x,a')
-        (OneTuple (xs)) <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'In ] foldl) pred0 z r
+        (OneTuple (xs)) <- runProcedure @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'In ] foldl pred0 z r
         pure (xs)
        )
       pure (OneTuple (xs))
@@ -654,7 +654,7 @@ split = (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out, 'In, '
                   pure (a',x)
                  )
                 pure (x,a')
-        (xs,r) <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'Out ] foldl) pred0 z
+        (xs,r) <- runProcedure @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'Out ] foldl pred0 z
         pure (r,xs)
        )
       pure (xs,r)
@@ -684,7 +684,7 @@ constraints:
 1
 -}
 
-splitr = (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In, 'In, 'Out ] splitrIIO) :& (procedure @'[ 'Out, 'Out, 'In ] splitrOOI) :& RNil
+splitr = rget $ (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In, 'In, 'Out ] splitrIIO) :& (procedure @'[ 'Out, 'Out, 'In ] splitrOOI) :& RNil
   where
     splitrIII = \xs z r -> Logic.once $ do
       -- solution: a'[0,1,0] a'[0,1,0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
@@ -697,7 +697,7 @@ splitr = (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In, 'In, '
                   pure (a')
                  )
                 pure (OneTuple (a'))
-        () <- runProcedure (rget @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldl) pred0 xs z r
+        () <- runProcedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldl pred0 xs z r
         pure ()
        )
       pure ()
@@ -713,7 +713,7 @@ splitr = (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In, 'In, '
                   pure (a')
                  )
                 pure (OneTuple (a'))
-        (OneTuple (r)) <- runProcedure (rget @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldl) pred0 xs z
+        (OneTuple (r)) <- runProcedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldl pred0 xs z
         pure (r)
        )
       pure (OneTuple (r))
@@ -729,7 +729,7 @@ splitr = (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In, 'In, '
                   pure (a,x)
                  )
                 pure (x,a)
-        (xs,z) <- runProcedure (rget @'[ 'PredMode '[ 'Out, 'Out, 'In ], 'Out, 'Out, 'In ] foldl) pred0 r
+        (xs,z) <- runProcedure @'[ 'PredMode '[ 'Out, 'Out, 'In ], 'Out, 'Out, 'In ] foldl pred0 r
         pure (xs,z)
        )
       pure (xs,z)

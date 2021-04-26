@@ -44,12 +44,12 @@ callMode :: ModeString -> Text
 callMode (ModeString ms) = "'[ " <> T.intercalate ", " ms' <> " ]"
   where
     ms' = do
-        m <- ms
-        pure $
-          case m of
-            Out -> "'Out"
-            In -> "'In"
-            PredMode pm -> "'PredMode " <> callMode (ModeString pm)
+      m <- ms
+      pure $
+        case m of
+          Out -> "'Out"
+          In -> "'In"
+          PredMode pm -> "'PredMode " <> callMode (ModeString pm)
 
 cgTuple :: [Text] -> Text
 cgTuple [] = "()"
@@ -74,16 +74,21 @@ cgAtom p r =
     Pred name vs
       | head name == '('
       , last name == ')' ->
-        "guard $ " <>
-        T.unwords (T.pack <$> name : [v | MV v m <- vs, m /= Out])
+        "guard $ " <> T.unwords (T.pack <$> name : [v | MV v m <- vs, m /= Out])
     Pred name vs ->
       cgTuple [T.pack v | MV v Out <- vs] <>
       " <- " <> name' <> " " <> T.unwords [T.pack v | MV v m <- vs, m /= Out]
       where name' =
               case varMode <$> vs of
                 [] -> T.pack name
-                _ | V name `elem` map stripMode (ruleArgs r) -> "runProcedure " <> T.pack name
-                ms -> "runProcedure (rget @" <> callMode (ModeString ms) <> " " <> T.pack name <> ")"
+                ms
+                  | name == ruleName r ->
+                    T.pack name <> T.pack (show (ModeString ms))
+                  | V name `elem` map stripMode (ruleArgs r) ->
+                    "runProcedure " <> T.pack name
+                  | otherwise ->
+                    "runProcedure @" <>
+                    callMode (ModeString ms) <> " " <> T.pack name
   where
     Atom a = extract p $ ruleBody r
 
@@ -244,10 +249,10 @@ compile moduleName (Prog pragmas rules) =
             fields =
               T.intercalate " :& " $ do
                 ms <- Map.keys (procedures c)
-                pure $ "(procedure @" <> callMode ms <> " " <> T.pack name <> T.pack (show ms) <> ")"
-            rel =
-              T.pack name <>
-              " = " <> fields <> " :& RNil"
+                pure $
+                  "(procedure @" <>
+                  callMode ms <> " " <> T.pack name <> T.pack (show ms) <> ")"
+            rel = T.pack name <> " = rget $ " <> fields <> " :& RNil"
             defs =
               T.unlines $ do
                 (ms, procs) <- Map.assocs (procedures c)

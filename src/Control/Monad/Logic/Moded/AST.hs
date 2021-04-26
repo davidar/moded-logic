@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveLift, LambdaCase #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveLift, LambdaCase
+  #-}
 
 module Control.Monad.Logic.Moded.AST
   ( Prog(..)
