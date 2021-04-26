@@ -1,14 +1,17 @@
-{-# LANGUAGE NoImplicitPrelude, NoMonomorphismRestriction #-}
+{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
 module Sort where
 
 import Prelude (Eq(..), Ord(..), Maybe(..), Integer, ($), (.))
 import Control.Applicative
 import Control.Monad
 import qualified Control.Monad.Logic as Logic
+import Control.Monad.Logic.Moded.AST
 import Control.Monad.Logic.Moded.Prelude
 import Control.Monad.Logic.Moded.Relation
 import Data.List (nub)
 import Data.MemoTrie
+import Data.Tuple.OneTuple
+import Data.Vinyl
 
 {- partition/4
 partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h0:t, h0 = h, if ((<=) h p) then (partition t p lo1 hi, lo = h1:lo1, h1 = h) else (partition t p lo hi1, hi = h2:hi1, h2 = h), arg2 = p, arg3 = lo, arg4 = hi)).
@@ -94,7 +97,7 @@ constraints:
 1
 -}
 
-partition = R4 { callIIII = partitionIIII, callIIIO = partitionIIIO, callIIOI = partitionIIOI, callIIOO = partitionIIOO }
+partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (procedure @'[ 'In, 'In, 'In, 'Out ] partitionIIIO) :& (procedure @'[ 'In, 'In, 'Out, 'In ] partitionIIOI) :& (procedure @'[ 'In, 'In, 'Out, 'Out ] partitionIIOO) :& RNil
   where
     partitionIIII = \arg1 arg2 arg3 arg4 -> Logic.once $ do
       -- solution: h[1,1] h0[1,0] h1[1,2,1,1] h2[1,2,2,1] hi[1,5] hi1[1,2,2,1] lo[1,4] lo1[1,2,1,1] p[1,3] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,4] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,2] ~h2[1,2,2,2] ~hi[1,2] ~hi[1,2,1] ~hi[1,2,1,0] ~hi[1,2,2] ~hi[1,2,2,1] ~hi1[1,2,2,0] ~lo[1,2] ~lo[1,2,1] ~lo[1,2,1,1] ~lo[1,2,2] ~lo[1,2,2,0] ~lo1[1,2,1,0] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
@@ -116,12 +119,12 @@ partition = R4 { callIIII = partitionIIII, callIIIO = partitionIIIO, callIIOI = 
          )) (\() -> (do
           (h1:lo1) <- pure lo
           guard $ h1 == h
-          () <- callIIII partition t p lo1 hi
+          () <- partitionIIII t p lo1 hi
           pure ()
          )) ((do
           (h2:hi1) <- pure hi
           guard $ h2 == h
-          () <- callIIII partition t p lo hi1
+          () <- partitionIIII t p lo hi1
           pure ()
          ))
         pure ()
@@ -147,18 +150,18 @@ partition = R4 { callIIII = partitionIIII, callIIIO = partitionIIIO, callIIOI = 
          )) (\() -> (do
           (h1:lo1) <- pure lo
           guard $ h1 == h
-          (hi) <- callIIIO partition t p lo1
+          (OneTuple (hi)) <- partitionIIIO t p lo1
           pure (hi)
          )) ((do
           h2 <- pure h
-          (hi1) <- callIIIO partition t p lo
+          (OneTuple (hi1)) <- partitionIIIO t p lo
           hi <- pure (h2:hi1)
           pure (hi)
          ))
         arg4 <- pure hi
         pure (arg4)
        )
-      pure (arg4)
+      pure (OneTuple (arg4))
     
     partitionIIOI = \arg1 arg2 arg4 -> do
       -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] h[1,1] h0[1,0] h1[1,2,1,2] h2[1,2,2,1] hi[1,5] hi1[1,2,2,1] lo[1,2] lo[1,2,1] lo[1,2,1,1] lo[1,2,2] lo[1,2,2,0] lo1[1,2,1,0] p[1,3] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,1] ~h2[1,2,2,2] ~hi[1,2] ~hi[1,2,1] ~hi[1,2,1,0] ~hi[1,2,2] ~hi[1,2,2,1] ~hi1[1,2,2,0] ~lo[1,4] ~lo1[1,2,1,1] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
@@ -178,19 +181,19 @@ partition = R4 { callIIII = partitionIIII, callIIIO = partitionIIIO, callIIOI = 
           pure ()
          )) (\() -> (do
           h1 <- pure h
-          (lo1) <- callIIOI partition t p hi
+          (OneTuple (lo1)) <- partitionIIOI t p hi
           lo <- pure (h1:lo1)
           pure (lo)
          )) ((do
           (h2:hi1) <- pure hi
           guard $ h2 == h
-          (lo) <- callIIOI partition t p hi1
+          (OneTuple (lo)) <- partitionIIOI t p hi1
           pure (lo)
          ))
         arg3 <- pure lo
         pure (arg3)
        )
-      pure (arg3)
+      pure (OneTuple (arg3))
     
     partitionIIOO = \arg1 arg2 -> do
       -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] h[1,1] h0[1,0] h1[1,2,1,2] h2[1,2,2,2] hi[1,2] hi[1,2,1] hi[1,2,1,0] hi[1,2,2] hi[1,2,2,1] hi1[1,2,2,0] lo[1,2] lo[1,2,1] lo[1,2,1,1] lo[1,2,2] lo[1,2,2,0] lo1[1,2,1,0] p[1,3] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,1] ~h2[1,2,2,1] ~hi[1,5] ~hi1[1,2,2,1] ~lo[1,4] ~lo1[1,2,1,1] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
@@ -209,12 +212,12 @@ partition = R4 { callIIII = partitionIIII, callIIIO = partitionIIIO, callIIOI = 
           pure ()
          )) (\() -> (do
           h1 <- pure h
-          (lo1,hi) <- callIIOO partition t p
+          (lo1,hi) <- partitionIIOO t p
           lo <- pure (h1:lo1)
           pure (hi,lo)
          )) ((do
           h2 <- pure h
-          (lo,hi1) <- callIIOO partition t p
+          (lo,hi1) <- partitionIIOO t p
           hi <- pure (h2:hi1)
           pure (hi,lo)
          ))
@@ -277,7 +280,7 @@ constraints:
 1
 -}
 --mode ordering failure, cyclic dependency: [2] partition xs::I x::I ys::O zs::O -> [4] qsort ys::I r::I data0::O -> [5] data0::I = x1::O:r1::O -> [6] x1::I = x::O
-qsort = R3 { callIIO = qsortIIO, callIOI = qsortIOI }
+qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 'Out, 'In ] qsortIOI) :& RNil
   where
     qsortIIO = \arg1 r -> do
       -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,7] data0[1,4] r0[1,3] r1[1,5] x[1,1] x0[1,0] x1[1,5] xs[1,0] ys[1,2] zs[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~data0[1,5] ~r[] ~r[0] ~r[0,1] ~r[1] ~r[1,4] ~r0[1,7] ~r1[1,3] ~x[1,2] ~x[1,6] ~x0[1,1] ~x1[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
@@ -289,15 +292,15 @@ qsort = R3 { callIIO = qsortIIO, callIOI = qsortIOI }
        ) <|> (do
         (x0:xs) <- pure arg1
         x <- pure x0
-        (ys,zs) <- callIIOO partition xs x
-        (data0) <- callIIO qsort ys r
+        (ys,zs) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] partition xs x
+        (OneTuple (data0)) <- qsortIIO ys r
         (x1:r1) <- pure data0
         guard $ x1 == x
-        (r0) <- callIIO qsort zs r1
+        (OneTuple (r0)) <- qsortIIO zs r1
         arg3 <- pure r0
         pure (arg3)
        )
-      pure (arg3)
+      pure (OneTuple (arg3))
     
     qsortIOI = \arg1 arg3 -> do
       -- solution: data0[1,5] r[] r[0] r[0,1] r[1] r[1,4] r0[1,7] r1[1,3] x[1,1] x0[1,0] x1[1,6] xs[1,0] ys[1,2] zs[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,7] ~data0[1,4] ~r0[1,3] ~r1[1,5] ~x[1,2] ~x[1,6] ~x0[1,1] ~x1[1,5] ~xs[1,2] ~ys[1,4] ~zs[1,3]
@@ -311,13 +314,13 @@ qsort = R3 { callIIO = qsortIIO, callIOI = qsortIOI }
         (x0:xs) <- pure arg1
         x <- pure x0
         x1 <- pure x
-        (ys,zs) <- callIIOO partition xs x
-        (r1) <- callIOI qsort zs r0
+        (ys,zs) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] partition xs x
+        (OneTuple (r1)) <- qsortIOI zs r0
         data0 <- pure (x1:r1)
-        (r) <- callIOI qsort ys data0
+        (OneTuple (r)) <- qsortIOI ys data0
         pure (r)
        )
-      pure (r)
+      pure (OneTuple (r))
     
 {- sort/2
 sort list sorted :- ((qsort list sorted data0, data0 = [])).
@@ -332,13 +335,13 @@ constraints:
 1
 -}
 
-sort = R2 { callII = sortII, callIO = sortIO }
+sort = rget $ (procedure @'[ 'In, 'In ] sortII) :& (procedure @'[ 'In, 'Out ] sortIO) :& RNil
   where
     sortII = \list sorted -> Logic.once $ do
       -- solution: data0[0,0] ~data0[0,1] ~list[] ~list[0] ~list[0,0] ~sorted[] ~sorted[0] ~sorted[0,0]
       -- cost: 2
       () <- (do
-        (data0) <- callIIO qsort list sorted
+        (OneTuple (data0)) <- runProcedure @'[ 'In, 'In, 'Out ] qsort list sorted
         guard $ data0 == []
         pure ()
        )
@@ -349,8 +352,8 @@ sort = R2 { callII = sortII, callIO = sortIO }
       -- cost: 2
       (sorted) <- (do
         data0 <- pure []
-        (sorted) <- callIOI qsort list data0
+        (OneTuple (sorted)) <- runProcedure @'[ 'In, 'Out, 'In ] qsort list data0
         pure (sorted)
        )
-      pure (sorted)
+      pure (OneTuple (sorted))
     

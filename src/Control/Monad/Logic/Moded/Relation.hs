@@ -102,8 +102,8 @@ instance (CallProcedure ms m (z :* a) as f, bs ~ (a : as)) =>
          CallProcedure ('Out : ms) m z bs f where
   call (PO f) = call f
 
-instance (Functor m, Snoc (() :* z :* zs) t, bs ~ '[]) =>
-         CallProcedure '[] m (() :* z :* zs) bs (m t) where
+instance (Functor m, Snoc (zs :* z :* z') t, bs ~ '[]) =>
+         CallProcedure '[] m (zs :* z :* z') bs (m t) where
   call (PN f) = unsnoc <$> f
 
 instance (Functor m, bs ~ '[]) => CallProcedure '[] m (() :* z) bs (m z) where

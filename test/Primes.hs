@@ -1,14 +1,17 @@
-{-# LANGUAGE NoImplicitPrelude, NoMonomorphismRestriction #-}
+{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
 module Primes where
 
 import Prelude (Eq(..), Ord(..), Maybe(..), Integer, ($), (.))
 import Control.Applicative
 import Control.Monad
 import qualified Control.Monad.Logic as Logic
+import Control.Monad.Logic.Moded.AST
 import Control.Monad.Logic.Moded.Prelude
 import Control.Monad.Logic.Moded.Relation
 import Data.List (nub)
 import Data.MemoTrie
+import Data.Tuple.OneTuple
+import Data.Vinyl
 
 {- integers/3
 integers low high result :- ((if ((<=) low high) then (succ low m, integers m high rest, result = low:rest) else (result = []))).
@@ -44,7 +47,7 @@ constraints:
 1
 -}
 
-integers = R3 { callIIO = integersIIO }
+integers = rget $ (procedure @'[ 'In, 'In, 'Out ] integersIIO) :& RNil
   where
     integersIIO = \low high -> do
       -- solution: m[0,0,1,0] rest[0,0,1,1] result[] result[0] result[0,0] result[0,0,1] result[0,0,1,2] result[0,0,2] result[0,0,2,0] ~high[] ~high[0] ~high[0,0] ~high[0,0,0,0] ~high[0,0,1,1] ~low[] ~low[0] ~low[0,0] ~low[0,0,0,0] ~low[0,0,1,0] ~low[0,0,1,2] ~m[0,0,1,1] ~rest[0,0,1,2]
@@ -54,8 +57,8 @@ integers = R3 { callIIO = integersIIO }
           guard $ (<=) low high
           pure ()
          )) (\() -> (do
-          (m) <- callIO succ low
-          (rest) <- callIIO integers m high
+          (OneTuple (m)) <- runProcedure @'[ 'In, 'Out ] succ low
+          (OneTuple (rest)) <- integersIIO m high
           result <- pure (low:rest)
           pure (result)
          )) ((do
@@ -64,7 +67,7 @@ integers = R3 { callIIO = integersIIO }
          ))
         pure (result)
        )
-      pure (result)
+      pure (OneTuple (result))
     
 {- remove/3
 remove arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = j0:js, j0 = j, mod j p m, remove p js njs, if (m = 0) then (result = njs) else (result = j1:njs, j1 = j), arg1 = p, arg3 = result)).
@@ -129,7 +132,7 @@ constraints:
 1
 -}
 
-remove = R3 { callIII = removeIII, callIIO = removeIIO }
+remove = rget $ (procedure @'[ 'In, 'In, 'In ] removeIII) :& (procedure @'[ 'In, 'In, 'Out ] removeIIO) :& RNil
   where
     removeIII = \arg1 arg2 arg3 -> Logic.once $ do
       -- solution: j[1,1] j0[1,0] j1[1,4,2,0] js[1,0] m[1,2] njs[1,4] njs[1,4,1] njs[1,4,1,0] njs[1,4,2] njs[1,4,2,0] p[1,5] result[1,6] ~arg1[] ~arg1[1] ~arg1[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,6] ~j[1,2] ~j[1,4] ~j[1,4,2] ~j[1,4,2,1] ~j0[1,1] ~j1[1,4,2,1] ~js[1,3] ~m[1,4] ~m[1,4,0,0] ~njs[1,3] ~p[1,2] ~p[1,3] ~result[1,4] ~result[1,4,1] ~result[1,4,1,0] ~result[1,4,2] ~result[1,4,2,0]
@@ -143,7 +146,7 @@ remove = R3 { callIII = removeIII, callIIO = removeIIO }
         result <- pure arg3
         (j0:js) <- pure arg2
         j <- pure j0
-        (m) <- callIIO mod j p
+        (OneTuple (m)) <- runProcedure @'[ 'In, 'In, 'Out ] mod j p
         (njs) <- Logic.ifte ((do
           guard $ m == 0
           pure ()
@@ -155,7 +158,7 @@ remove = R3 { callIII = removeIII, callIIO = removeIIO }
           guard $ j1 == j
           pure (njs)
          ))
-        () <- callIII remove p js njs
+        () <- removeIII p js njs
         pure ()
        )
       pure ()
@@ -171,8 +174,8 @@ remove = R3 { callIII = removeIII, callIIO = removeIIO }
         p <- pure arg1
         (j0:js) <- pure arg2
         j <- pure j0
-        (m) <- callIIO mod j p
-        (njs) <- callIIO remove p js
+        (OneTuple (m)) <- runProcedure @'[ 'In, 'In, 'Out ] mod j p
+        (OneTuple (njs)) <- removeIIO p js
         (result) <- Logic.ifte ((do
           guard $ m == 0
           pure ()
@@ -187,7 +190,7 @@ remove = R3 { callIII = removeIII, callIIO = removeIIO }
         arg3 <- pure result
         pure (arg3)
        )
-      pure (arg3)
+      pure (OneTuple (arg3))
     
 {- sift/2
 sift arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = p0:js, p0 = p, arg2 = p1:ps, p1 = p, remove p js new, sift new ps)).
@@ -226,7 +229,7 @@ constraints:
 1
 -}
 
-sift = R2 { callII = siftII, callIO = siftIO }
+sift = rget $ (procedure @'[ 'In, 'In ] siftII) :& (procedure @'[ 'In, 'Out ] siftIO) :& RNil
   where
     siftII = \arg1 arg2 -> Logic.once $ do
       -- solution: js[1,0] new[1,4] p[1,1] p0[1,0] p1[1,2] ps[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,2] ~js[1,4] ~new[1,5] ~p[1,3] ~p[1,4] ~p0[1,1] ~p1[1,3] ~ps[1,5]
@@ -240,8 +243,8 @@ sift = R2 { callII = siftII, callIO = siftIO }
         p <- pure p0
         (p1:ps) <- pure arg2
         guard $ p1 == p
-        (new) <- callIIO remove p js
-        () <- callII sift new ps
+        (OneTuple (new)) <- runProcedure @'[ 'In, 'In, 'Out ] remove p js
+        () <- siftII new ps
         pure ()
        )
       pure ()
@@ -257,12 +260,12 @@ sift = R2 { callII = siftII, callIO = siftIO }
         (p0:js) <- pure arg1
         p <- pure p0
         p1 <- pure p
-        (new) <- callIIO remove p js
-        (ps) <- callIO sift new
+        (OneTuple (new)) <- runProcedure @'[ 'In, 'In, 'Out ] remove p js
+        (OneTuple (ps)) <- siftIO new
         arg2 <- pure (p1:ps)
         pure (arg2)
        )
-      pure (arg2)
+      pure (OneTuple (arg2))
     
 {- primes/2
 primes limit ps :- ((integers data0 limit js, data0 = 2, sift js ps)).
@@ -280,15 +283,15 @@ constraints:
 1
 -}
 
-primes = R2 { callII = primesII, callIO = primesIO }
+primes = rget $ (procedure @'[ 'In, 'In ] primesII) :& (procedure @'[ 'In, 'Out ] primesIO) :& RNil
   where
     primesII = \limit ps -> Logic.once $ do
       -- solution: data0[0,1] js[0,0] ~data0[0,0] ~js[0,2] ~limit[] ~limit[0] ~limit[0,0] ~ps[] ~ps[0] ~ps[0,2]
       -- cost: 3
       () <- (do
         data0 <- pure 2
-        (js) <- callIIO integers data0 limit
-        () <- callII sift js ps
+        (OneTuple (js)) <- runProcedure @'[ 'In, 'In, 'Out ] integers data0 limit
+        () <- runProcedure @'[ 'In, 'In ] sift js ps
         pure ()
        )
       pure ()
@@ -298,9 +301,9 @@ primes = R2 { callII = primesII, callIO = primesIO }
       -- cost: 4
       (ps) <- (do
         data0 <- pure 2
-        (js) <- callIIO integers data0 limit
-        (ps) <- callIO sift js
+        (OneTuple (js)) <- runProcedure @'[ 'In, 'In, 'Out ] integers data0 limit
+        (OneTuple (ps)) <- runProcedure @'[ 'In, 'Out ] sift js
         pure (ps)
        )
-      pure (ps)
+      pure (OneTuple (ps))
     
