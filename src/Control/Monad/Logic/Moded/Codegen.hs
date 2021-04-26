@@ -41,15 +41,19 @@ mv :: ModedVar -> Text
 mv = T.pack . show . stripMode
 
 callMode :: ModeString -> Text
-callMode (ModeString ms) = "call" <> T.pack (show ms')
+callMode (ModeString ms) = "@'[" <> T.intercalate ", " ms' <> "]"
   where
-    ms' =
-      ModeString $ do
+    ms' = do
         m <- ms
         pure $
           case m of
-            MOut -> MOut
-            _ -> MIn
+            MOut -> "Out"
+            _ -> "In"
+
+cgTuple :: [Text] -> Text
+cgTuple [] = "()"
+cgTuple [x] = "(OneTuple (" <> x <> "))"
+cgTuple xs = "(" <> T.intercalate "," xs <> ")"
 
 cgFunc :: Name -> [ModedVar] -> Text
 cgFunc ":" vs = "(" <> T.intercalate ":" (map mv vs) <> ")"
@@ -72,13 +76,12 @@ cgAtom p r =
         "guard $ " <>
         T.unwords (T.pack <$> name : [v | MV v m <- vs, m /= MOut])
     Pred name vs ->
-      "(" <>
-      T.intercalate "," [T.pack v | MV v MOut <- vs] <>
-      ") <- " <> name' <> " " <> T.unwords [T.pack v | MV v m <- vs, m /= MOut]
+      cgTuple [T.pack v | MV v MOut <- vs] <>
+      " <- " <> name' <> " " <> T.unwords [T.pack v | MV v m <- vs, m /= MOut]
       where name' =
               case varMode <$> vs of
                 [] -> T.pack name
-                ms -> callMode (ModeString ms) <> " " <> T.pack name
+                ms -> "call (rget " <> callMode (ModeString ms) <> " " <> T.pack name <> ")"
   where
     Atom a = extract p $ ruleBody r
 
@@ -99,13 +102,12 @@ cgGoal p r =
                   Atom _ -> cgAtom p' r
                   Anon (MV name _) vs _ ->
                     let tname = T.pack name
-                        arity = T.pack . show $ length vs
                         field = callMode . ModeString $ varMode <$> vs
                         lam = cgGoal p' r
                      in [text|
-                          let $tname = R$arity { $field =
+                          let $tname = (procedure $field $
                                 $lam
-                                }
+                                ) :& RNil
                         |]
                   g ->
                     "(" <>
@@ -153,14 +155,14 @@ cgGoal p r =
               , MV v MOut `elem` body
               ]
           ins = [T.pack v | MV v m <- vars, m /= MOut]
-          outs = T.intercalate "," [T.pack v | MV v MOut <- vars]
+          out = cgTuple [T.pack v | MV v MOut <- vars]
           args
             | null ins = "do"
             | otherwise = "\\" <> T.unwords ins <> " -> do"
        in [text|
             $args
               ($rets) <- $code
-              pure ($outs)
+              pure $out
         |]
     Atom _ -> cgAtom p r
 
@@ -175,12 +177,11 @@ cgProcedure pragmas ms procedure =
           [T.pack v | V v <- Set.elems $ nonlocals' [] r, MV v MOut `elem` body]
       pragmaType = listToMaybe [ts | Pragma ("type":f:ts) <- pragmas, f == name]
       ins = [T.pack v | MV v m <- vars, m /= MOut]
-      outs =
+      out =
         case pragmaType of
-          Nothing -> T.intercalate "," [T.pack v | MV v MOut <- vars]
+          Nothing -> cgTuple [T.pack v | MV v MOut <- vars]
           Just ts ->
-            T.intercalate
-              ","
+            cgTuple
               [T.pack v <> " :: " <> T.pack t | (MV v MOut, t) <- zip vars ts]
       decorate
         | Pragma ["memo", name] `elem` pragmas =
@@ -197,18 +198,18 @@ cgProcedure pragmas ms procedure =
           "choose . nub . Logic.observeAll $ do"
         | Pragma ["memo", name] `elem` pragmas =
           "choose . Logic.observeAll $ do"
-        | T.null outs = "Logic.once $ do"
+        | out == "()" = "Logic.once $ do"
         | otherwise = "do"
    in [text|
         $nameMode = $decorate$args$transform
           ($rets) <- $code
-          pure ($outs)
+          pure $out
     |]
 
 compile :: Text -> Prog Var Var -> Text
 compile moduleName (Prog pragmas rules) =
   [text|
-    {-# LANGUAGE NoImplicitPrelude, NoMonomorphismRestriction #-}
+    {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
     module $moduleName where
 
     import Prelude (Eq(..), Ord(..), Maybe(..), Integer, ($), (.))
@@ -219,6 +220,8 @@ compile moduleName (Prog pragmas rules) =
     import Control.Monad.Logic.Moded.Relation
     import Data.List (nub)
     import Data.MemoTrie
+    import Data.Tuple.OneTuple
+    import Data.Vinyl
 
     $code
   |]
@@ -237,12 +240,12 @@ compile moduleName (Prog pragmas rules) =
               map show (Set.elems $ modeConstraints c) ++ ["-}"]
             errs = T.unlines $ commentLine . T.pack <$> errors c
             fields =
-              T.intercalate ", " $ do
+              T.intercalate " :& " $ do
                 ms <- Map.keys (procedures c)
-                pure $ callMode ms <> " = " <> T.pack name <> T.pack (show ms)
+                pure $ "(procedure " <> callMode ms <> " " <> T.pack name <> T.pack (show ms) <> ")"
             rel =
               T.pack name <>
-              " = R" <> T.pack (show arity) <> " { " <> fields <> " }"
+              " = " <> fields <> " :& RNil"
             defs =
               T.unlines $ do
                 (ms, procs) <- Map.assocs (procedures c)
