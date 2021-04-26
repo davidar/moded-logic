@@ -82,8 +82,8 @@ cgAtom p r =
       where name' =
               case varMode <$> vs of
                 [] -> T.pack name
-                _ | V name `elem` map stripMode (ruleArgs r) -> "call " <> T.pack name
-                ms -> "call (rget @" <> callMode (ModeString ms) <> " " <> T.pack name <> ")"
+                _ | V name `elem` map stripMode (ruleArgs r) -> "runProcedure " <> T.pack name
+                ms -> "runProcedure (rget @" <> callMode (ModeString ms) <> " " <> T.pack name <> ")"
   where
     Atom a = extract p $ ruleBody r
 

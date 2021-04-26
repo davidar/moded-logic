@@ -64,8 +64,8 @@ timesInt :: (Alternative m, Prelude.Integral a)
          => Relation m '[a, a, a] '[ '[In, In, In], '[In, In, Out], '[In, Out, In], '[Out, In, In] ]
 timesInt = (procedure @'[In, In, In] \a b c -> guard (a * b == c))
         :& (procedure @'[In, In, Out] \a b -> pure (OneTuple $ a * b))
-        :& (procedure @'[In, Out, In] \a c -> call (rget @'[In, In, Out, In] divMod) c a 0)
-        :& (procedure @'[Out, In, In] \b c -> call (rget @'[In, In, Out, In] divMod) c b 0)
+        :& (procedure @'[In, Out, In] \a c -> runProcedure (rget @'[In, In, Out, In] divMod) c a 0)
+        :& (procedure @'[Out, In, In] \b c -> runProcedure (rget @'[In, In, Out, In] divMod) c b 0)
         :& RNil
 
 sum :: (Alternative m, Prelude.Foldable t, Num a, Eq a)
@@ -93,5 +93,5 @@ show = (procedure @'[In, In] \a s -> guard (Prelude.show a == s))
 observeAll :: Applicative m
            => Relation m '[PredType Logic.Logic () '[a], [a]] '[ '[PredMode '[Out], Out] ]
 observeAll = (procedure @'[PredMode '[Out], Out] \p ->
-              pure (OneTuple $ Logic.observeAll (only <$> call p)))
+              pure (OneTuple $ Logic.observeAll (only <$> runProcedure p)))
           :& RNil
