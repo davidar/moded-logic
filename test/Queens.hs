@@ -1,17 +1,8 @@
 {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
 module Queens where
 
-import Prelude (Eq(..), Ord(..), Maybe(..), Integer, ($), (.))
-import Control.Applicative
-import Control.Monad
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.AST
 import Control.Monad.Logic.Moded.Prelude
-import Control.Monad.Logic.Moded.Relation
-import Data.List (nub)
-import Data.MemoTrie
-import Data.Tuple.OneTuple
-import Data.Vinyl
 
 {- qdelete/3
 qdelete arg1 arg2 arg3 :- ((arg2 = h0:t1, h0 = h, t1 = t, arg1 = h, arg3 = t); (arg2 = h2:t3, h2 = h, t3 = t, arg3 = h4:r, h4 = h, qdelete x t r, arg1 = x)).

@@ -1,17 +1,8 @@
 {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
 module Sort where
 
-import Prelude (Eq(..), Ord(..), Maybe(..), Integer, ($), (.))
-import Control.Applicative
-import Control.Monad
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.AST
 import Control.Monad.Logic.Moded.Prelude
-import Control.Monad.Logic.Moded.Relation
-import Data.List (nub)
-import Data.MemoTrie
-import Data.Tuple.OneTuple
-import Data.Vinyl
 
 {- partition/4
 partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h0:t, h0 = h, if ((<=) h p) then (partition t p lo1 hi, lo = h1:lo1, h1 = h) else (partition t p lo hi1, hi = h2:hi1, h2 = h), arg2 = p, arg3 = lo, arg4 = hi)).

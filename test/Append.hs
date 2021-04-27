@@ -1,17 +1,8 @@
 {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
 module Append where
 
-import Prelude (Eq(..), Ord(..), Maybe(..), Integer, ($), (.))
-import Control.Applicative
-import Control.Monad
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.AST
 import Control.Monad.Logic.Moded.Prelude
-import Control.Monad.Logic.Moded.Relation
-import Data.List (nub)
-import Data.MemoTrie
-import Data.Tuple.OneTuple
-import Data.Vinyl
 
 {- append/3
 append arg1 b arg3 :- ((arg1 = [], arg3 = b); (arg1 = h0:t, h0 = h, arg3 = h1:tb, h1 = h, append t b tb)).

@@ -1,17 +1,8 @@
 {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
 module HigherOrder where
 
-import Prelude (Eq(..), Ord(..), Maybe(..), Integer, ($), (.))
-import Control.Applicative
-import Control.Monad
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.AST
 import Control.Monad.Logic.Moded.Prelude
-import Control.Monad.Logic.Moded.Relation
-import Data.List (nub)
-import Data.MemoTrie
-import Data.Tuple.OneTuple
-import Data.Vinyl
 
 {- even/1
 even n :- ((mod n data0 data1, data0 = 2, data1 = 0)).

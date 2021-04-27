@@ -1,9 +1,36 @@
 {-# LANGUAGE NoMonomorphismRestriction, TypeOperators, DataKinds,
-  FlexibleContexts, TypeFamilies, RankNTypes, TypeApplications,
-  TypeFamilyDependencies, BlockArguments, ScopedTypeVariables #-}
-{-# OPTIONS_GHC -Wwarn #-}
+  FlexibleContexts, TypeApplications, BlockArguments #-}
+{-# OPTIONS_GHC -Wwarn -Wno-unticked-promoted-constructors #-}
 
-module Control.Monad.Logic.Moded.Prelude where
+module Control.Monad.Logic.Moded.Prelude
+  ( choose
+  , succ
+  , div
+  , mod
+  , divMod
+  , plus
+  , times
+  , timesInt
+  , sum
+  , maximum
+  , print
+  , show
+  , observeAll
+  , Eq(..)
+  , Ord(..)
+  , Maybe(..)
+  , Integer
+  , ($)
+  , (.)
+  , nub
+  , module Control.Applicative
+  , module Control.Monad
+  , module Control.Monad.Logic.Moded.AST
+  , module Control.Monad.Logic.Moded.Relation
+  , module Data.MemoTrie
+  , module Data.Tuple.OneTuple
+  , module Data.Vinyl
+  ) where
 
 import Control.Applicative (Alternative(..), Applicative(..))
 import Control.Monad (guard)
@@ -15,10 +42,22 @@ import Control.Monad.Logic.Moded.Relation
   , PredType
   , Procedure
   )
+import Data.List (nub)
+import Data.MemoTrie (memo, memo2, memo3)
 import Data.Tuple.OneTuple (OneTuple(..), only)
 import Data.Vinyl (type (∈), Rec(..), rget)
 import qualified Prelude
-import Prelude (Eq(..), Fractional(..), Num(..), Ord(..), ($), (.), (<$>))
+import Prelude
+  ( Eq(..)
+  , Fractional(..)
+  , Integer
+  , Maybe(..)
+  , Num(..)
+  , Ord(..)
+  , ($)
+  , (.)
+  , (<$>)
+  )
 
 choose :: (Prelude.Foldable t, Alternative f) => t a -> f a
 choose = Prelude.foldr ((<|>) . pure) empty

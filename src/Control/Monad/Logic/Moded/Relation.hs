@@ -1,7 +1,6 @@
-{-# LANGUAGE TypeOperators, DataKinds, KindSignatures,
-  TypeFamilies, GADTs, MultiParamTypeClasses, FlexibleInstances,
-  FlexibleContexts, PolyKinds, UndecidableInstances, RankNTypes,
-  ScopedTypeVariables, FunctionalDependencies #-}
+{-# LANGUAGE TypeOperators, DataKinds, GADTs, FlexibleInstances,
+  PolyKinds, UndecidableInstances, ScopedTypeVariables,
+  FunctionalDependencies #-}
 
 module Control.Monad.Logic.Moded.Relation
   ( Procedure
