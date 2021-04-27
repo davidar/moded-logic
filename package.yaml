@@ -32,9 +32,11 @@ dependencies:
 - megaparsec
 - mtl
 - neat-interpolation
+- OneTuple
 - picosat
 - template-haskell
 - text
+- vinyl
 
 library:
   source-dirs: src

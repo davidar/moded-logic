@@ -40,6 +40,22 @@ nonlocals' p (Rule name vars body) =
 mv :: ModedVar -> Text
 mv = T.pack . show . stripMode
 
+callMode :: ModeString -> Text
+callMode (ModeString ms) = "'[ " <> T.intercalate ", " ms' <> " ]"
+  where
+    ms' = do
+      m <- ms
+      pure $
+        case m of
+          Out -> "'Out"
+          In -> "'In"
+          PredMode pm -> "'PredMode " <> callMode (ModeString pm)
+
+cgTuple :: [Text] -> Text
+cgTuple [] = "()"
+cgTuple [x] = "(OneTuple (" <> x <> "))"
+cgTuple xs = "(" <> T.intercalate "," xs <> ")"
+
 cgFunc :: Name -> [ModedVar] -> Text
 cgFunc ":" vs = "(" <> T.intercalate ":" (map mv vs) <> ")"
 cgFunc ".." [u, v] = "[" <> mv u <> ".." <> mv v <> "]"
@@ -49,28 +65,30 @@ cgFunc name vs = "(" <> T.unwords (T.pack name : map mv vs) <> ")"
 cgAtom :: Path -> Rule ModedVar ModedVar -> Text
 cgAtom p r =
   case a of
-    Unif (MV u MOut) v -> T.pack u <> " <- pure " <> mv v
-    Unif u (MV v MOut) -> T.pack v <> " <- pure " <> mv u
+    Unif (MV u Out) v -> T.pack u <> " <- pure " <> mv v
+    Unif u (MV v Out) -> T.pack v <> " <- pure " <> mv u
     Unif u v -> "guard $ " <> mv u <> " == " <> mv v
-    Func name vs@(MV _ MOut:_) u -> cgFunc name vs <> " <- pure " <> mv u
-    Func name vs (MV u MOut) -> T.pack u <> " <- pure " <> cgFunc name vs
+    Func name vs@(MV _ Out:_) u -> cgFunc name vs <> " <- pure " <> mv u
+    Func name vs (MV u Out) -> T.pack u <> " <- pure " <> cgFunc name vs
     Func name vs u -> "guard $ " <> mv u <> " == " <> cgFunc name vs
     Pred name vs
       | head name == '('
       , last name == ')' ->
-        "guard $ " <>
-        T.unwords (T.pack <$> name : [v | MV v m <- vs, m /= MOut])
+        "guard $ " <> T.unwords (T.pack <$> name : [v | MV v m <- vs, m /= Out])
     Pred name vs ->
-      "(" <>
-      T.intercalate "," [T.pack v | MV v MOut <- vs] <>
-      ") <- " <> name' <> " " <> T.unwords [T.pack v | MV v m <- vs, m /= MOut]
+      cgTuple [T.pack v | MV v Out <- vs] <>
+      " <- " <> name' <> " " <> T.unwords [T.pack v | MV v m <- vs, m /= Out]
       where name' =
-              T.pack $
-              case show . ModeString $ varMode <$> vs of
-                [] -> name
-                _
-                  | V name `elem` map stripMode (ruleArgs r) -> name
-                ms -> name ++ "_" ++ ms
+              case varMode <$> vs of
+                [] -> T.pack name
+                ms
+                  | name == ruleName r ->
+                    T.pack name <> T.pack (show (ModeString ms))
+                  | V name `elem` map stripMode (ruleArgs r) ->
+                    "runProcedure " <> T.pack name
+                  | otherwise ->
+                    "runProcedure @" <>
+                    callMode (ModeString ms) <> " " <> T.pack name
   where
     Atom a = extract p $ ruleBody r
 
@@ -89,11 +107,12 @@ cgGoal p r =
               pure $
                 case extract p' $ ruleBody r of
                   Atom _ -> cgAtom p' r
-                  Anon (MV name _) _ _ ->
+                  Anon (MV name _) vs _ ->
                     let tname = T.pack name
+                        field = callMode . ModeString $ varMode <$> vs
                         lam = cgGoal p' r
                      in [text|
-                          let $tname =
+                          let $tname = procedure @$field $
                                 $lam
                         |]
                   g ->
@@ -102,7 +121,7 @@ cgGoal p r =
                       ","
                       [ T.pack v
                       | V v <- Set.elems $ nonlocals' p' r
-                      , MV v MOut `elem` g
+                      , MV v Out `elem` g
                       ] <>
                     ") <- " <> cgGoal p' r
           ret =
@@ -110,7 +129,7 @@ cgGoal p r =
               ","
               [ T.pack v
               | V v <- Set.elems $ nonlocals' p r
-              , MV v MOut `elem` Conj conj
+              , MV v Out `elem` Conj conj
               ]
        in [text|
             (do
@@ -119,7 +138,7 @@ cgGoal p r =
              )
         |]
     Ifte c _ _ ->
-      "ifte (" <>
+      "Logic.ifte (" <>
       cgGoal (p ++ [0]) r <>
       ") (\\(" <>
       cret <>
@@ -129,7 +148,7 @@ cgGoal p r =
                 ","
                 [ T.pack v
                 | V v <- Set.elems $ nonlocals' (p ++ [0]) r
-                , MV v MOut `elem` c
+                , MV v Out `elem` c
                 ]
     Anon _ vars body ->
       let p' = p ++ [0]
@@ -139,41 +158,37 @@ cgGoal p r =
               ","
               [ T.pack v
               | V v <- Set.elems $ nonlocals' p' r
-              , MV v MOut `elem` body
+              , MV v Out `elem` body
               ]
-          ins = [T.pack v | MV v m <- vars, m /= MOut]
-          outs = T.intercalate "," [T.pack v | MV v MOut <- vars]
+          ins = [T.pack v | MV v m <- vars, m /= Out]
+          out = cgTuple [T.pack v | MV v Out <- vars]
           args
             | null ins = "do"
             | otherwise = "\\" <> T.unwords ins <> " -> do"
        in [text|
             $args
               ($rets) <- $code
-              pure ($outs)
+              pure $out
         |]
     Atom _ -> cgAtom p r
 
 cgProcedure :: [Pragma] -> ModeString -> Procedure -> Text
 cgProcedure pragmas ms procedure =
   let r@(Rule name vars body) = modedRule procedure
-      nameMode =
-        case ms of
-          ModeString [] -> T.pack name
-          _ -> T.pack name <> "_" <> T.pack (show ms)
+      nameMode = T.pack name <> T.pack (show ms)
       code = cgGoal [] r
       rets =
         T.intercalate
           ","
-          [T.pack v | V v <- Set.elems $ nonlocals' [] r, MV v MOut `elem` body]
+          [T.pack v | V v <- Set.elems $ nonlocals' [] r, MV v Out `elem` body]
       pragmaType = listToMaybe [ts | Pragma ("type":f:ts) <- pragmas, f == name]
-      ins = [T.pack v | MV v m <- vars, m /= MOut]
-      outs =
+      ins = [T.pack v | MV v m <- vars, m /= Out]
+      out =
         case pragmaType of
-          Nothing -> T.intercalate "," [T.pack v | MV v MOut <- vars]
+          Nothing -> cgTuple [T.pack v | MV v Out <- vars]
           Just ts ->
-            T.intercalate
-              ","
-              [T.pack v <> " :: " <> T.pack t | (MV v MOut, t) <- zip vars ts]
+            cgTuple
+              [T.pack v <> " :: " <> T.pack t | (MV v Out, t) <- zip vars ts]
       decorate
         | Pragma ["memo", name] `elem` pragmas =
           case length ins of
@@ -185,27 +200,26 @@ cgProcedure pragmas ms procedure =
         | null ins = ""
         | otherwise = "\\" <> T.unwords ins <> " -> "
       transform
-        | Pragma ["nub", name] `elem` pragmas = "choose . nub . observeAll $ do"
-        | Pragma ["memo", name] `elem` pragmas = "choose . observeAll $ do"
-        | T.null outs = "once $ do"
+        | Pragma ["nub", name] `elem` pragmas =
+          "choose . nub . Logic.observeAll $ do"
+        | Pragma ["memo", name] `elem` pragmas =
+          "choose . Logic.observeAll $ do"
+        | out == "()" = "Logic.once $ do"
         | otherwise = "do"
    in [text|
         $nameMode = $decorate$args$transform
           ($rets) <- $code
-          pure ($outs)
+          pure $out
     |]
 
 compile :: Text -> Prog Var Var -> Text
 compile moduleName (Prog pragmas rules) =
   [text|
-    {-# LANGUAGE NoMonomorphismRestriction #-}
+    {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
     module $moduleName where
 
-    import Control.Applicative
-    import Control.Monad.Logic
+    import qualified Control.Monad.Logic as Logic
     import Control.Monad.Logic.Moded.Prelude
-    import Data.List
-    import Data.MemoTrie
 
     $code
   |]
@@ -215,31 +229,47 @@ compile moduleName (Prog pragmas rules) =
         (name, c) <- foldl mode' [] rules
         let arity = length . ruleArgs $ unmodedRule c
             doc =
+              T.unlines $
               T.pack <$>
               [ "{- " ++ name ++ "/" ++ show arity
               , show (unmodedRule c)
               , "constraints:"
               ] ++
               map show (Set.elems $ modeConstraints c) ++ ["-}"]
-            errs = commentLine . T.pack <$> errors c
-            defs = do
-              (ms, procs) <- Map.assocs (procedures c)
-              let (def:_) = do
-                    procedure <- sortOn (cost . ruleBody . modedRule) procs
-                    pure . T.unlines $
-                      let (hd:tl) = T.lines $ cgProcedure pragmas ms procedure
-                          meta =
-                            "  -- solution: " <>
-                            T.unwords
-                              (T.pack . show <$>
-                               Set.elems (modeSolution procedure))
-                          meta2 =
-                            "  -- cost: " <>
-                            T.pack
-                              (show . cost . ruleBody $ modedRule procedure)
-                       in hd : meta : meta2 : tl
-              pure def -- : (T.unlines . map commentLine . T.lines <$> defs')
+            errs = T.unlines $ commentLine . T.pack <$> errors c
+            fields =
+              T.intercalate " :& " $ do
+                ms <- Map.keys (procedures c)
+                pure $
+                  "(procedure @" <>
+                  callMode ms <> " " <> T.pack name <> T.pack (show ms) <> ")"
+            rel = T.pack name <> " = rget $ " <> fields <> " :& RNil"
+            defs =
+              T.unlines $ do
+                (ms, procs) <- Map.assocs (procedures c)
+                let (def:_) = do
+                      procedure <- sortOn (cost . ruleBody . modedRule) procs
+                      pure . T.unlines $
+                        let (hd:tl) = T.lines $ cgProcedure pragmas ms procedure
+                            meta =
+                              "  -- solution: " <>
+                              T.unwords
+                                (T.pack . show <$>
+                                 Set.elems (modeSolution procedure))
+                            meta2 =
+                              "  -- cost: " <>
+                              T.pack
+                                (show . cost . ruleBody $ modedRule procedure)
+                         in hd : meta : meta2 : tl
+                pure def -- : (T.unlines . map commentLine . T.lines <$> defs')
             commentLine l
               | "--" `T.isPrefixOf` l = l
               | otherwise = "--" <> l
-        doc ++ errs ++ defs
+        pure
+          [text|
+            $doc
+            $errs
+            $rel
+              where
+                $defs
+          |]

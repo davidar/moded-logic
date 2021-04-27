@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bada420721fd7c893f337192b484fd31f4e4378c43b2cec0faeda9f88e019c03
+-- hash: 108b344713e9dc27125374b803e2656398e4437ac86c12e60d1380534ffdde03
 
 name:           moded-logic
 version:        0.1.0.0
@@ -34,6 +34,7 @@ library
       Control.Monad.Logic.Moded.Path
       Control.Monad.Logic.Moded.Prelude
       Control.Monad.Logic.Moded.Preprocess
+      Control.Monad.Logic.Moded.Procedure
       Control.Monad.Logic.Moded.Schedule
       Control.Monad.Logic.Moded.Solver
   other-modules:
@@ -43,6 +44,7 @@ library
   ghc-options: -Wall -Werror
   build-depends:
       MemoTrie
+    , OneTuple
     , algebraic-graphs
     , base >=4.7 && <5
     , containers
@@ -57,6 +59,7 @@ library
     , picosat
     , template-haskell
     , text
+    , vinyl
   default-language: Haskell2010
 
 executable moded-logic-exe
@@ -68,6 +71,7 @@ executable moded-logic-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       MemoTrie
+    , OneTuple
     , algebraic-graphs
     , base >=4.7 && <5
     , containers
@@ -83,6 +87,7 @@ executable moded-logic-exe
     , picosat
     , template-haskell
     , text
+    , vinyl
   default-language: Haskell2010
 
 test-suite moded-logic-test
@@ -102,6 +107,7 @@ test-suite moded-logic-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       MemoTrie
+    , OneTuple
     , algebraic-graphs
     , base >=4.7 && <5
     , containers
@@ -117,4 +123,5 @@ test-suite moded-logic-test
     , picosat
     , template-haskell
     , text
+    , vinyl
   default-language: Haskell2010
