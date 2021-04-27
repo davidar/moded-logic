@@ -24,7 +24,9 @@ import Control.Monad.Logic.Moded.Preprocess
 
 import Data.Char (isUpper)
 import Data.Functor (void)
+import qualified Data.Map as Map
 import Data.Void (Void)
+import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
 
 import Text.Megaparsec
@@ -200,7 +202,9 @@ parseProg ::
 parseProg fn lp = do
   Prog pragmas p <- parse prog fn lp
   let p' = combineDefs p
-      arities = [(ruleName r, length (ruleArgs r)) | r <- p']
+      arities =
+        [(ruleName r, length (ruleArgs r)) | r <- p'] ++
+        [(name, length (head modes)) | (name, modes) <- Map.toAscList modesPrelude]
       simp r = r {ruleBody = simplify (ruleBody r)}
   pure . Prog pragmas $ simp . distinctVars . superhomogeneous arities <$> p'
 

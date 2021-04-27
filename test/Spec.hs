@@ -60,7 +60,7 @@ programHigherOrder =
   map p [] [].
   map p (x:xs) (y:ys) :- p x y, map p xs ys.
 
-  succs xs ys :- map (\x y :- succ x y) xs ys.
+  succs xs ys :- map succ xs ys.
 
   filter p [] [].
   filter p (h:t) ts :-
@@ -73,7 +73,7 @@ programHigherOrder =
   foldl p [] a a.
   foldl p (h:t) a a'' :- p h a a', foldl p t a' a''.
 
-  sum xs z r :- foldl (\x a a' :- plus x a a') xs z r.
+  sum xs z r :- foldl plus xs z r.
   split xs z r :- foldl (\x a a' :- a = (x:a')) xs z r.
   splitr xs z r :- foldl (\x a a' :- a' = (x:a)) xs z r.
   |]

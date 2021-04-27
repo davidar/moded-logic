@@ -131,34 +131,34 @@ map = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (p
       pure (arg2,arg3)
     
 {- succs/2
-succs xs ys :- ((map pred0 xs ys, (pred0 x y :- (succ x y)))).
+succs xs ys :- ((map pred0 xs ys, (pred0 curry1 curry2 :- (succ curry1 curry2)))).
 constraints:
+~curry1[0]
+~curry2[0]
 ~pred0[0,0]
-~x[0]
-~y[0]
-((x[0,1,0,0] & ~y[0,1,0,0]) | ((~x[0,1,0,0] & y[0,1,0,0]) | (~x[0,1,0,0] & ~y[0,1,0,0])))
+((curry1[0,1,0,0] & ~curry2[0,1,0,0]) | ((~curry1[0,1,0,0] & curry2[0,1,0,0]) | (~curry1[0,1,0,0] & ~curry2[0,1,0,0])))
 ((~pred0[0,0] & (pred0(1) & (pred0(2) & (xs[0,0] & ys[0,0])))) | ((~pred0[0,0] & (pred0(1) & (~pred0(2) & (xs[0,0] & ~ys[0,0])))) | ((~pred0[0,0] & (~pred0(1) & (pred0(2) & (~xs[0,0] & ys[0,0])))) | (~pred0[0,0] & (~pred0(1) & (~pred0(2) & (~xs[0,0] & ~ys[0,0])))))))
-(x[0,1,0] <-> x[0,1,0,0])
+(curry1[0,1,0] <-> curry1[0,1,0,0])
+(curry2[0,1,0] <-> curry2[0,1,0,0])
 (xs[] <-> xs[0])
 (xs[0] <-> xs[0,0])
-(y[0,1,0] <-> y[0,1,0,0])
 (ys[] <-> ys[0])
 (ys[0] <-> ys[0,0])
-(pred0(1) <-> x[0,1,0])
-(pred0(2) <-> y[0,1,0])
+(pred0(1) <-> curry1[0,1,0])
+(pred0(2) <-> curry2[0,1,0])
 1
 -}
 
 succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] succsIO) :& (procedure @'[ 'Out, 'In ] succsOI) :& RNil
   where
     succsII = \xs ys -> Logic.once $ do
-      -- solution: ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~y[0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1) ~pred0(2)
+      -- solution: ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1) ~pred0(2)
       -- cost: 2
       () <- (do
         let pred0 = procedure @'[ 'In, 'In ] $
-              \x y -> do
+              \curry1 curry2 -> do
                 () <- (do
-                  () <- runProcedure @'[ 'In, 'In ] succ x y
+                  () <- runProcedure @'[ 'In, 'In ] succ curry1 curry2
                   pure ()
                  )
                 pure ()
@@ -168,32 +168,32 @@ succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     succsIO = \xs -> do
-      -- solution: y[0,1,0] y[0,1,0,0] ys[] ys[0] ys[0,0] pred0(2) ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~y[0] ~pred0(1)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] ys[] ys[0] ys[0,0] pred0(2) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1)
       -- cost: 4
       (ys) <- (do
         let pred0 = procedure @'[ 'In, 'Out ] $
-              \x -> do
-                (y) <- (do
-                  (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ x
-                  pure (y)
+              \curry1 -> do
+                (curry2) <- (do
+                  (OneTuple (curry2)) <- runProcedure @'[ 'In, 'Out ] succ curry1
+                  pure (curry2)
                  )
-                pure (OneTuple (y))
+                pure (OneTuple (curry2))
         (OneTuple (ys)) <- runProcedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] map pred0 xs
         pure (ys)
        )
       pure (OneTuple (ys))
     
     succsOI = \ys -> do
-      -- solution: x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) ~pred0[0,0] ~x[0] ~y[0] ~y[0,1,0] ~y[0,1,0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(2)
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~pred0[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(2)
       -- cost: 4
       (xs) <- (do
         let pred0 = procedure @'[ 'Out, 'In ] $
-              \y -> do
-                (x) <- (do
-                  (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ y
-                  pure (x)
+              \curry2 -> do
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'Out, 'In ] succ curry2
+                  pure (curry1)
                  )
-                pure (OneTuple (x))
+                pure (OneTuple (curry1))
         (OneTuple (xs)) <- runProcedure @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] map pred0 ys
         pure (xs)
        )
@@ -502,74 +502,74 @@ foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] fol
       pure (arg2,a)
     
 {- sum/3
-sum xs z r :- ((foldl pred0 xs z r, (pred0 x a a' :- (plus x a a')))).
+sum xs z r :- ((foldl pred0 xs z r, (pred0 curry1 curry2 curry3 :- (plus curry1 curry2 curry3)))).
 constraints:
-~a[0]
-~a'[0]
+~curry1[0]
+~curry2[0]
+~curry3[0]
 ~pred0[0,0]
-~x[0]
-((x[0,1,0,0] & (~a[0,1,0,0] & ~a'[0,1,0,0])) | ((~x[0,1,0,0] & (a[0,1,0,0] & ~a'[0,1,0,0])) | ((~x[0,1,0,0] & (~a[0,1,0,0] & a'[0,1,0,0])) | (~x[0,1,0,0] & (~a[0,1,0,0] & ~a'[0,1,0,0])))))
+((curry1[0,1,0,0] & (~curry2[0,1,0,0] & ~curry3[0,1,0,0])) | ((~curry1[0,1,0,0] & (curry2[0,1,0,0] & ~curry3[0,1,0,0])) | ((~curry1[0,1,0,0] & (~curry2[0,1,0,0] & curry3[0,1,0,0])) | (~curry1[0,1,0,0] & (~curry2[0,1,0,0] & ~curry3[0,1,0,0])))))
 ((~pred0[0,0] & (pred0(1) & (pred0(2) & (~pred0(3) & (xs[0,0] & (z[0,0] & ~r[0,0])))))) | ((~pred0[0,0] & (pred0(1) & (~pred0(2) & (pred0(3) & (xs[0,0] & (~z[0,0] & r[0,0])))))) | ((~pred0[0,0] & (pred0(1) & (~pred0(2) & (pred0(3) & (xs[0,0] & (~z[0,0] & ~r[0,0])))))) | ((~pred0[0,0] & (~pred0(1) & (pred0(2) & (~pred0(3) & (~xs[0,0] & (z[0,0] & ~r[0,0])))))) | ((~pred0[0,0] & (~pred0(1) & (~pred0(2) & (pred0(3) & (~xs[0,0] & (~z[0,0] & r[0,0])))))) | (~pred0[0,0] & (~pred0(1) & (~pred0(2) & (pred0(3) & (~xs[0,0] & (~z[0,0] & ~r[0,0])))))))))))
-(a[0,1,0] <-> a[0,1,0,0])
-(a'[0,1,0] <-> a'[0,1,0,0])
+(curry1[0,1,0] <-> curry1[0,1,0,0])
+(curry2[0,1,0] <-> curry2[0,1,0,0])
+(curry3[0,1,0] <-> curry3[0,1,0,0])
 (r[] <-> r[0])
 (r[0] <-> r[0,0])
-(x[0,1,0] <-> x[0,1,0,0])
 (xs[] <-> xs[0])
 (xs[0] <-> xs[0,0])
 (z[] <-> z[0])
 (z[0] <-> z[0,0])
-(pred0(1) <-> x[0,1,0])
-(pred0(2) <-> a[0,1,0])
-(pred0(3) <-> a'[0,1,0])
+(pred0(1) <-> curry1[0,1,0])
+(pred0(2) <-> curry2[0,1,0])
+(pred0(3) <-> curry3[0,1,0])
 1
 -}
 
 sum = rget $ (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 'Out ] sumIIO) :& (procedure @'[ 'In, 'Out, 'In ] sumIOI) :& RNil
   where
     sumIII = \xs z r -> Logic.once $ do
-      -- solution: a'[0,1,0] a'[0,1,0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+      -- solution: curry3[0,1,0] curry3[0,1,0,0] pred0(3) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry3[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
       -- cost: 3
       () <- (do
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
-              \x a -> do
-                (a') <- (do
-                  (OneTuple (a')) <- runProcedure @'[ 'In, 'In, 'Out ] plus x a
-                  pure (a')
+              \curry1 curry2 -> do
+                (curry3) <- (do
+                  (OneTuple (curry3)) <- runProcedure @'[ 'In, 'In, 'Out ] plus curry1 curry2
+                  pure (curry3)
                  )
-                pure (OneTuple (a'))
+                pure (OneTuple (curry3))
         () <- runProcedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldl pred0 xs z r
         pure ()
        )
       pure ()
     
     sumIIO = \xs z -> do
-      -- solution: a'[0,1,0] a'[0,1,0,0] r[] r[0] r[0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+      -- solution: curry3[0,1,0] curry3[0,1,0,0] r[] r[0] r[0,0] pred0(3) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry3[0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
       -- cost: 4
       (r) <- (do
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
-              \x a -> do
-                (a') <- (do
-                  (OneTuple (a')) <- runProcedure @'[ 'In, 'In, 'Out ] plus x a
-                  pure (a')
+              \curry1 curry2 -> do
+                (curry3) <- (do
+                  (OneTuple (curry3)) <- runProcedure @'[ 'In, 'In, 'Out ] plus curry1 curry2
+                  pure (curry3)
                  )
-                pure (OneTuple (a'))
+                pure (OneTuple (curry3))
         (OneTuple (r)) <- runProcedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldl pred0 xs z
         pure (r)
        )
       pure (OneTuple (r))
     
     sumIOI = \xs r -> do
-      -- solution: a[0,1,0] a[0,1,0,0] z[] z[0] z[0,0] pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] z[] z[0] z[0,0] pred0(2) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry3[0] ~curry3[0,1,0] ~curry3[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
       -- cost: 4
       (z) <- (do
         let pred0 = procedure @'[ 'In, 'Out, 'In ] $
-              \x a' -> do
-                (a) <- (do
-                  (OneTuple (a)) <- runProcedure @'[ 'In, 'Out, 'In ] plus x a'
-                  pure (a)
+              \curry1 curry3 -> do
+                (curry2) <- (do
+                  (OneTuple (curry2)) <- runProcedure @'[ 'In, 'Out, 'In ] plus curry1 curry3
+                  pure (curry2)
                  )
-                pure (OneTuple (a))
+                pure (OneTuple (curry2))
         (OneTuple (z)) <- runProcedure @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldl pred0 xs r
         pure (z)
        )
