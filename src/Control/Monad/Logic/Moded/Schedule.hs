@@ -30,6 +30,7 @@ import Control.Monad.Logic.Moded.Constraints
   , unsafeSolveConstraints
   )
 import Control.Monad.Logic.Moded.Path (nonlocals)
+import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.Foldable (Foldable(toList))
 import Data.List (intercalate)
@@ -74,24 +75,6 @@ instance Ord DepNode where
     case cost g `compare` cost g' of
       EQ -> (g, i) `compare` (g', j)
       r -> r
-
-builtins :: Map Name [ModeString]
-builtins =
-  Map.fromList
-    [ ("succ", ["io", "oi", "ii"])
-    , ("div", ["iio", "iii"])
-    , ("mod", ["iio", "iii"])
-    , ("divMod", ["iioo", "iioi", "iiio", "iiii"])
-    , ("plus", ["iio", "ioi", "oii"])
-    , ("times", ["iio", "ioi", "oii"])
-    , ("timesInt", ["iio", "ioi", "oii"])
-    , ("sum", ["io", "ii"])
-    , ("maximum", ["io", "ii"])
-    , ("empty", [""])
-    , ("print", ["i"])
-    , ("show", ["io", "oi", "ii"])
-    , ("observeAll", [ModeString [PredMode [Out], Out]])
-    ]
 
 stripMode :: ModedVar -> Var
 stripMode (MV v _) = V v
@@ -175,7 +158,7 @@ mode' procs rule = procs ++ [(ruleName rule, obj)]
         , errors = [e | Left e <- eithers]
         }
     m =
-      flip Map.union builtins . Map.fromList $ do
+      flip Map.union (Map.map (map ModeString) modesPrelude) . Map.fromList $ do
         (name', c) <- procs
         pure (name', Map.keys (procedures c))
 

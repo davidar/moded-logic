@@ -61,7 +61,7 @@ constraints:
 (data0[1,1] | data0[1,2])
 (n[1,0] | n[1,1])
 (n'[1,1] | n'[1,3])
-((n[1,1] & (~data0[1,1] & ~n'[1,1])) | ((~n[1,1] & (data0[1,1] & ~n'[1,1])) | (~n[1,1] & (~data0[1,1] & n'[1,1]))))
+((n[1,1] & (~data0[1,1] & ~n'[1,1])) | ((~n[1,1] & (data0[1,1] & ~n'[1,1])) | ((~n[1,1] & (~data0[1,1] & n'[1,1])) | (~n[1,1] & (~data0[1,1] & ~n'[1,1])))))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
@@ -755,7 +755,7 @@ constraints:
 (i[2,2] | i[2,4])
 (j[2,2] | (j[2,3] | j[2,5]))
 (k[2,0] | (k[2,3] | k[2,7]))
-((fi[2,6] & (~fj[2,6] & ~fk[2,6])) | ((~fi[2,6] & (fj[2,6] & ~fk[2,6])) | (~fi[2,6] & (~fj[2,6] & fk[2,6]))))
+((fi[2,6] & (~fj[2,6] & ~fk[2,6])) | ((~fi[2,6] & (fj[2,6] & ~fk[2,6])) | ((~fi[2,6] & (~fj[2,6] & fk[2,6])) | (~fi[2,6] & (~fj[2,6] & ~fk[2,6])))))
 ((i[2,2] & ~j[2,2]) | ((~i[2,2] & j[2,2]) | (~i[2,2] & ~j[2,2])))
 ((j[2,3] & ~k[2,3]) | ((~j[2,3] & k[2,3]) | (~j[2,3] & ~k[2,3])))
 (arg1[] <-> arg1[0])
@@ -1099,7 +1099,7 @@ pp[0,3]
 (ps[0,2] | ps[0,3])
 (ps1[0,0] | ps1[0,2])
 (ps5[0,3,2,0,1,0,1,1] | ps5[0,3,2,0,1,0,1,3])
-((p2[0,3,0,0] & (~p3[0,3,0,0] & ~pp[0,3,0,0])) | ((~p2[0,3,0,0] & (p3[0,3,0,0] & ~pp[0,3,0,0])) | (~p2[0,3,0,0] & (~p3[0,3,0,0] & pp[0,3,0,0]))))
+((p2[0,3,0,0] & (~p3[0,3,0,0] & ~pp[0,3,0,0])) | ((~p2[0,3,0,0] & (p3[0,3,0,0] & ~pp[0,3,0,0])) | ((~p2[0,3,0,0] & (~p3[0,3,0,0] & pp[0,3,0,0])) | (~p2[0,3,0,0] & (~p3[0,3,0,0] & ~pp[0,3,0,0])))))
 ((~n[0,3,2,0,0,0] & (~p[0,3,2,0,0,0] & (d[0,3,2,0,0,0] & data0[0,3,2,0,0,0]))) | ((~n[0,3,2,0,0,0] & (~p[0,3,2,0,0,0] & (d[0,3,2,0,0,0] & ~data0[0,3,2,0,0,0]))) | ((~n[0,3,2,0,0,0] & (~p[0,3,2,0,0,0] & (~d[0,3,2,0,0,0] & data0[0,3,2,0,0,0]))) | (~n[0,3,2,0,0,0] & (~p[0,3,2,0,0,0] & (~d[0,3,2,0,0,0] & ~data0[0,3,2,0,0,0]))))))
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,0])
@@ -1469,7 +1469,7 @@ constraints:
 (y[0,4] | y[0,8])
 ((n[0,9] & ~s[0,9]) | ((~n[0,9] & s[0,9]) | (~n[0,9] & ~s[0,9])))
 ((s0[0,10] & ~s1[0,10]) | ((~s0[0,10] & s1[0,10]) | (~s0[0,10] & ~s1[0,10])))
-((x[0,8] & (~y[0,8] & ~n[0,8])) | ((~x[0,8] & (y[0,8] & ~n[0,8])) | (~x[0,8] & (~y[0,8] & n[0,8]))))
+((x[0,8] & (~y[0,8] & ~n[0,8])) | ((~x[0,8] & (y[0,8] & ~n[0,8])) | ((~x[0,8] & (~y[0,8] & n[0,8])) | (~x[0,8] & (~y[0,8] & ~n[0,8])))))
 (data0[0,3] <-> data1[0,3])
 (data3[0,7] <-> data4[0,7])
 (n[] <-> n[0])
@@ -1478,8 +1478,33 @@ constraints:
 -}
 --mode ordering failure, cyclic dependency: [10] reverse s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
 --mode ordering failure, cyclic dependency: [10] reverse s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
-euler4 = rget $ (procedure @'[ 'Out ] euler4O) :& RNil
+--mode ordering failure, cyclic dependency: [10] reverse s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
+--mode ordering failure, cyclic dependency: [10] reverse s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
+--mode ordering failure, cyclic dependency: [10] reverse s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
+--mode ordering failure, cyclic dependency: [10] reverse s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
+euler4 = rget $ (procedure @'[ 'In ] euler4I) :& (procedure @'[ 'Out ] euler4O) :& RNil
   where
+    euler4I = \n -> Logic.once $ do
+      -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,7] s[0,9] s0[0,11] s1[0,12] x[0,0] y[0,4] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,7] ~data4[0,7] ~data5[0,4] ~n[] ~n[0] ~n[0,8] ~n[0,9] ~s[0,11] ~s[0,12] ~s0[0,10] ~s1[0,10] ~x[0,8] ~y[0,8]
+      -- cost: 8
+      () <- (do
+        data0 <- pure 10
+        data3 <- pure 10
+        data1 <- pure 99
+        data2 <- pure [data0..data1]
+        data4 <- pure 99
+        data5 <- pure [data3..data4]
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] elem data2
+        (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] elem data5
+        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt x y n
+        (OneTuple (s)) <- runProcedure @'[ 'In, 'Out ] show n
+        s0 <- pure s
+        s1 <- pure s
+        () <- runProcedure @'[ 'In, 'In ] reverse s0 s1
+        pure ()
+       )
+      pure ()
+    
     euler4O = do
       -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,7] n[] n[0] n[0,8] s[0,9] s0[0,11] s1[0,12] x[0,0] y[0,4] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,7] ~data4[0,7] ~data5[0,4] ~n[0,9] ~s[0,11] ~s[0,12] ~s0[0,10] ~s1[0,10] ~x[0,8] ~y[0,8]
       -- cost: 9
@@ -1504,11 +1529,11 @@ euler4 = rget $ (procedure @'[ 'Out ] euler4O) :& RNil
 {- euler4'/1
 euler4' n :- ((observeAll pred0 s, (pred0 curry1 :- (euler4 curry1)), maximum s n)).
 constraints:
-curry1[0,1,0,0]
 ~curry1[0]
 ~pred0[0,0]
 ~(s[0,0] & s[0,2])
 (~pred0[0,0] & (pred0(1) & s[0,0]))
+(curry1[0,1,0,0] | ~curry1[0,1,0,0])
 (s[0,0] | s[0,2])
 ((~s[0,2] & n[0,2]) | (~s[0,2] & ~n[0,2]))
 (curry1[0,1,0] <-> curry1[0,1,0,0])

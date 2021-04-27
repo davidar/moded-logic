@@ -4,6 +4,7 @@
 
 module Control.Monad.Logic.Moded.Prelude
   ( choose
+  , modesPrelude
   , succ
   , div
   , mod
@@ -43,6 +44,7 @@ import Control.Monad.Logic.Moded.Procedure
   , Procedure
   )
 import Data.List (nub)
+import qualified Data.Map as Map
 import Data.MemoTrie (memo, memo2, memo3)
 import Data.Tuple.OneTuple (OneTuple(..), only)
 import Data.Vinyl (type (∈), Rec(..), rget)
@@ -62,8 +64,26 @@ import Prelude
 choose :: (Prelude.Foldable t, Alternative f) => t a -> f a
 choose = Prelude.foldr ((<|>) . pure) empty
 
+modesPrelude :: Map.Map Prelude.String [[Mode]]
+modesPrelude =
+  Map.fromList
+    [ ("empty", [[]])
+    , ("succ", [[In, In], [In, Out], [Out, In]])
+    , ("div", [[In, In, In], [In, In, Out]])
+    , ("mod", [[In, In, In], [In, In, Out]])
+    , ("divMod", [[In, In, In, In], [In, In, In, Out], [In, In, Out, In], [In, In, Out, Out]])
+    , ("plus", [[In, In, In], [In, In, Out], [In, Out, In], [Out, In, In]])
+    , ("times", [[In, In, In], [In, In, Out], [In, Out, In], [Out, In, In]])
+    , ("timesInt", [[In, In, In], [In, In, Out], [In, Out, In], [Out, In, In]])
+    , ("sum", [[In, In], [In, Out]])
+    , ("maximum", [[In, In], [In, Out]])
+    , ("print", [[In]])
+    , ("show", [[In, In], [In, Out], [Out, In]])
+    , ("observeAll", [[PredMode [Out], Out]])
+    ]
+
 succ ::
-     ( mode ∈ '[ '[ 'In, 'In], '[ 'In, 'Out], '[ 'Out, 'In]]
+     ( mode ∈ '[ '[ In, In], '[ In, Out], '[ Out, In]]
      , Alternative m
      , Eq a
      , Prelude.Enum a
@@ -101,7 +121,7 @@ mod =
   RNil
 
 divMod ::
-     ( mode ∈ '[ '[ In, In, In, In], '[ In, In, Out, In], '[ In, In, Out, Out]]
+     ( mode ∈ '[ '[ In, In, In, In], '[ In, In, In, Out], '[ In, In, Out, In], '[ In, In, Out, Out]]
      , Alternative m
      , Prelude.Integral a
      )
@@ -110,6 +130,10 @@ divMod =
   rget $
   (procedure @'[ In, In, In, In] $ \a b d m ->
      guard (Prelude.divMod a b == (d, m))) :&
+  (procedure @'[ In, In, In, Out] $ \a b d ->
+     if Prelude.div a b == d
+       then pure (OneTuple $ Prelude.mod a b)
+       else empty) :&
   (procedure @'[ In, In, Out, In] $ \a b m ->
      if Prelude.mod a b == m
        then pure (OneTuple $ Prelude.div a b)

@@ -15,7 +15,6 @@ module Control.Monad.Logic.Moded.AST
   ) where
 
 import Data.List (intercalate)
-import Data.String (IsString(..))
 import Language.Haskell.TH.Syntax (Lift)
 
 type Name = String
@@ -102,13 +101,6 @@ instance Show Mode where
 
 instance Show ModeString where
   show (ModeString ms) = concat $ show <$> ms
-
-instance IsString ModeString where
-  fromString =
-    (ModeString .) . map $ \case
-      'i' -> In
-      'o' -> Out
-      _ -> error "invalid modestring"
 
 subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs
