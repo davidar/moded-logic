@@ -2,7 +2,7 @@
   PolyKinds, UndecidableInstances, ScopedTypeVariables,
   FunctionalDependencies #-}
 
-module Control.Monad.Logic.Moded.Relation
+module Control.Monad.Logic.Moded.Procedure
   ( Procedure
   , ConstructProcedure(..)
   , CallProcedure(..)

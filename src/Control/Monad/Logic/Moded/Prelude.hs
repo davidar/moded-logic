@@ -26,7 +26,7 @@ module Control.Monad.Logic.Moded.Prelude
   , module Control.Applicative
   , module Control.Monad
   , module Control.Monad.Logic.Moded.AST
-  , module Control.Monad.Logic.Moded.Relation
+  , module Control.Monad.Logic.Moded.Procedure
   , module Data.MemoTrie
   , module Data.Tuple.OneTuple
   , module Data.Vinyl
@@ -37,7 +37,7 @@ import Control.Monad (guard)
 import Control.Monad.IO.Class (MonadIO(..))
 import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.AST (Mode(..))
-import Control.Monad.Logic.Moded.Relation
+import Control.Monad.Logic.Moded.Procedure
   ( ConstructProcedure(..)
   , PredType
   , Procedure

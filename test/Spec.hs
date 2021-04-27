@@ -18,7 +18,7 @@ import Control.Monad.Logic.Moded.AST (Prog, Var, Mode(..))
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Parse (logic)
 import qualified Control.Monad.Logic.Moded.Prelude as MPrelude
-import Control.Monad.Logic.Moded.Relation
+import Control.Monad.Logic.Moded.Procedure (call)
 import qualified Data.List as List
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
