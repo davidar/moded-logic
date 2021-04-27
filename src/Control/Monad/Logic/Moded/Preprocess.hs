@@ -21,12 +21,14 @@ data Val
   = Var Var
   | Cons Name [Val]
   | Lambda [Val] (Goal Val)
+  | Curry Name [Val]
   deriving (Eq, Ord)
 
 instance Show Val where
   show (Var v) = show v
   show (Cons name vs) = unwords (name : map show vs)
   show (Lambda vs g) = unwords (map show vs) ++ " :- " ++ show g
+  show (Curry p vs) = unwords (p : map show vs)
 
 combineDefs :: [Rule Val Val] -> [Rule Var Val]
 combineDefs rules = do
@@ -53,10 +55,12 @@ combineDefs rules = do
           pure . Conj $ unifs ++ [body]
   pure $ Rule (ruleName $ head defs) params body'
 
-superhomogeneous :: Rule Var Val -> Rule Var Var
-superhomogeneous r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
+superhomogeneous :: [(Name, Int)] -> Rule Var Val -> Rule Var Var
+superhomogeneous arities r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
   where
     tVal :: Val -> State (Int, [Goal Var]) Var
+    tVal (Var (V name)) | Just _ <- lookup name arities =
+      tVal (Curry name [])
     tVal (Var v) = return v
     tVal (Cons name vs) = do
       vs' <- mapM tVal vs
@@ -71,6 +75,14 @@ superhomogeneous r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
       let name = V $ "pred" ++ show count
       put (count + 1, body ++ [Anon name vs' g'])
       return name
+    tVal (Curry p vs) = do
+      let arity = case lookup p arities of
+            Just n -> n
+            Nothing -> error $ "unknown predicate " ++ p
+          k = arity - length vs
+          extra = [Var . V $ "curry" ++ show i | i <- [1..k]]
+          g = Atom $ Pred p (vs ++ extra)
+      tVal (Lambda extra g)
     tAtom :: Atom Val -> State (Int, [Goal Var]) (Atom Var)
     tAtom (Unif (Var u) (Var v)) = return $ Unif u v
     tAtom (Unif (Var u) (Cons name vs)) = do

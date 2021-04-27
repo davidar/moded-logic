@@ -679,35 +679,35 @@ euler1 = rget $ (procedure @'[ 'Out ] euler1O) :& RNil
       pure (OneTuple (x))
     
 {- euler1'/1
-euler1' s :- ((observeAll pred0 r, (pred0 x :- (euler1 x)), sum r s)).
+euler1' s :- ((observeAll pred0 r, (pred0 curry1 :- (euler1 curry1)), sum r s)).
 constraints:
-x[0,1,0,0]
+curry1[0,1,0,0]
+~curry1[0]
 ~pred0[0,0]
-~x[0]
 ~(r[0,0] & r[0,2])
 (~pred0[0,0] & (pred0(1) & r[0,0]))
 (r[0,0] | r[0,2])
 ((~r[0,2] & s[0,2]) | (~r[0,2] & ~s[0,2]))
+(curry1[0,1,0] <-> curry1[0,1,0,0])
 (s[] <-> s[0])
 (s[0] <-> s[0,2])
-(x[0,1,0] <-> x[0,1,0,0])
-(pred0(1) <-> x[0,1,0])
+(pred0(1) <-> curry1[0,1,0])
 1
 -}
 
 euler1' = rget $ (procedure @'[ 'In ] euler1'I) :& (procedure @'[ 'Out ] euler1'O) :& RNil
   where
     euler1'I = \s -> Logic.once $ do
-      -- solution: r[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~pred0[0,0] ~r[0,2] ~s[] ~s[0] ~s[0,2] ~x[0]
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] r[0,0] pred0(1) ~curry1[0] ~pred0[0,0] ~r[0,2] ~s[] ~s[0] ~s[0,2]
       -- cost: 5
       () <- (do
         let pred0 = procedure @'[ 'Out ] $
               do
-                (x) <- (do
-                  (OneTuple (x)) <- runProcedure @'[ 'Out ] euler1 
-                  pure (x)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'Out ] euler1 
+                  pure (curry1)
                  )
-                pure (OneTuple (x))
+                pure (OneTuple (curry1))
         (OneTuple (r)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
         () <- runProcedure @'[ 'In, 'In ] sum r s
         pure ()
@@ -715,16 +715,16 @@ euler1' = rget $ (procedure @'[ 'In ] euler1'I) :& (procedure @'[ 'Out ] euler1'
       pure ()
     
     euler1'O = do
-      -- solution: r[0,0] s[] s[0] s[0,2] x[0,1,0] x[0,1,0,0] pred0(1) ~pred0[0,0] ~r[0,2] ~x[0]
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] r[0,0] s[] s[0] s[0,2] pred0(1) ~curry1[0] ~pred0[0,0] ~r[0,2]
       -- cost: 6
       (s) <- (do
         let pred0 = procedure @'[ 'Out ] $
               do
-                (x) <- (do
-                  (OneTuple (x)) <- runProcedure @'[ 'Out ] euler1 
-                  pure (x)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'Out ] euler1 
+                  pure (curry1)
                  )
-                pure (OneTuple (x))
+                pure (OneTuple (curry1))
         (OneTuple (r)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
         (OneTuple (s)) <- runProcedure @'[ 'In, 'Out ] sum r
         pure (s)
@@ -1246,14 +1246,14 @@ factor = rget $ (procedure @'[ 'In, 'In, 'In ] factorIII) :& (procedure @'[ 'In,
       pure (OneTuple (f))
     
 {- prime/1
-prime arg1 :- ((arg1 = 2); (oddNat p, (>) p data0, data0 = 2, observeAll pred1 primes, (pred1 x :- (prime x)), if (factor primes p d, (/=) p d) then (empty) else (), arg1 = p)).
+prime arg1 :- ((arg1 = 2); (oddNat p, (>) p data0, data0 = 2, observeAll pred1 primes, (pred1 curry1 :- (prime curry1)), if (factor primes p d, (/=) p d) then (empty) else (), arg1 = p)).
 constraints:
 d[1,5]
+~curry1[1]
 ~p[1,5]
 ~pred1[1,3]
 ~primes[1,5]
 ~primes[1,5,0,0]
-~x[1]
 ~(arg1[1,6] & p[1,6])
 ~(d[1,5,0,0] & d[1,5,0,1])
 ~(data0[1,1] & data0[1,2])
@@ -1279,17 +1279,17 @@ d[1,5]
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
 (arg1[1] <-> arg1[1,6])
+(curry1[1,4,0] <-> curry1[1,4,0,0])
+(curry1[1,4,0,0] <-> arg1[])
 (d[1] <-> d[1,5])
-(x[1,4,0] <-> x[1,4,0,0])
-(x[1,4,0,0] <-> arg1[])
-(pred1(1) <-> x[1,4,0])
+(pred1(1) <-> curry1[1,4,0])
 1
 -}
 
 prime = rget $ (procedure @'[ 'Out ] primeO) :& RNil
   where
     primeO = choose . Logic.observeAll $ do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,6] d[1] d[1,5] d[1,5,0,0] data0[1,2] p[1,0] primes[1,3] x[1,4,0] x[1,4,0,0] pred1(1) ~d[1,5,0,1] ~data0[1,1] ~p[1,1] ~p[1,5] ~p[1,5,0,0] ~p[1,5,0,1] ~p[1,6] ~pred1[1,3] ~primes[1,5] ~primes[1,5,0,0] ~x[1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,6] curry1[1,4,0] curry1[1,4,0,0] d[1] d[1,5] d[1,5,0,0] data0[1,2] p[1,0] primes[1,3] pred1(1) ~curry1[1] ~d[1,5,0,1] ~data0[1,1] ~p[1,1] ~p[1,5] ~p[1,5,0,0] ~p[1,5,0,1] ~p[1,6] ~pred1[1,3] ~primes[1,5] ~primes[1,5,0,0]
       -- cost: 11
       (arg1) <- (do
         arg1 <- pure 2
@@ -1301,11 +1301,11 @@ prime = rget $ (procedure @'[ 'Out ] primeO) :& RNil
         guard $ (>) p data0
         let pred1 = procedure @'[ 'Out ] $
               do
-                (x) <- (do
-                  (OneTuple (x)) <- primeO 
-                  pure (x)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- primeO 
+                  pure (curry1)
                  )
-                pure (OneTuple (x))
+                pure (OneTuple (curry1))
         (OneTuple (primes)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred1
         () <- Logic.ifte ((do
           (OneTuple (d)) <- runProcedure @'[ 'In, 'In, 'Out ] factor primes p
@@ -1323,37 +1323,37 @@ prime = rget $ (procedure @'[ 'Out ] primeO) :& RNil
       pure (OneTuple (arg1))
     
 {- primeFactor/2
-primeFactor n d :- ((observeAll pred0 primes, (pred0 x :- (prime x)), factor primes n d)).
+primeFactor n d :- ((observeAll pred0 primes, (pred0 curry1 :- (prime curry1)), factor primes n d)).
 constraints:
-x[0,1,0,0]
+curry1[0,1,0,0]
+~curry1[0]
 ~pred0[0,0]
-~x[0]
 ~(primes[0,0] & primes[0,2])
 (~pred0[0,0] & (pred0(1) & primes[0,0]))
 (primes[0,0] | primes[0,2])
 ((~primes[0,2] & (~n[0,2] & d[0,2])) | (~primes[0,2] & (~n[0,2] & ~d[0,2])))
+(curry1[0,1,0] <-> curry1[0,1,0,0])
 (d[] <-> d[0])
 (d[0] <-> d[0,2])
 (n[] <-> n[0])
 (n[0] <-> n[0,2])
-(x[0,1,0] <-> x[0,1,0,0])
-(pred0(1) <-> x[0,1,0])
+(pred0(1) <-> curry1[0,1,0])
 1
 -}
 
 primeFactor = rget $ (procedure @'[ 'In, 'In ] primeFactorII) :& (procedure @'[ 'In, 'Out ] primeFactorIO) :& RNil
   where
     primeFactorII = \n d -> Logic.once $ do
-      -- solution: primes[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~d[] ~d[0] ~d[0,2] ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~primes[0,2] ~x[0]
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] primes[0,0] pred0(1) ~curry1[0] ~d[] ~d[0] ~d[0,2] ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~primes[0,2]
       -- cost: 5
       () <- (do
         let pred0 = procedure @'[ 'Out ] $
               do
-                (x) <- (do
-                  (OneTuple (x)) <- runProcedure @'[ 'Out ] prime 
-                  pure (x)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'Out ] prime 
+                  pure (curry1)
                  )
-                pure (OneTuple (x))
+                pure (OneTuple (curry1))
         (OneTuple (primes)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
         () <- runProcedure @'[ 'In, 'In, 'In ] factor primes n d
         pure ()
@@ -1361,16 +1361,16 @@ primeFactor = rget $ (procedure @'[ 'In, 'In ] primeFactorII) :& (procedure @'[ 
       pure ()
     
     primeFactorIO = \n -> do
-      -- solution: d[] d[0] d[0,2] primes[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~primes[0,2] ~x[0]
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] d[] d[0] d[0,2] primes[0,0] pred0(1) ~curry1[0] ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~primes[0,2]
       -- cost: 6
       (d) <- (do
         let pred0 = procedure @'[ 'Out ] $
               do
-                (x) <- (do
-                  (OneTuple (x)) <- runProcedure @'[ 'Out ] prime 
-                  pure (x)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'Out ] prime 
+                  pure (curry1)
                  )
-                pure (OneTuple (x))
+                pure (OneTuple (curry1))
         (OneTuple (primes)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
         (OneTuple (d)) <- runProcedure @'[ 'In, 'In, 'Out ] factor primes n
         pure (d)
@@ -1378,38 +1378,38 @@ primeFactor = rget $ (procedure @'[ 'In, 'In ] primeFactorII) :& (procedure @'[ 
       pure (OneTuple (d))
     
 {- euler3/2
-euler3 n r :- ((observeAll pred0 fs, (pred0 d :- (primeFactor n d)), maximum fs r)).
+euler3 n r :- ((observeAll pred0 fs, (pred0 curry1 :- (primeFactor n curry1)), maximum fs r)).
 constraints:
-~d[0]
+~curry1[0]
 ~n[0]
 ~pred0[0,0]
 ~(fs[0,0] & fs[0,2])
 (~pred0[0,0] & (pred0(1) & fs[0,0]))
 (fs[0,0] | fs[0,2])
 ((~fs[0,2] & r[0,2]) | (~fs[0,2] & ~r[0,2]))
-((~n[0,1,0,0] & d[0,1,0,0]) | (~n[0,1,0,0] & ~d[0,1,0,0]))
-(d[0,1,0] <-> d[0,1,0,0])
+((~n[0,1,0,0] & curry1[0,1,0,0]) | (~n[0,1,0,0] & ~curry1[0,1,0,0]))
+(curry1[0,1,0] <-> curry1[0,1,0,0])
 (n[] <-> n[0])
 (n[0,1,0] <-> n[0,1,0,0])
 (r[] <-> r[0])
 (r[0] <-> r[0,2])
-(pred0(1) <-> d[0,1,0])
+(pred0(1) <-> curry1[0,1,0])
 1
 -}
 
 euler3 = rget $ (procedure @'[ 'In, 'In ] euler3II) :& (procedure @'[ 'In, 'Out ] euler3IO) :& RNil
   where
     euler3II = \n r -> Logic.once $ do
-      -- solution: d[0,1,0] d[0,1,0,0] fs[0,0] pred0(1) ~d[0] ~fs[0,2] ~n[] ~n[0] ~n[0,1,0] ~n[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,2]
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] fs[0,0] pred0(1) ~curry1[0] ~fs[0,2] ~n[] ~n[0] ~n[0,1,0] ~n[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,2]
       -- cost: 5
       () <- (do
         let pred0 = procedure @'[ 'Out ] $
               do
-                (d) <- (do
-                  (OneTuple (d)) <- runProcedure @'[ 'In, 'Out ] primeFactor n
-                  pure (d)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out ] primeFactor n
+                  pure (curry1)
                  )
-                pure (OneTuple (d))
+                pure (OneTuple (curry1))
         (OneTuple (fs)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
         () <- runProcedure @'[ 'In, 'In ] maximum fs r
         pure ()
@@ -1417,16 +1417,16 @@ euler3 = rget $ (procedure @'[ 'In, 'In ] euler3II) :& (procedure @'[ 'In, 'Out 
       pure ()
     
     euler3IO = \n -> do
-      -- solution: d[0,1,0] d[0,1,0,0] fs[0,0] r[] r[0] r[0,2] pred0(1) ~d[0] ~fs[0,2] ~n[] ~n[0] ~n[0,1,0] ~n[0,1,0,0] ~pred0[0,0]
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] fs[0,0] r[] r[0] r[0,2] pred0(1) ~curry1[0] ~fs[0,2] ~n[] ~n[0] ~n[0,1,0] ~n[0,1,0,0] ~pred0[0,0]
       -- cost: 6
       (r) <- (do
         let pred0 = procedure @'[ 'Out ] $
               do
-                (d) <- (do
-                  (OneTuple (d)) <- runProcedure @'[ 'In, 'Out ] primeFactor n
-                  pure (d)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out ] primeFactor n
+                  pure (curry1)
                  )
-                pure (OneTuple (d))
+                pure (OneTuple (curry1))
         (OneTuple (fs)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
         (OneTuple (r)) <- runProcedure @'[ 'In, 'Out ] maximum fs
         pure (r)
@@ -1502,35 +1502,35 @@ euler4 = rget $ (procedure @'[ 'Out ] euler4O) :& RNil
       pure (OneTuple (n))
     
 {- euler4'/1
-euler4' n :- ((observeAll pred0 s, (pred0 x :- (euler4 x)), maximum s n)).
+euler4' n :- ((observeAll pred0 s, (pred0 curry1 :- (euler4 curry1)), maximum s n)).
 constraints:
-x[0,1,0,0]
+curry1[0,1,0,0]
+~curry1[0]
 ~pred0[0,0]
-~x[0]
 ~(s[0,0] & s[0,2])
 (~pred0[0,0] & (pred0(1) & s[0,0]))
 (s[0,0] | s[0,2])
 ((~s[0,2] & n[0,2]) | (~s[0,2] & ~n[0,2]))
+(curry1[0,1,0] <-> curry1[0,1,0,0])
 (n[] <-> n[0])
 (n[0] <-> n[0,2])
-(x[0,1,0] <-> x[0,1,0,0])
-(pred0(1) <-> x[0,1,0])
+(pred0(1) <-> curry1[0,1,0])
 1
 -}
 
 euler4' = rget $ (procedure @'[ 'In ] euler4'I) :& (procedure @'[ 'Out ] euler4'O) :& RNil
   where
     euler4'I = \n -> Logic.once $ do
-      -- solution: s[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~s[0,2] ~x[0]
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] s[0,0] pred0(1) ~curry1[0] ~n[] ~n[0] ~n[0,2] ~pred0[0,0] ~s[0,2]
       -- cost: 5
       () <- (do
         let pred0 = procedure @'[ 'Out ] $
               do
-                (x) <- (do
-                  (OneTuple (x)) <- runProcedure @'[ 'Out ] euler4 
-                  pure (x)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'Out ] euler4 
+                  pure (curry1)
                  )
-                pure (OneTuple (x))
+                pure (OneTuple (curry1))
         (OneTuple (s)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
         () <- runProcedure @'[ 'In, 'In ] maximum s n
         pure ()
@@ -1538,16 +1538,16 @@ euler4' = rget $ (procedure @'[ 'In ] euler4'I) :& (procedure @'[ 'Out ] euler4'
       pure ()
     
     euler4'O = do
-      -- solution: n[] n[0] n[0,2] s[0,0] x[0,1,0] x[0,1,0,0] pred0(1) ~pred0[0,0] ~s[0,2] ~x[0]
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] n[] n[0] n[0,2] s[0,0] pred0(1) ~curry1[0] ~pred0[0,0] ~s[0,2]
       -- cost: 6
       (n) <- (do
         let pred0 = procedure @'[ 'Out ] $
               do
-                (x) <- (do
-                  (OneTuple (x)) <- runProcedure @'[ 'Out ] euler4 
-                  pure (x)
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'Out ] euler4 
+                  pure (curry1)
                  )
-                pure (OneTuple (x))
+                pure (OneTuple (curry1))
         (OneTuple (s)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
         (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] maximum s
         pure (n)
@@ -1555,10 +1555,10 @@ euler4' = rget $ (procedure @'[ 'In ] euler4'I) :& (procedure @'[ 'Out ] euler4'
       pure (OneTuple (n))
     
 {- euler5/1
-euler5 n :- ((nat n, (>) n data0, data0 = 0, all pred1 data4, data2 = 1, data3 = 5, data4 = .. data2 data3, (pred1 x :- (multiple n x)))).
+euler5 n :- ((nat n, (>) n data0, data0 = 0, all pred1 data4, data2 = 1, data3 = 5, data4 = .. data2 data3, (pred1 curry1 :- (multiple n curry1)))).
 constraints:
+~curry1[0]
 ~pred1[0,3]
-~x[0]
 ~(data0[0,1] & data0[0,2])
 ~(data2[0,4] & data2[0,6])
 ~(data3[0,5] & data3[0,6])
@@ -1566,26 +1566,26 @@ constraints:
 ~(data4[0,6] & data2[0,6])
 ~(n[0,0] & n[0,1])
 (~n[0,1] & ~data0[0,1])
-(~n[0,7,0,0] & ~x[0,7,0,0])
+(~n[0,7,0,0] & ~curry1[0,7,0,0])
 (~pred1[0,3] & (~pred1(1) & ~data4[0,3]))
 (data0[0,1] | data0[0,2])
 (data2[0,4] | data2[0,6])
 (data3[0,5] | data3[0,6])
 (data4[0,3] | data4[0,6])
 (n[0,0] | ~n[0,0])
+(curry1[0,7,0] <-> curry1[0,7,0,0])
 (data2[0,6] <-> data3[0,6])
 (n[] <-> n[0])
 (n[0] <-> (n[0,0] | n[0,1]))
 (n[0,7,0] <-> n[0,7,0,0])
-(x[0,7,0] <-> x[0,7,0,0])
-(pred1(1) <-> x[0,7,0])
+(pred1(1) <-> curry1[0,7,0])
 1
 -}
 
 euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) :& RNil
   where
     euler5I = \n -> Logic.once $ do
-      -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6] ~data0[0,1] ~data2[0,6] ~data3[0,6] ~data4[0,3] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,7,0] ~n[0,7,0,0] ~pred1[0,3] ~x[0] ~x[0,7,0] ~x[0,7,0,0] ~pred1(1)
+      -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6] ~curry1[0] ~curry1[0,7,0] ~curry1[0,7,0,0] ~data0[0,1] ~data2[0,6] ~data3[0,6] ~data4[0,3] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,7,0] ~n[0,7,0,0] ~pred1[0,3] ~pred1(1)
       -- cost: 4
       () <- (do
         data0 <- pure 0
@@ -1595,9 +1595,9 @@ euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) 
         guard $ (>) n data0
         () <- runProcedure @'[ 'In ] nat n
         let pred1 = procedure @'[ 'In ] $
-              \x -> do
+              \curry1 -> do
                 () <- (do
-                  () <- runProcedure @'[ 'In, 'In ] multiple n x
+                  () <- runProcedure @'[ 'In, 'In ] multiple n curry1
                   pure ()
                  )
                 pure ()
@@ -1607,7 +1607,7 @@ euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) 
       pure ()
     
     euler5O = do
-      -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6] n[] n[0] n[0,0] ~data0[0,1] ~data2[0,6] ~data3[0,6] ~data4[0,3] ~n[0,1] ~n[0,7,0] ~n[0,7,0,0] ~pred1[0,3] ~x[0] ~x[0,7,0] ~x[0,7,0,0] ~pred1(1)
+      -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6] n[] n[0] n[0,0] ~curry1[0] ~curry1[0,7,0] ~curry1[0,7,0,0] ~data0[0,1] ~data2[0,6] ~data3[0,6] ~data4[0,3] ~n[0,1] ~n[0,7,0] ~n[0,7,0,0] ~pred1[0,3] ~pred1(1)
       -- cost: 5
       (n) <- (do
         data0 <- pure 0
@@ -1617,9 +1617,9 @@ euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) 
         (OneTuple (n)) <- runProcedure @'[ 'Out ] nat 
         guard $ (>) n data0
         let pred1 = procedure @'[ 'In ] $
-              \x -> do
+              \curry1 -> do
                 () <- (do
-                  () <- runProcedure @'[ 'In, 'In ] multiple n x
+                  () <- runProcedure @'[ 'In, 'In ] multiple n curry1
                   pure ()
                  )
                 pure ()

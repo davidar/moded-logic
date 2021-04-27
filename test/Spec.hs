@@ -68,7 +68,7 @@ programHigherOrder =
     then filter p t t', ts = (h:t')
     else filter p t ts.
 
-  evens xs ys :- filter (\x :- even x) xs ys.
+  evens xs ys :- filter even xs ys.
 
   foldl p [] a a.
   foldl p (h:t) a a'' :- p h a a', foldl p t a' a''.
@@ -323,7 +323,7 @@ programEuler =
   #pragma nub euler1.
   euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5).
 
-  euler1' s :- observeAll (\x :- euler1 x) r, sum r s.
+  euler1' s :- observeAll euler1 r, sum r s.
 
   #pragma memo fib.
   fib 0 0.
@@ -349,21 +349,21 @@ programEuler =
   prime 2.
   prime p :-
     oddNat p, p > 2,
-    observeAll (\x :- prime x) primes,
+    observeAll prime primes,
     if factor primes p d, p /= d then empty else.
 
   primeFactor n d :-
-    observeAll (\x :- prime x) primes, factor primes n d.
+    observeAll prime primes, factor primes n d.
 
-  euler3 n r :- observeAll (\d :- primeFactor n d) fs, maximum fs r.
+  euler3 n r :- observeAll (primeFactor n) fs, maximum fs r.
 
   euler4 n :-
     elem x [10..99], elem y [10..99], timesInt x y n,
     show n s, reverse s s.
 
-  euler4' n :- observeAll (\x :- euler4 x) s, maximum s n.
+  euler4' n :- observeAll euler4 s, maximum s n.
 
-  euler5 n :- nat n, n > 0, all (\x :- multiple n x) [1..5].
+  euler5 n :- nat n, n > 0, all (multiple n) [1..5].
   |]
 
 prime25 :: [Integer]

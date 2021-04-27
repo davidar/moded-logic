@@ -78,9 +78,21 @@ operator = lexeme $ some (oneOf "!#$%&*+./<=>?@\\^|-~:") >>= check
 variable :: Parser Val
 variable = (symbol "_" >> pure (Var (V "_"))) <|> (Var . V <$> identifier)
 
+parenValue :: Parser Val
+parenValue =
+  try
+    (do v <- identifier
+        vs <- some value
+        if isUpper (head v)
+          then pure $ Cons v vs
+          else if null vs
+          then pure $ Var (V v)
+          else pure $ Curry v vs) <|>
+  value
+
 value :: Parser Val
 value =
-  parens value <|>
+  parens parenValue <|>
   try
     (do u <- variable
         symbol ":"
@@ -108,9 +120,7 @@ value =
         Lambda vars <$> conj) <|>
   (do v <- identifier
       if isUpper (head v)
-        then do
-          vs <- many value
-          pure $ Cons v vs
+        then pure $ Cons v []
         else pure $ Var (V v)) <|>
   (do symbol "_"
       pure $ Var (V "_")) <|>
@@ -121,7 +131,7 @@ unify :: Parser (Atom Val)
 unify = do
   lhs <- variable
   symbol "="
-  rhs <- value
+  rhs <- parenValue
   pure $ Unif lhs rhs
 
 predicate :: Parser (Atom Val)
@@ -188,12 +198,11 @@ prog = do
 parseProg ::
      String -> String -> Either (ParseErrorBundle String Void) (Prog Var Var)
 parseProg fn lp = do
-  Prog pragmas p1 <- parse prog fn lp
-  let p2 = combineDefs p1
-      p3 = map superhomogeneous p2
-      p4 = map distinctVars p3
-      p5 = map (\r -> r {ruleBody = simplify (ruleBody r)}) p4
-  pure $ Prog pragmas p5
+  Prog pragmas p <- parse prog fn lp
+  let p' = combineDefs p
+      arities = [(ruleName r, length (ruleArgs r)) | r <- p']
+      simp r = r {ruleBody = simplify (ruleBody r)}
+  pure . Prog pragmas $ simp . distinctVars . superhomogeneous arities <$> p'
 
 logic :: QuasiQuoter
 logic =

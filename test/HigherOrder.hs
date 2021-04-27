@@ -314,31 +314,31 @@ filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (p
       pure (OneTuple (arg3))
     
 {- evens/2
-evens xs ys :- ((filter pred0 xs ys, (pred0 x :- (even x)))).
+evens xs ys :- ((filter pred0 xs ys, (pred0 curry1 :- (even curry1)))).
 constraints:
+~curry1[0]
+~curry1[0,1,0,0]
 ~pred0[0,0]
-~x[0]
-~x[0,1,0,0]
 ((~pred0[0,0] & (~pred0(1) & (~xs[0,0] & ys[0,0]))) | (~pred0[0,0] & (~pred0(1) & (~xs[0,0] & ~ys[0,0]))))
-(x[0,1,0] <-> x[0,1,0,0])
+(curry1[0,1,0] <-> curry1[0,1,0,0])
 (xs[] <-> xs[0])
 (xs[0] <-> xs[0,0])
 (ys[] <-> ys[0])
 (ys[0] <-> ys[0,0])
-(pred0(1) <-> x[0,1,0])
+(pred0(1) <-> curry1[0,1,0])
 1
 -}
 
 evens = rget $ (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] evensIO) :& RNil
   where
     evensII = \xs ys -> Logic.once $ do
-      -- solution: ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1)
+      -- solution: ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1)
       -- cost: 2
       () <- (do
         let pred0 = procedure @'[ 'In ] $
-              \x -> do
+              \curry1 -> do
                 () <- (do
-                  () <- runProcedure @'[ 'In ] even x
+                  () <- runProcedure @'[ 'In ] even curry1
                   pure ()
                  )
                 pure ()
@@ -348,13 +348,13 @@ evens = rget $ (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     evensIO = \xs -> do
-      -- solution: ys[] ys[0] ys[0,0] ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1)
+      -- solution: ys[] ys[0] ys[0,0] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1)
       -- cost: 3
       (ys) <- (do
         let pred0 = procedure @'[ 'In ] $
-              \x -> do
+              \curry1 -> do
                 () <- (do
-                  () <- runProcedure @'[ 'In ] even x
+                  () <- runProcedure @'[ 'In ] even curry1
                   pure ()
                  )
                 pure ()
