@@ -327,7 +327,7 @@ programEuler =
   #pragma nub euler1.
   euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5).
 
-  euler1' s :- observeAll euler1 r, sum r s.
+  euler1' s :- apply sum (observeAll euler1) s.
 
   #pragma memo fib.
   fib 0 0.
@@ -359,13 +359,13 @@ programEuler =
   primeFactor n d :-
     observeAll prime primes, factor primes n d.
 
-  euler3 n r :- observeAll (primeFactor n) fs, maximum fs r.
+  euler3 n r :- apply maximum (observeAll (primeFactor n)) r.
 
   euler4 n :-
     elem x [10..99], elem y [10..99], timesInt x y n,
     show n s, reverse s s.
 
-  euler4' n :- (m x y :- maximum x y), (p x :- euler4 x), apply m (observeAll p) n.
+  euler4' n :- apply maximum (observeAll euler4) n.
 
   euler5 n :- nat n, n > 0, all (multiple n) [1..5].
   |]
