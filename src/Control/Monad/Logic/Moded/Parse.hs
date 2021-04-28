@@ -4,6 +4,7 @@
 module Control.Monad.Logic.Moded.Parse
   ( logic
   , parseProg
+  , rule
   ) where
 
 import Control.Monad.Logic.Moded.AST
@@ -18,7 +19,7 @@ import Control.Monad.Logic.Moded.Preprocess
   ( Val(..)
   , combineDefs
   , distinctVars
-  , simplify
+  , simp
   , superhomogeneous
   )
 
@@ -205,7 +206,6 @@ parseProg fn lp = do
       arities =
         [(ruleName r, length (ruleArgs r)) | r <- p'] ++
         [(name, length (head modes)) | (name, modes) <- Map.toAscList modesPrelude]
-      simp r = r {ruleBody = simplify (ruleBody r)}
   pure . Prog pragmas $ simp . distinctVars . superhomogeneous arities <$> p'
 
 logic :: QuasiQuoter

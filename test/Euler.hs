@@ -909,41 +909,40 @@ fib' = rget $ (procedure @'[ 'Out ] fib'O) :& RNil
       pure (OneTuple (f))
     
 {- euler2/1
-euler2 s :- ((observeAll pred0 fs, (pred0 x :- (fib' x, even x)), span pred2 fs xs _, data1 = 1000000, (pred2 x :- ((<) x data1, data1 = 1000000)), sum xs s)).
+euler2 s :- ((observeAll pred0 fs, (pred0 x :- (fib' x, even x)), span pred2 fs xs _, (pred2 x :- ((<) x data1, data1 = 1000000)), sum xs s)).
 constraints:
-data1[0,3]
 x[0,1,0,0]
 ~pred0[0,0]
 ~pred2[0,2]
 ~x[0]
 ~x[0,1,0,1]
-~(data1[0,4,0,0] & data1[0,4,0,1])
+~(data1[0,3,0,0] & data1[0,3,0,1])
 ~(fs[0,0] & fs[0,2])
 ~(x[0,1,0,0] & x[0,1,0,1])
-~(xs[0,2] & xs[0,5])
+~(xs[0,2] & xs[0,4])
 (~pred0[0,0] & (pred0(1) & fs[0,0]))
-(~x[0,4,0,0] & ~data1[0,4,0,0])
+(~x[0,3,0,0] & ~data1[0,3,0,0])
+(data1[0,3,0,0] | data1[0,3,0,1])
 (fs[0,0] | fs[0,2])
-(xs[0,2] | xs[0,5])
+(xs[0,2] | xs[0,4])
 ((~pred2[0,2] & (~pred2(1) & (~fs[0,2] & xs[0,2]))) | (~pred2[0,2] & (~pred2(1) & (~fs[0,2] & ~xs[0,2]))))
-((~xs[0,5] & s[0,5]) | (~xs[0,5] & ~s[0,5]))
-(data1[0,4,0] <-> (data1[0,4,0,0] | data1[0,4,0,1]))
+((~xs[0,4] & s[0,4]) | (~xs[0,4] & ~s[0,4]))
+(data1[0] <-> data1[0,3])
 (s[] <-> s[0])
-(s[0] <-> s[0,5])
+(s[0] <-> s[0,4])
 (x[0,1,0] <-> (x[0,1,0,0] | x[0,1,0,1]))
-(x[0,4,0] <-> x[0,4,0,0])
+(x[0,3,0] <-> x[0,3,0,0])
 (pred0(1) <-> x[0,1,0])
-(pred2(1) <-> x[0,4,0])
+(pred2(1) <-> x[0,3,0])
 1
 -}
 
 euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) :& RNil
   where
     euler2I = \s -> Logic.once $ do
-      -- solution: data1[0,3] data1[0,4,0] data1[0,4,0,1] fs[0,0] x[0,1,0] x[0,1,0,0] xs[0,2] pred0(1) ~data1[0,4,0,0] ~fs[0,2] ~pred0[0,0] ~pred2[0,2] ~s[] ~s[0] ~s[0,5] ~x[0] ~x[0,1,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,5] ~pred2(1)
+      -- solution: data1[0] data1[0,3] data1[0,3,0,1] fs[0,0] x[0,1,0] x[0,1,0,0] xs[0,2] pred0(1) ~data1[0,3,0,0] ~fs[0,2] ~pred0[0,0] ~pred2[0,2] ~s[] ~s[0] ~s[0,4] ~x[0] ~x[0,1,0,1] ~x[0,3,0] ~x[0,3,0,0] ~xs[0,4] ~pred2(1)
       -- cost: 10
       () <- (do
-        data1 <- pure 1000000
         let pred0 = procedure @'[ 'Out ] $
               do
                 (x) <- (do
@@ -954,10 +953,10 @@ euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) 
                 pure (OneTuple (x))
         let pred2 = procedure @'[ 'In ] $
               \x -> do
-                (data1) <- (do
+                () <- (do
                   data1 <- pure 1000000
                   guard $ (<) x data1
-                  pure (data1)
+                  pure ()
                  )
                 pure ()
         (OneTuple (fs)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0
@@ -968,10 +967,9 @@ euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) 
       pure ()
     
     euler2O = do
-      -- solution: data1[0,3] data1[0,4,0] data1[0,4,0,1] fs[0,0] s[] s[0] s[0,5] x[0,1,0] x[0,1,0,0] xs[0,2] pred0(1) ~data1[0,4,0,0] ~fs[0,2] ~pred0[0,0] ~pred2[0,2] ~x[0] ~x[0,1,0,1] ~x[0,4,0] ~x[0,4,0,0] ~xs[0,5] ~pred2(1)
+      -- solution: data1[0] data1[0,3] data1[0,3,0,1] fs[0,0] s[] s[0] s[0,4] x[0,1,0] x[0,1,0,0] xs[0,2] pred0(1) ~data1[0,3,0,0] ~fs[0,2] ~pred0[0,0] ~pred2[0,2] ~x[0] ~x[0,1,0,1] ~x[0,3,0] ~x[0,3,0,0] ~xs[0,4] ~pred2(1)
       -- cost: 11
       (s) <- (do
-        data1 <- pure 1000000
         let pred0 = procedure @'[ 'Out ] $
               do
                 (x) <- (do
@@ -982,10 +980,10 @@ euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) 
                 pure (OneTuple (x))
         let pred2 = procedure @'[ 'In ] $
               \x -> do
-                (data1) <- (do
+                () <- (do
                   data1 <- pure 1000000
                   guard $ (<) x data1
-                  pure (data1)
+                  pure ()
                  )
                 pure ()
         (OneTuple (fs)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred0

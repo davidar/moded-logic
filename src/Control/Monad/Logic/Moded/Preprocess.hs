@@ -4,6 +4,7 @@ module Control.Monad.Logic.Moded.Preprocess
   , superhomogeneous
   , distinctVars
   , simplify
+  , simp
   ) where
 
 import Control.Monad.Logic.Moded.AST
@@ -28,7 +29,7 @@ instance Show Val where
   show (Var v) = show v
   show (Cons name vs) = unwords (name : map show vs)
   show (Lambda vs g) = unwords (map show vs) ++ " :- " ++ show g
-  show (Curry p vs) = unwords (p : map show vs)
+  show (Curry p vs) = "(" ++ unwords (p : map show vs) ++ ")"
 
 combineDefs :: [Rule Val Val] -> [Rule Var Val]
 combineDefs rules = do
@@ -110,10 +111,9 @@ superhomogeneous arities r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, []
       g' <- tGoal g
       return $ Anon name' vs' g'
     tGoal (Atom a) = do
-      (count, _) <- get
-      put (count, [])
-      a' <- tAtom a
-      (_, body) <- get
+      (count, gs) <- get
+      let (a', (count', body)) = runState (tAtom a) (count, [])
+      put (count', gs)
       return $
         if null body
           then Atom a'
@@ -169,3 +169,6 @@ simplify (Disj gs) = Disj $ simplify <$> gs
 simplify (Ifte c t e) = Ifte (simplify c) (simplify t) (simplify e)
 simplify (Anon name vs g) = Anon name vs (simplify g)
 simplify (Atom a) = Atom a
+
+simp :: Rule u Var -> Rule u Var
+simp r = r {ruleBody = simplify (ruleBody r)}

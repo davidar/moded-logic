@@ -16,14 +16,16 @@ import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, obse
 import qualified Control.Monad.Logic.Fair as FairLogic
 import Control.Monad.Logic.Moded.AST (Prog, Var, Mode(..))
 import Control.Monad.Logic.Moded.Codegen (compile)
-import Control.Monad.Logic.Moded.Parse (logic)
+import Control.Monad.Logic.Moded.Parse (logic, rule)
 import qualified Control.Monad.Logic.Moded.Prelude as MPrelude
+import Control.Monad.Logic.Moded.Preprocess (combineDefs, superhomogeneous, simp)
 import Control.Monad.Logic.Moded.Procedure (call)
 import qualified Data.List as List
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn, shouldSatisfy)
+import Text.Megaparsec (parse)
 
 updateCode :: Bool
 updateCode = False
@@ -388,6 +390,16 @@ main = do
   putStrLn . unlines $
     map show [programAppend, programHigherOrder, programPrimes, programSort, programQueens, programCrypt, programKiselyov, programEuler]
   hspec $ do
+    describe "Parse" $ do
+      it "apply" $ do
+        let Right r0 = parse rule "" "result n :- apply sum (observeAll p) n."
+            [r1] = combineDefs [r0]
+            r2 = superhomogeneous [("sum",2), ("observeAll",2), ("p",1)] r1
+            r3 = simp r2
+        show r0 `shouldBe` "result n :- (apply sum (observeAll p) n)."
+        show r1 `shouldBe` "result n :- (((apply sum (observeAll p) n)))."
+        show r2 `shouldBe` "result n :- ((((apply pred0 pred2 n, (pred0 curry1 curry2 :- sum curry1 curry2), (pred2 curry1 :- (observeAll pred1 curry1, (pred1 curry1 :- p curry1)))))))."
+        show r3 `shouldBe` "result n :- ((apply pred0 pred2 n, (pred0 curry1 curry2 :- sum curry1 curry2), (pred2 curry1 :- (observeAll pred1 curry1, (pred1 curry1 :- p curry1)))))."
     describe "Append" $ do
       it "compile" $ compileTest "Append" programAppend
       it "append" $ do
