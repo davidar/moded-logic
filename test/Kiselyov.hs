@@ -263,57 +263,54 @@ permute = rget $ (procedure @'[ 'In, 'Out ] permuteIO) :& (procedure @'[ 'Out, '
       pure (OneTuple (arg1))
     
 {- sorted/1
-sorted arg1 :- ((arg1 = []); (arg1 = _:data0, data0 = []); (arg1 = a:data1, data1 = b0:r1, b0 = b, r1 = r, (<=) a b, sorted data2, data2 = b2:r3, b2 = b, r3 = r)).
+sorted arg1 :- ((arg1 = []); (arg1 = _:data0, data0 = []); (arg1 = a:b0:r1, b0 = b, r1 = r, (<=) a b, sorted data1, data1 = b2:r3, b2 = b, r3 = r)).
 constraints:
 data0[1,0]
 ~arg1[1,0]
-~(a[2,0] & a[2,4])
+~(a[2,0] & a[2,3])
 ~(arg1[2,0] & a[2,0])
-~(b[2,2] & b[2,4])
-~(b[2,2] & b[2,7])
-~(b[2,4] & b[2,7])
-~(b0[2,1] & b0[2,2])
-~(b0[2,2] & b[2,2])
-~(b2[2,6] & b2[2,7])
-~(b2[2,7] & b[2,7])
+~(b[2,1] & b[2,3])
+~(b[2,1] & b[2,6])
+~(b[2,3] & b[2,6])
+~(b0[2,0] & b0[2,1])
+~(b0[2,1] & b[2,1])
+~(b2[2,5] & b2[2,6])
+~(b2[2,6] & b[2,6])
 ~(data0[1,0] & data0[1,1])
-~(data1[2,0] & data1[2,1])
-~(data1[2,1] & b0[2,1])
-~(data2[2,5] & data2[2,6])
-~(data2[2,6] & b2[2,6])
-~(r[2,3] & r[2,8])
-~(r1[2,1] & r1[2,3])
-~(r1[2,3] & r[2,3])
-~(r3[2,6] & r3[2,8])
-~(r3[2,8] & r[2,8])
-(~a[2,4] & ~b[2,4])
-(a[2,0] | a[2,4])
-(b[2,2] | (b[2,4] | b[2,7]))
-(b0[2,1] | b0[2,2])
-(b2[2,6] | b2[2,7])
+~(data1[2,4] & data1[2,5])
+~(data1[2,5] & b2[2,5])
+~(r[2,2] & r[2,7])
+~(r1[2,0] & r1[2,2])
+~(r1[2,2] & r[2,2])
+~(r3[2,5] & r3[2,7])
+~(r3[2,7] & r[2,7])
+(~a[2,3] & ~b[2,3])
+(a[2,0] | a[2,3])
+(b[2,1] | (b[2,3] | b[2,6]))
+(b0[2,0] | b0[2,1])
+(b2[2,5] | b2[2,6])
 (data0[1,0] | data0[1,1])
-(data1[2,0] | data1[2,1])
-(data2[2,5] | data2[2,6])
-(r[2,3] | r[2,8])
-(r1[2,1] | r1[2,3])
-(r3[2,6] | r3[2,8])
-(a[2,0] <-> data1[2,0])
+(data1[2,4] | data1[2,5])
+(r[2,2] | r[2,7])
+(r1[2,0] | r1[2,2])
+(r3[2,5] | r3[2,7])
+(a[2,0] <-> b0[2,0])
+(a[2,0] <-> r1[2,0])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[] <-> arg1[2])
 (arg1[0] <-> arg1[0,0])
 (arg1[1] <-> arg1[1,0])
 (arg1[2] <-> arg1[2,0])
-(b0[2,1] <-> r1[2,1])
-(b2[2,6] <-> r3[2,6])
-(data2[2,5] <-> arg1[])
+(b2[2,5] <-> r3[2,5])
+(data1[2,4] <-> arg1[])
 1
 -}
 
 sorted = rget $ (procedure @'[ 'In ] sortedI) :& RNil
   where
     sortedI = \arg1 -> Logic.once $ do
-      -- solution: a[2,0] b[2,2] b0[2,1] b2[2,7] data0[1,0] data1[2,0] data2[2,6] r[2,3] r1[2,1] r3[2,8] ~a[2,4] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg1[2] ~arg1[2,0] ~b[2,4] ~b[2,7] ~b0[2,2] ~b2[2,6] ~data0[1,1] ~data1[2,1] ~data2[2,5] ~r[2,8] ~r1[2,3] ~r3[2,6]
+      -- solution: a[2,0] b[2,1] b0[2,0] b2[2,6] data0[1,0] data1[2,5] r[2,2] r1[2,0] r3[2,7] ~a[2,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg1[2] ~arg1[2,0] ~b[2,3] ~b[2,6] ~b0[2,1] ~b2[2,5] ~data0[1,1] ~data1[2,4] ~r[2,7] ~r1[2,2] ~r3[2,5]
       -- cost: 2
       () <- (do
         guard $ arg1 == []
@@ -323,15 +320,14 @@ sorted = rget $ (procedure @'[ 'In ] sortedI) :& RNil
         guard $ data0 == []
         pure ()
        ) <|> (do
-        (a:data1) <- pure arg1
-        (b0:r1) <- pure data1
+        (a:b0:r1) <- pure arg1
         b <- pure b0
         b2 <- pure b
         r <- pure r1
         r3 <- pure r
-        data2 <- pure (b2:r3)
+        data1 <- pure (b2:r3)
         guard $ (<=) a b
-        () <- sortedI data2
+        () <- sortedI data1
         pure ()
        )
       pure ()

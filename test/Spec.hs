@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -Wno-type-defaults -Wno-unticked-promoted-constructors #-}
 
 import qualified Append
+import qualified DCG
 import qualified Euler
 import qualified HigherOrder
 import qualified Kiselyov
@@ -292,6 +293,19 @@ programKiselyov =
     length t m, length str n, plus i m n.
   |]
 
+programDCG :: Prog Var Var
+programDCG =
+  [logic|
+  det ("the" : x) x.
+  det ("a" : x) x.
+  noun ("cat" : x) x.
+  noun ("bat" : x) x.
+  verb ("eats" : x) x.
+  np a z :- det a b, noun b z.
+  vp a z :- verb a b, np b z.
+  sentence a z :- np a b, vp b z.
+  |]
+
 programEuler :: Prog Var Var
 programEuler =
   [logic|
@@ -387,8 +401,17 @@ compileTest name program = do
 
 main :: IO ()
 main = do
-  putStrLn . unlines $
-    map show [programAppend, programHigherOrder, programPrimes, programSort, programQueens, programCrypt, programKiselyov, programEuler]
+  putStrLn . unlines $ show <$>
+    [ programAppend
+    , programHigherOrder
+    , programPrimes
+    , programSort
+    , programQueens
+    , programCrypt
+    , programKiselyov
+    , programDCG
+    , programEuler
+    ]
   hspec $ do
     describe "Parse" $ do
       it "apply" $ do
@@ -518,6 +541,13 @@ main = do
             sentence2 = liftIO (putStrLn "sentence2") >> return "Sort of"
             twosen = liftIO . print =<< call @'[In, In, Out] Kiselyov.findI "or" =<< sentence1 <|> sentence2
         observeAllT twosen `shouldReturn` replicate 4 ()
+    describe "DCG" $ do
+      it "compile" $ compileTest "DCG" programDCG
+      it "sentence" $ do
+        let dets = ["a", "the"]
+            nouns = ["bat", "cat"]
+        List.sort (observeAll (call @'[Out, In] DCG.sentence [])) `shouldBe`
+          [[d, n, "eats", d', n'] | d <- dets, n <- nouns, d' <- dets, n' <- nouns]
     describe "Euler" $ do
       it "compile" $ compileTest "Euler" programEuler
       it "1" $ do

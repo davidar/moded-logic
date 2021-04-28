@@ -54,6 +54,9 @@ integer = lexeme L.decimal
 signedInteger :: Parser Integer
 signedInteger = L.signed spaceConsumer integer
 
+stringLiteral :: Parser String
+stringLiteral = lexeme $ char '"' >> manyTill L.charLiteral (char '"')
+
 parens :: Parser a -> Parser a
 parens = symbol "(" `between` symbol ")"
 
@@ -91,16 +94,16 @@ parenValue =
           else if null vs
           then pure $ Var (V v)
           else pure $ Curry v vs) <|>
+  try
+    (do v <- value
+        symbol ":"
+        vs <- value `sepBy1` symbol ":"
+        pure $ Cons ":" (v:vs)) <|>
   value
 
 value :: Parser Val
 value =
   parens parenValue <|>
-  try
-    (do u <- variable
-        symbol ":"
-        v <- value
-        pure $ Cons ":" [u, v]) <|>
   try
     (do symbol "["
         u <- value
@@ -116,6 +119,8 @@ value =
         if null elems
           then nil
           else Cons ":" $ elems ++ [nil]) <|>
+  (do s <- stringLiteral
+      pure $ Cons ("\"" ++ s ++ "\"") []) <|>
   try
     (do symbol "\\"
         vars <- many value
