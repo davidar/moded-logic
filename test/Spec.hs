@@ -320,6 +320,8 @@ programEuler =
 
   multiple x y :- mod x y 0.
 
+  apply f p y :- p x, f x y.
+
   #pragma nub euler1.
   euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5).
 
@@ -361,7 +363,7 @@ programEuler =
     elem x [10..99], elem y [10..99], timesInt x y n,
     show n s, reverse s s.
 
-  euler4' n :- observeAll euler4 s, maximum s n.
+  euler4' n :- (m x y :- maximum x y), (p x :- euler4 x), apply m (observeAll p) n.
 
   euler5 n :- nat n, n > 0, all (multiple n) [1..5].
   |]

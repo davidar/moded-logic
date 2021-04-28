@@ -101,14 +101,12 @@ mode r@(Rule name vars body) soln =
     Right body' -> Right $ Rule name (annotate [] <$> vars) body'
   where
     annotate p (V v)
-      | t `Set.member` soln = MV v Out
-      | Sat.Neg t `Set.member` soln =
+      | t `Set.member` soln || v == "_" = MV v Out
+      | Sat.Neg t `Set.member` soln || null p =
         MV v $
         case predMode (V v) soln of
           [] -> In
           ms' -> PredMode ms'
-      | v == "_" = MV v Out
-      | null p = MV v In
       | otherwise = error $ show r ++ "\n" ++ show t ++ " not in " ++ show soln
       where
         t = Sat.Var $ Produce (V v) p

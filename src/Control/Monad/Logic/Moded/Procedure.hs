@@ -55,7 +55,7 @@ data Procedure m z (as :: [*]) (ms :: [Mode]) where
   PO :: Procedure m (z :* a) as ms -> Procedure m z (a : as) ('Out : ms)
   PN :: m z -> Procedure m z '[] '[]
 
-class ConstructProcedure ms m z as f where
+class ConstructProcedure ms m z as f | ms m z as -> f where
   procedure :: f -> Procedure m z as ms
   runProcedure :: Procedure m z as ms -> f
 
