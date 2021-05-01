@@ -725,3 +725,209 @@ splitr = rget $ (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In,
        )
       pure (xs,z)
     
+{- compose/4
+compose f g a z :- ((g a b, f b z)).
+constraints:
+~(b[0,0] & b[0,1])
+(b[0,0] | b[0,1])
+(a[] <-> a[0])
+(a[0] <-> a[0,0])
+(a[0,0] <-> g(1))
+(b[0,0] <-> g(2))
+(b[0,1] <-> f(1))
+(z[] <-> z[0])
+(z[0] <-> z[0,1])
+(z[0,1] <-> f(2))
+1
+-}
+
+compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out ], 'In, 'In ] composeP2IIP2IOII) :& (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'Out, 'Out ], 'Out, 'In ] composeP2IIP2OOOI) :& (procedure @'[ 'PredMode '[ 'In, 'Out ], 'PredMode '[ 'In, 'Out ], 'In, 'Out ] composeP2IOP2IOIO) :& (procedure @'[ 'PredMode '[ 'In, 'Out ], 'PredMode '[ 'Out, 'Out ], 'Out, 'Out ] composeP2IOP2OOOO) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'PredMode '[ 'In, 'In ], 'In, 'In ] composeP2OIP2IIII) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'PredMode '[ 'Out, 'In ], 'Out, 'In ] composeP2OIP2OIOI) :& (procedure @'[ 'PredMode '[ 'Out, 'Out ], 'PredMode '[ 'In, 'In ], 'In, 'Out ] composeP2OOP2IIIO) :& (procedure @'[ 'PredMode '[ 'Out, 'Out ], 'PredMode '[ 'Out, 'In ], 'Out, 'Out ] composeP2OOP2OIOO) :& RNil
+  where
+    composeP2IIP2IOII = \f g a z -> Logic.once $ do
+      -- solution: b[0,0] g(2) ~a[] ~a[0] ~a[0,0] ~b[0,1] ~z[] ~z[0] ~z[0,1] ~f(1) ~f(2) ~g(1)
+      -- cost: 3
+      () <- (do
+        (OneTuple (b)) <- runProcedure g a
+        () <- runProcedure f b z
+        pure ()
+       )
+      pure ()
+    
+    composeP2IIP2OOOI = \f g z -> do
+      -- solution: a[] a[0] a[0,0] b[0,0] g(1) g(2) ~b[0,1] ~z[] ~z[0] ~z[0,1] ~f(1) ~f(2)
+      -- cost: 4
+      (a) <- (do
+        (a,b) <- runProcedure g 
+        () <- runProcedure f b z
+        pure (a)
+       )
+      pure (OneTuple (a))
+    
+    composeP2IOP2IOIO = \f g a -> do
+      -- solution: b[0,0] z[] z[0] z[0,1] f(2) g(2) ~a[] ~a[0] ~a[0,0] ~b[0,1] ~f(1) ~g(1)
+      -- cost: 4
+      (z) <- (do
+        (OneTuple (b)) <- runProcedure g a
+        (OneTuple (z)) <- runProcedure f b
+        pure (z)
+       )
+      pure (OneTuple (z))
+    
+    composeP2IOP2OOOO = \f g -> do
+      -- solution: a[] a[0] a[0,0] b[0,0] z[] z[0] z[0,1] f(2) g(1) g(2) ~b[0,1] ~f(1)
+      -- cost: 5
+      (a,z) <- (do
+        (a,b) <- runProcedure g 
+        (OneTuple (z)) <- runProcedure f b
+        pure (a,z)
+       )
+      pure (a,z)
+    
+    composeP2OIP2IIII = \f g a z -> Logic.once $ do
+      -- solution: b[0,1] f(1) ~a[] ~a[0] ~a[0,0] ~b[0,0] ~z[] ~z[0] ~z[0,1] ~f(2) ~g(1) ~g(2)
+      -- cost: 3
+      () <- (do
+        (OneTuple (b)) <- runProcedure f z
+        () <- runProcedure g a b
+        pure ()
+       )
+      pure ()
+    
+    composeP2OIP2OIOI = \f g z -> do
+      -- solution: a[] a[0] a[0,0] b[0,1] f(1) g(1) ~b[0,0] ~z[] ~z[0] ~z[0,1] ~f(2) ~g(2)
+      -- cost: 4
+      (a) <- (do
+        (OneTuple (b)) <- runProcedure f z
+        (OneTuple (a)) <- runProcedure g b
+        pure (a)
+       )
+      pure (OneTuple (a))
+    
+    composeP2OOP2IIIO = \f g a -> do
+      -- solution: b[0,1] z[] z[0] z[0,1] f(1) f(2) ~a[] ~a[0] ~a[0,0] ~b[0,0] ~g(1) ~g(2)
+      -- cost: 4
+      (z) <- (do
+        (b,z) <- runProcedure f 
+        () <- runProcedure g a b
+        pure (z)
+       )
+      pure (OneTuple (z))
+    
+    composeP2OOP2OIOO = \f g -> do
+      -- solution: a[] a[0] a[0,0] b[0,1] z[] z[0] z[0,1] f(1) f(2) g(1) ~b[0,0] ~g(2)
+      -- cost: 5
+      (a,z) <- (do
+        (b,z) <- runProcedure f 
+        (OneTuple (a)) <- runProcedure g b
+        pure (a,z)
+       )
+      pure (a,z)
+    
+{- composeTest/2
+composeTest a z :- ((compose pred1 pred3 a z, (pred1 curry1 curry2 :- (times data0 curry1 curry2, data0 = 2)), (pred3 curry1 curry2 :- (plus data2 curry1 curry2, data2 = 1)))).
+constraints:
+~curry1[0]
+~curry2[0]
+~pred1[0,0]
+~pred3[0,0]
+~(data0[0,1,0,0] & data0[0,1,0,1])
+~(data2[0,2,0,0] & data2[0,2,0,1])
+(data0[0,1,0,0] | data0[0,1,0,1])
+(data2[0,2,0,0] | data2[0,2,0,1])
+((data0[0,1,0,0] & (~curry1[0,1,0,0] & ~curry2[0,1,0,0])) | ((~data0[0,1,0,0] & (curry1[0,1,0,0] & ~curry2[0,1,0,0])) | ((~data0[0,1,0,0] & (~curry1[0,1,0,0] & curry2[0,1,0,0])) | (~data0[0,1,0,0] & (~curry1[0,1,0,0] & ~curry2[0,1,0,0])))))
+((data2[0,2,0,0] & (~curry1[0,2,0,0] & ~curry2[0,2,0,0])) | ((~data2[0,2,0,0] & (curry1[0,2,0,0] & ~curry2[0,2,0,0])) | ((~data2[0,2,0,0] & (~curry1[0,2,0,0] & curry2[0,2,0,0])) | (~data2[0,2,0,0] & (~curry1[0,2,0,0] & ~curry2[0,2,0,0])))))
+((~pred1[0,0] & (pred1(1) & (pred1(2) & (~pred3[0,0] & (pred3(1) & (~pred3(2) & (a[0,0] & z[0,0]))))))) | ((~pred1[0,0] & (pred1(1) & (pred1(2) & (~pred3[0,0] & (~pred3(1) & (~pred3(2) & (~a[0,0] & z[0,0]))))))) | ((~pred1[0,0] & (pred1(1) & (~pred1(2) & (~pred3[0,0] & (pred3(1) & (~pred3(2) & (a[0,0] & ~z[0,0]))))))) | ((~pred1[0,0] & (pred1(1) & (~pred1(2) & (~pred3[0,0] & (~pred3(1) & (~pred3(2) & (~a[0,0] & ~z[0,0]))))))) | ((~pred1[0,0] & (~pred1(1) & (pred1(2) & (~pred3[0,0] & (pred3(1) & (pred3(2) & (a[0,0] & z[0,0]))))))) | ((~pred1[0,0] & (~pred1(1) & (pred1(2) & (~pred3[0,0] & (~pred3(1) & (pred3(2) & (~a[0,0] & z[0,0]))))))) | ((~pred1[0,0] & (~pred1(1) & (~pred1(2) & (~pred3[0,0] & (pred3(1) & (pred3(2) & (a[0,0] & ~z[0,0]))))))) | (~pred1[0,0] & (~pred1(1) & (~pred1(2) & (~pred3[0,0] & (~pred3(1) & (pred3(2) & (~a[0,0] & ~z[0,0]))))))))))))))
+(a[] <-> a[0])
+(a[0] <-> a[0,0])
+(curry1[0,1,0] <-> curry1[0,1,0,0])
+(curry1[0,2,0] <-> curry1[0,2,0,0])
+(curry2[0,1,0] <-> curry2[0,1,0,0])
+(curry2[0,2,0] <-> curry2[0,2,0,0])
+(data0[0] <-> data0[0,1])
+(data2[0] <-> data2[0,2])
+(z[] <-> z[0])
+(z[0] <-> z[0,0])
+(pred1(1) <-> curry1[0,1,0])
+(pred1(2) <-> curry2[0,1,0])
+(pred3(1) <-> curry1[0,2,0])
+(pred3(2) <-> curry2[0,2,0])
+1
+-}
+
+composeTest = rget $ (procedure @'[ 'In, 'In ] composeTestII) :& (procedure @'[ 'In, 'Out ] composeTestIO) :& (procedure @'[ 'Out, 'In ] composeTestOI) :& RNil
+  where
+    composeTestII = \a z -> Logic.once $ do
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] pred1(1) ~a[] ~a[0] ~a[0,0] ~curry1[0] ~curry1[0,2,0] ~curry1[0,2,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry2[0,2,0] ~curry2[0,2,0,0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~pred1[0,0] ~pred3[0,0] ~z[] ~z[0] ~z[0,0] ~pred1(2) ~pred3(1) ~pred3(2)
+      -- cost: 4
+      () <- (do
+        let pred1 = procedure @'[ 'Out, 'In ] $
+              \curry2 -> do
+                (curry1) <- (do
+                  data0 <- pure 2
+                  (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out, 'In ] times data0 curry2
+                  pure (curry1)
+                 )
+                pure (OneTuple (curry1))
+        let pred3 = procedure @'[ 'In, 'In ] $
+              \curry1 curry2 -> do
+                () <- (do
+                  data2 <- pure 1
+                  () <- runProcedure @'[ 'In, 'In, 'In ] plus data2 curry1 curry2
+                  pure ()
+                 )
+                pure ()
+        () <- runProcedure @'[ 'PredMode '[ 'Out, 'In ], 'PredMode '[ 'In, 'In ], 'In, 'In ] compose pred1 pred3 a z
+        pure ()
+       )
+      pure ()
+    
+    composeTestIO = \a -> do
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] curry2[0,2,0] curry2[0,2,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] z[] z[0] z[0,0] pred1(2) pred3(2) ~a[] ~a[0] ~a[0,0] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry1[0,2,0] ~curry1[0,2,0,0] ~curry2[0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~pred1[0,0] ~pred3[0,0] ~pred1(1) ~pred3(1)
+      -- cost: 6
+      (z) <- (do
+        let pred1 = procedure @'[ 'In, 'Out ] $
+              \curry1 -> do
+                (curry2) <- (do
+                  data0 <- pure 2
+                  (OneTuple (curry2)) <- runProcedure @'[ 'In, 'In, 'Out ] times data0 curry1
+                  pure (curry2)
+                 )
+                pure (OneTuple (curry2))
+        let pred3 = procedure @'[ 'In, 'Out ] $
+              \curry1 -> do
+                (curry2) <- (do
+                  data2 <- pure 1
+                  (OneTuple (curry2)) <- runProcedure @'[ 'In, 'In, 'Out ] plus data2 curry1
+                  pure (curry2)
+                 )
+                pure (OneTuple (curry2))
+        (OneTuple (z)) <- runProcedure @'[ 'PredMode '[ 'In, 'Out ], 'PredMode '[ 'In, 'Out ], 'In, 'Out ] compose pred1 pred3 a
+        pure (z)
+       )
+      pure (OneTuple (z))
+    
+    composeTestOI = \z -> do
+      -- solution: a[] a[0] a[0,0] curry1[0,1,0] curry1[0,1,0,0] curry1[0,2,0] curry1[0,2,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] pred1(1) pred3(1) ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry2[0,2,0] ~curry2[0,2,0,0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~pred1[0,0] ~pred3[0,0] ~z[] ~z[0] ~z[0,0] ~pred1(2) ~pred3(2)
+      -- cost: 6
+      (a) <- (do
+        let pred1 = procedure @'[ 'Out, 'In ] $
+              \curry2 -> do
+                (curry1) <- (do
+                  data0 <- pure 2
+                  (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out, 'In ] times data0 curry2
+                  pure (curry1)
+                 )
+                pure (OneTuple (curry1))
+        let pred3 = procedure @'[ 'Out, 'In ] $
+              \curry2 -> do
+                (curry1) <- (do
+                  data2 <- pure 1
+                  (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out, 'In ] plus data2 curry2
+                  pure (curry1)
+                 )
+                pure (OneTuple (curry1))
+        (OneTuple (a)) <- runProcedure @'[ 'PredMode '[ 'Out, 'In ], 'PredMode '[ 'Out, 'In ], 'Out, 'In ] compose pred1 pred3 z
+        pure (a)
+       )
+      pure (OneTuple (a))
+    

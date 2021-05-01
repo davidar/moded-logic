@@ -76,6 +76,9 @@ foldl p (h:t) a a'' :- p h a a', foldl p t a' a''
 sum xs z r :- foldl plus xs z r
 split xs z r :- foldl (\x a a' :- a = (x:a')) xs z r
 splitr xs z r :- foldl (\x a a' :- a' = (x:a)) xs z r
+
+compose f g a z :- g a b, f b z
+composeTest a z :- compose (times 2) (plus 1) a z
 |]
 
 programPrimes :: Prog Var Var
@@ -480,6 +483,9 @@ main = do
         observeAll (call @'[Out, In, Out] HigherOrder.split [1..9]) `shouldBe` [splitAt i [1..9] | i <- [0..9]]
         observeMany 10 (call @'[Out, Out, In] HigherOrder.splitr [1..9]) `shouldBe`
           [let (a, b) = splitAt i [1..9] in (reverse a, b) | i <- [0..9]]
+      it "compose" $ do
+        observeAll (call @'[In, Out] HigherOrder.composeTest 7) `shouldBe` [2 * (1 + 7)]
+        observeAll (call @'[Out, In] HigherOrder.composeTest (2 * (1 + 7))) `shouldBe` [7]
     describe "Primes" $ do
       it "compile" $ compileTest "Primes" programPrimes
       it "primes" $ do
