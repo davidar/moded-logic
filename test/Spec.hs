@@ -32,357 +32,348 @@ updateCode :: Bool
 updateCode = False
 
 programAppend :: Prog Var Var
-programAppend =
-  [logic|
-  append [] b b.
-  append (h:t) b (h:tb) :- append t b tb.
+programAppend = [logic|
+append [] b b
+append (h:t) b (h:tb) :- append t b tb
 
-  append3 a b c abc :-
-    append a b ab, append ab c abc.
+append3 a b c abc :-
+  append a b ab, append ab c abc
 
-  reverse [] [].
-  reverse (h:t) l :- reverse t r, append r [h] l.
+reverse [] []
+reverse (h:t) l :- reverse t r, append r [h] l
 
-  palindrome a :- reverse a a.
-  duplicate a b :- append a a b.
-  classify xs r :- if palindrome xs then r = Just []
-              else if duplicate h xs then r = Just h
-              else r = Nothing.
+palindrome a :- reverse a a
+duplicate a b :- append a a b
+classify xs r :- if palindrome xs then r = Just []
+            else if duplicate h xs then r = Just h
+            else r = Nothing
 
-  delete h (h:t) t.
-  delete x (h:t) (h:r) :- delete x t r.
-  perm [] [].
-  perm xs (h:t) :- delete h xs ys, perm ys t.
-  |]
+delete h (h:t) t
+delete x (h:t) (h:r) :- delete x t r
+perm [] []
+perm xs (h:t) :- delete h xs ys, perm ys t
+|]
 
 programHigherOrder :: Prog Var Var
-programHigherOrder =
-  [logic|
-  even n :- mod n 2 0.
+programHigherOrder = [logic|
+even n :- mod n 2 0
 
-  map p [] [].
-  map p (x:xs) (y:ys) :- p x y, map p xs ys.
+map p [] []
+map p (x:xs) (y:ys) :- p x y, map p xs ys
 
-  succs xs ys :- map succ xs ys.
+succs xs ys :- map succ xs ys
 
-  filter p [] [].
-  filter p (h:t) ts :-
-    if p h
-    then filter p t t', ts = (h:t')
-    else filter p t ts.
+filter p [] []
+filter p (h:t) ts :-
+  if p h
+  then filter p t t', ts = (h:t')
+  else filter p t ts
 
-  evens xs ys :- filter even xs ys.
+evens xs ys :- filter even xs ys
 
-  foldl p [] a a.
-  foldl p (h:t) a a'' :- p h a a', foldl p t a' a''.
+foldl p [] a a
+foldl p (h:t) a a'' :- p h a a', foldl p t a' a''
 
-  sum xs z r :- foldl plus xs z r.
-  split xs z r :- foldl (\x a a' :- a = (x:a')) xs z r.
-  splitr xs z r :- foldl (\x a a' :- a' = (x:a)) xs z r.
-  |]
+sum xs z r :- foldl plus xs z r
+split xs z r :- foldl (\x a a' :- a = (x:a')) xs z r
+splitr xs z r :- foldl (\x a a' :- a' = (x:a)) xs z r
+|]
 
 programPrimes :: Prog Var Var
-programPrimes =
-  [logic|
-  integers low high result :-
-    if low <= high
-    then succ low m, integers m high rest, result = (low:rest)
-    else result = [].
+programPrimes = [logic|
+integers low high result :-
+  if low <= high
+  then succ low m, integers m high rest, result = (low:rest)
+  else result = []
 
-  remove _ [] [].
-  remove p (j:js) result :-
-    mod j p m,
-    remove p js njs,
-    if m = 0 then result = njs else result = (j:njs).
+remove _ [] []
+remove p (j:js) result :-
+  mod j p m,
+  remove p js njs,
+  if m = 0 then result = njs else result = (j:njs)
 
-  sift [] [].
-  sift (p:js) (p:ps) :- remove p js new, sift new ps.
+sift [] []
+sift (p:js) (p:ps) :- remove p js new, sift new ps
 
-  primes limit ps :- integers 2 limit js, sift js ps.
-  |]
+primes limit ps :- integers 2 limit js, sift js ps
+|]
 
 programSort :: Prog Var Var
-programSort =
-  [logic|
-  partition [] _ [] [].
-  partition (h:t) p lo hi :-
-    if h <= p
-    then partition t p lo1 hi, lo = (h:lo1)
-    else partition t p lo hi1, hi = (h:hi1).
+programSort = [logic|
+partition [] _ [] []
+partition (h:t) p lo hi :-
+  if h <= p
+  then partition t p lo1 hi, lo = (h:lo1)
+  else partition t p lo hi1, hi = (h:hi1)
 
-  qsort [] r r.
-  qsort (x:xs) r r0 :-
-    partition xs x ys zs,
-    qsort zs r1 r0,
-    qsort ys r (x:r1).
+qsort [] r r
+qsort (x:xs) r r0 :-
+  partition xs x ys zs,
+  qsort zs r1 r0,
+  qsort ys r (x:r1)
 
-  sort list sorted :- qsort list sorted [].
-  |]
+sort list sorted :- qsort list sorted []
+|]
 
 programQueens :: Prog Var Var
-programQueens =
-  [logic|
-  qdelete h (h:t) t.
-  qdelete x (h:t) (h:r) :- qdelete x t r.
-  qperm [] [].
-  qperm xs (h:t) :- qdelete h xs ys, qperm ys t.
+programQueens = [logic|
+qdelete h (h:t) t
+qdelete x (h:t) (h:r) :- qdelete x t r
+qperm [] []
+qperm xs (h:t) :- qdelete h xs ys, qperm ys t
 
-  nodiag _ _ [].
-  nodiag b d (h:t) :-
-    plus hmb b h,
-    plus bmh h b,
-    succ d d1,
-    if d = hmb then empty
-    else if d = bmh then empty
-    else nodiag b d1 t.
+nodiag _ _ []
+nodiag b d (h:t) :-
+  plus hmb b h,
+  plus bmh h b,
+  succ d d1,
+  if d = hmb then empty
+  else if d = bmh then empty
+  else nodiag b d1 t
 
-  safe [].
-  safe (h:t) :- nodiag h 1 t, safe t.
+safe []
+safe (h:t) :- nodiag h 1 t, safe t
 
-  queens1 dat out :- qperm dat out, safe out.
+queens1 dat out :- qperm dat out, safe out
 
-  cqueens [] _ [].
-  cqueens xs history (q:m) :-
-    xs = (_:_),
-    qdelete q xs r,
-    nodiag q 1 history,
-    cqueens r (q:history) m.
+cqueens [] _ []
+cqueens xs history (q:m) :-
+  xs = (_:_),
+  qdelete q xs r,
+  nodiag q 1 history,
+  cqueens r (q:history) m
 
-  queens2 dat out :- cqueens dat [] out.
-  |]
+queens2 dat out :- cqueens dat [] out
+|]
 
 programCrypt :: Prog Var Var
-programCrypt =
-  [logic|
-  sumDigits [] [] carry cs :-
-    if carry = 0 then cs = [] else cs = [carry].
-  sumDigits [] (b:bs) carry (c:cs) :-
-    if carry = 0 then c = b, cs = bs else
-    plus b carry x,
-    divMod x 10 carry' c,
-    sumDigits [] bs carry' cs.
-  sumDigits (a:as) [] carry (c:cs) :-
-    if carry = 0 then c = a, cs = as else
-    plus a carry x,
-    divMod x 10 carry' c,
-    sumDigits [] as carry' cs.
-  sumDigits (a:as) (b:bs) carry (c:cs) :-
-    sum [a, b, carry] x,
-    divMod x 10 carry' c,
-    sumDigits as bs carry' cs.
+programCrypt = [logic|
+sumDigits [] [] carry cs :-
+  if carry = 0 then cs = [] else cs = [carry]
+sumDigits [] (b:bs) carry (c:cs) :-
+  if carry = 0 then c = b, cs = bs else
+  plus b carry x,
+  divMod x 10 carry' c,
+  sumDigits [] bs carry' cs
+sumDigits (a:as) [] carry (c:cs) :-
+  if carry = 0 then c = a, cs = as else
+  plus a carry x,
+  divMod x 10 carry' c,
+  sumDigits [] as carry' cs
+sumDigits (a:as) (b:bs) carry (c:cs) :-
+  sum [a, b, carry] x,
+  divMod x 10 carry' c,
+  sumDigits as bs carry' cs
 
-  mulDigits (a:as) d carry (b:bs) :-
-    times a d ad,
-    plus ad carry x,
-    divMod x 10 carry' b,
-    mulDigits as d carry' bs.
-  mulDigits [] _ carry [c,c'] :-
-    divMod carry 10 c' c.
+mulDigits (a:as) d carry (b:bs) :-
+  times a d ad,
+  plus ad carry x,
+  divMod x 10 carry' b,
+  mulDigits as d carry' bs
+mulDigits [] _ carry [c,c'] :-
+  divMod carry 10 c' c
 
-  zeros [].
-  zeros (z:zs) :- z = 0, zeros zs.
+zeros []
+zeros (z:zs) :- z = 0, zeros zs
 
-  oddDigit 1.
-  oddDigit 3.
-  oddDigit 5.
-  oddDigit 7.
-  oddDigit 9.
+oddDigit 1
+oddDigit 3
+oddDigit 5
+oddDigit 7
+oddDigit 9
 
-  evenDigit 0.
-  evenDigit 2.
-  evenDigit 4.
-  evenDigit 6.
-  evenDigit 8.
+evenDigit 0
+evenDigit 2
+evenDigit 4
+evenDigit 6
+evenDigit 8
 
-  crypt [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] :-
-    oddDigit a, evenDigit b, evenDigit c,
-    evenDigit d, d > 0, evenDigit e,
-    mulDigits [c,b,a] e 0 (i:h:g:f:x),
-    evenDigit f, f > 0, oddDigit g, evenDigit h, evenDigit i,
-    zeros x,
-    mulDigits [c,b,a] d 0 (l:k:j:y),
-    evenDigit j, j > 0, oddDigit k, evenDigit l,
-    zeros y,
-    sumDigits [i,h,g,f] [0,l,k,j] 0 (p:o:n:m:z),
-    oddDigit m, oddDigit n, evenDigit o, evenDigit p,
-    zeros z.
-  |]
+crypt [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] :-
+  oddDigit a, evenDigit b, evenDigit c,
+  evenDigit d, d > 0, evenDigit e,
+  mulDigits [c,b,a] e 0 (i:h:g:f:x),
+  evenDigit f, f > 0, oddDigit g, evenDigit h, evenDigit i,
+  zeros x,
+  mulDigits [c,b,a] d 0 (l:k:j:y),
+  evenDigit j, j > 0, oddDigit k, evenDigit l,
+  zeros y,
+  sumDigits [i,h,g,f] [0,l,k,j] 0 (p:o:n:m:z),
+  oddDigit m, oddDigit n, evenDigit o, evenDigit p,
+  zeros z
+|]
 
 programKiselyov :: Prog Var Var
-programKiselyov =
-  [logic|
-  nat 0.
-  nat n' :- nat n, succ n n'.
+programKiselyov = [logic|
+nat 0
+nat n' :- nat n, succ n n'
 
-  elem x (x:_).
-  elem x (_:xs) :- elem x xs.
+elem x (x:_)
+elem x (_:xs) :- elem x xs
 
-  insert e l (e:l).
-  insert e (h:t) (h:t') :- insert e t t'.
+insert e l (e:l)
+insert e (h:t) (h:t') :- insert e t t'
 
-  permute [] [].
-  permute (h:t) r :- permute t t', insert h t' r.
+permute [] []
+permute (h:t) r :- permute t t', insert h t' r
 
-  sorted [].
-  sorted [_].
-  sorted (a:b:r) :- a <= b, sorted (b:r).
+sorted []
+sorted [_]
+sorted (a:b:r) :- a <= b, sorted (b:r)
 
-  suffix l l.
-  suffix (_:t) r :- suffix t r.
+suffix l l
+suffix (_:t) r :- suffix t r
 
-  prefix _ [].
-  prefix (h:t) (h:t') :- prefix t t'.
+prefix _ []
+prefix (h:t) (h:t') :- prefix t t'
 
-  length [] 0.
-  length (_:t) n' :- length t n, succ n n'.
+length [] 0
+length (_:t) n' :- length t n, succ n n'
 
-  -- http://okmij.org/ftp/Computation/monads.html#fair-bt-stream
-  pythag i j k :-
-    nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j,
-    timesInt i i ii, timesInt j j jj, timesInt k k kk,
-    plus ii jj kk.
+-- http://okmij.org/ftp/Computation/monads.html#fair-bt-stream
+pythag i j k :-
+  nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j,
+  timesInt i i ii, timesInt j j jj, timesInt k k kk,
+  plus ii jj kk
 
-  -- http://okmij.org/ftp/Haskell/set-monad.html
-  triang n r :- succ n n', timesInt n n' nn', div nn' 2 r.
+-- http://okmij.org/ftp/Haskell/set-monad.html
+triang n r :- succ n n', timesInt n n' nn', div nn' 2 r
 
-  #pragma nub ptriang.
-  ptriang k :-
-    elem k [1..30], elem i [1..k], elem j [1..i],
-    triang i ti, triang j tj, triang k tk,
-    plus ti tj tk.
+#pragma nub ptriang
+ptriang k :-
+  elem k [1..30], elem i [1..k], elem j [1..i],
+  triang i ti, triang j tj, triang k tk,
+  plus ti tj tk
 
-  #pragma nub stepN.
-  stepN 0 0.
-  stepN n' r :- n' > 0, succ n n', stepN n i, succ i i', elem r [i,i'].
+#pragma nub stepN
+stepN 0 0
+stepN n' r :- n' > 0, succ n n', stepN n i, succ i i', elem r [i,i']
 
-  -- http://okmij.org/ftp/papers/LogicT.pdf
-  test 10.
-  test 20.
-  test 30.
+-- http://okmij.org/ftp/papers/LogicT.pdf
+test 10
+test 20
+test 30
 
-  odds 1.
-  odds n :- odds m, plus 2 m n.
+odds 1
+odds n :- odds m, plus 2 m n
 
-  even n :- mod n 2 0.
+even n :- mod n 2 0
 
-  oddsTest x :- (odds x; test x), even x.
+oddsTest x :- (odds x; test x), even x
 
-  oddsPlus n x :- odds a, plus a n x.
+oddsPlus n x :- odds a, plus a n x
 
-  oddsPlusTest x :- (n = 0; n = 1), oddsPlus n x, even x.
+oddsPlusTest x :- (n = 0; n = 1), oddsPlus n x, even x
 
-  oddsPrime n :-
-    odds n, n > 1, succ n' n,
-    if elem d [1..n'], d > 1, mod n d 0 then empty else.
+oddsPrime n :-
+  odds n, n > 1, succ n' n,
+  if elem d [1..n'], d > 1, mod n d 0 then empty else
 
-  nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0.
+nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0
 
-  oddsPrimeIO n :-
-    odds n, n > 1,
-    if nontrivialDivisor n d, print d then empty else.
+oddsPrimeIO n :-
+  odds n, n > 1,
+  if nontrivialDivisor n d, print d then empty else
 
-  bogosort l p :- permute l p, sorted p.
+bogosort l p :- permute l p, sorted p
 
-  -- http://okmij.org/ftp/continuations/generators.html#logicT
-  tcomp_ex1 r :-
-    if (i = 2; i = 1; i = 3), (j = 0; j = 1), i = j
-    then r = Just i else r = Nothing.
+-- http://okmij.org/ftp/continuations/generators.html#logicT
+tcomp_ex1 r :-
+  if (i = 2; i = 1; i = 3), (j = 0; j = 1), i = j
+  then r = Just i else r = Nothing
 
-  findI pat str i :-
-    suffix str t, prefix t pat,
-    length t m, length str n, plus i m n.
-  |]
+findI pat str i :-
+  suffix str t, prefix t pat,
+  length t m, length str n, plus i m n
+|]
 
 programDCG :: Prog Var Var
-programDCG =
-  [logic|
-  det ("the" : x) x.
-  det ("a" : x) x.
-  noun ("cat" : x) x.
-  noun ("bat" : x) x.
-  verb ("eats" : x) x.
-  np a z :- det a b, noun b z.
-  vp a z :- verb a b, np b z.
-  sentence a z :- np a b, vp b z.
-  |]
+programDCG = [logic|
+det ("the" : x) x
+det ("a" : x) x
+noun ("cat" : x) x
+noun ("bat" : x) x
+verb ("eats" : x) x
+np a z :- det a b, noun b z
+vp a z :- verb a b, np b z
+sentence a z :- np a b, vp b z
+|]
 
 programEuler :: Prog Var Var
-programEuler =
-  [logic|
-  #pragma type nat Integer.
-  nat 0.
-  nat n' :- nat n, succ n n'.
+programEuler = [logic|
+#pragma type nat Integer
+nat 0
+nat n' :- nat n, succ n n'
 
-  oddNat 1.
-  oddNat n' :- oddNat n, plus n 2 n'.
+oddNat 1
+oddNat n' :- oddNat n, plus n 2 n'
 
-  even x :- mod x 2 0.
+even x :- mod x 2 0
 
-  elem x (x:_).
-  elem x (_:xs) :- elem x xs.
+elem x (x:_)
+elem x (_:xs) :- elem x xs
 
-  span p [] [] [].
-  span p (x:xs) ys zs :-
-    if p x
-    then span p xs yt zs, ys = (x:yt)
-    else ys = [], zs = (x:xs).
+span p [] [] []
+span p (x:xs) ys zs :-
+  if p x
+  then span p xs yt zs, ys = (x:yt)
+  else ys = [], zs = (x:xs)
 
-  reverseDL [] xs xs.
-  reverseDL (h:t) rest r :- reverseDL t (h:rest) r.
-  reverse s r :- reverseDL s [] r.
+reverseDL [] xs xs
+reverseDL (h:t) rest r :- reverseDL t (h:rest) r
+reverse s r :- reverseDL s [] r
 
-  all p [].
-  all p (h:t) :- if p h then all p t else empty.
+all p []
+all p (h:t) :- if p h then all p t else empty
 
-  multiple x y :- mod x y 0.
+multiple x y :- mod x y 0
 
-  apply f p y :- p x, f x y.
+apply f p y :- p x, f x y
 
-  #pragma nub euler1.
-  euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5).
+#pragma nub euler1
+euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5)
 
-  euler1' s :- apply sum (observeAll euler1) s.
+euler1' s :- apply sum (observeAll euler1) s
 
-  #pragma memo fib.
-  fib 0 0.
-  fib 1 1.
-  fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk.
+#pragma memo fib
+fib 0 0
+fib 1 1
+fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
 
-  fib' f :- nat i, fib i f.
+fib' f :- nat i, fib i f
 
-  euler2 s :-
-    observeAll (\x :- fib' x, even x) fs,
-    span (\x :- x < 1000000) fs xs _, sum xs s.
+euler2 s :-
+  observeAll (\x :- fib' x, even x) fs,
+  span (\x :- x < 1000000) fs xs _, sum xs s
 
-  nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0.
+nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0
 
-  primeSlow n :- nat n, n > 1, if nontrivialDivisor n _ then empty else.
+primeSlow n :- nat n, n > 1, if nontrivialDivisor n _ then empty else
 
-  factor (p:ps) n f :-
-    if timesInt p p pp, pp > n then f = n
-    else if divMod n p d 0 then (f = p; factor (p:ps) d f)
-    else factor ps n f.
+factor (p:ps) n f :-
+  if timesInt p p pp, pp > n then f = n
+  else if divMod n p d 0 then (f = p; factor (p:ps) d f)
+  else factor ps n f
 
-  #pragma memo prime.
-  prime 2.
-  prime p :-
-    oddNat p, p > 2,
-    observeAll prime primes,
-    if factor primes p d, p /= d then empty else.
+#pragma memo prime
+prime 2
+prime p :-
+  oddNat p, p > 2,
+  observeAll prime primes,
+  if factor primes p d, p /= d then empty else
 
-  primeFactor n d :-
-    observeAll prime primes, factor primes n d.
+primeFactor n d :-
+  observeAll prime primes, factor primes n d
 
-  euler3 n r :- apply maximum (observeAll (primeFactor n)) r.
+euler3 n r :- apply maximum (observeAll (primeFactor n)) r
 
-  euler4 n :-
-    elem x [10..99], elem y [10..99], timesInt x y n,
-    show n s, reverse s s.
+euler4 n :-
+  elem x [10..99], elem y [10..99], timesInt x y n,
+  show n s, reverse s s
 
-  euler4' n :- apply maximum (observeAll euler4) n.
+euler4' n :- apply maximum (observeAll euler4) n
 
-  euler5 n :- nat n, n > 0, all (multiple n) [1..5].
-  |]
+euler5 n :- nat n, n > 0, all (multiple n) [1..5]
+|]
 
 prime25 :: [Integer]
 prime25 =
@@ -415,7 +406,7 @@ main = do
   hspec $ do
     describe "Parse" $ do
       it "apply" $ do
-        let Right r0 = parse rule "" "result n :- apply sum (observeAll p) n."
+        let Right r0 = parse rule "" "result n :- apply sum (observeAll p) n"
             [r1] = combineDefs [r0]
             r2 = superhomogeneous [("sum",2), ("observeAll",2), ("p",1)] r1
             r3 = simp r2

@@ -23,9 +23,11 @@ import Control.Monad.Logic.Moded.Preprocess
   , superhomogeneous
   )
 
-import Data.Char (isUpper)
-import Data.Functor (void)
+import Control.Monad (void, forM)
+import Data.Char (isSpace, isUpper)
+import Data.List (groupBy)
 import qualified Data.Map as Map
+import qualified Data.Text as T
 import Data.Void (Void)
 import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
@@ -36,11 +38,14 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
 
+lineComment :: Parser ()
+lineComment = L.skipLineComment "--"
+
+blockComment :: Parser ()
+blockComment = L.skipBlockComment "{-" "-}"
+
 spaceConsumer :: Parser ()
-spaceConsumer = L.space (void spaceChar) lineComment blockComment
-  where
-    lineComment = L.skipLineComment "--"
-    blockComment = L.skipBlockComment "{-" "-}"
+spaceConsumer = L.space (void $ oneOf " \t") lineComment blockComment
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme spaceConsumer
@@ -76,10 +81,7 @@ identifier = (lexeme . try) (p >>= check)
         else return x
 
 operator :: Parser String
-operator = lexeme $ some (oneOf "!#$%&*+./<=>?@\\^|-~:") >>= check
-  where
-    check "." = fail "cannot use '.' as operator"
-    check x = return x
+operator = lexeme $ some (oneOf "!#$%&*+./<=>?@\\^|-~:")
 
 variable :: Parser Val
 variable = (symbol "_" >> pure (Var (V "_"))) <|> (Var . V <$> identifier)
@@ -180,34 +182,30 @@ goal :: Parser (Goal Val)
 goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> try disj <|> lambda
 
 conj :: Parser (Goal Val)
-conj = Conj <$> goal `sepBy` symbol ","
+conj = Conj <$> (many (symbol "\n") *> goal `sepBy` (symbol "," >> many (symbol "\n")) <* many (symbol "\n"))
 
 rule :: Parser (Rule Val Val)
 rule = do
   name <- identifier
   vars <- many value
   body <- (symbol ":-" >> conj) <|> pure (Conj [])
-  symbol "."
   pure $ Rule name vars body
 
 pragma :: Parser Pragma
 pragma = do
   symbol "#pragma"
   ws <- some identifier
-  symbol "."
   pure $ Pragma ws
-
-prog :: Parser (Prog Val Val)
-prog = do
-  spaceConsumer
-  lrs <- some (fmap Left pragma <|> fmap Right rule)
-  pure $ Prog [l | Left l <- lrs] [r | Right r <- lrs]
 
 parseProg ::
      String -> String -> Either (ParseErrorBundle String Void) (Prog Var Var)
 parseProg fn lp = do
-  Prog pragmas p <- parse prog fn lp
-  let p' = combineDefs p
+  let inputs = filter (not . null) $ T.unpack . T.strip . T.pack . unlines <$>
+        groupBy (\_ b -> null b || isSpace (head b)) (lines lp)
+  lrs <- forM (zip [1 :: Int ..] inputs) $ \(i, line) ->
+    parse (spaceConsumer *> optional (eitherP pragma rule) <* eof) (fn ++ ":" ++ show i) line
+  let pragmas = [l | Just (Left l) <- lrs]
+      p' = combineDefs [r | Just (Right r) <- lrs]
       arities =
         [(ruleName r, length (ruleArgs r)) | r <- p'] ++
         [(name, length (head modes)) | (name, modes) <- Map.toAscList modesPrelude]
