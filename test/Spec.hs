@@ -300,6 +300,8 @@ programDCG = [logic|
 append [] b b
 append (h:t) b (h:tb) :- append t b tb
 
+compose' f x g y a z :- g y a b, f x b z
+
 #data Tree = S Tree Tree | NP String String | VP String Tree
 
 det "the"
@@ -308,9 +310,9 @@ noun "cat"
 noun "bat"
 verb "eats"
 
-np (NP d n) z a :- det d, noun n, append [d,n] z a
-vp (VP v n) z a :- verb v, append [v] b a, np n z b
-sentence (S n v) z a :- np n b a, vp v z b
+np (NP d n) z a :- append [d,n] z a, det d, noun n
+vp (VP v n) z a :- compose' append [v] np n z a, verb v
+sentence (S n v) z a :- compose' np n vp v z a
 |]
 
 programEuler :: Prog Var Var
