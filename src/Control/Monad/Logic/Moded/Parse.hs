@@ -194,8 +194,8 @@ rule = do
 
 pragma :: Parser Pragma
 pragma = do
-  symbol "#pragma"
-  ws <- some identifier
+  symbol "#"
+  ws <- some (identifier <|> operator)
   pure $ Pragma ws
 
 parseProg ::

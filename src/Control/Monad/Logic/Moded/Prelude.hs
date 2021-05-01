@@ -17,12 +17,6 @@ module Control.Monad.Logic.Moded.Prelude
   , print
   , show
   , observeAll
-  , Eq(..)
-  , Ord(..)
-  , Maybe(..)
-  , Integer
-  , ($)
-  , (.)
   , nub
   , module Control.Applicative
   , module Control.Monad
@@ -31,6 +25,7 @@ module Control.Monad.Logic.Moded.Prelude
   , module Data.MemoTrie
   , module Data.Tuple.OneTuple
   , module Data.Vinyl
+  , module Prelude
   ) where
 
 import Control.Applicative (Alternative(..), Applicative(..))
@@ -56,6 +51,8 @@ import Prelude
   , Maybe(..)
   , Num(..)
   , Ord(..)
+  , Show
+  , String
   , ($)
   , (.)
   , (<$>)

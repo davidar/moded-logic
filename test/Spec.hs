@@ -238,13 +238,13 @@ pythag i j k :-
 -- http://okmij.org/ftp/Haskell/set-monad.html
 triang n r :- succ n n', timesInt n n' nn', div nn' 2 r
 
-#pragma nub ptriang
+#nub ptriang
 ptriang k :-
   elem k [1..30], elem i [1..k], elem j [1..i]
   triang i ti, triang j tj, triang k tk
   plus ti tj tk
 
-#pragma nub stepN
+#nub stepN
 stepN 0 0
 stepN n' r :- n' > 0, succ n n', stepN n i, succ i i', elem r [i,i']
 
@@ -288,19 +288,20 @@ findI pat str i :-
 
 programDCG :: Prog Var Var
 programDCG = [logic|
-det ("the" : x) x
-det ("a" : x) x
-noun ("cat" : x) x
-noun ("bat" : x) x
-verb ("eats" : x) x
-np a z :- det a b, noun b z
-vp a z :- verb a b, np b z
-sentence a z :- np a b, vp b z
+#data Tree = S Tree Tree | NP String String | VP String Tree
+det "the" ("the" : x) x
+det "a" ("a" : x) x
+noun "cat" ("cat" : x) x
+noun "bat" ("bat" : x) x
+verb "eats" ("eats" : x) x
+np (NP d n) a z :- det d a b, noun n b z
+vp (VP v n) a z :- verb v a b, np n b z
+sentence (S n v) a z :- np n a b, vp v b z
 |]
 
 programEuler :: Prog Var Var
 programEuler = [logic|
-#pragma type nat Integer
+#type nat Integer
 nat 0
 nat n' :- nat n, succ n n'
 
@@ -329,12 +330,12 @@ multiple x y :- mod x y 0
 
 apply f p y :- p x, f x y
 
-#pragma nub euler1
+#nub euler1
 euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5)
 
 euler1' s :- apply sum (observeAll euler1) s
 
-#pragma memo fib
+#memo fib
 fib 0 0
 fib 1 1
 fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
@@ -354,7 +355,7 @@ factor (p:ps) n f :-
   else if divMod n p d 0 then (f = p; factor (p:ps) d f)
   else factor ps n f
 
-#pragma memo prime
+#memo prime
 prime 2
 prime p :-
   oddNat p, p > 2
@@ -537,8 +538,12 @@ main = do
       it "sentence" $ do
         let dets = ["a", "the"]
             nouns = ["bat", "cat"]
-        List.sort (observeAll (call @'[Out, In] DCG.sentence [])) `shouldBe`
+            sent = words "the bat eats a cat"
+            tree = DCG.S (DCG.NP "the" "bat") (DCG.VP "eats" (DCG.NP "a" "cat"))
+        List.sort (snd <$> observeAll (call @'[Out, Out, In] DCG.sentence [])) `shouldBe`
           [[d, n, "eats", d', n'] | d <- dets, n <- nouns, d' <- dets, n' <- nouns]
+        observeAll (call @'[Out, In, In] DCG.sentence sent []) `shouldBe` [tree]
+        observeAll (call @'[In, Out, In] DCG.sentence tree []) `shouldBe` [sent]
     describe "Euler" $ do
       it "compile" $ compileTest "Euler" programEuler
       it "1" $ do
