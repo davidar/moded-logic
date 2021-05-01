@@ -22,14 +22,13 @@ import qualified Control.Monad.Logic.Moded.Prelude as MPrelude
 import Control.Monad.Logic.Moded.Preprocess (combineDefs, superhomogeneous, simp)
 import Control.Monad.Logic.Moded.Procedure (call)
 import qualified Data.List as List
+import Data.Maybe (isJust)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import System.Environment (lookupEnv)
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn, shouldSatisfy)
 import Text.Megaparsec (parse)
-
-updateCode :: Bool
-updateCode = False
 
 programAppend :: Prog Var Var
 programAppend = [logic|
@@ -288,15 +287,20 @@ findI pat str i :-
 
 programDCG :: Prog Var Var
 programDCG = [logic|
+append [] b b
+append (h:t) b (h:tb) :- append t b tb
+
 #data Tree = S Tree Tree | NP String String | VP String Tree
-det "the" ("the" : x) x
-det "a" ("a" : x) x
-noun "cat" ("cat" : x) x
-noun "bat" ("bat" : x) x
-verb "eats" ("eats" : x) x
-np (NP d n) a z :- det d a b, noun n b z
-vp (VP v n) a z :- verb v a b, np n b z
-sentence (S n v) a z :- np n a b, vp v b z
+
+det "the"
+det "a"
+noun "cat"
+noun "bat"
+verb "eats"
+
+np (NP d n) z a :- det d, noun n, append [d,n] z a
+vp (VP v n) z a :- verb v, append [v] b a, np n z b
+sentence (S n v) z a :- np n b a, vp v z b
 |]
 
 programEuler :: Prog Var Var
@@ -386,8 +390,11 @@ compileTest name program = do
   let code = compile (T.pack name) program
       file = "test/" ++ name ++ ".hs"
   code `shouldSatisfy` (not . T.null)
-  when updateCode $
-    TIO.writeFile file code
+  updateCode <- isJust <$> lookupEnv "UPDATE_CODE"
+  when updateCode $ do
+    expect <- TIO.readFile file
+    when (code /= expect) $
+      TIO.writeFile file code
   expect <- TIO.readFile file
   code `shouldBe` expect
 
@@ -540,10 +547,10 @@ main = do
             nouns = ["bat", "cat"]
             sent = words "the bat eats a cat"
             tree = DCG.S (DCG.NP "the" "bat") (DCG.VP "eats" (DCG.NP "a" "cat"))
-        List.sort (snd <$> observeAll (call @'[Out, Out, In] DCG.sentence [])) `shouldBe`
+        List.sort (snd <$> observeAll (call @'[Out, In, Out] DCG.sentence [])) `shouldBe`
           [[d, n, "eats", d', n'] | d <- dets, n <- nouns, d' <- dets, n' <- nouns]
-        observeAll (call @'[Out, In, In] DCG.sentence sent []) `shouldBe` [tree]
-        observeAll (call @'[In, Out, In] DCG.sentence tree []) `shouldBe` [sent]
+        observeAll (call @'[Out, In, In] DCG.sentence [] sent) `shouldBe` [tree]
+        observeAll (call @'[In, In, Out] DCG.sentence tree []) `shouldBe` [sent]
     describe "Euler" $ do
       it "compile" $ compileTest "Euler" programEuler
       it "1" $ do
