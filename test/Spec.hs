@@ -88,8 +88,8 @@ integers low high result :-
 
 remove _ [] []
 remove p (j:js) result :-
-  mod j p m,
-  remove p js njs,
+  mod j p m
+  remove p js njs
   if m = 0 then result = njs else result = (j:njs)
 
 sift [] []
@@ -108,8 +108,8 @@ partition (h:t) p lo hi :-
 
 qsort [] r r
 qsort (x:xs) r r0 :-
-  partition xs x ys zs,
-  qsort zs r1 r0,
+  partition xs x ys zs
+  qsort zs r1 r0
   qsort ys r (x:r1)
 
 sort list sorted :- qsort list sorted []
@@ -124,9 +124,9 @@ qperm xs (h:t) :- qdelete h xs ys, qperm ys t
 
 nodiag _ _ []
 nodiag b d (h:t) :-
-  plus hmb b h,
-  plus bmh h b,
-  succ d d1,
+  plus hmb b h
+  plus bmh h b
+  succ d d1
   if d = hmb then empty
   else if d = bmh then empty
   else nodiag b d1 t
@@ -138,9 +138,9 @@ queens1 dat out :- qperm dat out, safe out
 
 cqueens [] _ []
 cqueens xs history (q:m) :-
-  xs = (_:_),
-  qdelete q xs r,
-  nodiag q 1 history,
+  xs = (_:_)
+  qdelete q xs r
+  nodiag q 1 history
   cqueens r (q:history) m
 
 queens2 dat out :- cqueens dat [] out
@@ -152,23 +152,23 @@ sumDigits [] [] carry cs :-
   if carry = 0 then cs = [] else cs = [carry]
 sumDigits [] (b:bs) carry (c:cs) :-
   if carry = 0 then c = b, cs = bs else
-  plus b carry x,
-  divMod x 10 carry' c,
+  plus b carry x
+  divMod x 10 carry' c
   sumDigits [] bs carry' cs
 sumDigits (a:as) [] carry (c:cs) :-
   if carry = 0 then c = a, cs = as else
-  plus a carry x,
-  divMod x 10 carry' c,
+  plus a carry x
+  divMod x 10 carry' c
   sumDigits [] as carry' cs
 sumDigits (a:as) (b:bs) carry (c:cs) :-
-  sum [a, b, carry] x,
-  divMod x 10 carry' c,
+  sum [a, b, carry] x
+  divMod x 10 carry' c
   sumDigits as bs carry' cs
 
 mulDigits (a:as) d carry (b:bs) :-
-  times a d ad,
-  plus ad carry x,
-  divMod x 10 carry' b,
+  times a d ad
+  plus ad carry x
+  divMod x 10 carry' b
   mulDigits as d carry' bs
 mulDigits [] _ carry [c,c'] :-
   divMod carry 10 c' c
@@ -189,16 +189,16 @@ evenDigit 6
 evenDigit 8
 
 crypt [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] :-
-  oddDigit a, evenDigit b, evenDigit c,
-  evenDigit d, d > 0, evenDigit e,
-  mulDigits [c,b,a] e 0 (i:h:g:f:x),
-  evenDigit f, f > 0, oddDigit g, evenDigit h, evenDigit i,
-  zeros x,
-  mulDigits [c,b,a] d 0 (l:k:j:y),
-  evenDigit j, j > 0, oddDigit k, evenDigit l,
-  zeros y,
-  sumDigits [i,h,g,f] [0,l,k,j] 0 (p:o:n:m:z),
-  oddDigit m, oddDigit n, evenDigit o, evenDigit p,
+  oddDigit a, evenDigit b, evenDigit c
+  evenDigit d, d > 0, evenDigit e
+  mulDigits [c,b,a] e 0 (i:h:g:f:x)
+  evenDigit f, f > 0, oddDigit g, evenDigit h, evenDigit i
+  zeros x
+  mulDigits [c,b,a] d 0 (l:k:j:y)
+  evenDigit j, j > 0, oddDigit k, evenDigit l
+  zeros y
+  sumDigits [i,h,g,f] [0,l,k,j] 0 (p:o:n:m:z)
+  oddDigit m, oddDigit n, evenDigit o, evenDigit p
   zeros z
 |]
 
@@ -231,8 +231,8 @@ length (_:t) n' :- length t n, succ n n'
 
 -- http://okmij.org/ftp/Computation/monads.html#fair-bt-stream
 pythag i j k :-
-  nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j,
-  timesInt i i ii, timesInt j j jj, timesInt k k kk,
+  nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j
+  timesInt i i ii, timesInt j j jj, timesInt k k kk
   plus ii jj kk
 
 -- http://okmij.org/ftp/Haskell/set-monad.html
@@ -240,8 +240,8 @@ triang n r :- succ n n', timesInt n n' nn', div nn' 2 r
 
 #pragma nub ptriang
 ptriang k :-
-  elem k [1..30], elem i [1..k], elem j [1..i],
-  triang i ti, triang j tj, triang k tk,
+  elem k [1..30], elem i [1..k], elem j [1..i]
+  triang i ti, triang j tj, triang k tk
   plus ti tj tk
 
 #pragma nub stepN
@@ -265,13 +265,13 @@ oddsPlus n x :- odds a, plus a n x
 oddsPlusTest x :- (n = 0; n = 1), oddsPlus n x, even x
 
 oddsPrime n :-
-  odds n, n > 1, succ n' n,
+  odds n, n > 1, succ n' n
   if elem d [1..n'], d > 1, mod n d 0 then empty else
 
 nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0
 
 oddsPrimeIO n :-
-  odds n, n > 1,
+  odds n, n > 1
   if nontrivialDivisor n d, print d then empty else
 
 bogosort l p :- permute l p, sorted p
@@ -282,7 +282,7 @@ tcomp_ex1 r :-
   then r = Just i else r = Nothing
 
 findI pat str i :-
-  suffix str t, prefix t pat,
+  suffix str t, prefix t pat
   length t m, length str n, plus i m n
 |]
 
@@ -342,7 +342,7 @@ fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
 fib' f :- nat i, fib i f
 
 euler2 s :-
-  observeAll (\x :- fib' x, even x) fs,
+  observeAll (\x :- fib' x, even x) fs
   span (\x :- x < 1000000) fs xs _, sum xs s
 
 nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0
@@ -357,8 +357,8 @@ factor (p:ps) n f :-
 #pragma memo prime
 prime 2
 prime p :-
-  oddNat p, p > 2,
-  observeAll prime primes,
+  oddNat p, p > 2
+  observeAll prime primes
   if factor primes p d, p /= d then empty else
 
 primeFactor n d :-
@@ -367,7 +367,7 @@ primeFactor n d :-
 euler3 n r :- apply maximum (observeAll (primeFactor n)) r
 
 euler4 n :-
-  elem x [10..99], elem y [10..99], timesInt x y n,
+  elem x [10..99], elem y [10..99], timesInt x y n
   show n s, reverse s s
 
 euler4' n :- apply maximum (observeAll euler4) n

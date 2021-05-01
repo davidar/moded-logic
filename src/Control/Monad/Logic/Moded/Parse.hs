@@ -183,7 +183,7 @@ goal :: Parser (Goal Val)
 goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> try disj <|> lambda
 
 conj :: Parser (Goal Val)
-conj = Conj <$> (many (symbol "\n") *> goal `sepBy` (symbol "," >> many (symbol "\n")) <* many (symbol "\n"))
+conj = Conj <$> (many (symbol "\n") *> goal `sepEndBy` (symbol "," <|> symbol "\n") <* many (symbol "\n"))
 
 rule :: Parser (Rule Val Val)
 rule = do
