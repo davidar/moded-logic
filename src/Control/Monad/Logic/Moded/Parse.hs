@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-unused-do-bind #-}
 
 module Control.Monad.Logic.Moded.Parse
@@ -28,6 +28,7 @@ import Data.Char (isSpace, isUpper)
 import Data.List (groupBy)
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import Data.Text (Text)
 import Data.Void (Void)
 import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
@@ -36,7 +37,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-type Parser = Parsec Void String
+type Parser = Parsec Void Text
 
 lineComment :: Parser ()
 lineComment = L.skipLineComment "--"
@@ -45,12 +46,12 @@ blockComment :: Parser ()
 blockComment = L.skipBlockComment "{-" "-}"
 
 spaceConsumer :: Parser ()
-spaceConsumer = L.space (void $ oneOf " \t") lineComment blockComment
+spaceConsumer = L.space (void $ oneOf [' ', '\t']) lineComment blockComment
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme spaceConsumer
 
-symbol :: String -> Parser String
+symbol :: Text -> Parser Text
 symbol = L.symbol spaceConsumer
 
 integer :: Parser Integer
@@ -65,7 +66,7 @@ stringLiteral = lexeme $ char '"' >> manyTill L.charLiteral (char '"')
 parens :: Parser a -> Parser a
 parens = symbol "(" `between` symbol ")"
 
-rword :: String -> Parser ()
+rword :: Text -> Parser ()
 rword w = string w *> notFollowedBy alphaNumChar *> spaceConsumer
 
 rws :: [String] -- list of reserved words
@@ -81,7 +82,7 @@ identifier = (lexeme . try) (p >>= check)
         else return x
 
 operator :: Parser String
-operator = lexeme $ some (oneOf "!#$%&*+./<=>?@\\^|-~:")
+operator = lexeme $ some (oneOf ("!#$%&*+./<=>?@\\^|-~:" :: [Char]))
 
 variable :: Parser Val
 variable = (symbol "_" >> pure (Var (V "_"))) <|> (Var . V <$> identifier)
@@ -198,10 +199,10 @@ pragma = do
   pure $ Pragma ws
 
 parseProg ::
-     String -> String -> Either (ParseErrorBundle String Void) (Prog Var Var)
+     String -> Text -> Either (ParseErrorBundle Text Void) (Prog Var Var)
 parseProg fn lp = do
-  let inputs = filter (not . null) $ T.unpack . T.strip . T.pack . unlines <$>
-        groupBy (\_ b -> null b || isSpace (head b)) (lines lp)
+  let inputs = filter (not . T.null) $ T.strip . T.unlines <$>
+        groupBy (\_ b -> T.null b || isSpace (T.head b)) (T.lines lp)
   lrs <- forM (zip [1 :: Int ..] inputs) $ \(i, line) ->
     parse (spaceConsumer *> optional (eitherP pragma rule) <* eof) (fn ++ ":" ++ show i) line
   let pragmas = [l | Just (Left l) <- lrs]
@@ -216,7 +217,7 @@ logic =
   QuasiQuoter
     { quoteExp =
         \s ->
-          case parseProg "<quasi-quotation>" s of
+          case parseProg "<quasi-quotation>" (T.pack s) of
             Left e -> fail (errorBundlePretty e)
             Right p -> [|p|]
     , quotePat = notHandled "patterns"
