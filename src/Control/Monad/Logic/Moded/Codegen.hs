@@ -225,9 +225,11 @@ compile moduleName (Prog pragmas rules) =
   |]
   where
     code =
-      T.unlines $ [ T.pack (unwords d) <> " deriving (Eq, Ord, Show)"
-                  | Pragma d <- pragmas, head d == "data"
-                  ] ++ do
+      T.unlines $
+      [ T.pack (unwords d) <> " deriving (Eq, Ord, Show)"
+      | Pragma d <- pragmas
+      , head d == "data"
+      ] ++ do
         (name, c) <- foldl mode' [] rules
         let arity = length . ruleArgs $ unmodedRule c
             doc =

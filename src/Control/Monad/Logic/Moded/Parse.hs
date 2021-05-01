@@ -23,14 +23,14 @@ import Control.Monad.Logic.Moded.Preprocess
   , superhomogeneous
   )
 
-import Control.Monad (void, forM)
+import Control.Monad (forM, void)
+import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 import Data.Char (isSpace, isUpper)
 import Data.List (groupBy)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Void (Void)
-import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 import Language.Haskell.TH.Quote (QuasiQuoter(..))
 
 import Text.Megaparsec
@@ -95,13 +95,13 @@ parenValue =
         if isUpper (head v)
           then pure $ Cons v vs
           else if null vs
-          then pure $ Var (V v)
-          else pure $ Curry v vs) <|>
+                 then pure $ Var (V v)
+                 else pure $ Curry v vs) <|>
   try
     (do v <- value
         symbol ":"
         vs <- value `sepBy1` symbol ":"
-        pure $ Cons ":" (v:vs)) <|>
+        pure $ Cons ":" (v : vs)) <|>
   value
 
 value :: Parser Val
@@ -183,7 +183,10 @@ goal :: Parser (Goal Val)
 goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> try disj <|> lambda
 
 conj :: Parser (Goal Val)
-conj = Conj <$> (many (symbol "\n") *> goal `sepEndBy` (symbol "," <|> symbol "\n") <* many (symbol "\n"))
+conj =
+  Conj <$>
+  (many (symbol "\n") *> goal `sepEndBy` (symbol "," <|> symbol "\n") <*
+   many (symbol "\n"))
 
 rule :: Parser (Rule Val Val)
 rule = do
@@ -201,15 +204,23 @@ pragma = do
 parseProg ::
      String -> Text -> Either (ParseErrorBundle Text Void) (Prog Var Var)
 parseProg fn lp = do
-  let inputs = filter (not . T.null) $ T.strip . T.unlines <$>
+  let inputs =
+        filter (not . T.null) $
+        T.strip . T.unlines <$>
         groupBy (\_ b -> T.null b || isSpace (T.head b)) (T.lines lp)
-  lrs <- forM (zip [1 :: Int ..] inputs) $ \(i, line) ->
-    parse (spaceConsumer *> optional (eitherP pragma rule) <* eof) (fn ++ ":" ++ show i) line
+  lrs <-
+    forM (zip [1 :: Int ..] inputs) $ \(i, line) ->
+      parse
+        (spaceConsumer *> optional (eitherP pragma rule) <* eof)
+        (fn ++ ":" ++ show i)
+        line
   let pragmas = [l | Just (Left l) <- lrs]
       p' = combineDefs [r | Just (Right r) <- lrs]
       arities =
         [(ruleName r, length (ruleArgs r)) | r <- p'] ++
-        [(name, length (head modes)) | (name, modes) <- Map.toAscList modesPrelude]
+        [ (name, length (head modes))
+        | (name, modes) <- Map.toAscList modesPrelude
+        ]
   pure . Prog pragmas $ simp . distinctVars . superhomogeneous arities <$> p'
 
 logic :: QuasiQuoter

@@ -70,7 +70,8 @@ instance Show Var where
 
 instance (Show v) => Show (Atom v) where
   show (Unif u v) = show u ++ " = " ++ show v
-  show (Func ":" vs u) | length vs > 1 = show u ++ " = " ++ intercalate ":" (map show vs)
+  show (Func ":" vs u)
+    | length vs > 1 = show u ++ " = " ++ intercalate ":" (map show vs)
   show (Func name vs u) = show u ++ " = " ++ unwords (name : map show vs)
   show (Pred name []) = name
   show (Pred name vs) = unwords (name : map show vs)

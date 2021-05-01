@@ -68,7 +68,12 @@ modesPrelude =
     , ("succ", [[In, In], [In, Out], [Out, In]])
     , ("div", [[In, In, In], [In, In, Out]])
     , ("mod", [[In, In, In], [In, In, Out]])
-    , ("divMod", [[In, In, In, In], [In, In, In, Out], [In, In, Out, In], [In, In, Out, Out]])
+    , ( "divMod"
+      , [ [In, In, In, In]
+        , [In, In, In, Out]
+        , [In, In, Out, In]
+        , [In, In, Out, Out]
+        ])
     , ("plus", [[In, In, In], [In, In, Out], [In, Out, In], [Out, In, In]])
     , ("times", [[In, In, In], [In, In, Out], [In, Out, In], [Out, In, In]])
     , ("timesInt", [[In, In, In], [In, In, Out], [In, Out, In], [Out, In, In]])

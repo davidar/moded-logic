@@ -57,11 +57,12 @@ combineDefs rules = do
   pure $ Rule (ruleName $ head defs) params body'
 
 superhomogeneous :: [(Name, Int)] -> Rule Var Val -> Rule Var Var
-superhomogeneous arities r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
+superhomogeneous arities r =
+  r {ruleBody = evalState (tGoal $ ruleBody r) (0, [])}
   where
     tVal :: Val -> State (Int, [Goal Var]) Var
-    tVal (Var (V name)) | Just _ <- lookup name arities =
-      tVal (Curry name [])
+    tVal (Var (V name))
+      | Just _ <- lookup name arities = tVal (Curry name [])
     tVal (Var v) = return v
     tVal (Cons name vs) = do
       vs' <- mapM tVal vs
@@ -77,11 +78,12 @@ superhomogeneous arities r = r {ruleBody = evalState (tGoal $ ruleBody r) (0, []
       put (count + 1, body ++ [Anon name vs' g'])
       return name
     tVal (Curry p vs) = do
-      let arity = case lookup p arities of
-            Just n -> n
-            Nothing -> error $ "unknown predicate " ++ p
+      let arity =
+            case lookup p arities of
+              Just n -> n
+              Nothing -> error $ "unknown predicate " ++ p
           k = arity - length vs
-          extra = [Var . V $ "curry" ++ show i | i <- [1..k]]
+          extra = [Var . V $ "curry" ++ show i | i <- [1 .. k]]
           g = Atom $ Pred p (vs ++ extra)
       tVal (Lambda extra g)
     tAtom :: Atom Val -> State (Int, [Goal Var]) (Atom Var)
