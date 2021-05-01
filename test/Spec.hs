@@ -77,6 +77,13 @@ sum xs z r :- foldl plus xs z r
 split xs z r :- foldl (\x a a' :- a = (x:a')) xs z r
 splitr xs z r :- foldl (\x a a' :- a' = (x:a)) xs z r
 
+closure p x y :- p x y
+closure p x y :- p x z, closure p z y
+
+smaller 1 2
+smaller 2 3
+smallerTransitive x y :- closure smaller x y
+
 compose f g a z :- g a b, f b z
 composeTest a z :- compose (times 2) (plus 1) a z
 |]
@@ -483,6 +490,9 @@ main = do
         observeAll (call @'[Out, In, Out] HigherOrder.split [1..9]) `shouldBe` [splitAt i [1..9] | i <- [0..9]]
         observeMany 10 (call @'[Out, Out, In] HigherOrder.splitr [1..9]) `shouldBe`
           [let (a, b) = splitAt i [1..9] in (reverse a, b) | i <- [0..9]]
+      it "closure" $ do
+        observeAll (call @'[In, Out] HigherOrder.smaller 1) `shouldBe` [2]
+        observeAll (call @'[In, Out] HigherOrder.smallerTransitive 1) `shouldBe` [2, 3]
       it "compose" $ do
         observeAll (call @'[In, Out] HigherOrder.composeTest 7) `shouldBe` [2 * (1 + 7)]
         observeAll (call @'[Out, In] HigherOrder.composeTest (2 * (1 + 7))) `shouldBe` [7]

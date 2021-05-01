@@ -725,6 +725,185 @@ splitr = rget $ (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In,
        )
       pure (xs,z)
     
+{- closure/3
+closure p x y :- ((p x y); (p x z, closure p z y)).
+constraints:
+~p[]
+~(z[1,0] & z[1,1])
+(z[1,0] | z[1,1])
+(p[] <-> p[1])
+(p[1] <-> p[1,1])
+(p[1,1] <-> p[])
+(x[] <-> x[0])
+(x[] <-> x[1])
+(x[0] <-> x[0,0])
+(x[0,0] <-> p(1))
+(x[1] <-> x[1,0])
+(x[1,0] <-> p(1))
+(y[] <-> y[0])
+(y[] <-> y[1])
+(y[0] <-> y[0,0])
+(y[0,0] <-> p(2))
+(y[1] <-> y[1,1])
+(y[1,1] <-> y[])
+(z[1,0] <-> p(2))
+(z[1,1] <-> x[])
+1
+-}
+
+closure = rget $ (procedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] closureP2IOIO) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] closureP2OIOI) :& RNil
+  where
+    closureP2IOIO = \p x -> do
+      -- solution: y[] y[0] y[0,0] y[1] y[1,1] z[1,0] p(2) ~p[] ~p[1] ~p[1,1] ~x[] ~x[0] ~x[0,0] ~x[1] ~x[1,0] ~z[1,1] ~p(1)
+      -- cost: 6
+      (y) <- (do
+        (OneTuple (y)) <- runProcedure p x
+        pure (y)
+       ) <|> (do
+        (OneTuple (z)) <- runProcedure p x
+        (OneTuple (y)) <- closureP2IOIO p z
+        pure (y)
+       )
+      pure (OneTuple (y))
+    
+    closureP2OIOI = \p y -> do
+      -- solution: x[] x[0] x[0,0] x[1] x[1,0] z[1,1] p(1) ~p[] ~p[1] ~p[1,1] ~y[] ~y[0] ~y[0,0] ~y[1] ~y[1,1] ~z[1,0] ~p(2)
+      -- cost: 6
+      (x) <- (do
+        (OneTuple (x)) <- runProcedure p y
+        pure (x)
+       ) <|> (do
+        (OneTuple (z)) <- closureP2OIOI p y
+        (OneTuple (x)) <- runProcedure p z
+        pure (x)
+       )
+      pure (OneTuple (x))
+    
+{- smaller/2
+smaller arg1 arg2 :- ((arg1 = 1, arg2 = 2); (arg1 = 2, arg2 = 3)).
+constraints:
+(arg1[] <-> arg1[0])
+(arg1[] <-> arg1[1])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,1])
+1
+-}
+
+smaller = rget $ (procedure @'[ 'In, 'In ] smallerII) :& (procedure @'[ 'In, 'Out ] smallerIO) :& (procedure @'[ 'Out, 'In ] smallerOI) :& (procedure @'[ 'Out, 'Out ] smallerOO) :& RNil
+  where
+    smallerII = \arg1 arg2 -> Logic.once $ do
+      -- solution: ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,1]
+      -- cost: 0
+      () <- (do
+        guard $ arg1 == 1
+        guard $ arg2 == 2
+        pure ()
+       ) <|> (do
+        guard $ arg1 == 2
+        guard $ arg2 == 3
+        pure ()
+       )
+      pure ()
+    
+    smallerIO = \arg1 -> do
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0]
+      -- cost: 0
+      (arg2) <- (do
+        guard $ arg1 == 1
+        arg2 <- pure 2
+        pure (arg2)
+       ) <|> (do
+        guard $ arg1 == 2
+        arg2 <- pure 3
+        pure (arg2)
+       )
+      pure (OneTuple (arg2))
+    
+    smallerOI = \arg2 -> do
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,1]
+      -- cost: 0
+      (arg1) <- (do
+        arg1 <- pure 1
+        guard $ arg2 == 2
+        pure (arg1)
+       ) <|> (do
+        arg1 <- pure 2
+        guard $ arg2 == 3
+        pure (arg1)
+       )
+      pure (OneTuple (arg1))
+    
+    smallerOO = do
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1]
+      -- cost: 0
+      (arg1,arg2) <- (do
+        arg1 <- pure 1
+        arg2 <- pure 2
+        pure (arg1,arg2)
+       ) <|> (do
+        arg1 <- pure 2
+        arg2 <- pure 3
+        pure (arg1,arg2)
+       )
+      pure (arg1,arg2)
+    
+{- smallerTransitive/2
+smallerTransitive x y :- ((closure pred0 x y, (pred0 curry1 curry2 :- (smaller curry1 curry2)))).
+constraints:
+~curry1[0]
+~curry2[0]
+~pred0[0,0]
+((curry1[0,1,0,0] & curry2[0,1,0,0]) | ((curry1[0,1,0,0] & ~curry2[0,1,0,0]) | ((~curry1[0,1,0,0] & curry2[0,1,0,0]) | (~curry1[0,1,0,0] & ~curry2[0,1,0,0]))))
+((~pred0[0,0] & (pred0(1) & (~pred0(2) & (x[0,0] & ~y[0,0])))) | (~pred0[0,0] & (~pred0(1) & (pred0(2) & (~x[0,0] & y[0,0])))))
+(curry1[0,1,0] <-> curry1[0,1,0,0])
+(curry2[0,1,0] <-> curry2[0,1,0,0])
+(x[] <-> x[0])
+(x[0] <-> x[0,0])
+(y[] <-> y[0])
+(y[0] <-> y[0,0])
+(pred0(1) <-> curry1[0,1,0])
+(pred0(2) <-> curry2[0,1,0])
+1
+-}
+
+smallerTransitive = rget $ (procedure @'[ 'In, 'Out ] smallerTransitiveIO) :& (procedure @'[ 'Out, 'In ] smallerTransitiveOI) :& RNil
+  where
+    smallerTransitiveIO = \x -> do
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] y[] y[0] y[0,0] pred0(2) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~pred0[0,0] ~x[] ~x[0] ~x[0,0] ~pred0(1)
+      -- cost: 4
+      (y) <- (do
+        let pred0 = procedure @'[ 'In, 'Out ] $
+              \curry1 -> do
+                (curry2) <- (do
+                  (OneTuple (curry2)) <- runProcedure @'[ 'In, 'Out ] smaller curry1
+                  pure (curry2)
+                 )
+                pure (OneTuple (curry2))
+        (OneTuple (y)) <- runProcedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] closure pred0 x
+        pure (y)
+       )
+      pure (OneTuple (y))
+    
+    smallerTransitiveOI = \y -> do
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] x[] x[0] x[0,0] pred0(1) ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~pred0[0,0] ~y[] ~y[0] ~y[0,0] ~pred0(2)
+      -- cost: 4
+      (x) <- (do
+        let pred0 = procedure @'[ 'Out, 'In ] $
+              \curry2 -> do
+                (curry1) <- (do
+                  (OneTuple (curry1)) <- runProcedure @'[ 'Out, 'In ] smaller curry2
+                  pure (curry1)
+                 )
+                pure (OneTuple (curry1))
+        (OneTuple (x)) <- runProcedure @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] closure pred0 y
+        pure (x)
+       )
+      pure (OneTuple (x))
+    
 {- compose/4
 compose f g a z :- ((g a b, f b z)).
 constraints:
