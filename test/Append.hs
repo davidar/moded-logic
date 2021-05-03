@@ -46,7 +46,7 @@ constraints:
 append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In, 'In, 'Out ] appendIIO) :& (procedure @'[ 'In, 'Out, 'In ] appendIOI) :& (procedure @'[ 'Out, 'In, 'In ] appendOII) :& (procedure @'[ 'Out, 'Out, 'In ] appendOOI) :& RNil
   where
     appendIII = \arg1 b arg3 -> Logic.once $ do
-      -- solution: h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2] ~append[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~b[] ~b[0] ~b[0,1] ~b[1] ~b[1,4] ~h[1,3] ~h0[1,1] ~h1[1,3] ~t[1,4] ~tb[1,4]
+      -- solution: h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2]
       -- cost: 1
       () <- (do
         guard $ arg3 == b
@@ -63,7 +63,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure ()
     
     appendIIO = \arg1 b -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,2] h[1,1] h0[1,0] h1[1,3] t[1,0] tb[1,4] ~append[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~b[] ~b[0] ~b[0,1] ~b[1] ~b[1,4] ~h[1,3] ~h0[1,1] ~h1[1,2] ~t[1,4] ~tb[1,2]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,2] h[1,1] h0[1,0] h1[1,3] t[1,0] tb[1,4]
       -- cost: 2
       (arg3) <- (do
         arg3 <- pure b
@@ -80,7 +80,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg3))
     
     appendIOI = \arg1 arg3 -> do
-      -- solution: b[] b[0] b[0,1] b[1] b[1,4] h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2] ~append[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~h[1,3] ~h0[1,1] ~h1[1,3] ~t[1,4] ~tb[1,4]
+      -- solution: b[] b[0] b[0,1] b[1] b[1,4] h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2]
       -- cost: 2
       (b) <- (do
         b <- pure arg3
@@ -97,7 +97,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (b))
     
     appendOII = \b arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2] ~append[1] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~b[] ~b[0] ~b[0,1] ~b[1] ~b[1,4] ~h[1,1] ~h0[1,0] ~h1[1,3] ~t[1,0] ~tb[1,4]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
       -- cost: 2
       (arg1) <- (do
         guard $ arg3 == b
@@ -114,7 +114,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg1))
     
     appendOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[] b[0] b[0,1] b[1] b[1,4] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2] ~append[1] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~h[1,1] ~h0[1,0] ~h1[1,3] ~t[1,0] ~tb[1,4]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[] b[0] b[0,1] b[1] b[1,4] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
       -- cost: 3
       (arg1,b) <- (do
         b <- pure arg3
@@ -152,7 +152,7 @@ constraints:
 append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure @'[ 'In, 'In, 'In, 'Out ] append3IIIO) :& (procedure @'[ 'In, 'In, 'Out, 'In ] append3IIOI) :& (procedure @'[ 'In, 'Out, 'In, 'In ] append3IOII) :& (procedure @'[ 'In, 'Out, 'Out, 'In ] append3IOOI) :& (procedure @'[ 'Out, 'In, 'In, 'In ] append3OIII) :& (procedure @'[ 'Out, 'In, 'Out, 'In ] append3OIOI) :& (procedure @'[ 'Out, 'Out, 'In, 'In ] append3OOII) :& (procedure @'[ 'Out, 'Out, 'Out, 'In ] append3OOOI) :& RNil
   where
     append3IIII = \a b c abc -> Logic.once $ do
-      -- solution: ab[0,0] ~a[] ~a[0] ~a[0,0] ~ab[0,1] ~abc[] ~abc[0] ~abc[0,1] ~append[0] ~b[] ~b[0] ~b[0,0] ~c[] ~c[0] ~c[0,1]
+      -- solution: ab[0,0]
       -- cost: 3
       () <- (do
         (OneTuple (ab)) <- runProcedure @'[ 'In, 'In, 'Out ] append a b
@@ -162,7 +162,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure ()
     
     append3IIIO = \a b c -> do
-      -- solution: ab[0,0] abc[] abc[0] abc[0,1] ~a[] ~a[0] ~a[0,0] ~ab[0,1] ~append[0] ~b[] ~b[0] ~b[0,0] ~c[] ~c[0] ~c[0,1]
+      -- solution: ab[0,0] abc[] abc[0] abc[0,1]
       -- cost: 4
       (abc) <- (do
         (OneTuple (ab)) <- runProcedure @'[ 'In, 'In, 'Out ] append a b
@@ -172,7 +172,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure (OneTuple (abc))
     
     append3IIOI = \a b abc -> do
-      -- solution: ab[0,0] c[] c[0] c[0,1] ~a[] ~a[0] ~a[0,0] ~ab[0,1] ~abc[] ~abc[0] ~abc[0,1] ~append[0] ~b[] ~b[0] ~b[0,0]
+      -- solution: ab[0,0] c[] c[0] c[0,1]
       -- cost: 4
       (c) <- (do
         (OneTuple (ab)) <- runProcedure @'[ 'In, 'In, 'Out ] append a b
@@ -182,7 +182,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure (OneTuple (c))
     
     append3IOII = \a c abc -> do
-      -- solution: ab[0,1] b[] b[0] b[0,0] ~a[] ~a[0] ~a[0,0] ~ab[0,0] ~abc[] ~abc[0] ~abc[0,1] ~append[0] ~c[] ~c[0] ~c[0,1]
+      -- solution: ab[0,1] b[] b[0] b[0,0]
       -- cost: 4
       (b) <- (do
         (OneTuple (ab)) <- runProcedure @'[ 'Out, 'In, 'In ] append c abc
@@ -192,7 +192,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure (OneTuple (b))
     
     append3IOOI = \a abc -> do
-      -- solution: ab[0,1] b[] b[0] b[0,0] c[] c[0] c[0,1] ~a[] ~a[0] ~a[0,0] ~ab[0,0] ~abc[] ~abc[0] ~abc[0,1] ~append[0]
+      -- solution: ab[0,1] b[] b[0] b[0,0] c[] c[0] c[0,1]
       -- cost: 5
       (b,c) <- (do
         (ab,c) <- runProcedure @'[ 'Out, 'Out, 'In ] append abc
@@ -202,7 +202,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure (b,c)
     
     append3OIII = \b c abc -> do
-      -- solution: a[] a[0] a[0,0] ab[0,1] ~ab[0,0] ~abc[] ~abc[0] ~abc[0,1] ~append[0] ~b[] ~b[0] ~b[0,0] ~c[] ~c[0] ~c[0,1]
+      -- solution: a[] a[0] a[0,0] ab[0,1]
       -- cost: 4
       (a) <- (do
         (OneTuple (ab)) <- runProcedure @'[ 'Out, 'In, 'In ] append c abc
@@ -212,7 +212,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure (OneTuple (a))
     
     append3OIOI = \b abc -> do
-      -- solution: a[] a[0] a[0,0] ab[0,1] c[] c[0] c[0,1] ~ab[0,0] ~abc[] ~abc[0] ~abc[0,1] ~append[0] ~b[] ~b[0] ~b[0,0]
+      -- solution: a[] a[0] a[0,0] ab[0,1] c[] c[0] c[0,1]
       -- cost: 5
       (a,c) <- (do
         (ab,c) <- runProcedure @'[ 'Out, 'Out, 'In ] append abc
@@ -222,7 +222,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure (a,c)
     
     append3OOII = \c abc -> do
-      -- solution: a[] a[0] a[0,0] ab[0,1] b[] b[0] b[0,0] ~ab[0,0] ~abc[] ~abc[0] ~abc[0,1] ~append[0] ~c[] ~c[0] ~c[0,1]
+      -- solution: a[] a[0] a[0,0] ab[0,1] b[] b[0] b[0,0]
       -- cost: 5
       (a,b) <- (do
         (OneTuple (ab)) <- runProcedure @'[ 'Out, 'In, 'In ] append c abc
@@ -232,7 +232,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure (a,b)
     
     append3OOOI = \abc -> do
-      -- solution: a[] a[0] a[0,0] ab[0,1] b[] b[0] b[0,0] c[] c[0] c[0,1] ~ab[0,0] ~abc[] ~abc[0] ~abc[0,1] ~append[0]
+      -- solution: a[] a[0] a[0,0] ab[0,1] b[] b[0] b[0,0] c[] c[0] c[0,1]
       -- cost: 6
       (a,b,c) <- (do
         (ab,c) <- runProcedure @'[ 'Out, 'Out, 'In ] append abc
@@ -286,7 +286,7 @@ constraints:
 reverse = rget $ (procedure @'[ 'In, 'In ] reverseII) :& (procedure @'[ 'In, 'Out ] reverseIO) :& (procedure @'[ 'Out, 'In ] reverseOI) :& RNil
   where
     reverseII = \arg1 arg2 -> Logic.once $ do
-      -- solution: data0[1,4] data1[1,5] h[1,1] h0[1,0] h1[1,6] l[1,7] r[1,3] t[1,0] ~append[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,7] ~data0[1,5] ~data1[1,3] ~h[1,6] ~h0[1,1] ~h1[1,5] ~l[1,3] ~r[1,2] ~reverse[1] ~t[1,2]
+      -- solution: data0[1,4] data1[1,5] h[1,1] h0[1,0] h1[1,6] l[1,7] r[1,3] t[1,0]
       -- cost: 3
       () <- (do
         guard $ arg1 == []
@@ -306,7 +306,7 @@ reverse = rget $ (procedure @'[ 'In, 'In ] reverseII) :& (procedure @'[ 'In, 'Ou
       pure ()
     
     reverseIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,7] data0[1,4] data1[1,5] h[1,1] h0[1,0] h1[1,6] l[1,3] r[1,2] t[1,0] ~append[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~data0[1,5] ~data1[1,3] ~h[1,6] ~h0[1,1] ~h1[1,5] ~l[1,7] ~r[1,3] ~reverse[1] ~t[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,7] data0[1,4] data1[1,5] h[1,1] h0[1,0] h1[1,6] l[1,3] r[1,2] t[1,0]
       -- cost: 4
       (arg2) <- (do
         guard $ arg1 == []
@@ -326,7 +326,7 @@ reverse = rget $ (procedure @'[ 'In, 'In ] reverseII) :& (procedure @'[ 'In, 'Ou
       pure (OneTuple (arg2))
     
     reverseOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] data0[1,5] data1[1,3] h[1,6] h0[1,1] h1[1,5] l[1,7] r[1,3] t[1,2] ~append[1] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,7] ~data0[1,4] ~data1[1,5] ~h[1,1] ~h0[1,0] ~h1[1,6] ~l[1,3] ~r[1,2] ~reverse[1] ~t[1,0]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] data0[1,5] data1[1,3] h[1,6] h0[1,1] h1[1,5] l[1,7] r[1,3] t[1,2]
       -- cost: 5
       (arg1) <- (do
         arg1 <- pure []
@@ -366,7 +366,7 @@ constraints:
 palindrome = rget $ (procedure @'[ 'In ] palindromeI) :& RNil
   where
     palindromeI = \a -> Logic.once $ do
-      -- solution: a0[0,1] a1[0,2] ~a[] ~a[0] ~a[0,1] ~a[0,2] ~a0[0,0] ~a1[0,0] ~reverse[0]
+      -- solution: a0[0,1] a1[0,2]
       -- cost: 1
       () <- (do
         a0 <- pure a
@@ -399,7 +399,7 @@ constraints:
 duplicate = rget $ (procedure @'[ 'In, 'In ] duplicateII) :& (procedure @'[ 'In, 'Out ] duplicateIO) :& (procedure @'[ 'Out, 'In ] duplicateOI) :& RNil
   where
     duplicateII = \a b -> Logic.once $ do
-      -- solution: a0[0,1] a1[0,2] ~a[] ~a[0] ~a[0,1] ~a[0,2] ~a0[0,0] ~a1[0,0] ~append[0] ~b[] ~b[0] ~b[0,0]
+      -- solution: a0[0,1] a1[0,2]
       -- cost: 1
       () <- (do
         a0 <- pure a
@@ -410,7 +410,7 @@ duplicate = rget $ (procedure @'[ 'In, 'In ] duplicateII) :& (procedure @'[ 'In,
       pure ()
     
     duplicateIO = \a -> do
-      -- solution: a0[0,1] a1[0,2] b[] b[0] b[0,0] ~a[] ~a[0] ~a[0,1] ~a[0,2] ~a0[0,0] ~a1[0,0] ~append[0]
+      -- solution: a0[0,1] a1[0,2] b[] b[0] b[0,0]
       -- cost: 2
       (b) <- (do
         a0 <- pure a
@@ -421,7 +421,7 @@ duplicate = rget $ (procedure @'[ 'In, 'In ] duplicateII) :& (procedure @'[ 'In,
       pure (OneTuple (b))
     
     duplicateOI = \b -> do
-      -- solution: a[] a[0] a[0,1] a0[0,0] a1[0,0] ~a[0,2] ~a0[0,1] ~a1[0,2] ~append[0] ~b[] ~b[0] ~b[0,0]
+      -- solution: a[] a[0] a[0,1] a0[0,0] a1[0,0]
       -- cost: 3
       (a) <- (do
         (a0,a1) <- runProcedure @'[ 'Out, 'Out, 'In ] append b
@@ -474,7 +474,7 @@ h[0,0,2,0,0]
 classify = rget $ (procedure @'[ 'In, 'In ] classifyII) :& (procedure @'[ 'In, 'Out ] classifyIO) :& RNil
   where
     classifyII = \xs r -> Logic.once $ do
-      -- solution: data0[0,0,1,0] h[0,0,2,0,0] h[0,0,2,0,0,0] ~data0[0,0,1,1] ~duplicate[0] ~duplicate[0,0] ~duplicate[0,0,2] ~duplicate[0,0,2,0] ~duplicate[0,0,2,0,0] ~h[0,0,2,0,1,0] ~palindrome[0] ~palindrome[0,0] ~palindrome[0,0,0] ~r[] ~r[0] ~r[0,0] ~r[0,0,1] ~r[0,0,1,0] ~r[0,0,2] ~r[0,0,2,0] ~r[0,0,2,0,1] ~r[0,0,2,0,1,0] ~r[0,0,2,0,2] ~r[0,0,2,0,2,0] ~xs[] ~xs[0] ~xs[0,0] ~xs[0,0,0,0] ~xs[0,0,2] ~xs[0,0,2,0] ~xs[0,0,2,0,0,0]
+      -- solution: data0[0,0,1,0] h[0,0,2,0,0] h[0,0,2,0,0,0]
       -- cost: 3
       () <- (do
         () <- Logic.ifte ((do
@@ -502,7 +502,7 @@ classify = rget $ (procedure @'[ 'In, 'In ] classifyII) :& (procedure @'[ 'In, '
       pure ()
     
     classifyIO = \xs -> do
-      -- solution: data0[0,0,1,1] h[0,0,2,0,0] h[0,0,2,0,0,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0] r[0,0,2,0,1] r[0,0,2,0,1,0] r[0,0,2,0,2] r[0,0,2,0,2,0] ~data0[0,0,1,0] ~duplicate[0] ~duplicate[0,0] ~duplicate[0,0,2] ~duplicate[0,0,2,0] ~duplicate[0,0,2,0,0] ~h[0,0,2,0,1,0] ~palindrome[0] ~palindrome[0,0] ~palindrome[0,0,0] ~xs[] ~xs[0] ~xs[0,0] ~xs[0,0,0,0] ~xs[0,0,2] ~xs[0,0,2,0] ~xs[0,0,2,0,0,0]
+      -- solution: data0[0,0,1,1] h[0,0,2,0,0] h[0,0,2,0,0,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0] r[0,0,2,0,1] r[0,0,2,0,1,0] r[0,0,2,0,2] r[0,0,2,0,2,0]
       -- cost: 3
       (r) <- (do
         (r) <- Logic.ifte ((do
@@ -590,7 +590,7 @@ constraints:
 delete = rget $ (procedure @'[ 'In, 'In, 'In ] deleteIII) :& (procedure @'[ 'In, 'In, 'Out ] deleteIIO) :& (procedure @'[ 'In, 'Out, 'In ] deleteIOI) :& (procedure @'[ 'Out, 'In, 'In ] deleteOII) :& (procedure @'[ 'Out, 'In, 'Out ] deleteOIO) :& RNil
   where
     deleteIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~delete[1] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~r[1,5] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,5]
+      -- solution: h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6]
       -- cost: 1
       () <- (do
         (h0:t1) <- pure arg2
@@ -612,7 +612,7 @@ delete = rget $ (procedure @'[ 'In, 'In, 'In ] deleteIII) :& (procedure @'[ 'In,
       pure ()
     
     deleteIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,4] r[1,5] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~delete[1] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,3] ~r[1,3] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,5]
+      -- solution: arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,4] r[1,5] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6]
       -- cost: 2
       (arg3) <- (do
         (h0:t1) <- pure arg2
@@ -634,7 +634,7 @@ delete = rget $ (procedure @'[ 'In, 'In, 'In ] deleteIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg3))
     
     deleteIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[0,3] h[1,4] h0[0,1] h2[1,1] h4[1,3] r[1,3] t[0,4] t[1,5] t1[0,2] t3[1,2] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~delete[1] ~h[0,1] ~h[1,1] ~h0[0,0] ~h2[1,0] ~h4[1,4] ~r[1,5] ~t[0,2] ~t[1,2] ~t1[0,0] ~t3[1,0] ~x[1,5]
+      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[0,3] h[1,4] h0[0,1] h2[1,1] h4[1,3] r[1,3] t[0,4] t[1,5] t1[0,2] t3[1,2] x[1,6]
       -- cost: 2
       (arg2) <- (do
         h <- pure arg1
@@ -656,7 +656,7 @@ delete = rget $ (procedure @'[ 'In, 'In, 'In ] deleteIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg2))
     
     deleteOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,6] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~delete[1] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~r[1,5] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,6]
+      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,6] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,5]
       -- cost: 2
       (arg1) <- (do
         (h0:t1) <- pure arg2
@@ -678,7 +678,7 @@ delete = rget $ (procedure @'[ 'In, 'In, 'In ] deleteIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg1))
     
     deleteOIO = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,6] arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,4] r[1,5] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~delete[1] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,3] ~r[1,3] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,6]
+      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,6] arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,4] r[1,5] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,5]
       -- cost: 3
       (arg1,arg3) <- (do
         (h0:t1) <- pure arg2
@@ -732,7 +732,7 @@ constraints:
 perm = rget $ (procedure @'[ 'In, 'In ] permII) :& (procedure @'[ 'In, 'Out ] permIO) :& (procedure @'[ 'Out, 'In ] permOI) :& RNil
   where
     permII = \arg1 arg2 -> Logic.once $ do
-      -- solution: h[1,0] t[1,0] xs[1,3] ys[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~delete[1] ~h[1,1] ~perm[1] ~t[1,2] ~xs[1,1] ~ys[1,2]
+      -- solution: h[1,0] t[1,0] xs[1,3] ys[1,1]
       -- cost: 3
       () <- (do
         guard $ arg1 == []
@@ -748,7 +748,7 @@ perm = rget $ (procedure @'[ 'In, 'In ] permII) :& (procedure @'[ 'In, 'Out ] pe
       pure ()
     
     permIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,0] h[1,1] t[1,2] xs[1,3] ys[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~delete[1] ~h[1,0] ~perm[1] ~t[1,0] ~xs[1,1] ~ys[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,0] h[1,1] t[1,2] xs[1,3] ys[1,1]
       -- cost: 5
       (arg2) <- (do
         guard $ arg1 == []
@@ -764,7 +764,7 @@ perm = rget $ (procedure @'[ 'In, 'In ] permII) :& (procedure @'[ 'In, 'Out ] pe
       pure (OneTuple (arg2))
     
     permOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] h[1,0] t[1,0] xs[1,1] ys[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~delete[1] ~h[1,1] ~perm[1] ~t[1,2] ~xs[1,3] ~ys[1,1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] h[1,0] t[1,0] xs[1,1] ys[1,2]
       -- cost: 4
       (arg1) <- (do
         arg1 <- pure []

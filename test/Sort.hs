@@ -98,7 +98,7 @@ constraints:
 partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (procedure @'[ 'In, 'In, 'In, 'Out ] partitionIIIO) :& (procedure @'[ 'In, 'In, 'Out, 'In ] partitionIIOI) :& (procedure @'[ 'In, 'In, 'Out, 'Out ] partitionIIOO) :& RNil
   where
     partitionIIII = \arg1 arg2 arg3 arg4 -> Logic.once $ do
-      -- solution: h[1,1] h0[1,0] h1[1,2,1,1] h2[1,2,2,1] hi[1,5] hi1[1,2,2,1] lo[1,4] lo1[1,2,1,1] p[1,3] t[1,0] ~(<=)[1] ~(<=)[1,2] ~(<=)[1,2,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,4] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,2] ~h2[1,2,2,2] ~hi[1,2] ~hi[1,2,1] ~hi[1,2,1,0] ~hi[1,2,2] ~hi[1,2,2,1] ~hi1[1,2,2,0] ~lo[1,2] ~lo[1,2,1] ~lo[1,2,1,1] ~lo[1,2,2] ~lo[1,2,2,0] ~lo1[1,2,1,0] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~partition[1] ~partition[1,2] ~partition[1,2,1] ~partition[1,2,2] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
+      -- solution: h[1,1] h0[1,0] h1[1,2,1,1] h2[1,2,2,1] hi[1,5] hi1[1,2,2,1] lo[1,4] lo1[1,2,1,1] p[1,3] t[1,0]
       -- cost: 3
       () <- (do
         guard $ arg1 == []
@@ -130,7 +130,7 @@ partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (proced
       pure ()
     
     partitionIIIO = \arg1 arg2 arg3 -> do
-      -- solution: arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] h[1,1] h0[1,0] h1[1,2,1,1] h2[1,2,2,2] hi[1,2] hi[1,2,1] hi[1,2,1,0] hi[1,2,2] hi[1,2,2,1] hi1[1,2,2,0] lo[1,4] lo1[1,2,1,1] p[1,3] t[1,0] ~(<=)[1] ~(<=)[1,2] ~(<=)[1,2,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,4] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,2] ~h2[1,2,2,1] ~hi[1,5] ~hi1[1,2,2,1] ~lo[1,2] ~lo[1,2,1] ~lo[1,2,1,1] ~lo[1,2,2] ~lo[1,2,2,0] ~lo1[1,2,1,0] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~partition[1] ~partition[1,2] ~partition[1,2,1] ~partition[1,2,2] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
+      -- solution: arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] h[1,1] h0[1,0] h1[1,2,1,1] h2[1,2,2,2] hi[1,2] hi[1,2,1] hi[1,2,1,0] hi[1,2,2] hi[1,2,2,1] hi1[1,2,2,0] lo[1,4] lo1[1,2,1,1] p[1,3] t[1,0]
       -- cost: 5
       (arg4) <- (do
         guard $ arg1 == []
@@ -162,7 +162,7 @@ partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (proced
       pure (OneTuple (arg4))
     
     partitionIIOI = \arg1 arg2 arg4 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] h[1,1] h0[1,0] h1[1,2,1,2] h2[1,2,2,1] hi[1,5] hi1[1,2,2,1] lo[1,2] lo[1,2,1] lo[1,2,1,1] lo[1,2,2] lo[1,2,2,0] lo1[1,2,1,0] p[1,3] t[1,0] ~(<=)[1] ~(<=)[1,2] ~(<=)[1,2,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~arg4[] ~arg4[0] ~arg4[0,2] ~arg4[1] ~arg4[1,5] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,1] ~h2[1,2,2,2] ~hi[1,2] ~hi[1,2,1] ~hi[1,2,1,0] ~hi[1,2,2] ~hi[1,2,2,1] ~hi1[1,2,2,0] ~lo[1,4] ~lo1[1,2,1,1] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~partition[1] ~partition[1,2] ~partition[1,2,1] ~partition[1,2,2] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] h[1,1] h0[1,0] h1[1,2,1,2] h2[1,2,2,1] hi[1,5] hi1[1,2,2,1] lo[1,2] lo[1,2,1] lo[1,2,1,1] lo[1,2,2] lo[1,2,2,0] lo1[1,2,1,0] p[1,3] t[1,0]
       -- cost: 5
       (arg3) <- (do
         guard $ arg1 == []
@@ -194,7 +194,7 @@ partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (proced
       pure (OneTuple (arg3))
     
     partitionIIOO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] h[1,1] h0[1,0] h1[1,2,1,2] h2[1,2,2,2] hi[1,2] hi[1,2,1] hi[1,2,1,0] hi[1,2,2] hi[1,2,2,1] hi1[1,2,2,0] lo[1,2] lo[1,2,1] lo[1,2,1,1] lo[1,2,2] lo[1,2,2,0] lo1[1,2,1,0] p[1,3] t[1,0] ~(<=)[1] ~(<=)[1,2] ~(<=)[1,2,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[1] ~arg2[1,3] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h[1,2,2] ~h[1,2,2,2] ~h0[1,1] ~h1[1,2,1,1] ~h2[1,2,2,1] ~hi[1,5] ~hi1[1,2,2,1] ~lo[1,4] ~lo1[1,2,1,1] ~p[1,2] ~p[1,2,0,0] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~partition[1] ~partition[1,2] ~partition[1,2,1] ~partition[1,2,2] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] h[1,1] h0[1,0] h1[1,2,1,2] h2[1,2,2,2] hi[1,2] hi[1,2,1] hi[1,2,1,0] hi[1,2,2] hi[1,2,2,1] hi1[1,2,2,0] lo[1,2] lo[1,2,1] lo[1,2,1,1] lo[1,2,2] lo[1,2,2,0] lo1[1,2,1,0] p[1,3] t[1,0]
       -- cost: 7
       (arg3,arg4) <- (do
         guard $ arg1 == []
@@ -283,7 +283,7 @@ constraints:
 qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 'Out, 'In ] qsortIOI) :& RNil
   where
     qsortIIO = \arg1 r -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,7] data0[1,4] r0[1,3] r1[1,5] x[1,1] x0[1,0] x1[1,5] xs[1,0] ys[1,2] zs[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~data0[1,5] ~partition[1] ~qsort[1] ~r[] ~r[0] ~r[0,1] ~r[1] ~r[1,4] ~r0[1,7] ~r1[1,3] ~x[1,2] ~x[1,6] ~x0[1,1] ~x1[1,6] ~xs[1,2] ~ys[1,4] ~zs[1,3]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,7] data0[1,4] r0[1,3] r1[1,5] x[1,1] x0[1,0] x1[1,5] xs[1,0] ys[1,2] zs[1,2]
       -- cost: 7
       (arg3) <- (do
         arg3 <- pure r
@@ -303,7 +303,7 @@ qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 
       pure (OneTuple (arg3))
     
     qsortIOI = \arg1 arg3 -> do
-      -- solution: data0[1,5] r[] r[0] r[0,1] r[1] r[1,4] r0[1,7] r1[1,3] x[1,1] x0[1,0] x1[1,6] xs[1,0] ys[1,2] zs[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,7] ~data0[1,4] ~partition[1] ~qsort[1] ~r0[1,3] ~r1[1,5] ~x[1,2] ~x[1,6] ~x0[1,1] ~x1[1,5] ~xs[1,2] ~ys[1,4] ~zs[1,3]
+      -- solution: data0[1,5] r[] r[0] r[0,1] r[1] r[1,4] r0[1,7] r1[1,3] x[1,1] x0[1,0] x1[1,6] xs[1,0] ys[1,2] zs[1,2]
       -- cost: 7
       (r) <- (do
         r <- pure arg3
@@ -339,7 +339,7 @@ constraints:
 sort = rget $ (procedure @'[ 'In, 'In ] sortII) :& (procedure @'[ 'In, 'Out ] sortIO) :& RNil
   where
     sortII = \list sorted -> Logic.once $ do
-      -- solution: data0[0,0] ~data0[0,1] ~list[] ~list[0] ~list[0,0] ~qsort[0] ~sorted[] ~sorted[0] ~sorted[0,0]
+      -- solution: data0[0,0]
       -- cost: 2
       () <- (do
         (OneTuple (data0)) <- runProcedure @'[ 'In, 'In, 'Out ] qsort list sorted
@@ -349,7 +349,7 @@ sort = rget $ (procedure @'[ 'In, 'In ] sortII) :& (procedure @'[ 'In, 'Out ] so
       pure ()
     
     sortIO = \list -> do
-      -- solution: data0[0,1] sorted[] sorted[0] sorted[0,0] ~data0[0,0] ~list[] ~list[0] ~list[0,0] ~qsort[0]
+      -- solution: data0[0,1] sorted[] sorted[0] sorted[0,0]
       -- cost: 2
       (sorted) <- (do
         data0 <- pure []

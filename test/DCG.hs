@@ -47,7 +47,7 @@ constraints:
 append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In, 'In, 'Out ] appendIIO) :& (procedure @'[ 'In, 'Out, 'In ] appendIOI) :& (procedure @'[ 'Out, 'In, 'In ] appendOII) :& (procedure @'[ 'Out, 'Out, 'In ] appendOOI) :& RNil
   where
     appendIII = \arg1 b arg3 -> Logic.once $ do
-      -- solution: h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2] ~append[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~b[] ~b[0] ~b[0,1] ~b[1] ~b[1,4] ~h[1,3] ~h0[1,1] ~h1[1,3] ~t[1,4] ~tb[1,4]
+      -- solution: h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2]
       -- cost: 1
       () <- (do
         guard $ arg3 == b
@@ -64,7 +64,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure ()
     
     appendIIO = \arg1 b -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,2] h[1,1] h0[1,0] h1[1,3] t[1,0] tb[1,4] ~append[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~b[] ~b[0] ~b[0,1] ~b[1] ~b[1,4] ~h[1,3] ~h0[1,1] ~h1[1,2] ~t[1,4] ~tb[1,2]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,2] h[1,1] h0[1,0] h1[1,3] t[1,0] tb[1,4]
       -- cost: 2
       (arg3) <- (do
         arg3 <- pure b
@@ -81,7 +81,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg3))
     
     appendIOI = \arg1 arg3 -> do
-      -- solution: b[] b[0] b[0,1] b[1] b[1,4] h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2] ~append[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~h[1,3] ~h0[1,1] ~h1[1,3] ~t[1,4] ~tb[1,4]
+      -- solution: b[] b[0] b[0,1] b[1] b[1,4] h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2]
       -- cost: 2
       (b) <- (do
         b <- pure arg3
@@ -98,7 +98,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (b))
     
     appendOII = \b arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2] ~append[1] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~b[] ~b[0] ~b[0,1] ~b[1] ~b[1,4] ~h[1,1] ~h0[1,0] ~h1[1,3] ~t[1,0] ~tb[1,4]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
       -- cost: 2
       (arg1) <- (do
         guard $ arg3 == b
@@ -115,7 +115,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg1))
     
     appendOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[] b[0] b[0,1] b[1] b[1,4] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2] ~append[1] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,2] ~h[1,1] ~h0[1,0] ~h1[1,3] ~t[1,0] ~tb[1,4]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[] b[0] b[0,1] b[1] b[1,4] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
       -- cost: 3
       (arg1,b) <- (do
         b <- pure arg3
@@ -143,7 +143,7 @@ constraints:
 det = rget $ (procedure @'[ 'In ] detI) :& (procedure @'[ 'Out ] detO) :& RNil
   where
     detI = \arg1 -> Logic.once $ do
-      -- solution: ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0]
+      -- solution: 
       -- cost: 0
       () <- (do
         guard $ arg1 == "the"
@@ -178,7 +178,7 @@ constraints:
 noun = rget $ (procedure @'[ 'In ] nounI) :& (procedure @'[ 'Out ] nounO) :& RNil
   where
     nounI = \arg1 -> Logic.once $ do
-      -- solution: ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0]
+      -- solution: 
       -- cost: 0
       () <- (do
         guard $ arg1 == "cat"
@@ -211,7 +211,7 @@ constraints:
 verb = rget $ (procedure @'[ 'In ] verbI) :& (procedure @'[ 'Out ] verbO) :& RNil
   where
     verbI = \arg1 -> Logic.once $ do
-      -- solution: ~arg1[] ~arg1[0] ~arg1[0,0]
+      -- solution: 
       -- cost: 0
       () <- (do
         guard $ arg1 == "eats"
@@ -278,7 +278,7 @@ constraints:
 np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'Out ] npIIO) :& (procedure @'[ 'In, 'Out, 'In ] npIOI) :& (procedure @'[ 'Out, 'In, 'In ] npOII) :& (procedure @'[ 'Out, 'In, 'Out ] npOIO) :& (procedure @'[ 'Out, 'Out, 'In ] npOOI) :& RNil
   where
     npIII = \arg1 z a -> Logic.once $ do
-      -- solution: d[0,1] d0[0,0] d2[0,6] data0[0,4] data1[0,5] n[0,2] n1[0,0] n3[0,7] ~a[] ~a[0] ~a[0,3] ~append[0] ~arg1[] ~arg1[0] ~arg1[0,0] ~d[0,6] ~d[0,8] ~d0[0,1] ~d2[0,5] ~data0[0,5] ~data1[0,3] ~det[0] ~n[0,7] ~n[0,9] ~n1[0,2] ~n3[0,5] ~noun[0] ~z[] ~z[0] ~z[0,3]
+      -- solution: d[0,1] d0[0,0] d2[0,6] data0[0,4] data1[0,5] n[0,2] n1[0,0] n3[0,7]
       -- cost: 3
       () <- (do
         (NP d0 n1) <- pure arg1
@@ -296,7 +296,7 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure ()
     
     npIIO = \arg1 z -> do
-      -- solution: a[] a[0] a[0,3] d[0,1] d0[0,0] d2[0,6] data0[0,4] data1[0,5] n[0,2] n1[0,0] n3[0,7] ~append[0] ~arg1[] ~arg1[0] ~arg1[0,0] ~d[0,6] ~d[0,8] ~d0[0,1] ~d2[0,5] ~data0[0,5] ~data1[0,3] ~det[0] ~n[0,7] ~n[0,9] ~n1[0,2] ~n3[0,5] ~noun[0] ~z[] ~z[0] ~z[0,3]
+      -- solution: a[] a[0] a[0,3] d[0,1] d0[0,0] d2[0,6] data0[0,4] data1[0,5] n[0,2] n1[0,0] n3[0,7]
       -- cost: 4
       (a) <- (do
         (NP d0 n1) <- pure arg1
@@ -314,7 +314,7 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure (OneTuple (a))
     
     npIOI = \arg1 a -> do
-      -- solution: d[0,1] d0[0,0] d2[0,6] data0[0,4] data1[0,5] n[0,2] n1[0,0] n3[0,7] z[] z[0] z[0,3] ~a[] ~a[0] ~a[0,3] ~append[0] ~arg1[] ~arg1[0] ~arg1[0,0] ~d[0,6] ~d[0,8] ~d0[0,1] ~d2[0,5] ~data0[0,5] ~data1[0,3] ~det[0] ~n[0,7] ~n[0,9] ~n1[0,2] ~n3[0,5] ~noun[0]
+      -- solution: d[0,1] d0[0,0] d2[0,6] data0[0,4] data1[0,5] n[0,2] n1[0,0] n3[0,7] z[] z[0] z[0,3]
       -- cost: 4
       (z) <- (do
         (NP d0 n1) <- pure arg1
@@ -332,7 +332,7 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure (OneTuple (z))
     
     npOII = \z a -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] d[0,6] d0[0,1] d2[0,5] data0[0,5] data1[0,3] n[0,7] n1[0,2] n3[0,5] ~a[] ~a[0] ~a[0,3] ~append[0] ~d[0,1] ~d[0,8] ~d0[0,0] ~d2[0,6] ~data0[0,4] ~data1[0,5] ~det[0] ~n[0,2] ~n[0,9] ~n1[0,0] ~n3[0,7] ~noun[0] ~z[] ~z[0] ~z[0,3]
+      -- solution: arg1[] arg1[0] arg1[0,0] d[0,6] d0[0,1] d2[0,5] data0[0,5] data1[0,3] n[0,7] n1[0,2] n3[0,5]
       -- cost: 4
       (arg1) <- (do
         (OneTuple (data1)) <- runProcedure @'[ 'Out, 'In, 'In ] append z a
@@ -350,7 +350,7 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure (OneTuple (arg1))
     
     npOIO = \z -> do
-      -- solution: a[] a[0] a[0,3] arg1[] arg1[0] arg1[0,0] d[0,8] d0[0,1] d2[0,6] data0[0,4] data1[0,5] n[0,9] n1[0,2] n3[0,7] ~append[0] ~d[0,1] ~d[0,6] ~d0[0,0] ~d2[0,5] ~data0[0,5] ~data1[0,3] ~det[0] ~n[0,2] ~n[0,7] ~n1[0,0] ~n3[0,5] ~noun[0] ~z[] ~z[0] ~z[0,3]
+      -- solution: a[] a[0] a[0,3] arg1[] arg1[0] arg1[0,0] d[0,8] d0[0,1] d2[0,6] data0[0,4] data1[0,5] n[0,9] n1[0,2] n3[0,7]
       -- cost: 6
       (a,arg1) <- (do
         data0 <- pure []
@@ -368,7 +368,7 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure (arg1,a)
     
     npOOI = \a -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] d[0,6] d0[0,1] d2[0,5] data0[0,5] data1[0,3] n[0,7] n1[0,2] n3[0,5] z[] z[0] z[0,3] ~a[] ~a[0] ~a[0,3] ~append[0] ~d[0,1] ~d[0,8] ~d0[0,0] ~d2[0,6] ~data0[0,4] ~data1[0,5] ~det[0] ~n[0,2] ~n[0,9] ~n1[0,0] ~n3[0,7] ~noun[0]
+      -- solution: arg1[] arg1[0] arg1[0,0] d[0,6] d0[0,1] d2[0,5] data0[0,5] data1[0,3] n[0,7] n1[0,2] n3[0,5] z[] z[0] z[0,3]
       -- cost: 5
       (arg1,z) <- (do
         (data1,z) <- runProcedure @'[ 'Out, 'Out, 'In ] append a
@@ -428,7 +428,7 @@ constraints:
 vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'Out ] vpIIO) :& (procedure @'[ 'In, 'Out, 'In ] vpIOI) :& (procedure @'[ 'Out, 'In, 'In ] vpOII) :& (procedure @'[ 'Out, 'In, 'Out ] vpOIO) :& (procedure @'[ 'Out, 'Out, 'In ] vpOOI) :& RNil
   where
     vpIII = \arg1 z a -> Logic.once $ do
-      -- solution: b[0,0] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4] ~a[] ~a[0] ~a[0,1] ~append[0] ~arg1[] ~arg1[0] ~arg1[0,5] ~b[0,1] ~data0[0,3] ~data1[0,1] ~n[0,0] ~np[0] ~v[0,4] ~v[0,7] ~v0[0,6] ~v1[0,3] ~verb[0] ~z[] ~z[0] ~z[0,0]
+      -- solution: b[0,0] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4]
       -- cost: 4
       () <- (do
         (VP v0 n) <- pure arg1
@@ -444,7 +444,7 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
       pure ()
     
     vpIIO = \arg1 z -> do
-      -- solution: a[] a[0] a[0,1] b[0,0] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4] ~append[0] ~arg1[] ~arg1[0] ~arg1[0,5] ~b[0,1] ~data0[0,3] ~data1[0,1] ~n[0,0] ~np[0] ~v[0,4] ~v[0,7] ~v0[0,6] ~v1[0,3] ~verb[0] ~z[] ~z[0] ~z[0,0]
+      -- solution: a[] a[0] a[0,1] b[0,0] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4]
       -- cost: 5
       (a) <- (do
         (VP v0 n) <- pure arg1
@@ -460,7 +460,7 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
       pure (OneTuple (a))
     
     vpIOI = \arg1 a -> do
-      -- solution: b[0,1] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4] z[] z[0] z[0,0] ~a[] ~a[0] ~a[0,1] ~append[0] ~arg1[] ~arg1[0] ~arg1[0,5] ~b[0,0] ~data0[0,3] ~data1[0,1] ~n[0,0] ~np[0] ~v[0,4] ~v[0,7] ~v0[0,6] ~v1[0,3] ~verb[0]
+      -- solution: b[0,1] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4] z[] z[0] z[0,0]
       -- cost: 5
       (z) <- (do
         (VP v0 n) <- pure arg1
@@ -476,7 +476,7 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
       pure (OneTuple (z))
     
     vpOII = \z a -> do
-      -- solution: arg1[] arg1[0] arg1[0,5] b[0,0] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4] ~a[] ~a[0] ~a[0,1] ~append[0] ~b[0,1] ~data0[0,3] ~data1[0,1] ~n[0,5] ~np[0] ~v[0,4] ~v[0,6] ~v0[0,5] ~v1[0,3] ~verb[0] ~z[] ~z[0] ~z[0,0]
+      -- solution: arg1[] arg1[0] arg1[0,5] b[0,0] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4]
       -- cost: 6
       (arg1) <- (do
         data0 <- pure []
@@ -492,7 +492,7 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
       pure (OneTuple (arg1))
     
     vpOIO = \z -> do
-      -- solution: a[] a[0] a[0,1] arg1[] arg1[0] arg1[0,5] b[0,0] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4] ~append[0] ~b[0,1] ~data0[0,3] ~data1[0,1] ~n[0,5] ~np[0] ~v[0,4] ~v[0,6] ~v0[0,5] ~v1[0,3] ~verb[0] ~z[] ~z[0] ~z[0,0]
+      -- solution: a[] a[0] a[0,1] arg1[] arg1[0] arg1[0,5] b[0,0] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4]
       -- cost: 7
       (a,arg1) <- (do
         data0 <- pure []
@@ -508,7 +508,7 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
       pure (arg1,a)
     
     vpOOI = \a -> do
-      -- solution: arg1[] arg1[0] arg1[0,5] b[0,1] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4] z[] z[0] z[0,0] ~a[] ~a[0] ~a[0,1] ~append[0] ~b[0,0] ~data0[0,3] ~data1[0,1] ~n[0,5] ~np[0] ~v[0,4] ~v[0,6] ~v0[0,5] ~v1[0,3] ~verb[0]
+      -- solution: arg1[] arg1[0] arg1[0,5] b[0,1] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4] z[] z[0] z[0,0]
       -- cost: 7
       (arg1,z) <- (do
         data0 <- pure []
@@ -550,7 +550,7 @@ constraints:
 sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 'In, 'In, 'Out ] sentenceIIO) :& (procedure @'[ 'In, 'Out, 'In ] sentenceIOI) :& (procedure @'[ 'Out, 'In, 'In ] sentenceOII) :& (procedure @'[ 'Out, 'In, 'Out ] sentenceOIO) :& (procedure @'[ 'Out, 'Out, 'In ] sentenceOOI) :& RNil
   where
     sentenceIII = \arg1 z a -> Logic.once $ do
-      -- solution: b[0,0] n[0,2] v[0,2] ~a[] ~a[0] ~a[0,1] ~arg1[] ~arg1[0] ~arg1[0,2] ~b[0,1] ~n[0,1] ~np[0] ~v[0,0] ~vp[0] ~z[] ~z[0] ~z[0,0]
+      -- solution: b[0,0] n[0,2] v[0,2]
       -- cost: 3
       () <- (do
         (S n v) <- pure arg1
@@ -561,7 +561,7 @@ sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 
       pure ()
     
     sentenceIIO = \arg1 z -> do
-      -- solution: a[] a[0] a[0,1] b[0,0] n[0,2] v[0,2] ~arg1[] ~arg1[0] ~arg1[0,2] ~b[0,1] ~n[0,1] ~np[0] ~v[0,0] ~vp[0] ~z[] ~z[0] ~z[0,0]
+      -- solution: a[] a[0] a[0,1] b[0,0] n[0,2] v[0,2]
       -- cost: 4
       (a) <- (do
         (S n v) <- pure arg1
@@ -572,7 +572,7 @@ sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 
       pure (OneTuple (a))
     
     sentenceIOI = \arg1 a -> do
-      -- solution: b[0,1] n[0,2] v[0,2] z[] z[0] z[0,0] ~a[] ~a[0] ~a[0,1] ~arg1[] ~arg1[0] ~arg1[0,2] ~b[0,0] ~n[0,1] ~np[0] ~v[0,0] ~vp[0]
+      -- solution: b[0,1] n[0,2] v[0,2] z[] z[0] z[0,0]
       -- cost: 4
       (z) <- (do
         (S n v) <- pure arg1
@@ -583,7 +583,7 @@ sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 
       pure (OneTuple (z))
     
     sentenceOII = \z a -> do
-      -- solution: arg1[] arg1[0] arg1[0,2] b[0,0] n[0,1] v[0,0] ~a[] ~a[0] ~a[0,1] ~b[0,1] ~n[0,2] ~np[0] ~v[0,2] ~vp[0] ~z[] ~z[0] ~z[0,0]
+      -- solution: arg1[] arg1[0] arg1[0,2] b[0,0] n[0,1] v[0,0]
       -- cost: 5
       (arg1) <- (do
         (v,b) <- runProcedure @'[ 'Out, 'In, 'Out ] vp z
@@ -594,7 +594,7 @@ sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 
       pure (OneTuple (arg1))
     
     sentenceOIO = \z -> do
-      -- solution: a[] a[0] a[0,1] arg1[] arg1[0] arg1[0,2] b[0,0] n[0,1] v[0,0] ~b[0,1] ~n[0,2] ~np[0] ~v[0,2] ~vp[0] ~z[] ~z[0] ~z[0,0]
+      -- solution: a[] a[0] a[0,1] arg1[] arg1[0] arg1[0,2] b[0,0] n[0,1] v[0,0]
       -- cost: 6
       (a,arg1) <- (do
         (v,b) <- runProcedure @'[ 'Out, 'In, 'Out ] vp z
@@ -605,7 +605,7 @@ sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 
       pure (arg1,a)
     
     sentenceOOI = \a -> do
-      -- solution: arg1[] arg1[0] arg1[0,2] b[0,1] n[0,1] v[0,0] z[] z[0] z[0,0] ~a[] ~a[0] ~a[0,1] ~b[0,0] ~n[0,2] ~np[0] ~v[0,2] ~vp[0]
+      -- solution: arg1[] arg1[0] arg1[0,2] b[0,1] n[0,1] v[0,0] z[] z[0] z[0,0]
       -- cost: 6
       (arg1,z) <- (do
         (n,b) <- runProcedure @'[ 'Out, 'Out, 'In ] np a

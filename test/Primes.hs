@@ -50,7 +50,7 @@ constraints:
 integers = rget $ (procedure @'[ 'In, 'In, 'Out ] integersIIO) :& RNil
   where
     integersIIO = \low high -> do
-      -- solution: m[0,0,1,0] rest[0,0,1,1] result[] result[0] result[0,0] result[0,0,1] result[0,0,1,2] result[0,0,2] result[0,0,2,0] ~(<=)[0] ~(<=)[0,0] ~(<=)[0,0,0] ~high[] ~high[0] ~high[0,0] ~high[0,0,0,0] ~high[0,0,1,1] ~integers[0] ~integers[0,0] ~integers[0,0,1] ~low[] ~low[0] ~low[0,0] ~low[0,0,0,0] ~low[0,0,1,0] ~low[0,0,1,2] ~m[0,0,1,1] ~rest[0,0,1,2] ~succ[0] ~succ[0,0] ~succ[0,0,1]
+      -- solution: m[0,0,1,0] rest[0,0,1,1] result[] result[0] result[0,0] result[0,0,1] result[0,0,1,2] result[0,0,2] result[0,0,2,0]
       -- cost: 5
       (result) <- (do
         (result) <- Logic.ifte ((do
@@ -137,7 +137,7 @@ constraints:
 remove = rget $ (procedure @'[ 'In, 'In, 'In ] removeIII) :& (procedure @'[ 'In, 'In, 'Out ] removeIIO) :& RNil
   where
     removeIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: j[1,1] j0[1,0] j1[1,4,2,0] js[1,0] m[1,2] njs[1,4] njs[1,4,1] njs[1,4,1,0] njs[1,4,2] njs[1,4,2,0] p[1,5] result[1,6] ~arg1[] ~arg1[1] ~arg1[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,6] ~j[1,2] ~j[1,4] ~j[1,4,2] ~j[1,4,2,1] ~j0[1,1] ~j1[1,4,2,1] ~js[1,3] ~m[1,4] ~m[1,4,0,0] ~mod[1] ~njs[1,3] ~p[1,2] ~p[1,3] ~remove[1] ~result[1,4] ~result[1,4,1] ~result[1,4,1,0] ~result[1,4,2] ~result[1,4,2,0]
+      -- solution: j[1,1] j0[1,0] j1[1,4,2,0] js[1,0] m[1,2] njs[1,4] njs[1,4,1] njs[1,4,1,0] njs[1,4,2] njs[1,4,2,0] p[1,5] result[1,6]
       -- cost: 3
       () <- (do
         guard $ arg2 == []
@@ -166,7 +166,7 @@ remove = rget $ (procedure @'[ 'In, 'In, 'In ] removeIII) :& (procedure @'[ 'In,
       pure ()
     
     removeIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,6] j[1,1] j0[1,0] j1[1,4,2,1] js[1,0] m[1,2] njs[1,3] p[1,5] result[1,4] result[1,4,1] result[1,4,1,0] result[1,4,2] result[1,4,2,0] ~arg1[] ~arg1[1] ~arg1[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~j[1,2] ~j[1,4] ~j[1,4,2] ~j[1,4,2,1] ~j0[1,1] ~j1[1,4,2,0] ~js[1,3] ~m[1,4] ~m[1,4,0,0] ~mod[1] ~njs[1,4] ~njs[1,4,1] ~njs[1,4,1,0] ~njs[1,4,2] ~njs[1,4,2,0] ~p[1,2] ~p[1,3] ~remove[1] ~result[1,6]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,6] j[1,1] j0[1,0] j1[1,4,2,1] js[1,0] m[1,2] njs[1,3] p[1,5] result[1,4] result[1,4,1] result[1,4,1,0] result[1,4,2] result[1,4,2,0]
       -- cost: 4
       (arg3) <- (do
         guard $ arg2 == []
@@ -236,7 +236,7 @@ constraints:
 sift = rget $ (procedure @'[ 'In, 'In ] siftII) :& (procedure @'[ 'In, 'Out ] siftIO) :& RNil
   where
     siftII = \arg1 arg2 -> Logic.once $ do
-      -- solution: js[1,0] new[1,4] p[1,1] p0[1,0] p1[1,2] ps[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,2] ~js[1,4] ~new[1,5] ~p[1,3] ~p[1,4] ~p0[1,1] ~p1[1,3] ~ps[1,5] ~remove[1] ~sift[1]
+      -- solution: js[1,0] new[1,4] p[1,1] p0[1,0] p1[1,2] ps[1,2]
       -- cost: 3
       () <- (do
         guard $ arg1 == []
@@ -254,7 +254,7 @@ sift = rget $ (procedure @'[ 'In, 'In ] siftII) :& (procedure @'[ 'In, 'Out ] si
       pure ()
     
     siftIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] js[1,0] new[1,4] p[1,1] p0[1,0] p1[1,3] ps[1,5] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~js[1,4] ~new[1,5] ~p[1,3] ~p[1,4] ~p0[1,1] ~p1[1,2] ~ps[1,2] ~remove[1] ~sift[1]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] js[1,0] new[1,4] p[1,1] p0[1,0] p1[1,3] ps[1,5]
       -- cost: 4
       (arg2) <- (do
         guard $ arg1 == []
@@ -292,7 +292,7 @@ constraints:
 primes = rget $ (procedure @'[ 'In, 'In ] primesII) :& (procedure @'[ 'In, 'Out ] primesIO) :& RNil
   where
     primesII = \limit ps -> Logic.once $ do
-      -- solution: data0[0,1] js[0,0] ~data0[0,0] ~integers[0] ~js[0,2] ~limit[] ~limit[0] ~limit[0,0] ~ps[] ~ps[0] ~ps[0,2] ~sift[0]
+      -- solution: data0[0,1] js[0,0]
       -- cost: 3
       () <- (do
         data0 <- pure 2
@@ -303,7 +303,7 @@ primes = rget $ (procedure @'[ 'In, 'In ] primesII) :& (procedure @'[ 'In, 'Out 
       pure ()
     
     primesIO = \limit -> do
-      -- solution: data0[0,1] js[0,0] ps[] ps[0] ps[0,2] ~data0[0,0] ~integers[0] ~js[0,2] ~limit[] ~limit[0] ~limit[0,0] ~sift[0]
+      -- solution: data0[0,1] js[0,0] ps[] ps[0] ps[0,2]
       -- cost: 4
       (ps) <- (do
         data0 <- pure 2

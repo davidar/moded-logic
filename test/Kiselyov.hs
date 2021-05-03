@@ -26,7 +26,7 @@ constraints:
 nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
   where
     natI = \arg1 -> Logic.once $ do
-      -- solution: n[1,1] n'[1,2] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,2] ~n[1,0] ~n'[1,1] ~nat[1] ~succ[1]
+      -- solution: n[1,1] n'[1,2]
       -- cost: 3
       () <- (do
         guard $ arg1 == 0
@@ -40,7 +40,7 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
       pure ()
     
     natO = do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,2] n[1,0] n'[1,1] ~n[1,1] ~n'[1,2] ~nat[1] ~succ[1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,2] n[1,0] n'[1,1]
       -- cost: 4
       (arg1) <- (do
         arg1 <- pure 0
@@ -79,7 +79,7 @@ xs[1,0]
 elem = rget $ (procedure @'[ 'Out, 'In ] elemOI) :& RNil
   where
     elemOI = \arg2 -> do
-      -- solution: x[] x[0] x[0,0] x[1] x[1,1] xs[1,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~elem[1] ~xs[1,1]
+      -- solution: x[] x[0] x[0,0] x[1] x[1,1] xs[1,0]
       -- cost: 2
       (x) <- (do
         (x:_) <- pure arg2
@@ -137,7 +137,7 @@ constraints:
 insert = rget $ (procedure @'[ 'In, 'In, 'In ] insertIII) :& (procedure @'[ 'In, 'In, 'Out ] insertIIO) :& (procedure @'[ 'Out, 'In, 'In ] insertOII) :& (procedure @'[ 'Out, 'Out, 'In ] insertOOI) :& RNil
   where
     insertIII = \e arg2 arg3 -> Logic.once $ do
-      -- solution: h[1,1] h0[1,0] h1[1,2] l[0,1] t[1,0] t'[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,2] ~e[] ~e[0] ~e[0,0] ~e[1] ~e[1,4] ~h[1,3] ~h0[1,1] ~h1[1,3] ~insert[1] ~l[0,0] ~t[1,4] ~t'[1,4]
+      -- solution: h[1,1] h0[1,0] h1[1,2] l[0,1] t[1,0] t'[1,2]
       -- cost: 1
       () <- (do
         l <- pure arg2
@@ -154,7 +154,7 @@ insert = rget $ (procedure @'[ 'In, 'In, 'In ] insertIII) :& (procedure @'[ 'In,
       pure ()
     
     insertIIO = \e arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,0] arg3[1] arg3[1,2] h[1,1] h0[1,0] h1[1,3] l[0,1] t[1,0] t'[1,4] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~e[] ~e[0] ~e[0,0] ~e[1] ~e[1,4] ~h[1,3] ~h0[1,1] ~h1[1,2] ~insert[1] ~l[0,0] ~t[1,4] ~t'[1,2]
+      -- solution: arg3[] arg3[0] arg3[0,0] arg3[1] arg3[1,2] h[1,1] h0[1,0] h1[1,3] l[0,1] t[1,0] t'[1,4]
       -- cost: 2
       (arg3) <- (do
         l <- pure arg2
@@ -171,7 +171,7 @@ insert = rget $ (procedure @'[ 'In, 'In, 'In ] insertIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg3))
     
     insertOII = \arg2 arg3 -> do
-      -- solution: e[] e[0] e[0,0] e[1] e[1,4] h[1,1] h0[1,0] h1[1,2] l[0,0] t[1,0] t'[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,2] ~h[1,3] ~h0[1,1] ~h1[1,3] ~insert[1] ~l[0,1] ~t[1,4] ~t'[1,4]
+      -- solution: e[] e[0] e[0,0] e[1] e[1,4] h[1,1] h0[1,0] h1[1,2] l[0,0] t[1,0] t'[1,2]
       -- cost: 2
       (e) <- (do
         (e:l) <- pure arg3
@@ -188,7 +188,7 @@ insert = rget $ (procedure @'[ 'In, 'In, 'In ] insertIII) :& (procedure @'[ 'In,
       pure (OneTuple (e))
     
     insertOOI = \arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,0] e[] e[0] e[0,0] e[1] e[1,4] h[1,3] h0[1,1] h1[1,2] l[0,0] t[1,4] t'[1,2] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,2] ~h[1,1] ~h0[1,0] ~h1[1,3] ~insert[1] ~l[0,1] ~t[1,0] ~t'[1,4]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,0] e[] e[0] e[0,0] e[1] e[1,4] h[1,3] h0[1,1] h1[1,2] l[0,0] t[1,4] t'[1,2]
       -- cost: 3
       (arg2,e) <- (do
         (e:l) <- pure arg3
@@ -237,7 +237,7 @@ constraints:
 permute = rget $ (procedure @'[ 'In, 'Out ] permuteIO) :& (procedure @'[ 'Out, 'In ] permuteOI) :& RNil
   where
     permuteIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,3] h[1,0] r[1,2] t[1,0] t'[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~h[1,2] ~insert[1] ~permute[1] ~r[1,3] ~t[1,1] ~t'[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,3] h[1,0] r[1,2] t[1,0] t'[1,1]
       -- cost: 4
       (arg2) <- (do
         guard $ arg1 == []
@@ -253,7 +253,7 @@ permute = rget $ (procedure @'[ 'In, 'Out ] permuteIO) :& (procedure @'[ 'Out, '
       pure (OneTuple (arg2))
     
     permuteOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,2] r[1,3] t[1,1] t'[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,3] ~h[1,0] ~insert[1] ~permute[1] ~r[1,2] ~t[1,0] ~t'[1,1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,2] r[1,3] t[1,1] t'[1,2]
       -- cost: 5
       (arg1) <- (do
         arg1 <- pure []
@@ -318,7 +318,7 @@ data0[1,0]
 sorted = rget $ (procedure @'[ 'In ] sortedI) :& RNil
   where
     sortedI = \arg1 -> Logic.once $ do
-      -- solution: a[2,0] b[2,1] b0[2,0] b2[2,6] data0[1,0] data1[2,5] r[2,2] r1[2,0] r3[2,7] ~(<=)[2] ~a[2,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg1[2] ~arg1[2,0] ~b[2,3] ~b[2,6] ~b0[2,1] ~b2[2,5] ~data0[1,1] ~data1[2,4] ~r[2,7] ~r1[2,2] ~r3[2,5] ~sorted[2]
+      -- solution: a[2,0] b[2,1] b0[2,0] b2[2,6] data0[1,0] data1[2,5] r[2,2] r1[2,0] r3[2,7]
       -- cost: 2
       () <- (do
         guard $ arg1 == []
@@ -371,7 +371,7 @@ t[1,0]
 suffix = rget $ (procedure @'[ 'In, 'In ] suffixII) :& (procedure @'[ 'In, 'Out ] suffixIO) :& RNil
   where
     suffixII = \arg1 arg2 -> Logic.once $ do
-      -- solution: l[0,0] r[1,2] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,2] ~l[0,1] ~r[1,1] ~suffix[1] ~t[1,1]
+      -- solution: l[0,0] r[1,2] t[1,0]
       -- cost: 1
       () <- (do
         l <- pure arg1
@@ -386,7 +386,7 @@ suffix = rget $ (procedure @'[ 'In, 'In ] suffixII) :& (procedure @'[ 'In, 'Out 
       pure ()
     
     suffixIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] l[0,0] r[1,1] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~l[0,1] ~r[1,2] ~suffix[1] ~t[1,1]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] l[0,0] r[1,1] t[1,0]
       -- cost: 2
       (arg2) <- (do
         l <- pure arg1
@@ -435,7 +435,7 @@ constraints:
 prefix = rget $ (procedure @'[ 'In, 'In ] prefixII) :& (procedure @'[ 'In, 'Out ] prefixIO) :& RNil
   where
     prefixII = \arg1 arg2 -> Logic.once $ do
-      -- solution: h[1,1] h0[1,0] h1[1,2] t[1,0] t'[1,2] ~arg1[] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,2] ~h[1,3] ~h0[1,1] ~h1[1,3] ~prefix[1] ~t[1,4] ~t'[1,4]
+      -- solution: h[1,1] h0[1,0] h1[1,2] t[1,0] t'[1,2]
       -- cost: 1
       () <- (do
         guard $ arg2 == []
@@ -451,7 +451,7 @@ prefix = rget $ (procedure @'[ 'In, 'In ] prefixII) :& (procedure @'[ 'In, 'Out 
       pure ()
     
     prefixIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,2] h[1,1] h0[1,0] h1[1,3] t[1,0] t'[1,4] ~arg1[] ~arg1[1] ~arg1[1,0] ~h[1,3] ~h0[1,1] ~h1[1,2] ~prefix[1] ~t[1,4] ~t'[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,2] h[1,1] h0[1,0] h1[1,3] t[1,0] t'[1,4]
       -- cost: 2
       (arg2) <- (do
         arg2 <- pure []
@@ -497,7 +497,7 @@ t[1,0]
 length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out ] lengthIO) :& RNil
   where
     lengthII = \arg1 arg2 -> Logic.once $ do
-      -- solution: n[1,2] n'[1,3] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,3] ~length[1] ~n[1,1] ~n'[1,2] ~succ[1] ~t[1,1]
+      -- solution: n[1,2] n'[1,3] t[1,0]
       -- cost: 3
       () <- (do
         guard $ arg2 == 0
@@ -513,7 +513,7 @@ length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out 
       pure ()
     
     lengthIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,3] n[1,1] n'[1,2] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~length[1] ~n[1,2] ~n'[1,3] ~succ[1] ~t[1,1]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,3] n[1,1] n'[1,2] t[1,0]
       -- cost: 4
       (arg2) <- (do
         arg2 <- pure 0
@@ -638,7 +638,7 @@ constraints:
 pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In, 'In, 'Out ] pythagIIO) :& (procedure @'[ 'In, 'Out, 'In ] pythagIOI) :& (procedure @'[ 'In, 'Out, 'Out ] pythagIOO) :& (procedure @'[ 'Out, 'In, 'In ] pythagOII) :& (procedure @'[ 'Out, 'In, 'Out ] pythagOIO) :& (procedure @'[ 'Out, 'Out, 'In ] pythagOOI) :& (procedure @'[ 'Out, 'Out, 'Out ] pythagOOO) :& RNil
   where
     pythagIII = \i j k -> Logic.once $ do
-      -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] i1[0,12] ii[0,10] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~(<)[0] ~(>)[0] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,10] ~i1[0,10] ~ii[0,19] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19] ~nat[0] ~plus[0] ~timesInt[0]
+      -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] i1[0,12] ii[0,10] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16]
       -- cost: 14
       () <- (do
         i0 <- pure i
@@ -666,7 +666,7 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
       pure ()
     
     pythagIIO = \i j -> do
-      -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] i1[0,12] ii[0,10] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16] ~(<)[0] ~(>)[0] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,10] ~i1[0,10] ~ii[0,19] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19] ~nat[0] ~plus[0] ~timesInt[0]
+      -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] i1[0,12] ii[0,10] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16]
       -- cost: 15
       (k) <- (do
         i0 <- pure i
@@ -694,7 +694,7 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
       pure (OneTuple (k))
     
     pythagIOI = \i k -> do
-      -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] i1[0,12] ii[0,10] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~(<)[0] ~(>)[0] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,10] ~i1[0,10] ~ii[0,19] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19] ~nat[0] ~plus[0] ~timesInt[0]
+      -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] i1[0,12] ii[0,10] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16]
       -- cost: 15
       (j) <- (do
         i0 <- pure i
@@ -722,7 +722,7 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
       pure (OneTuple (j))
     
     pythagIOO = \i -> do
-      -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] i1[0,12] ii[0,10] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16] ~(<)[0] ~(>)[0] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[] ~i[0] ~i[0,0] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,10] ~i1[0,10] ~ii[0,19] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19] ~nat[0] ~plus[0] ~timesInt[0]
+      -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] i1[0,12] ii[0,10] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16]
       -- cost: 16
       (j,k) <- (do
         i0 <- pure i
@@ -750,7 +750,7 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
       pure (j,k)
     
     pythagOII = \j k -> do
-      -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,11] i1[0,12] ii[0,10] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~(<)[0] ~(>)[0] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,10] ~i1[0,10] ~ii[0,19] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19] ~nat[0] ~plus[0] ~timesInt[0]
+      -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,11] i1[0,12] ii[0,10] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16]
       -- cost: 15
       (i) <- (do
         j2 <- pure j
@@ -778,7 +778,7 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
       pure (OneTuple (i))
     
     pythagOIO = \j -> do
-      -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,11] i1[0,12] ii[0,10] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16] ~(<)[0] ~(>)[0] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,10] ~i1[0,10] ~ii[0,19] ~j[] ~j[0] ~j[0,3] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19] ~nat[0] ~plus[0] ~timesInt[0]
+      -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,11] i1[0,12] ii[0,10] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16]
       -- cost: 16
       (i,k) <- (do
         j2 <- pure j
@@ -806,7 +806,7 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
       pure (i,k)
     
     pythagOOI = \k -> do
-      -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,11] i1[0,12] ii[0,10] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16] ~(<)[0] ~(>)[0] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,10] ~i1[0,10] ~ii[0,19] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[] ~k[0] ~k[0,6] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19] ~nat[0] ~plus[0] ~timesInt[0]
+      -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,11] i1[0,12] ii[0,10] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k4[0,17] k5[0,18] kk[0,16]
       -- cost: 16
       (i,j) <- (do
         k4 <- pure k
@@ -834,7 +834,7 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
       pure (i,j)
     
     pythagOOO = do
-      -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,11] i1[0,12] ii[0,10] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16] ~(<)[0] ~(>)[0] ~data0[0,1] ~data1[0,4] ~data2[0,7] ~i[0,1] ~i[0,9] ~i[0,11] ~i[0,12] ~i0[0,10] ~i1[0,10] ~ii[0,19] ~j[0,4] ~j[0,9] ~j[0,14] ~j[0,15] ~j2[0,13] ~j3[0,13] ~jj[0,19] ~k[0,7] ~k[0,17] ~k[0,18] ~k4[0,16] ~k5[0,16] ~kk[0,19] ~nat[0] ~plus[0] ~timesInt[0]
+      -- solution: data0[0,2] data1[0,5] data2[0,8] i[] i[0] i[0,0] i0[0,11] i1[0,12] ii[0,10] j[] j[0] j[0,3] j2[0,14] j3[0,15] jj[0,13] k[] k[0] k[0,6] k4[0,17] k5[0,18] kk[0,16]
       -- cost: 17
       (i,j,k) <- (do
         data0 <- pure 0
@@ -887,7 +887,7 @@ constraints:
 triang = rget $ (procedure @'[ 'In, 'In ] triangII) :& (procedure @'[ 'In, 'Out ] triangIO) :& RNil
   where
     triangII = \n r -> Logic.once $ do
-      -- solution: data0[0,3] n'[0,0] nn'[0,1] ~data0[0,2] ~div[0] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n'[0,1] ~nn'[0,2] ~r[] ~r[0] ~r[0,2] ~succ[0] ~timesInt[0]
+      -- solution: data0[0,3] n'[0,0] nn'[0,1]
       -- cost: 5
       () <- (do
         data0 <- pure 2
@@ -899,7 +899,7 @@ triang = rget $ (procedure @'[ 'In, 'In ] triangII) :& (procedure @'[ 'In, 'Out 
       pure ()
     
     triangIO = \n -> do
-      -- solution: data0[0,3] n'[0,0] nn'[0,1] r[] r[0] r[0,2] ~data0[0,2] ~div[0] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n'[0,1] ~nn'[0,2] ~succ[0] ~timesInt[0]
+      -- solution: data0[0,3] n'[0,0] nn'[0,1] r[] r[0] r[0,2]
       -- cost: 6
       (r) <- (do
         data0 <- pure 2
@@ -966,7 +966,7 @@ constraints:
 ptriang = rget $ (procedure @'[ 'Out ] ptriangO) :& RNil
   where
     ptriangO = choose . nub . Logic.observeAll $ do
-      -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,8] data6[0,9] i[0,4] j[0,7] k[] k[0] k[0,0] ti[0,10] tj[0,11] tk[0,12] ~data0[0,3] ~data1[0,3] ~data2[0,0] ~data3[0,6] ~data4[0,4] ~data5[0,9] ~data6[0,7] ~elem[0] ~i[0,9] ~i[0,10] ~j[0,11] ~k[0,6] ~k[0,12] ~plus[0] ~ti[0,13] ~tj[0,13] ~tk[0,13] ~triang[0]
+      -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,8] data6[0,9] i[0,4] j[0,7] k[] k[0] k[0,0] ti[0,10] tj[0,11] tk[0,12]
       -- cost: 13
       (k) <- (do
         data0 <- pure 1
@@ -1039,7 +1039,7 @@ constraints:
 stepN = rget $ (procedure @'[ 'In, 'Out ] stepNIO) :& (procedure @'[ 'Out, 'Out ] stepNOO) :& RNil
   where
     stepNIO = \arg1 -> choose . nub . Logic.observeAll $ do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,2] n'[1,8] r[1,5] ~(>)[1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,8] ~data0[1,0] ~data1[1,7] ~data2[1,5] ~elem[1] ~i[1,4] ~i[1,7] ~i'[1,7] ~n[1,3] ~n'[1,0] ~n'[1,2] ~r[1,9] ~stepN[1] ~succ[1]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,2] n'[1,8] r[1,5]
       -- cost: 9
       (arg2) <- (do
         guard $ arg1 == 0
@@ -1061,7 +1061,7 @@ stepN = rget $ (procedure @'[ 'In, 'Out ] stepNIO) :& (procedure @'[ 'Out, 'Out 
       pure (OneTuple (arg2))
     
     stepNOO = choose . nub . Logic.observeAll $ do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,8] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,3] n'[1,2] r[1,5] ~(>)[1] ~data0[1,0] ~data1[1,7] ~data2[1,5] ~elem[1] ~i[1,4] ~i[1,7] ~i'[1,7] ~n[1,2] ~n'[1,0] ~n'[1,8] ~r[1,9] ~stepN[1] ~succ[1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,8] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,3] n'[1,2] r[1,5]
       -- cost: 10
       (arg1,arg2) <- (do
         arg1 <- pure 0
@@ -1096,7 +1096,7 @@ constraints:
 test = rget $ (procedure @'[ 'In ] testI) :& (procedure @'[ 'Out ] testO) :& RNil
   where
     testI = \arg1 -> Logic.once $ do
-      -- solution: ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~arg1[2] ~arg1[2,0]
+      -- solution: 
       -- cost: 0
       () <- (do
         guard $ arg1 == 10
@@ -1149,7 +1149,7 @@ constraints:
 odds = rget $ (procedure @'[ 'In ] oddsI) :& (procedure @'[ 'Out ] oddsO) :& RNil
   where
     oddsI = \arg1 -> Logic.once $ do
-      -- solution: data0[1,2] m[1,1] n[1,3] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~data0[1,1] ~m[1,0] ~n[1,1] ~odds[1] ~plus[1]
+      -- solution: data0[1,2] m[1,1] n[1,3]
       -- cost: 3
       () <- (do
         guard $ arg1 == 1
@@ -1164,7 +1164,7 @@ odds = rget $ (procedure @'[ 'In ] oddsI) :& (procedure @'[ 'Out ] oddsO) :& RNi
       pure ()
     
     oddsO = do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] data0[1,2] m[1,0] n[1,1] ~data0[1,1] ~m[1,1] ~n[1,3] ~odds[1] ~plus[1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] data0[1,2] m[1,0] n[1,1]
       -- cost: 4
       (arg1) <- (do
         arg1 <- pure 1
@@ -1195,7 +1195,7 @@ constraints:
 even = rget $ (procedure @'[ 'In ] evenI) :& RNil
   where
     evenI = \n -> Logic.once $ do
-      -- solution: data0[0,1] data1[0,2] ~data0[0,0] ~data1[0,0] ~mod[0] ~n[] ~n[0] ~n[0,0]
+      -- solution: data0[0,1] data1[0,2]
       -- cost: 1
       () <- (do
         data1 <- pure 0
@@ -1229,7 +1229,7 @@ constraints:
 oddsTest = rget $ (procedure @'[ 'In ] oddsTestI) :& (procedure @'[ 'Out ] oddsTestO) :& RNil
   where
     oddsTestI = \x -> Logic.once $ do
-      -- solution: odds[0] odds[0,1] test[0] test[0,1] ~even[0] ~odds[0,1,0] ~test[0,1,1] ~x[] ~x[0] ~x[0,0] ~x[0,1] ~x[0,1,0] ~x[0,1,0,0] ~x[0,1,1] ~x[0,1,1,0]
+      -- solution: odds[0] odds[0,1] test[0] test[0,1]
       -- cost: 3
       () <- (do
         () <- runProcedure @'[ 'In ] even x
@@ -1245,7 +1245,7 @@ oddsTest = rget $ (procedure @'[ 'In ] oddsTestI) :& (procedure @'[ 'Out ] oddsT
       pure ()
     
     oddsTestO = do
-      -- solution: odds[0] odds[0,1] test[0] test[0,1] x[] x[0] x[0,1] x[0,1,0] x[0,1,0,0] x[0,1,1] x[0,1,1,0] ~even[0] ~odds[0,1,0] ~test[0,1,1] ~x[0,0]
+      -- solution: odds[0] odds[0,1] test[0] test[0,1] x[] x[0] x[0,1] x[0,1,0] x[0,1,0,0] x[0,1,1] x[0,1,1,0]
       -- cost: 5
       (x) <- (do
         (x) <- (do
@@ -1279,7 +1279,7 @@ constraints:
 oddsPlus = rget $ (procedure @'[ 'In, 'In ] oddsPlusII) :& (procedure @'[ 'In, 'Out ] oddsPlusIO) :& (procedure @'[ 'Out, 'In ] oddsPlusOI) :& RNil
   where
     oddsPlusII = \n x -> Logic.once $ do
-      -- solution: a[0,0] ~a[0,1] ~n[] ~n[0] ~n[0,1] ~odds[0] ~plus[0] ~x[] ~x[0] ~x[0,1]
+      -- solution: a[0,0]
       -- cost: 3
       () <- (do
         (OneTuple (a)) <- runProcedure @'[ 'Out ] odds 
@@ -1289,7 +1289,7 @@ oddsPlus = rget $ (procedure @'[ 'In, 'In ] oddsPlusII) :& (procedure @'[ 'In, '
       pure ()
     
     oddsPlusIO = \n -> do
-      -- solution: a[0,0] x[] x[0] x[0,1] ~a[0,1] ~n[] ~n[0] ~n[0,1] ~odds[0] ~plus[0]
+      -- solution: a[0,0] x[] x[0] x[0,1]
       -- cost: 4
       (x) <- (do
         (OneTuple (a)) <- runProcedure @'[ 'Out ] odds 
@@ -1299,7 +1299,7 @@ oddsPlus = rget $ (procedure @'[ 'In, 'In ] oddsPlusII) :& (procedure @'[ 'In, '
       pure (OneTuple (x))
     
     oddsPlusOI = \x -> do
-      -- solution: a[0,0] n[] n[0] n[0,1] ~a[0,1] ~odds[0] ~plus[0] ~x[] ~x[0] ~x[0,1]
+      -- solution: a[0,0] n[] n[0] n[0,1]
       -- cost: 4
       (n) <- (do
         (OneTuple (a)) <- runProcedure @'[ 'Out ] odds 
@@ -1330,7 +1330,7 @@ constraints:
 oddsPlusTest = rget $ (procedure @'[ 'In ] oddsPlusTestI) :& (procedure @'[ 'Out ] oddsPlusTestO) :& RNil
   where
     oddsPlusTestI = \x -> Logic.once $ do
-      -- solution: n[0,2] n[0,2,0] n[0,2,0,0] n[0,2,1] n[0,2,1,0] ~even[0] ~n[0,0] ~oddsPlus[0] ~x[] ~x[0] ~x[0,0] ~x[0,1]
+      -- solution: n[0,2] n[0,2,0] n[0,2,0,0] n[0,2,1] n[0,2,1,0]
       -- cost: 2
       () <- (do
         (n) <- (do
@@ -1347,7 +1347,7 @@ oddsPlusTest = rget $ (procedure @'[ 'In ] oddsPlusTestI) :& (procedure @'[ 'Out
       pure ()
     
     oddsPlusTestO = do
-      -- solution: n[0,2] n[0,2,0] n[0,2,0,0] n[0,2,1] n[0,2,1,0] x[] x[0] x[0,0] ~even[0] ~n[0,0] ~oddsPlus[0] ~x[0,1]
+      -- solution: n[0,2] n[0,2,0] n[0,2,0,0] n[0,2,1] n[0,2,1,0] x[] x[0] x[0,0]
       -- cost: 3
       (x) <- (do
         (n) <- (do
@@ -1431,7 +1431,7 @@ data4[0,4]
 oddsPrime = rget $ (procedure @'[ 'In ] oddsPrimeI) :& (procedure @'[ 'Out ] oddsPrimeO) :& RNil
   where
     oddsPrimeI = \n -> Logic.once $ do
-      -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,6] n'[0,3] ~(>)[0] ~(>)[0,4] ~d[0,4,0,3] ~d[0,4,0,5] ~data0[0,1] ~data1[0,4,0,2] ~data2[0,4,0,0] ~data3[0,4,0,3] ~data4[0,4,0,5] ~elem[0] ~elem[0,4] ~elem[0,4,0] ~empty[0] ~empty[0,4] ~empty[0,4,1] ~mod[0] ~mod[0,4] ~mod[0,4,0] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,4] ~n[0,4,0,5] ~n'[0,4] ~n'[0,4,0,2] ~odds[0] ~succ[0]
+      -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,6] n'[0,3]
       -- cost: 9
       () <- (do
         data0 <- pure 1
@@ -1459,7 +1459,7 @@ oddsPrime = rget $ (procedure @'[ 'In ] oddsPrimeI) :& (procedure @'[ 'Out ] odd
       pure ()
     
     oddsPrimeO = do
-      -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,6] n[] n[0] n[0,0] n'[0,3] ~(>)[0] ~(>)[0,4] ~d[0,4,0,3] ~d[0,4,0,5] ~data0[0,1] ~data1[0,4,0,2] ~data2[0,4,0,0] ~data3[0,4,0,3] ~data4[0,4,0,5] ~elem[0] ~elem[0,4] ~elem[0,4,0] ~empty[0] ~empty[0,4] ~empty[0,4,1] ~mod[0] ~mod[0,4] ~mod[0,4,0] ~n[0,1] ~n[0,3] ~n[0,4] ~n[0,4,0,5] ~n'[0,4] ~n'[0,4,0,2] ~odds[0] ~succ[0]
+      -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,6] n[] n[0] n[0,0] n'[0,3]
       -- cost: 10
       (n) <- (do
         data0 <- pure 1
@@ -1517,7 +1517,7 @@ constraints:
 nontrivialDivisor = rget $ (procedure @'[ 'In, 'Out ] nontrivialDivisorIO) :& RNil
   where
     nontrivialDivisorIO = \n -> do
-      -- solution: d[] d[0] d[0,1] data0[0,2] data1[0,3] data2[0,5] n'[0,0] ~d[0,4] ~data0[0,3] ~data1[0,1] ~data2[0,4] ~elem[0] ~mod[0] ~n[] ~n[0] ~n[0,0] ~n[0,4] ~n'[0,3] ~succ[0]
+      -- solution: d[] d[0] d[0,1] data0[0,2] data1[0,3] data2[0,5] n'[0,0]
       -- cost: 5
       (d) <- (do
         data2 <- pure 0
@@ -1567,7 +1567,7 @@ d[0,3]
 oddsPrimeIO = rget $ (procedure @'[ 'In ] oddsPrimeIOI) :& (procedure @'[ 'Out ] oddsPrimeIOO) :& RNil
   where
     oddsPrimeIOI = \n -> Logic.once $ do
-      -- solution: d[0] d[0,3] d[0,3,0,0] data0[0,2] ~(>)[0] ~d[0,3,0,1] ~data0[0,1] ~empty[0] ~empty[0,3] ~empty[0,3,1] ~n[] ~n[0] ~n[0,0] ~n[0,1] ~n[0,3] ~n[0,3,0,0] ~nontrivialDivisor[0] ~nontrivialDivisor[0,3] ~nontrivialDivisor[0,3,0] ~odds[0] ~print[0] ~print[0,3] ~print[0,3,0]
+      -- solution: d[0] d[0,3] d[0,3,0,0] data0[0,2]
       -- cost: 6
       () <- (do
         data0 <- pure 1
@@ -1589,7 +1589,7 @@ oddsPrimeIO = rget $ (procedure @'[ 'In ] oddsPrimeIOI) :& (procedure @'[ 'Out ]
       pure ()
     
     oddsPrimeIOO = do
-      -- solution: d[0] d[0,3] d[0,3,0,0] data0[0,2] n[] n[0] n[0,0] ~(>)[0] ~d[0,3,0,1] ~data0[0,1] ~empty[0] ~empty[0,3] ~empty[0,3,1] ~n[0,1] ~n[0,3] ~n[0,3,0,0] ~nontrivialDivisor[0] ~nontrivialDivisor[0,3] ~nontrivialDivisor[0,3,0] ~odds[0] ~print[0] ~print[0,3] ~print[0,3,0]
+      -- solution: d[0] d[0,3] d[0,3,0,0] data0[0,2] n[] n[0] n[0,0]
       -- cost: 7
       (n) <- (do
         data0 <- pure 1
@@ -1628,7 +1628,7 @@ constraints:
 bogosort = rget $ (procedure @'[ 'In, 'Out ] bogosortIO) :& (procedure @'[ 'Out, 'In ] bogosortOI) :& RNil
   where
     bogosortIO = \l -> do
-      -- solution: p[] p[0] p[0,0] ~l[] ~l[0] ~l[0,0] ~p[0,1] ~permute[0] ~sorted[0]
+      -- solution: p[] p[0] p[0,0]
       -- cost: 3
       (p) <- (do
         (OneTuple (p)) <- runProcedure @'[ 'In, 'Out ] permute l
@@ -1638,7 +1638,7 @@ bogosort = rget $ (procedure @'[ 'In, 'Out ] bogosortIO) :& (procedure @'[ 'Out,
       pure (OneTuple (p))
     
     bogosortOI = \p -> do
-      -- solution: l[] l[0] l[0,0] ~p[] ~p[0] ~p[0,0] ~p[0,1] ~permute[0] ~sorted[0]
+      -- solution: l[] l[0] l[0,0]
       -- cost: 3
       (l) <- (do
         () <- runProcedure @'[ 'In ] sorted p
@@ -1682,7 +1682,7 @@ j[0,0]
 tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tcomp_ex1O) :& RNil
   where
     tcomp_ex1I = \r -> Logic.once $ do
-      -- solution: i[0,0,0] i[0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,0,0] i[0,0,0,0,1] i[0,0,0,0,1,0] i[0,0,0,0,2] i[0,0,0,0,2,0] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0] ~i[0,0,0,2] ~i[0,0,1,0] ~j[0,0,0,2] ~r[] ~r[0] ~r[0,0] ~r[0,0,1] ~r[0,0,1,0] ~r[0,0,2] ~r[0,0,2,0]
+      -- solution: i[0,0,0] i[0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,0,0] i[0,0,0,0,1] i[0,0,0,0,1,0] i[0,0,0,0,2] i[0,0,0,0,2,0] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0]
       -- cost: 0
       () <- (do
         () <- Logic.ifte ((do
@@ -1717,7 +1717,7 @@ tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tco
       pure ()
     
     tcomp_ex1O = do
-      -- solution: i[0,0,0] i[0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,0,0] i[0,0,0,0,1] i[0,0,0,0,1,0] i[0,0,0,0,2] i[0,0,0,0,2,0] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0] ~i[0,0,0,2] ~i[0,0,1,0] ~j[0,0,0,2]
+      -- solution: i[0,0,0] i[0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,0,0] i[0,0,0,0,1] i[0,0,0,0,1,0] i[0,0,0,0,2] i[0,0,0,0,2,0] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0]
       -- cost: 0
       (r) <- (do
         (r) <- Logic.ifte ((do
@@ -1784,7 +1784,7 @@ constraints:
 findI = rget $ (procedure @'[ 'In, 'In, 'In ] findIIII) :& (procedure @'[ 'In, 'In, 'Out ] findIIIO) :& (procedure @'[ 'Out, 'In, 'In ] findIOII) :& (procedure @'[ 'Out, 'In, 'Out ] findIOIO) :& RNil
   where
     findIIII = \pat str i -> Logic.once $ do
-      -- solution: m[0,2] n[0,3] t[0,0] ~i[] ~i[0] ~i[0,4] ~length[0] ~m[0,4] ~n[0,4] ~pat[] ~pat[0] ~pat[0,1] ~plus[0] ~prefix[0] ~str[] ~str[0] ~str[0,0] ~str[0,3] ~suffix[0] ~t[0,1] ~t[0,2]
+      -- solution: m[0,2] n[0,3] t[0,0]
       -- cost: 8
       () <- (do
         (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] length str
@@ -1797,7 +1797,7 @@ findI = rget $ (procedure @'[ 'In, 'In, 'In ] findIIII) :& (procedure @'[ 'In, '
       pure ()
     
     findIIIO = \pat str -> do
-      -- solution: i[] i[0] i[0,4] m[0,2] n[0,3] t[0,0] ~length[0] ~m[0,4] ~n[0,4] ~pat[] ~pat[0] ~pat[0,1] ~plus[0] ~prefix[0] ~str[] ~str[0] ~str[0,0] ~str[0,3] ~suffix[0] ~t[0,1] ~t[0,2]
+      -- solution: i[] i[0] i[0,4] m[0,2] n[0,3] t[0,0]
       -- cost: 9
       (i) <- (do
         (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] length str
@@ -1810,7 +1810,7 @@ findI = rget $ (procedure @'[ 'In, 'In, 'In ] findIIII) :& (procedure @'[ 'In, '
       pure (OneTuple (i))
     
     findIOII = \str i -> do
-      -- solution: m[0,2] n[0,3] pat[] pat[0] pat[0,1] t[0,0] ~i[] ~i[0] ~i[0,4] ~length[0] ~m[0,4] ~n[0,4] ~plus[0] ~prefix[0] ~str[] ~str[0] ~str[0,0] ~str[0,3] ~suffix[0] ~t[0,1] ~t[0,2]
+      -- solution: m[0,2] n[0,3] pat[] pat[0] pat[0,1] t[0,0]
       -- cost: 9
       (pat) <- (do
         (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] length str
@@ -1823,7 +1823,7 @@ findI = rget $ (procedure @'[ 'In, 'In, 'In ] findIIII) :& (procedure @'[ 'In, '
       pure (OneTuple (pat))
     
     findIOIO = \str -> do
-      -- solution: i[] i[0] i[0,4] m[0,2] n[0,3] pat[] pat[0] pat[0,1] t[0,0] ~length[0] ~m[0,4] ~n[0,4] ~plus[0] ~prefix[0] ~str[] ~str[0] ~str[0,0] ~str[0,3] ~suffix[0] ~t[0,1] ~t[0,2]
+      -- solution: i[] i[0] i[0,4] m[0,2] n[0,3] pat[] pat[0] pat[0,1] t[0,0]
       -- cost: 10
       (i,pat) <- (do
         (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] length str
