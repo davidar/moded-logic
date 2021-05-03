@@ -201,17 +201,24 @@ pragma = do
   ws <- some (identifier <|> operator)
   pure $ Pragma ws
 
-data ParseResult = PRule (Rule Val Val) | PPragma Pragma | PDef String [Val] Val | PNil
+data ParseResult
+  = PRule (Rule Val Val)
+  | PPragma Pragma
+  | PDef String [Val] Val (Goal Val)
+  | PNil
 
 definition :: Parser ParseResult
 definition = do
   name <- identifier
   vars <- many value
   symbol "="
-  PDef name vars <$> parenValue
+  rhs <- parenValue
+  body <- (symbol ":-" >> conj) <|> pure (Conj [])
+  pure $ PDef name vars rhs body
 
 parseLine :: Parser ParseResult
-parseLine = try definition <|> (PRule <$> rule) <|> (PPragma <$> pragma) <|> pure PNil
+parseLine =
+  try definition <|> (PRule <$> rule) <|> (PPragma <$> pragma) <|> pure PNil
 
 parseProg ::
      String -> Text -> Either (ParseErrorBundle Text Void) (Prog Var Var)
@@ -222,10 +229,7 @@ parseProg fn lp = do
         groupBy (\_ b -> T.null b || isSpace (T.head b)) (T.lines lp)
   prs <-
     forM (zip [1 :: Int ..] inputs) $ \(i, line) ->
-      parse
-        (spaceConsumer *> parseLine <* eof)
-        (fn ++ ":" ++ show i)
-        line
+      parse (spaceConsumer *> parseLine <* eof) (fn ++ ":" ++ show i) line
   let pragmas = [pr | PPragma pr <- prs]
       p = [r | PRule r <- prs]
       arities rs =
@@ -233,16 +237,19 @@ parseProg fn lp = do
         [ (name, length (head modes))
         | (name, modes) <- Map.toAscList modesPrelude
         ]
-      p' = p ++ do
-        PDef name vars (Curry v vs) <- prs
-        let arity = case lookup v (arities p) of
-              Just n -> n
-              Nothing -> error $ "unknown predicate " ++ v
-            k = arity - length vs
-            extra = [Var . V $ "curry" ++ show i | i <- [1 .. k]]
-            g = Atom $ Pred (Var $ V v) (vs ++ extra)
-        pure $ Rule name (vars ++ extra) g
-  pure . Prog pragmas $ simp . distinctVars . superhomogeneous (arities p') <$> combineDefs p'
+      p' =
+        p ++ do
+          PDef name vars (Curry v vs) ctxt <- prs
+          let arity =
+                case lookup v (arities p) of
+                  Just n -> n
+                  Nothing -> error $ "unknown predicate " ++ v
+              k = arity - length vs
+              extra = [Var . V $ "curry" ++ show i | i <- [1 .. k]]
+              g = Atom $ Pred (Var $ V v) (vs ++ extra)
+          pure $ Rule name (vars ++ extra) (Conj [g, ctxt])
+  pure . Prog pragmas $
+    simp . distinctVars . superhomogeneous (arities p') <$> combineDefs p'
 
 logic :: QuasiQuoter
 logic =

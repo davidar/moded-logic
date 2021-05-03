@@ -313,8 +313,8 @@ noun "cat"
 noun "bat"
 verb "eats"
 
-np (NP d n) z a :- append [d,n] z a, det d, noun n
-vp (VP v n) z a :- compose (append [v]) (np n) z a, verb v
+np (NP d n) = append [d,n] :- det d, noun n
+vp (VP v n) = compose (append [v]) (np n) :- verb v
 sentence (S n v) = compose (np n) (vp v)
 |]
 
