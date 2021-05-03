@@ -71,11 +71,11 @@ cgAtom p r =
     Func name vs@(MV _ Out:_) u -> cgFunc name vs <> " <- pure " <> mv u
     Func name vs (MV u Out) -> T.pack u <> " <- pure " <> cgFunc name vs
     Func name vs u -> "guard $ " <> mv u <> " == " <> cgFunc name vs
-    Pred name vs
+    Pred (MV name _) vs
       | head name == '('
       , last name == ')' ->
         "guard $ " <> T.unwords (T.pack <$> name : [v | MV v m <- vs, m /= Out])
-    Pred name vs ->
+    Pred (MV name _) vs ->
       cgTuple [T.pack v | MV v Out <- vs] <>
       " <- " <> name' <> " " <> T.unwords [T.pack v | MV v m <- vs, m /= Out]
       where name' =

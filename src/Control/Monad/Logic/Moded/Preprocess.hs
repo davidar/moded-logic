@@ -6,6 +6,7 @@ module Control.Monad.Logic.Moded.Preprocess
   , simplify
   , simp
   , inlinePreds
+  , prunePreds
   ) where
 
 import Control.Monad.Logic.Moded.AST
@@ -17,6 +18,7 @@ import Control.Monad.Logic.Moded.AST
   , subgoals
   )
 import Control.Monad.State
+import Data.Foldable (toList)
 import Data.List (group, groupBy, sort, transpose)
 
 data Val
@@ -85,7 +87,7 @@ superhomogeneous arities r =
               Nothing -> error $ "unknown predicate " ++ p
           k = arity - length vs
           extra = [Var . V $ "curry" ++ show i | i <- [1 .. k]]
-          g = Atom $ Pred p (vs ++ extra)
+          g = Atom $ Pred (Var $ V p) (vs ++ extra)
       tVal (Lambda extra g)
     tAtom :: Atom Val -> State (Int, [Goal Var]) (Atom Var)
     tAtom (Unif (Var u) (Var v)) = return $ Unif u v
@@ -97,9 +99,10 @@ superhomogeneous arities r =
       u' <- tVal u
       vs' <- mapM tVal vs
       return $ Func name vs' u'
-    tAtom (Pred name vs) = do
+    tAtom (Pred (Var name) vs) = do
       vs' <- mapM tVal vs
       return $ Pred name vs'
+    tAtom Pred{} = error "tAtom Pred"
     tGoal :: Goal Val -> State (Int, [Goal Var]) (Goal Var)
     tGoal (Disj gs) = Disj <$> mapM tGoal gs
     tGoal (Conj gs) = Conj <$> mapM tGoal gs
@@ -177,26 +180,32 @@ simp :: Rule u Var -> Rule u Var
 simp r = r {ruleBody = simplify (ruleBody r)}
 
 inlinePreds :: Rule Var Var -> Rule Var Var
-inlinePreds r = r {ruleBody = evalState (tGoal $ ruleBody r) 0}
+inlinePreds r = r {ruleBody = tGoal [] (ruleBody r)}
   where
-    tGoal :: Goal Var -> State Int (Goal Var)
-    tGoal (Disj gs) = Disj <$> mapM tGoal gs
-    tGoal (Conj gs) = pure . Conj $ do
-      let lams = [(name, (vs, body)) | Anon (V name) vs body <- gs]
+    tGoal :: [(Name, ([Var], Goal Var))] -> Goal Var -> Goal Var
+    tGoal env (Disj gs) = Disj $ tGoal env <$> gs
+    tGoal env (Conj gs) = Conj $ do
+      let env' = [(name, (vs, body)) | Anon (V name) vs body <- gs] ++ env
       g <- gs
       pure $ case g of
-        Atom (Pred name vs) | Just (us, body) <- lookup name lams ->
+        Atom (Pred (V name) vs) | Just (us, body) <- lookup name env' ->
           let binds = zip us vs
               f u | Just v <- lookup u binds = v
                   | otherwise = u
-          in fmap f body
+          in tGoal env' (fmap f body)
         _ -> g
-    tGoal (Ifte c t e) = do
-      c' <- tGoal c
-      t' <- tGoal t
-      e' <- tGoal e
-      return $ Ifte c' t' e'
-    tGoal (Anon name vs g) = do
-      g' <- tGoal g
-      return $ Anon name vs g'
-    tGoal (Atom a) = return $ Atom a
+    tGoal env (Ifte c t e) = Ifte (tGoal env c) (tGoal env t) (tGoal env e)
+    tGoal env (Anon name vs g) = Anon name vs (tGoal env g)
+    tGoal _ (Atom a) = Atom a
+
+prunePreds :: Rule Var Var -> Rule Var Var
+prunePreds r = r {ruleBody = tGoal (ruleBody r)}
+  where
+    tGoal :: Goal Var -> Goal Var
+    tGoal (Disj gs) = Disj $ tGoal <$> gs
+    tGoal (Conj gs) = Conj $ tGoal <$> gs
+    tGoal (Ifte c t e) = Ifte (tGoal c) (tGoal t) (tGoal e)
+    tGoal (Anon name vs g)
+      | (length . filter (== name) . toList $ ruleBody r) > 1 = Anon name vs (tGoal g)
+      | otherwise = Conj []
+    tGoal (Atom a) = Atom a

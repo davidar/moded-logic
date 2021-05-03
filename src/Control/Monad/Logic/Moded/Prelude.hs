@@ -82,6 +82,11 @@ modesPrelude =
     , ("print", [[In]])
     , ("show", [[In, In], [In, Out], [Out, In]])
     , ("observeAll", [[PredMode [Out], Out]])
+    , ("(<)", [[In, In]])
+    , ("(<=)", [[In, In]])
+    , ("(>)", [[In, In]])
+    , ("(>=)", [[In, In]])
+    , ("(/=)", [[In, In]])
     ]
 
 succ ::

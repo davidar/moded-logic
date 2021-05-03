@@ -26,7 +26,7 @@ newtype Var =
 data Atom v
   = Unif v v
   | Func Name [v] v
-  | Pred Name [v]
+  | Pred v [v]
   deriving (Eq, Ord, Functor, Foldable, Lift)
 
 data Goal v
@@ -73,8 +73,8 @@ instance (Show v) => Show (Atom v) where
   show (Func ":" vs u)
     | length vs > 1 = show u ++ " = " ++ intercalate ":" (map show vs)
   show (Func name vs u) = show u ++ " = " ++ unwords (name : map show vs)
-  show (Pred name []) = name
-  show (Pred name vs) = unwords (name : map show vs)
+  show (Pred name []) = show name
+  show (Pred name vs) = unwords (show name : map show vs)
 
 instance (Show v) => Show (Goal v) where
   show (Atom a) = show a

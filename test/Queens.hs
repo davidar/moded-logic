@@ -7,6 +7,7 @@ import Control.Monad.Logic.Moded.Prelude
 {- qdelete/3
 qdelete arg1 arg2 arg3 :- ((arg2 = h0:t1, h0 = h, t1 = t, arg1 = h, arg3 = t); (arg2 = h2:t3, h2 = h, t3 = t, arg3 = h4:r, h4 = h, qdelete x t r, arg1 = x)).
 constraints:
+~qdelete[1]
 ~(arg1[0,3] & h[0,3])
 ~(arg1[1,6] & x[1,6])
 ~(arg2[0,0] & h0[0,0])
@@ -64,7 +65,7 @@ constraints:
 qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'In, 'In, 'Out ] qdeleteIIO) :& (procedure @'[ 'In, 'Out, 'In ] qdeleteIOI) :& (procedure @'[ 'Out, 'In, 'In ] qdeleteOII) :& (procedure @'[ 'Out, 'In, 'Out ] qdeleteOIO) :& RNil
   where
     qdeleteIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~r[1,5] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,5]
+      -- solution: h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~qdelete[1] ~r[1,5] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,5]
       -- cost: 1
       () <- (do
         (h0:t1) <- pure arg2
@@ -86,7 +87,7 @@ qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'I
       pure ()
     
     qdeleteIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,4] r[1,5] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,3] ~r[1,3] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,5]
+      -- solution: arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,4] r[1,5] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,3] ~qdelete[1] ~r[1,3] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,5]
       -- cost: 2
       (arg3) <- (do
         (h0:t1) <- pure arg2
@@ -108,7 +109,7 @@ qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'I
       pure (OneTuple (arg3))
     
     qdeleteIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[0,3] h[1,4] h0[0,1] h2[1,1] h4[1,3] r[1,3] t[0,4] t[1,5] t1[0,2] t3[1,2] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~h[0,1] ~h[1,1] ~h0[0,0] ~h2[1,0] ~h4[1,4] ~r[1,5] ~t[0,2] ~t[1,2] ~t1[0,0] ~t3[1,0] ~x[1,5]
+      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[0,3] h[1,4] h0[0,1] h2[1,1] h4[1,3] r[1,3] t[0,4] t[1,5] t1[0,2] t3[1,2] x[1,6] ~arg1[] ~arg1[0] ~arg1[0,3] ~arg1[1] ~arg1[1,6] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~h[0,1] ~h[1,1] ~h0[0,0] ~h2[1,0] ~h4[1,4] ~qdelete[1] ~r[1,5] ~t[0,2] ~t[1,2] ~t1[0,0] ~t3[1,0] ~x[1,5]
       -- cost: 2
       (arg2) <- (do
         h <- pure arg1
@@ -130,7 +131,7 @@ qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'I
       pure (OneTuple (arg2))
     
     qdeleteOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,6] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~r[1,5] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,6]
+      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,6] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,3] r[1,3] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,4] ~arg3[1] ~arg3[1,3] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,4] ~qdelete[1] ~r[1,5] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,6]
       -- cost: 2
       (arg1) <- (do
         (h0:t1) <- pure arg2
@@ -152,7 +153,7 @@ qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'I
       pure (OneTuple (arg1))
     
     qdeleteOIO = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,6] arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,4] r[1,5] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,3] ~r[1,3] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,6]
+      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,6] arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] h[0,1] h[1,1] h0[0,0] h2[1,0] h4[1,4] r[1,5] t[0,2] t[1,2] t1[0,0] t3[1,0] x[1,5] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[0,3] ~h[1,4] ~h0[0,1] ~h2[1,1] ~h4[1,3] ~qdelete[1] ~r[1,3] ~t[0,4] ~t[1,5] ~t1[0,2] ~t3[1,2] ~x[1,6]
       -- cost: 3
       (arg1,arg3) <- (do
         (h0:t1) <- pure arg2
@@ -176,6 +177,8 @@ qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'I
 {- qperm/2
 qperm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h:t, qdelete h xs ys, qperm ys t, arg1 = xs)).
 constraints:
+~qdelete[1]
+~qperm[1]
 ~(arg1[1,3] & xs[1,3])
 ~(arg2[1,0] & h[1,0])
 ~(h[1,0] & h[1,1])
@@ -204,7 +207,7 @@ constraints:
 qperm = rget $ (procedure @'[ 'In, 'In ] qpermII) :& (procedure @'[ 'In, 'Out ] qpermIO) :& (procedure @'[ 'Out, 'In ] qpermOI) :& RNil
   where
     qpermII = \arg1 arg2 -> Logic.once $ do
-      -- solution: h[1,0] t[1,0] xs[1,3] ys[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~h[1,1] ~t[1,2] ~xs[1,1] ~ys[1,2]
+      -- solution: h[1,0] t[1,0] xs[1,3] ys[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~h[1,1] ~qdelete[1] ~qperm[1] ~t[1,2] ~xs[1,1] ~ys[1,2]
       -- cost: 3
       () <- (do
         guard $ arg1 == []
@@ -220,7 +223,7 @@ qperm = rget $ (procedure @'[ 'In, 'In ] qpermII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     qpermIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,0] h[1,1] t[1,2] xs[1,3] ys[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~h[1,0] ~t[1,0] ~xs[1,1] ~ys[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,0] h[1,1] t[1,2] xs[1,3] ys[1,1] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,3] ~h[1,0] ~qdelete[1] ~qperm[1] ~t[1,0] ~xs[1,1] ~ys[1,2]
       -- cost: 5
       (arg2) <- (do
         guard $ arg1 == []
@@ -236,7 +239,7 @@ qperm = rget $ (procedure @'[ 'In, 'In ] qpermII) :& (procedure @'[ 'In, 'Out ] 
       pure (OneTuple (arg2))
     
     qpermOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] h[1,0] t[1,0] xs[1,1] ys[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~h[1,1] ~t[1,2] ~xs[1,3] ~ys[1,1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] h[1,0] t[1,0] xs[1,1] ys[1,2] ~arg2[] ~arg2[0] ~arg2[0,1] ~arg2[1] ~arg2[1,0] ~h[1,1] ~qdelete[1] ~qperm[1] ~t[1,2] ~xs[1,3] ~ys[1,1]
       -- cost: 4
       (arg1) <- (do
         arg1 <- pure []
@@ -267,8 +270,13 @@ constraints:
 ~d[1,4,2,0,0,0]
 ~d1[1,4,2]
 ~d1[1,4,2,0,2]
+~empty[1,4,1]
+~empty[1,4,2,0,1]
 ~hmb[1,4]
 ~hmb[1,4,0,0]
+~nodiag[1,4,2,0,2]
+~plus[1]
+~succ[1]
 ~t[1,4,2]
 ~t[1,4,2,0,2]
 ~(arg1[1,5] & b[1,5])
@@ -324,7 +332,15 @@ constraints:
 (d1[1,4,2,0] <-> d1[1,4,2,0,2])
 (d1[1,4,2,0,2] <-> d1[1,4,2,0,2,0])
 (d1[1,4,2,0,2,0] <-> arg2[])
+(empty[1] <-> empty[1,4])
+(empty[1,4] <-> (empty[1,4,1] | empty[1,4,2]))
+(empty[1,4,2] <-> empty[1,4,2,0])
+(empty[1,4,2,0] <-> empty[1,4,2,0,1])
 (h[1,0] <-> t[1,0])
+(nodiag[1] <-> nodiag[1,4])
+(nodiag[1,4] <-> nodiag[1,4,2])
+(nodiag[1,4,2] <-> nodiag[1,4,2,0])
+(nodiag[1,4,2,0] <-> nodiag[1,4,2,0,2])
 (t[1,4] <-> t[1,4,2])
 (t[1,4,2] <-> t[1,4,2,0])
 (t[1,4,2,0] <-> t[1,4,2,0,2])
@@ -336,7 +352,7 @@ constraints:
 nodiag = rget $ (procedure @'[ 'In, 'In, 'In ] nodiagIII) :& RNil
   where
     nodiagIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: b[1,5] bmh[1,2] d[1,6] d1[1,3] h[1,0] hmb[1,1] t[1,0] ~arg1[] ~arg1[1] ~arg1[1,5] ~arg2[] ~arg2[1] ~arg2[1,6] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,0] ~b[1,1] ~b[1,2] ~b[1,4] ~b[1,4,2] ~b[1,4,2,0] ~b[1,4,2,0,2] ~b[1,4,2,0,2,0] ~bmh[1,4] ~bmh[1,4,2] ~bmh[1,4,2,0] ~bmh[1,4,2,0,0,0] ~d[1,3] ~d[1,4] ~d[1,4,0,0] ~d[1,4,2] ~d[1,4,2,0] ~d[1,4,2,0,0,0] ~d1[1,4] ~d1[1,4,2] ~d1[1,4,2,0] ~d1[1,4,2,0,2] ~d1[1,4,2,0,2,0] ~h[1,1] ~h[1,2] ~hmb[1,4] ~hmb[1,4,0,0] ~t[1,4] ~t[1,4,2] ~t[1,4,2,0] ~t[1,4,2,0,2] ~t[1,4,2,0,2,0]
+      -- solution: b[1,5] bmh[1,2] d[1,6] d1[1,3] h[1,0] hmb[1,1] t[1,0] ~arg1[] ~arg1[1] ~arg1[1,5] ~arg2[] ~arg2[1] ~arg2[1,6] ~arg3[] ~arg3[0] ~arg3[0,0] ~arg3[1] ~arg3[1,0] ~b[1,1] ~b[1,2] ~b[1,4] ~b[1,4,2] ~b[1,4,2,0] ~b[1,4,2,0,2] ~b[1,4,2,0,2,0] ~bmh[1,4] ~bmh[1,4,2] ~bmh[1,4,2,0] ~bmh[1,4,2,0,0,0] ~d[1,3] ~d[1,4] ~d[1,4,0,0] ~d[1,4,2] ~d[1,4,2,0] ~d[1,4,2,0,0,0] ~d1[1,4] ~d1[1,4,2] ~d1[1,4,2,0] ~d1[1,4,2,0,2] ~d1[1,4,2,0,2,0] ~empty[1] ~empty[1,4] ~empty[1,4,1] ~empty[1,4,2] ~empty[1,4,2,0] ~empty[1,4,2,0,1] ~h[1,1] ~h[1,2] ~hmb[1,4] ~hmb[1,4,0,0] ~nodiag[1] ~nodiag[1,4] ~nodiag[1,4,2] ~nodiag[1,4,2,0] ~nodiag[1,4,2,0,2] ~plus[1] ~succ[1] ~t[1,4] ~t[1,4,2] ~t[1,4,2,0] ~t[1,4,2,0,2] ~t[1,4,2,0,2,0]
       -- cost: 9
       () <- (do
         guard $ arg3 == []
@@ -374,6 +390,8 @@ nodiag = rget $ (procedure @'[ 'In, 'In, 'In ] nodiagIII) :& RNil
 {- safe/1
 safe arg1 :- ((arg1 = []); (arg1 = h:t, nodiag h data0 t, data0 = 1, safe t)).
 constraints:
+~nodiag[1]
+~safe[1]
 ~(arg1[1,0] & h[1,0])
 ~(data0[1,1] & data0[1,2])
 ~(h[1,0] & h[1,1])
@@ -396,7 +414,7 @@ constraints:
 safe = rget $ (procedure @'[ 'In ] safeI) :& RNil
   where
     safeI = \arg1 -> Logic.once $ do
-      -- solution: data0[1,2] h[1,0] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~data0[1,1] ~h[1,1] ~t[1,1] ~t[1,3]
+      -- solution: data0[1,2] h[1,0] t[1,0] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,0] ~data0[1,1] ~h[1,1] ~nodiag[1] ~safe[1] ~t[1,1] ~t[1,3]
       -- cost: 2
       () <- (do
         guard $ arg1 == []
@@ -414,6 +432,8 @@ safe = rget $ (procedure @'[ 'In ] safeI) :& RNil
 queens1 dat out :- ((qperm dat out, safe out)).
 constraints:
 ~out[0,1]
+~qperm[0]
+~safe[0]
 ~(out[0,0] & out[0,1])
 ((dat[0,0] & ~out[0,0]) | ((~dat[0,0] & out[0,0]) | (~dat[0,0] & ~out[0,0])))
 (dat[] <-> dat[0])
@@ -426,7 +446,7 @@ constraints:
 queens1 = rget $ (procedure @'[ 'In, 'In ] queens1II) :& (procedure @'[ 'In, 'Out ] queens1IO) :& (procedure @'[ 'Out, 'In ] queens1OI) :& RNil
   where
     queens1II = \dat out -> Logic.once $ do
-      -- solution: ~dat[] ~dat[0] ~dat[0,0] ~out[] ~out[0] ~out[0,0] ~out[0,1]
+      -- solution: ~dat[] ~dat[0] ~dat[0,0] ~out[] ~out[0] ~out[0,0] ~out[0,1] ~qperm[0] ~safe[0]
       -- cost: 2
       () <- (do
         () <- runProcedure @'[ 'In, 'In ] qperm dat out
@@ -436,7 +456,7 @@ queens1 = rget $ (procedure @'[ 'In, 'In ] queens1II) :& (procedure @'[ 'In, 'Ou
       pure ()
     
     queens1IO = \dat -> do
-      -- solution: out[] out[0] out[0,0] ~dat[] ~dat[0] ~dat[0,0] ~out[0,1]
+      -- solution: out[] out[0] out[0,0] ~dat[] ~dat[0] ~dat[0,0] ~out[0,1] ~qperm[0] ~safe[0]
       -- cost: 3
       (out) <- (do
         (OneTuple (out)) <- runProcedure @'[ 'In, 'Out ] qperm dat
@@ -446,7 +466,7 @@ queens1 = rget $ (procedure @'[ 'In, 'In ] queens1II) :& (procedure @'[ 'In, 'Ou
       pure (OneTuple (out))
     
     queens1OI = \out -> do
-      -- solution: dat[] dat[0] dat[0,0] ~out[] ~out[0] ~out[0,0] ~out[0,1]
+      -- solution: dat[] dat[0] dat[0,0] ~out[] ~out[0] ~out[0,0] ~out[0,1] ~qperm[0] ~safe[0]
       -- cost: 3
       (dat) <- (do
         () <- runProcedure @'[ 'In ] safe out
@@ -459,6 +479,9 @@ queens1 = rget $ (procedure @'[ 'In, 'In ] queens1II) :& (procedure @'[ 'In, 'Ou
 cqueens arg1 arg2 arg3 :- ((arg1 = [], arg3 = []); (arg3 = q0:m, q0 = q, xs = _:_, qdelete q xs r, nodiag q data0 history, data0 = 1, cqueens r data1 m, data1 = q1:history, q1 = q, arg1 = xs, arg2 = history)).
 constraints:
 ~arg2[]
+~cqueens[1]
+~nodiag[1]
+~qdelete[1]
 ~xs[1,2]
 ~(arg1[1,9] & xs[1,9])
 ~(arg2[1,10] & history[1,10])
@@ -516,7 +539,7 @@ constraints:
 cqueens = rget $ (procedure @'[ 'In, 'In, 'In ] cqueensIII) :& (procedure @'[ 'In, 'In, 'Out ] cqueensIIO) :& (procedure @'[ 'Out, 'In, 'In ] cqueensOII) :& RNil
   where
     cqueensIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: data0[1,5] data1[1,7] history[1,10] m[1,0] q[1,1] q0[1,0] q1[1,8] r[1,3] xs[1,9] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,9] ~arg2[] ~arg2[1] ~arg2[1,10] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,0] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,6] ~q[1,3] ~q[1,4] ~q[1,8] ~q0[1,1] ~q1[1,7] ~r[1,6] ~xs[1,2] ~xs[1,3]
+      -- solution: data0[1,5] data1[1,7] history[1,10] m[1,0] q[1,1] q0[1,0] q1[1,8] r[1,3] xs[1,9] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,9] ~arg2[] ~arg2[1] ~arg2[1,10] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,0] ~cqueens[1] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,6] ~nodiag[1] ~q[1,3] ~q[1,4] ~q[1,8] ~q0[1,1] ~q1[1,7] ~qdelete[1] ~r[1,6] ~xs[1,2] ~xs[1,3]
       -- cost: 4
       () <- (do
         guard $ arg1 == []
@@ -539,7 +562,7 @@ cqueens = rget $ (procedure @'[ 'In, 'In, 'In ] cqueensIII) :& (procedure @'[ 'I
       pure ()
     
     cqueensIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,0] data0[1,5] data1[1,7] history[1,10] m[1,6] q[1,3] q0[1,1] q1[1,8] r[1,3] xs[1,9] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,9] ~arg2[] ~arg2[1] ~arg2[1,10] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,0] ~q[1,1] ~q[1,4] ~q[1,8] ~q0[1,0] ~q1[1,7] ~r[1,6] ~xs[1,2] ~xs[1,3]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,0] data0[1,5] data1[1,7] history[1,10] m[1,6] q[1,3] q0[1,1] q1[1,8] r[1,3] xs[1,9] ~arg1[] ~arg1[0] ~arg1[0,0] ~arg1[1] ~arg1[1,9] ~arg2[] ~arg2[1] ~arg2[1,10] ~cqueens[1] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,0] ~nodiag[1] ~q[1,1] ~q[1,4] ~q[1,8] ~q0[1,0] ~q1[1,7] ~qdelete[1] ~r[1,6] ~xs[1,2] ~xs[1,3]
       -- cost: 6
       (arg3) <- (do
         guard $ arg1 == []
@@ -562,7 +585,7 @@ cqueens = rget $ (procedure @'[ 'In, 'In, 'In ] cqueensIII) :& (procedure @'[ 'I
       pure (OneTuple (arg3))
     
     cqueensOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,9] data0[1,5] data1[1,7] history[1,10] m[1,0] q[1,1] q0[1,0] q1[1,8] r[1,6] xs[1,3] ~arg2[] ~arg2[1] ~arg2[1,10] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,0] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,6] ~q[1,3] ~q[1,4] ~q[1,8] ~q0[1,1] ~q1[1,7] ~r[1,3] ~xs[1,2] ~xs[1,9]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,9] data0[1,5] data1[1,7] history[1,10] m[1,0] q[1,1] q0[1,0] q1[1,8] r[1,6] xs[1,3] ~arg2[] ~arg2[1] ~arg2[1,10] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,0] ~cqueens[1] ~data0[1,4] ~data1[1,6] ~history[1,4] ~history[1,7] ~m[1,6] ~nodiag[1] ~q[1,3] ~q[1,4] ~q[1,8] ~q0[1,1] ~q1[1,7] ~qdelete[1] ~r[1,3] ~xs[1,2] ~xs[1,9]
       -- cost: 5
       (arg1) <- (do
         arg1 <- pure []
@@ -587,6 +610,7 @@ cqueens = rget $ (procedure @'[ 'In, 'In, 'In ] cqueensIII) :& (procedure @'[ 'I
 {- queens2/2
 queens2 dat out :- ((cqueens dat data0 out, data0 = [])).
 constraints:
+~cqueens[0]
 ~(data0[0,0] & data0[0,1])
 (data0[0,0] | data0[0,1])
 ((dat[0,0] & (~data0[0,0] & ~out[0,0])) | ((~dat[0,0] & (~data0[0,0] & out[0,0])) | (~dat[0,0] & (~data0[0,0] & ~out[0,0]))))
@@ -600,7 +624,7 @@ constraints:
 queens2 = rget $ (procedure @'[ 'In, 'In ] queens2II) :& (procedure @'[ 'In, 'Out ] queens2IO) :& (procedure @'[ 'Out, 'In ] queens2OI) :& RNil
   where
     queens2II = \dat out -> Logic.once $ do
-      -- solution: data0[0,1] ~dat[] ~dat[0] ~dat[0,0] ~data0[0,0] ~out[] ~out[0] ~out[0,0]
+      -- solution: data0[0,1] ~cqueens[0] ~dat[] ~dat[0] ~dat[0,0] ~data0[0,0] ~out[] ~out[0] ~out[0,0]
       -- cost: 1
       () <- (do
         data0 <- pure []
@@ -610,7 +634,7 @@ queens2 = rget $ (procedure @'[ 'In, 'In ] queens2II) :& (procedure @'[ 'In, 'Ou
       pure ()
     
     queens2IO = \dat -> do
-      -- solution: data0[0,1] out[] out[0] out[0,0] ~dat[] ~dat[0] ~dat[0,0] ~data0[0,0]
+      -- solution: data0[0,1] out[] out[0] out[0,0] ~cqueens[0] ~dat[] ~dat[0] ~dat[0,0] ~data0[0,0]
       -- cost: 2
       (out) <- (do
         data0 <- pure []
@@ -620,7 +644,7 @@ queens2 = rget $ (procedure @'[ 'In, 'In ] queens2II) :& (procedure @'[ 'In, 'Ou
       pure (OneTuple (out))
     
     queens2OI = \out -> do
-      -- solution: dat[] dat[0] dat[0,0] data0[0,1] ~data0[0,0] ~out[] ~out[0] ~out[0,0]
+      -- solution: dat[] dat[0] dat[0,0] data0[0,1] ~cqueens[0] ~data0[0,0] ~out[] ~out[0] ~out[0,0]
       -- cost: 2
       (dat) <- (do
         data0 <- pure []

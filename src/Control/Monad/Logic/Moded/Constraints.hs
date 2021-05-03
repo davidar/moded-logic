@@ -71,17 +71,19 @@ cAnd = foldr Sat.Conj Sat.Top
 
 -- | Complete set of constraints (sec 5.2.2)
 cComp :: Modes -> Path -> Rule Var Var -> Constraints
-cComp m p r = cGen p r `Set.union` cGoal m p r
+cComp m p r = cGen m p r `Set.union` cGoal m p r
 
 -- | General constraints (sec 5.2.2)
-cGen :: Path -> Rule Var Var -> Constraints
-cGen p r = cLocal p r `Set.union` cExt p r
+cGen :: Modes -> Path -> Rule Var Var -> Constraints
+cGen m p r = cLocal m p r `Set.union` cExt p r
 
 -- | Local constraints (sec 5.2.2)
-cLocal :: Path -> Rule Var Var -> Constraints
-cLocal p r =
-  term p `Set.map`
-  (locals p r `Set.intersection` insideNonneg (extract p $ ruleBody r))
+cLocal :: Modes -> Path -> Rule Var Var -> Constraints
+cLocal m p r = term p `Set.map` locs
+  where
+    nonnegs = insideNonneg . extract p $ ruleBody r
+    env = Set.map V $ ruleName r `Set.insert` Map.keysSet m
+    locs = (locals p r `Set.intersection` nonnegs) Set.\\ env
 
 -- | External constraints (sec 5.2.2)
 cExt :: Path -> Rule Var Var -> Constraints
@@ -159,14 +161,17 @@ cAtom m p r =
     Func _ [v] u -> Set.singleton $ nand p u v
     Func _ (v:vs) u ->
       Set.fromList $ nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
-    Pred name vars
+    Pred (V name) vars -> Sat.Neg (term p (V name)) `Set.insert` cPred m p r name vars
+
+cPred :: Modes -> Path -> Rule Var Var -> Name -> [Var] -> Constraints
+cPred m p r name vars
       | Rule rname rvars _ <- r
       , name == rname
-      , length vars == length rvars ->
+      , length vars == length rvars =
         Set.fromList $ do
           (u, v) <- zip vars rvars
           pure $ term p u `Sat.Iff` term [] v
-      | Just modeset <- Map.lookup name m ->
+      | Just modeset <- Map.lookup name m =
         Set.singleton . cOr . nub . sort $ do
           ModeString modes <- modeset
           pure . cAnd $ do
@@ -185,13 +190,13 @@ cAtom m p r =
                       Out -> t'
                       PredMode _ -> error "nested modestring"
       | head name == '('
-      , last name == ')' -> Set.singleton . cAnd $ Sat.Neg . term p <$> vars
-      | V name `elem` ruleArgs r ->
+      , last name == ')' = Set.singleton . cAnd $ Sat.Neg . term p <$> vars
+      | V name `elem` ruleArgs r =
         Set.fromList $ do
           (i, v) <- zip [1 ..] vars
           pure $ term p v `Sat.Iff` Sat.Var (ProduceArg (V name) i)
-      | otherwise ->
-        error $ "unknown predicate " ++ name ++ "/" ++ show (length vars)
+      | otherwise =
+        error $ "unknown predicate " ++ name ++ "/" ++ show (length vars) ++ " in " ++ show r
 
 constraints :: Modes -> Rule Var Var -> Constraints
 constraints m rule = Set.map f cs

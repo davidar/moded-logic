@@ -20,6 +20,7 @@ import Control.Monad.Logic.Moded.Preprocess
   , combineDefs
   , distinctVars
   , inlinePreds
+  , prunePreds
   , simp
   , superhomogeneous
   )
@@ -152,10 +153,10 @@ predicate =
     (do lhs <- variable
         op <- operator
         rhs <- value
-        pure $ Pred ("(" ++ op ++ ")") [lhs, rhs]) <|>
+        pure $ Pred (Var . V $ "(" ++ op ++ ")") [lhs, rhs]) <|>
   (do name <- identifier
       vs <- many value
-      pure $ Pred name vs)
+      pure $ Pred (Var $ V name) vs)
 
 softcut :: Parser (Goal Val)
 softcut = do
@@ -222,7 +223,9 @@ parseProg fn lp = do
         [ (name, length (head modes))
         | (name, modes) <- Map.toAscList modesPrelude
         ]
-  pure . Prog pragmas $ inlinePreds . simp . distinctVars . superhomogeneous arities <$> p'
+      pass1 = simp . distinctVars . superhomogeneous arities
+      pass2 = simp . prunePreds . inlinePreds
+  pure . Prog pragmas $ pass2 . pass1 <$> p'
 
 logic :: QuasiQuoter
 logic =

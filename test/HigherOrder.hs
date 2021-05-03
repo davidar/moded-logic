@@ -7,6 +7,7 @@ import Control.Monad.Logic.Moded.Prelude
 {- even/1
 even n :- ((mod n data0 data1, data0 = 2, data1 = 0)).
 constraints:
+~mod[0]
 ~(data0[0,0] & data0[0,1])
 ~(data1[0,0] & data1[0,2])
 (data0[0,0] | data0[0,1])
@@ -20,7 +21,7 @@ constraints:
 even = rget $ (procedure @'[ 'In ] evenI) :& RNil
   where
     evenI = \n -> Logic.once $ do
-      -- solution: data0[0,1] data1[0,2] ~data0[0,0] ~data1[0,0] ~n[] ~n[0] ~n[0,0]
+      -- solution: data0[0,1] data1[0,2] ~data0[0,0] ~data1[0,0] ~mod[0] ~n[] ~n[0] ~n[0,0]
       -- cost: 1
       () <- (do
         data1 <- pure 0
@@ -33,6 +34,7 @@ even = rget $ (procedure @'[ 'In ] evenI) :& RNil
 {- map/3
 map p arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = x:xs, arg3 = y:ys, p x y, map p xs ys)).
 constraints:
+~map[1]
 ~p[]
 ~(arg2[1,0] & x[1,0])
 ~(arg3[1,1] & y[1,1])
@@ -67,7 +69,7 @@ constraints:
 map = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (procedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] mapP2IOIO) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] mapP2OIOI) :& (procedure @'[ 'PredMode '[ 'Out, 'Out ], 'Out, 'Out ] mapP2OOOO) :& RNil
   where
     mapP2IIII = \p arg2 arg3 -> Logic.once $ do
-      -- solution: x[1,0] xs[1,0] y[1,1] ys[1,1] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,2] ~ys[1,3] ~p(1) ~p(2)
+      -- solution: x[1,0] xs[1,0] y[1,1] ys[1,1] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~map[1] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,2] ~ys[1,3] ~p(1) ~p(2)
       -- cost: 2
       () <- (do
         guard $ arg2 == []
@@ -83,7 +85,7 @@ map = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (p
       pure ()
     
     mapP2IOIO = \p arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,1] x[1,0] xs[1,0] y[1,2] ys[1,3] p(2) ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,1] ~ys[1,1] ~p(1)
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,1] x[1,0] xs[1,0] y[1,2] ys[1,3] p(2) ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~map[1] ~p[] ~p[1] ~p[1,3] ~x[1,2] ~xs[1,3] ~y[1,1] ~ys[1,1] ~p(1)
       -- cost: 4
       (arg3) <- (do
         guard $ arg2 == []
@@ -99,7 +101,7 @@ map = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (p
       pure (OneTuple (arg3))
     
     mapP2OIOI = \p arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] x[1,2] xs[1,3] y[1,1] ys[1,1] p(1) ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~p[] ~p[1] ~p[1,3] ~x[1,0] ~xs[1,0] ~y[1,2] ~ys[1,3] ~p(2)
+      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] x[1,2] xs[1,3] y[1,1] ys[1,1] p(1) ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,1] ~map[1] ~p[] ~p[1] ~p[1,3] ~x[1,0] ~xs[1,0] ~y[1,2] ~ys[1,3] ~p(2)
       -- cost: 4
       (arg2) <- (do
         arg2 <- pure []
@@ -115,7 +117,7 @@ map = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (p
       pure (OneTuple (arg2))
     
     mapP2OOOO = \p -> do
-      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,1] x[1,2] xs[1,3] y[1,2] ys[1,3] p(1) p(2) ~p[] ~p[1] ~p[1,3] ~x[1,0] ~xs[1,0] ~y[1,1] ~ys[1,1]
+      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,1] x[1,2] xs[1,3] y[1,2] ys[1,3] p(1) p(2) ~map[1] ~p[] ~p[1] ~p[1,3] ~x[1,0] ~xs[1,0] ~y[1,1] ~ys[1,1]
       -- cost: 6
       (arg2,arg3) <- (do
         arg2 <- pure []
@@ -135,11 +137,14 @@ succs xs ys :- ((map pred0 xs ys, (pred0 curry1 curry2 :- (succ curry1 curry2)))
 constraints:
 ~curry1[0]
 ~curry2[0]
+~map[0]
 ~pred0[0,0]
+~succ[0,1,0]
 ((curry1[0,1,0,0] & ~curry2[0,1,0,0]) | ((~curry1[0,1,0,0] & curry2[0,1,0,0]) | (~curry1[0,1,0,0] & ~curry2[0,1,0,0])))
 ((~pred0[0,0] & (pred0(1) & (pred0(2) & (xs[0,0] & ys[0,0])))) | ((~pred0[0,0] & (pred0(1) & (~pred0(2) & (xs[0,0] & ~ys[0,0])))) | ((~pred0[0,0] & (~pred0(1) & (pred0(2) & (~xs[0,0] & ys[0,0])))) | (~pred0[0,0] & (~pred0(1) & (~pred0(2) & (~xs[0,0] & ~ys[0,0])))))))
 (curry1[0,1,0] <-> curry1[0,1,0,0])
 (curry2[0,1,0] <-> curry2[0,1,0,0])
+(succ[0] <-> succ[0,1])
 (xs[] <-> xs[0])
 (xs[0] <-> xs[0,0])
 (ys[] <-> ys[0])
@@ -152,7 +157,7 @@ constraints:
 succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] succsIO) :& (procedure @'[ 'Out, 'In ] succsOI) :& RNil
   where
     succsII = \xs ys -> Logic.once $ do
-      -- solution: ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1) ~pred0(2)
+      -- solution: succ[0] succ[0,1] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~map[0] ~pred0[0,0] ~succ[0,1,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1) ~pred0(2)
       -- cost: 2
       () <- (do
         let pred0 = procedure @'[ 'In, 'In ] $
@@ -168,7 +173,7 @@ succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     succsIO = \xs -> do
-      -- solution: curry2[0,1,0] curry2[0,1,0,0] ys[] ys[0] ys[0,0] pred0(2) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] succ[0] succ[0,1] ys[] ys[0] ys[0,0] pred0(2) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~map[0] ~pred0[0,0] ~succ[0,1,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1)
       -- cost: 4
       (ys) <- (do
         let pred0 = procedure @'[ 'In, 'Out ] $
@@ -184,7 +189,7 @@ succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] 
       pure (OneTuple (ys))
     
     succsOI = \ys -> do
-      -- solution: curry1[0,1,0] curry1[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~pred0[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(2)
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] succ[0] succ[0,1] xs[] xs[0] xs[0,0] pred0(1) ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~map[0] ~pred0[0,0] ~succ[0,1,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(2)
       -- cost: 4
       (xs) <- (do
         let pred0 = procedure @'[ 'Out, 'In ] $
@@ -202,10 +207,14 @@ succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] 
 {- filter/3
 filter p arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = h0:t, h0 = h, if (p h) then (filter p t t', ts = h1:t', h1 = h) else (filter p t ts), arg3 = ts)).
 constraints:
+~filter[1,2,1]
+~filter[1,2,2]
 ~h[1,2]
 ~h[1,2,0,0]
 ~h[1,2,1,2]
 ~p[]
+~p[1,2,1,0]
+~p[1,2,2]
 ~(arg2[1,0] & h0[1,0])
 ~(arg3[1,3] & ts[1,3])
 ~(h[1,1] & h[1,2])
@@ -231,14 +240,14 @@ constraints:
 (arg3[] <-> arg3[1])
 (arg3[0] <-> arg3[0,1])
 (arg3[1] <-> arg3[1,3])
+(filter[1] <-> filter[1,2])
+(filter[1,2] <-> (filter[1,2,1] | filter[1,2,2]))
 (h[1,2,0,0] <-> p(1))
 (h0[1,0] <-> t[1,0])
 (h1[1,2,1,1] <-> t'[1,2,1,1])
 (p[] <-> p[1])
 (p[1] <-> p[1,2])
-(p[1,2] <-> (p[1,2,1] | p[1,2,2]))
-(p[1,2,1] <-> p[1,2,1,0])
-(p[1,2,1] <-> p[1,2,2])
+(p[1,2] <-> p[1,2,2])
 (p[1,2,1,0] <-> p[])
 (p[1,2,2] <-> p[1,2,2,0])
 (p[1,2,2,0] <-> p[])
@@ -260,7 +269,7 @@ constraints:
 filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (procedure @'[ 'PredMode '[ 'In ], 'In, 'Out ] filterP1IIO) :& RNil
   where
     filterP1III = \p arg2 arg3 -> Logic.once $ do
-      -- solution: h[1,1] h0[1,0] h1[1,2,1,1] t[1,0] t'[1,2,1,1] ts[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,3] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,2] ~p[] ~p[1] ~p[1,2] ~p[1,2,1] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,0] ~ts[1,2] ~ts[1,2,1] ~ts[1,2,1,1] ~ts[1,2,2] ~ts[1,2,2,0] ~p(1)
+      -- solution: h[1,1] h0[1,0] h1[1,2,1,1] t[1,0] t'[1,2,1,1] ts[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg3[] ~arg3[0] ~arg3[0,1] ~arg3[1] ~arg3[1,3] ~filter[1] ~filter[1,2] ~filter[1,2,1] ~filter[1,2,2] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,2] ~p[] ~p[1] ~p[1,2] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,0] ~ts[1,2] ~ts[1,2,1] ~ts[1,2,1,1] ~ts[1,2,2] ~ts[1,2,2,0] ~p(1)
       -- cost: 3
       () <- (do
         guard $ arg2 == []
@@ -287,7 +296,7 @@ filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (p
       pure ()
     
     filterP1IIO = \p arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,3] h[1,1] h0[1,0] h1[1,2,1,2] t[1,0] t'[1,2,1,0] ts[1,2] ts[1,2,1] ts[1,2,1,1] ts[1,2,2] ts[1,2,2,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,1] ~p[] ~p[1] ~p[1,2] ~p[1,2,1] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,1] ~ts[1,3] ~p(1)
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,3] h[1,1] h0[1,0] h1[1,2,1,2] t[1,0] t'[1,2,1,0] ts[1,2] ts[1,2,1] ts[1,2,1,1] ts[1,2,2] ts[1,2,2,0] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~filter[1] ~filter[1,2] ~filter[1,2,1] ~filter[1,2,2] ~h[1,2] ~h[1,2,0,0] ~h[1,2,1,2] ~h0[1,1] ~h1[1,2,1,1] ~p[] ~p[1] ~p[1,2] ~p[1,2,1,0] ~p[1,2,2] ~p[1,2,2,0] ~t[1,2] ~t[1,2,1] ~t[1,2,1,0] ~t[1,2,2] ~t[1,2,2,0] ~t'[1,2,1,1] ~ts[1,3] ~p(1)
       -- cost: 5
       (arg3) <- (do
         guard $ arg2 == []
@@ -318,9 +327,12 @@ evens xs ys :- ((filter pred0 xs ys, (pred0 curry1 :- (even curry1)))).
 constraints:
 ~curry1[0]
 ~curry1[0,1,0,0]
+~even[0,1,0]
+~filter[0]
 ~pred0[0,0]
 ((~pred0[0,0] & (~pred0(1) & (~xs[0,0] & ys[0,0]))) | (~pred0[0,0] & (~pred0(1) & (~xs[0,0] & ~ys[0,0]))))
 (curry1[0,1,0] <-> curry1[0,1,0,0])
+(even[0] <-> even[0,1])
 (xs[] <-> xs[0])
 (xs[0] <-> xs[0,0])
 (ys[] <-> ys[0])
@@ -332,7 +344,7 @@ constraints:
 evens = rget $ (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] evensIO) :& RNil
   where
     evensII = \xs ys -> Logic.once $ do
-      -- solution: ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1)
+      -- solution: even[0] even[0,1] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~even[0,1,0] ~filter[0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~ys[] ~ys[0] ~ys[0,0] ~pred0(1)
       -- cost: 2
       () <- (do
         let pred0 = procedure @'[ 'In ] $
@@ -348,7 +360,7 @@ evens = rget $ (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     evensIO = \xs -> do
-      -- solution: ys[] ys[0] ys[0,0] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1)
+      -- solution: even[0] even[0,1] ys[] ys[0] ys[0,0] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~even[0,1,0] ~filter[0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1)
       -- cost: 3
       (ys) <- (do
         let pred0 = procedure @'[ 'In ] $
@@ -366,6 +378,7 @@ evens = rget $ (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] 
 {- foldl/4
 foldl p arg2 a arg4 :- ((arg2 = [], arg4 = a); (arg2 = h:t, p h a a', foldl p t a' a'', arg4 = a'')).
 constraints:
+~foldl[1]
 ~p[]
 ~(a'[1,1] & a'[1,2])
 ~(a''[1,2] & a''[1,3])
@@ -406,7 +419,7 @@ constraints:
 foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] foldlP3IIOIII) :& (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'Out ] foldlP3IIOIIO) :& (procedure @'[ 'PredMode '[ 'In, 'Out, 'In ], 'In, 'Out, 'In ] foldlP3IOIIOI) :& (procedure @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'In ] foldlP3OIOOII) :& (procedure @'[ 'PredMode '[ 'Out, 'In, 'Out ], 'Out, 'In, 'Out ] foldlP3OIOOIO) :& (procedure @'[ 'PredMode '[ 'Out, 'Out, 'In ], 'Out, 'Out, 'In ] foldlP3OOIOOI) :& RNil
   where
     foldlP3IIOIII = \p arg2 a arg4 -> Logic.once $ do
-      -- solution: a'[1,1] a''[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
+      -- solution: a'[1,1] a''[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~foldl[1] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
       -- cost: 3
       () <- (do
         guard $ arg4 == a
@@ -422,7 +435,7 @@ foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] fol
       pure ()
     
     foldlP3IIOIIO = \p arg2 a -> do
-      -- solution: a'[1,1] a''[1,2] arg4[] arg4[0] arg4[0,1] arg4[1] arg4[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
+      -- solution: a'[1,1] a''[1,2] arg4[] arg4[0] arg4[0,1] arg4[1] arg4[1,3] h[1,0] t[1,0] p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,3] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~foldl[1] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(2)
       -- cost: 4
       (arg4) <- (do
         arg4 <- pure a
@@ -438,7 +451,7 @@ foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] fol
       pure (OneTuple (arg4))
     
     foldlP3IOIIOI = \p arg2 arg4 -> do
-      -- solution: a[] a[0] a[0,1] a[1] a[1,1] a'[1,2] a''[1,3] h[1,0] t[1,0] p(2) ~a'[1,1] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(3)
+      -- solution: a[] a[0] a[0,1] a[1] a[1,1] a'[1,2] a''[1,3] h[1,0] t[1,0] p(2) ~a'[1,1] ~a''[1,2] ~arg2[] ~arg2[0] ~arg2[0,0] ~arg2[1] ~arg2[1,0] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~foldl[1] ~h[1,1] ~p[] ~p[1] ~p[1,2] ~t[1,2] ~p(1) ~p(3)
       -- cost: 4
       (a) <- (do
         a <- pure arg4
@@ -454,7 +467,7 @@ foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] fol
       pure (OneTuple (a))
     
     foldlP3OIOOII = \p a arg4 -> do
-      -- solution: a'[1,1] a''[1,3] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] t[1,2] p(1) p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(2)
+      -- solution: a'[1,1] a''[1,3] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] t[1,2] p(1) p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,2] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~foldl[1] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(2)
       -- cost: 5
       (arg2) <- (do
         guard $ arg4 == a
@@ -470,7 +483,7 @@ foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] fol
       pure (OneTuple (arg2))
     
     foldlP3OIOOIO = \p a -> do
-      -- solution: a'[1,1] a''[1,2] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] arg4[] arg4[0] arg4[0,1] arg4[1] arg4[1,3] h[1,1] t[1,2] p(1) p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(2)
+      -- solution: a'[1,1] a''[1,2] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] arg4[] arg4[0] arg4[0,1] arg4[1] arg4[1,3] h[1,1] t[1,2] p(1) p(3) ~a[] ~a[0] ~a[0,1] ~a[1] ~a[1,1] ~a'[1,2] ~a''[1,3] ~foldl[1] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(2)
       -- cost: 6
       (arg2,arg4) <- (do
         arg4 <- pure a
@@ -486,7 +499,7 @@ foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] fol
       pure (arg2,arg4)
     
     foldlP3OOIOOI = \p arg4 -> do
-      -- solution: a[] a[0] a[0,1] a[1] a[1,1] a'[1,2] a''[1,3] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] t[1,2] p(1) p(2) ~a'[1,1] ~a''[1,2] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(3)
+      -- solution: a[] a[0] a[0,1] a[1] a[1,1] a'[1,2] a''[1,3] arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] t[1,2] p(1) p(2) ~a'[1,1] ~a''[1,2] ~arg4[] ~arg4[0] ~arg4[0,1] ~arg4[1] ~arg4[1,3] ~foldl[1] ~h[1,0] ~p[] ~p[1] ~p[1,2] ~t[1,0] ~p(3)
       -- cost: 6
       (a,arg2) <- (do
         a <- pure arg4
@@ -507,12 +520,15 @@ constraints:
 ~curry1[0]
 ~curry2[0]
 ~curry3[0]
+~foldl[0]
+~plus[0,1,0]
 ~pred0[0,0]
 ((curry1[0,1,0,0] & (~curry2[0,1,0,0] & ~curry3[0,1,0,0])) | ((~curry1[0,1,0,0] & (curry2[0,1,0,0] & ~curry3[0,1,0,0])) | ((~curry1[0,1,0,0] & (~curry2[0,1,0,0] & curry3[0,1,0,0])) | (~curry1[0,1,0,0] & (~curry2[0,1,0,0] & ~curry3[0,1,0,0])))))
 ((~pred0[0,0] & (pred0(1) & (pred0(2) & (~pred0(3) & (xs[0,0] & (z[0,0] & ~r[0,0])))))) | ((~pred0[0,0] & (pred0(1) & (~pred0(2) & (pred0(3) & (xs[0,0] & (~z[0,0] & r[0,0])))))) | ((~pred0[0,0] & (pred0(1) & (~pred0(2) & (pred0(3) & (xs[0,0] & (~z[0,0] & ~r[0,0])))))) | ((~pred0[0,0] & (~pred0(1) & (pred0(2) & (~pred0(3) & (~xs[0,0] & (z[0,0] & ~r[0,0])))))) | ((~pred0[0,0] & (~pred0(1) & (~pred0(2) & (pred0(3) & (~xs[0,0] & (~z[0,0] & r[0,0])))))) | (~pred0[0,0] & (~pred0(1) & (~pred0(2) & (pred0(3) & (~xs[0,0] & (~z[0,0] & ~r[0,0])))))))))))
 (curry1[0,1,0] <-> curry1[0,1,0,0])
 (curry2[0,1,0] <-> curry2[0,1,0,0])
 (curry3[0,1,0] <-> curry3[0,1,0,0])
+(plus[0] <-> plus[0,1])
 (r[] <-> r[0])
 (r[0] <-> r[0,0])
 (xs[] <-> xs[0])
@@ -528,7 +544,7 @@ constraints:
 sum = rget $ (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 'Out ] sumIIO) :& (procedure @'[ 'In, 'Out, 'In ] sumIOI) :& RNil
   where
     sumIII = \xs z r -> Logic.once $ do
-      -- solution: curry3[0,1,0] curry3[0,1,0,0] pred0(3) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry3[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+      -- solution: curry3[0,1,0] curry3[0,1,0,0] plus[0] plus[0,1] pred0(3) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry3[0] ~foldl[0] ~plus[0,1,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
       -- cost: 3
       () <- (do
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
@@ -544,7 +560,7 @@ sum = rget $ (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 
       pure ()
     
     sumIIO = \xs z -> do
-      -- solution: curry3[0,1,0] curry3[0,1,0,0] r[] r[0] r[0,0] pred0(3) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry3[0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+      -- solution: curry3[0,1,0] curry3[0,1,0,0] plus[0] plus[0,1] r[] r[0] r[0,0] pred0(3) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry3[0] ~foldl[0] ~plus[0,1,0] ~pred0[0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
       -- cost: 4
       (r) <- (do
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
@@ -560,7 +576,7 @@ sum = rget $ (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 
       pure (OneTuple (r))
     
     sumIOI = \xs r -> do
-      -- solution: curry2[0,1,0] curry2[0,1,0,0] z[] z[0] z[0,0] pred0(2) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry3[0] ~curry3[0,1,0] ~curry3[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] plus[0] plus[0,1] z[] z[0] z[0,0] pred0(2) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~curry3[0] ~curry3[0,1,0] ~curry3[0,1,0,0] ~foldl[0] ~plus[0,1,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
       -- cost: 4
       (z) <- (do
         let pred0 = procedure @'[ 'In, 'Out, 'In ] $
@@ -580,6 +596,7 @@ split xs z r :- ((foldl pred0 xs z r, (pred0 x a a' :- (a = x:a')))).
 constraints:
 ~a[0]
 ~a'[0]
+~foldl[0]
 ~pred0[0,0]
 ~x[0]
 ~(a[0,1,0,0] & x[0,1,0,0])
@@ -603,7 +620,7 @@ constraints:
 split = rget $ (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out, 'In, 'In ] splitOII) :& (procedure @'[ 'Out, 'In, 'Out ] splitOIO) :& RNil
   where
     splitIOI = \xs r -> do
-      -- solution: a[0,1,0] a[0,1,0,0] z[] z[0] z[0,0] pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
+      -- solution: a[0,1,0] a[0,1,0,0] z[] z[0] z[0,0] pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~foldl[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~pred0(1) ~pred0(3)
       -- cost: 2
       (z) <- (do
         let pred0 = procedure @'[ 'In, 'Out, 'In ] $
@@ -619,7 +636,7 @@ split = rget $ (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out,
       pure (OneTuple (z))
     
     splitOII = \z r -> do
-      -- solution: a'[0,1,0] a'[0,1,0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~z[] ~z[0] ~z[0,0] ~pred0(2)
+      -- solution: a'[0,1,0] a'[0,1,0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~foldl[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~z[] ~z[0] ~z[0,0] ~pred0(2)
       -- cost: 2
       (xs) <- (do
         let pred0 = procedure @'[ 'Out, 'In, 'Out ] $
@@ -635,7 +652,7 @@ split = rget $ (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out,
       pure (OneTuple (xs))
     
     splitOIO = \z -> do
-      -- solution: a'[0,1,0] a'[0,1,0,0] r[] r[0] r[0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~x[0] ~z[] ~z[0] ~z[0,0] ~pred0(2)
+      -- solution: a'[0,1,0] a'[0,1,0,0] r[] r[0] r[0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] pred0(1) pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~foldl[0] ~pred0[0,0] ~x[0] ~z[] ~z[0] ~z[0,0] ~pred0(2)
       -- cost: 3
       (r,xs) <- (do
         let pred0 = procedure @'[ 'Out, 'In, 'Out ] $
@@ -655,6 +672,7 @@ splitr xs z r :- ((foldl pred0 xs z r, (pred0 x a a' :- (a' = x:a)))).
 constraints:
 ~a[0]
 ~a'[0]
+~foldl[0]
 ~pred0[0,0]
 ~x[0]
 ~(a'[0,1,0,0] & x[0,1,0,0])
@@ -678,7 +696,7 @@ constraints:
 splitr = rget $ (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In, 'In, 'Out ] splitrIIO) :& (procedure @'[ 'Out, 'Out, 'In ] splitrOOI) :& RNil
   where
     splitrIII = \xs z r -> Logic.once $ do
-      -- solution: a'[0,1,0] a'[0,1,0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+      -- solution: a'[0,1,0] a'[0,1,0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~foldl[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
       -- cost: 1
       () <- (do
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
@@ -694,7 +712,7 @@ splitr = rget $ (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In,
       pure ()
     
     splitrIIO = \xs z -> do
-      -- solution: a'[0,1,0] a'[0,1,0,0] r[] r[0] r[0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
+      -- solution: a'[0,1,0] a'[0,1,0,0] r[] r[0] r[0,0] pred0(3) ~a[0] ~a[0,1,0] ~a[0,1,0,0] ~a'[0] ~foldl[0] ~pred0[0,0] ~x[0] ~x[0,1,0] ~x[0,1,0,0] ~xs[] ~xs[0] ~xs[0,0] ~z[] ~z[0] ~z[0,0] ~pred0(1) ~pred0(2)
       -- cost: 2
       (r) <- (do
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
@@ -710,7 +728,7 @@ splitr = rget $ (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In,
       pure (OneTuple (r))
     
     splitrOOI = \r -> do
-      -- solution: a[0,1,0] a[0,1,0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] z[] z[0] z[0,0] pred0(1) pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~pred0(3)
+      -- solution: a[0,1,0] a[0,1,0,0] x[0,1,0] x[0,1,0,0] xs[] xs[0] xs[0,0] z[] z[0] z[0,0] pred0(1) pred0(2) ~a[0] ~a'[0] ~a'[0,1,0] ~a'[0,1,0,0] ~foldl[0] ~pred0[0,0] ~r[] ~r[0] ~r[0,0] ~x[0] ~pred0(3)
       -- cost: 3
       (xs,z) <- (do
         let pred0 = procedure @'[ 'Out, 'Out, 'In ] $
@@ -728,9 +746,11 @@ splitr = rget $ (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In,
 {- closure/3
 closure p x y :- ((p x y); (p x z, closure p z y)).
 constraints:
-~p[]
+~closure[1]
+~p[0]
 ~(z[1,0] & z[1,1])
 (z[1,0] | z[1,1])
+(p[] <-> p[0])
 (p[] <-> p[1])
 (p[1] <-> p[1,1])
 (p[1,1] <-> p[])
@@ -754,7 +774,7 @@ constraints:
 closure = rget $ (procedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] closureP2IOIO) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'Out, 'In ] closureP2OIOI) :& RNil
   where
     closureP2IOIO = \p x -> do
-      -- solution: y[] y[0] y[0,0] y[1] y[1,1] z[1,0] p(2) ~p[] ~p[1] ~p[1,1] ~x[] ~x[0] ~x[0,0] ~x[1] ~x[1,0] ~z[1,1] ~p(1)
+      -- solution: y[] y[0] y[0,0] y[1] y[1,1] z[1,0] p(2) ~closure[1] ~p[] ~p[0] ~p[1] ~p[1,1] ~x[] ~x[0] ~x[0,0] ~x[1] ~x[1,0] ~z[1,1] ~p(1)
       -- cost: 6
       (y) <- (do
         (OneTuple (y)) <- runProcedure p x
@@ -767,7 +787,7 @@ closure = rget $ (procedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'Out ] closureP2I
       pure (OneTuple (y))
     
     closureP2OIOI = \p y -> do
-      -- solution: x[] x[0] x[0,0] x[1] x[1,0] z[1,1] p(1) ~p[] ~p[1] ~p[1,1] ~y[] ~y[0] ~y[0,0] ~y[1] ~y[1,1] ~z[1,0] ~p(2)
+      -- solution: x[] x[0] x[0,0] x[1] x[1,0] z[1,1] p(1) ~closure[1] ~p[] ~p[0] ~p[1] ~p[1,1] ~y[] ~y[0] ~y[0,0] ~y[1] ~y[1,1] ~z[1,0] ~p(2)
       -- cost: 6
       (x) <- (do
         (OneTuple (x)) <- runProcedure p y
@@ -854,13 +874,16 @@ smaller = rget $ (procedure @'[ 'In, 'In ] smallerII) :& (procedure @'[ 'In, 'Ou
 {- smallerTransitive/2
 smallerTransitive x y :- ((closure pred0 x y, (pred0 curry1 curry2 :- (smaller curry1 curry2)))).
 constraints:
+~closure[0]
 ~curry1[0]
 ~curry2[0]
 ~pred0[0,0]
+~smaller[0,1,0]
 ((curry1[0,1,0,0] & curry2[0,1,0,0]) | ((curry1[0,1,0,0] & ~curry2[0,1,0,0]) | ((~curry1[0,1,0,0] & curry2[0,1,0,0]) | (~curry1[0,1,0,0] & ~curry2[0,1,0,0]))))
 ((~pred0[0,0] & (pred0(1) & (~pred0(2) & (x[0,0] & ~y[0,0])))) | (~pred0[0,0] & (~pred0(1) & (pred0(2) & (~x[0,0] & y[0,0])))))
 (curry1[0,1,0] <-> curry1[0,1,0,0])
 (curry2[0,1,0] <-> curry2[0,1,0,0])
+(smaller[0] <-> smaller[0,1])
 (x[] <-> x[0])
 (x[0] <-> x[0,0])
 (y[] <-> y[0])
@@ -873,7 +896,7 @@ constraints:
 smallerTransitive = rget $ (procedure @'[ 'In, 'Out ] smallerTransitiveIO) :& (procedure @'[ 'Out, 'In ] smallerTransitiveOI) :& RNil
   where
     smallerTransitiveIO = \x -> do
-      -- solution: curry2[0,1,0] curry2[0,1,0,0] y[] y[0] y[0,0] pred0(2) ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~pred0[0,0] ~x[] ~x[0] ~x[0,0] ~pred0(1)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] smaller[0] smaller[0,1] y[] y[0] y[0,0] pred0(2) ~closure[0] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry2[0] ~pred0[0,0] ~smaller[0,1,0] ~x[] ~x[0] ~x[0,0] ~pred0(1)
       -- cost: 4
       (y) <- (do
         let pred0 = procedure @'[ 'In, 'Out ] $
@@ -889,7 +912,7 @@ smallerTransitive = rget $ (procedure @'[ 'In, 'Out ] smallerTransitiveIO) :& (p
       pure (OneTuple (y))
     
     smallerTransitiveOI = \y -> do
-      -- solution: curry1[0,1,0] curry1[0,1,0,0] x[] x[0] x[0,0] pred0(1) ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~pred0[0,0] ~y[] ~y[0] ~y[0,0] ~pred0(2)
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] smaller[0] smaller[0,1] x[] x[0] x[0,0] pred0(1) ~closure[0] ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~pred0[0,0] ~smaller[0,1,0] ~y[] ~y[0] ~y[0,0] ~pred0(2)
       -- cost: 4
       (x) <- (do
         let pred0 = procedure @'[ 'Out, 'In ] $
@@ -907,6 +930,8 @@ smallerTransitive = rget $ (procedure @'[ 'In, 'Out ] smallerTransitiveIO) :& (p
 {- compose/4
 compose f g a z :- ((g a b, f b z)).
 constraints:
+~f[0]
+~g[0]
 ~(b[0,0] & b[0,1])
 (b[0,0] | b[0,1])
 (a[] <-> a[0])
@@ -914,6 +939,8 @@ constraints:
 (a[0,0] <-> g(1))
 (b[0,0] <-> g(2))
 (b[0,1] <-> f(1))
+(f[] <-> f[0])
+(g[] <-> g[0])
 (z[] <-> z[0])
 (z[0] <-> z[0,1])
 (z[0,1] <-> f(2))
@@ -923,7 +950,7 @@ constraints:
 compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out ], 'In, 'In ] composeP2IIP2IOII) :& (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'Out, 'Out ], 'Out, 'In ] composeP2IIP2OOOI) :& (procedure @'[ 'PredMode '[ 'In, 'Out ], 'PredMode '[ 'In, 'Out ], 'In, 'Out ] composeP2IOP2IOIO) :& (procedure @'[ 'PredMode '[ 'In, 'Out ], 'PredMode '[ 'Out, 'Out ], 'Out, 'Out ] composeP2IOP2OOOO) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'PredMode '[ 'In, 'In ], 'In, 'In ] composeP2OIP2IIII) :& (procedure @'[ 'PredMode '[ 'Out, 'In ], 'PredMode '[ 'Out, 'In ], 'Out, 'In ] composeP2OIP2OIOI) :& (procedure @'[ 'PredMode '[ 'Out, 'Out ], 'PredMode '[ 'In, 'In ], 'In, 'Out ] composeP2OOP2IIIO) :& (procedure @'[ 'PredMode '[ 'Out, 'Out ], 'PredMode '[ 'Out, 'In ], 'Out, 'Out ] composeP2OOP2OIOO) :& RNil
   where
     composeP2IIP2IOII = \f g a z -> Logic.once $ do
-      -- solution: b[0,0] g(2) ~a[] ~a[0] ~a[0,0] ~b[0,1] ~z[] ~z[0] ~z[0,1] ~f(1) ~f(2) ~g(1)
+      -- solution: b[0,0] g(2) ~a[] ~a[0] ~a[0,0] ~b[0,1] ~f[] ~f[0] ~g[] ~g[0] ~z[] ~z[0] ~z[0,1] ~f(1) ~f(2) ~g(1)
       -- cost: 3
       () <- (do
         (OneTuple (b)) <- runProcedure g a
@@ -933,7 +960,7 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
       pure ()
     
     composeP2IIP2OOOI = \f g z -> do
-      -- solution: a[] a[0] a[0,0] b[0,0] g(1) g(2) ~b[0,1] ~z[] ~z[0] ~z[0,1] ~f(1) ~f(2)
+      -- solution: a[] a[0] a[0,0] b[0,0] g(1) g(2) ~b[0,1] ~f[] ~f[0] ~g[] ~g[0] ~z[] ~z[0] ~z[0,1] ~f(1) ~f(2)
       -- cost: 4
       (a) <- (do
         (a,b) <- runProcedure g 
@@ -943,7 +970,7 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
       pure (OneTuple (a))
     
     composeP2IOP2IOIO = \f g a -> do
-      -- solution: b[0,0] z[] z[0] z[0,1] f(2) g(2) ~a[] ~a[0] ~a[0,0] ~b[0,1] ~f(1) ~g(1)
+      -- solution: b[0,0] z[] z[0] z[0,1] f(2) g(2) ~a[] ~a[0] ~a[0,0] ~b[0,1] ~f[] ~f[0] ~g[] ~g[0] ~f(1) ~g(1)
       -- cost: 4
       (z) <- (do
         (OneTuple (b)) <- runProcedure g a
@@ -953,7 +980,7 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
       pure (OneTuple (z))
     
     composeP2IOP2OOOO = \f g -> do
-      -- solution: a[] a[0] a[0,0] b[0,0] z[] z[0] z[0,1] f(2) g(1) g(2) ~b[0,1] ~f(1)
+      -- solution: a[] a[0] a[0,0] b[0,0] z[] z[0] z[0,1] f(2) g(1) g(2) ~b[0,1] ~f[] ~f[0] ~g[] ~g[0] ~f(1)
       -- cost: 5
       (a,z) <- (do
         (a,b) <- runProcedure g 
@@ -963,7 +990,7 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
       pure (a,z)
     
     composeP2OIP2IIII = \f g a z -> Logic.once $ do
-      -- solution: b[0,1] f(1) ~a[] ~a[0] ~a[0,0] ~b[0,0] ~z[] ~z[0] ~z[0,1] ~f(2) ~g(1) ~g(2)
+      -- solution: b[0,1] f(1) ~a[] ~a[0] ~a[0,0] ~b[0,0] ~f[] ~f[0] ~g[] ~g[0] ~z[] ~z[0] ~z[0,1] ~f(2) ~g(1) ~g(2)
       -- cost: 3
       () <- (do
         (OneTuple (b)) <- runProcedure f z
@@ -973,7 +1000,7 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
       pure ()
     
     composeP2OIP2OIOI = \f g z -> do
-      -- solution: a[] a[0] a[0,0] b[0,1] f(1) g(1) ~b[0,0] ~z[] ~z[0] ~z[0,1] ~f(2) ~g(2)
+      -- solution: a[] a[0] a[0,0] b[0,1] f(1) g(1) ~b[0,0] ~f[] ~f[0] ~g[] ~g[0] ~z[] ~z[0] ~z[0,1] ~f(2) ~g(2)
       -- cost: 4
       (a) <- (do
         (OneTuple (b)) <- runProcedure f z
@@ -983,7 +1010,7 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
       pure (OneTuple (a))
     
     composeP2OOP2IIIO = \f g a -> do
-      -- solution: b[0,1] z[] z[0] z[0,1] f(1) f(2) ~a[] ~a[0] ~a[0,0] ~b[0,0] ~g(1) ~g(2)
+      -- solution: b[0,1] z[] z[0] z[0,1] f(1) f(2) ~a[] ~a[0] ~a[0,0] ~b[0,0] ~f[] ~f[0] ~g[] ~g[0] ~g(1) ~g(2)
       -- cost: 4
       (z) <- (do
         (b,z) <- runProcedure f 
@@ -993,7 +1020,7 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
       pure (OneTuple (z))
     
     composeP2OOP2OIOO = \f g -> do
-      -- solution: a[] a[0] a[0,0] b[0,1] z[] z[0] z[0,1] f(1) f(2) g(1) ~b[0,0] ~g(2)
+      -- solution: a[] a[0] a[0,0] b[0,1] z[] z[0] z[0,1] f(1) f(2) g(1) ~b[0,0] ~f[] ~f[0] ~g[] ~g[0] ~g(2)
       -- cost: 5
       (a,z) <- (do
         (b,z) <- runProcedure f 
@@ -1005,10 +1032,13 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
 {- composeTest/2
 composeTest a z :- ((compose pred1 pred3 a z, (pred1 curry1 curry2 :- (times data0 curry1 curry2, data0 = 2)), (pred3 curry1 curry2 :- (plus data2 curry1 curry2, data2 = 1)))).
 constraints:
+~compose[0]
 ~curry1[0]
 ~curry2[0]
+~plus[0,2,0]
 ~pred1[0,0]
 ~pred3[0,0]
+~times[0,1,0]
 ~(data0[0,1,0,0] & data0[0,1,0,1])
 ~(data2[0,2,0,0] & data2[0,2,0,1])
 (data0[0,1,0,0] | data0[0,1,0,1])
@@ -1024,6 +1054,8 @@ constraints:
 (curry2[0,2,0] <-> curry2[0,2,0,0])
 (data0[0] <-> data0[0,1])
 (data2[0] <-> data2[0,2])
+(plus[0] <-> plus[0,2])
+(times[0] <-> times[0,1])
 (z[] <-> z[0])
 (z[0] <-> z[0,0])
 (pred1(1) <-> curry1[0,1,0])
@@ -1036,7 +1068,7 @@ constraints:
 composeTest = rget $ (procedure @'[ 'In, 'In ] composeTestII) :& (procedure @'[ 'In, 'Out ] composeTestIO) :& (procedure @'[ 'Out, 'In ] composeTestOI) :& RNil
   where
     composeTestII = \a z -> Logic.once $ do
-      -- solution: curry1[0,1,0] curry1[0,1,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] pred1(1) ~a[] ~a[0] ~a[0,0] ~curry1[0] ~curry1[0,2,0] ~curry1[0,2,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry2[0,2,0] ~curry2[0,2,0,0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~pred1[0,0] ~pred3[0,0] ~z[] ~z[0] ~z[0,0] ~pred1(2) ~pred3(1) ~pred3(2)
+      -- solution: curry1[0,1,0] curry1[0,1,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] plus[0] plus[0,2] times[0] times[0,1] pred1(1) ~a[] ~a[0] ~a[0,0] ~compose[0] ~curry1[0] ~curry1[0,2,0] ~curry1[0,2,0,0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry2[0,2,0] ~curry2[0,2,0,0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~plus[0,2,0] ~pred1[0,0] ~pred3[0,0] ~times[0,1,0] ~z[] ~z[0] ~z[0,0] ~pred1(2) ~pred3(1) ~pred3(2)
       -- cost: 4
       () <- (do
         let pred1 = procedure @'[ 'Out, 'In ] $
@@ -1061,7 +1093,7 @@ composeTest = rget $ (procedure @'[ 'In, 'In ] composeTestII) :& (procedure @'[ 
       pure ()
     
     composeTestIO = \a -> do
-      -- solution: curry2[0,1,0] curry2[0,1,0,0] curry2[0,2,0] curry2[0,2,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] z[] z[0] z[0,0] pred1(2) pred3(2) ~a[] ~a[0] ~a[0,0] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry1[0,2,0] ~curry1[0,2,0,0] ~curry2[0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~pred1[0,0] ~pred3[0,0] ~pred1(1) ~pred3(1)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] curry2[0,2,0] curry2[0,2,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] plus[0] plus[0,2] times[0] times[0,1] z[] z[0] z[0,0] pred1(2) pred3(2) ~a[] ~a[0] ~a[0,0] ~compose[0] ~curry1[0] ~curry1[0,1,0] ~curry1[0,1,0,0] ~curry1[0,2,0] ~curry1[0,2,0,0] ~curry2[0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~plus[0,2,0] ~pred1[0,0] ~pred3[0,0] ~times[0,1,0] ~pred1(1) ~pred3(1)
       -- cost: 6
       (z) <- (do
         let pred1 = procedure @'[ 'In, 'Out ] $
@@ -1086,7 +1118,7 @@ composeTest = rget $ (procedure @'[ 'In, 'In ] composeTestII) :& (procedure @'[ 
       pure (OneTuple (z))
     
     composeTestOI = \z -> do
-      -- solution: a[] a[0] a[0,0] curry1[0,1,0] curry1[0,1,0,0] curry1[0,2,0] curry1[0,2,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] pred1(1) pred3(1) ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry2[0,2,0] ~curry2[0,2,0,0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~pred1[0,0] ~pred3[0,0] ~z[] ~z[0] ~z[0,0] ~pred1(2) ~pred3(2)
+      -- solution: a[] a[0] a[0,0] curry1[0,1,0] curry1[0,1,0,0] curry1[0,2,0] curry1[0,2,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] plus[0] plus[0,2] times[0] times[0,1] pred1(1) pred3(1) ~compose[0] ~curry1[0] ~curry2[0] ~curry2[0,1,0] ~curry2[0,1,0,0] ~curry2[0,2,0] ~curry2[0,2,0,0] ~data0[0,1,0,0] ~data2[0,2,0,0] ~plus[0,2,0] ~pred1[0,0] ~pred3[0,0] ~times[0,1,0] ~z[] ~z[0] ~z[0,0] ~pred1(2) ~pred3(2)
       -- cost: 6
       (a) <- (do
         let pred1 = procedure @'[ 'Out, 'In ] $
@@ -1111,61 +1143,34 @@ composeTest = rget $ (procedure @'[ 'In, 'In ] composeTestII) :& (procedure @'[ 
       pure (OneTuple (a))
     
 {- inlineTest/1
-inlineTest y :- (((data0 = y), data0 = 7, (p x :- (x = y)))).
+inlineTest y :- ((data0 = y, data0 = 7)).
 constraints:
-~x[0]
 ~(data0[0,0] & data0[0,1])
-~(data0[0,0,0] & y[0,0,0])
-~(x[0,2,0,0] & y[0,2,0,0])
+~(data0[0,0] & y[0,0])
 (data0[0,0] | data0[0,1])
-(data0[0,0] <-> data0[0,0,0])
-(x[0,2,0] <-> x[0,2,0,0])
 (y[] <-> y[0])
 (y[0] <-> y[0,0])
-(y[0,0] <-> y[0,0,0])
-(y[0,2,0] <-> y[0,2,0,0])
-(p(1) <-> x[0,2,0])
 1
 -}
 
 inlineTest = rget $ (procedure @'[ 'In ] inlineTestI) :& (procedure @'[ 'Out ] inlineTestO) :& RNil
   where
     inlineTestI = \y -> Logic.once $ do
-      -- solution: data0[0,0] data0[0,0,0] x[0,2,0] x[0,2,0,0] p(1) ~data0[0,1] ~x[0] ~y[] ~y[0] ~y[0,0] ~y[0,0,0] ~y[0,2,0] ~y[0,2,0,0]
+      -- solution: data0[0,0] ~data0[0,1] ~y[] ~y[0] ~y[0,0]
       -- cost: 0
       () <- (do
-        (data0) <- (do
-          data0 <- pure y
-          pure (data0)
-         )
+        data0 <- pure y
         guard $ data0 == 7
-        let p = procedure @'[ 'Out ] $
-              do
-                (x) <- (do
-                  x <- pure y
-                  pure (x)
-                 )
-                pure (OneTuple (x))
         pure ()
        )
       pure ()
     
     inlineTestO = do
-      -- solution: data0[0,1] x[0,2,0] x[0,2,0,0] y[] y[0] y[0,0] y[0,0,0] p(1) ~data0[0,0] ~data0[0,0,0] ~x[0] ~y[0,2,0] ~y[0,2,0,0]
+      -- solution: data0[0,1] y[] y[0] y[0,0] ~data0[0,0]
       -- cost: 0
       (y) <- (do
         data0 <- pure 7
-        (y) <- (do
-          y <- pure data0
-          pure (y)
-         )
-        let p = procedure @'[ 'Out ] $
-              do
-                (x) <- (do
-                  x <- pure y
-                  pure (x)
-                 )
-                pure (OneTuple (x))
+        y <- pure data0
         pure (y)
        )
       pure (OneTuple (y))
