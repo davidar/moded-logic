@@ -201,6 +201,18 @@ pragma = do
   ws <- some (identifier <|> operator)
   pure $ Pragma ws
 
+data ParseResult = PRule (Rule Val Val) | PPragma Pragma | PDef String [Val] Val | PNil
+
+definition :: Parser ParseResult
+definition = do
+  name <- identifier
+  vars <- many value
+  symbol "="
+  PDef name vars <$> parenValue
+
+parseLine :: Parser ParseResult
+parseLine = try definition <|> (PRule <$> rule) <|> (PPragma <$> pragma) <|> pure PNil
+
 parseProg ::
      String -> Text -> Either (ParseErrorBundle Text Void) (Prog Var Var)
 parseProg fn lp = do
@@ -208,20 +220,29 @@ parseProg fn lp = do
         filter (not . T.null) $
         T.strip . T.unlines <$>
         groupBy (\_ b -> T.null b || isSpace (T.head b)) (T.lines lp)
-  lrs <-
+  prs <-
     forM (zip [1 :: Int ..] inputs) $ \(i, line) ->
       parse
-        (spaceConsumer *> optional (eitherP pragma rule) <* eof)
+        (spaceConsumer *> parseLine <* eof)
         (fn ++ ":" ++ show i)
         line
-  let pragmas = [l | Just (Left l) <- lrs]
-      p' = combineDefs [r | Just (Right r) <- lrs]
-      arities =
-        [(ruleName r, length (ruleArgs r)) | r <- p'] ++
+  let pragmas = [pr | PPragma pr <- prs]
+      p = [r | PRule r <- prs]
+      arities rs =
+        [(ruleName r, length (ruleArgs r)) | r <- rs] ++
         [ (name, length (head modes))
         | (name, modes) <- Map.toAscList modesPrelude
         ]
-  pure . Prog pragmas $ simp . distinctVars . superhomogeneous arities <$> p'
+      p' = p ++ do
+        PDef name vars (Curry v vs) <- prs
+        let arity = case lookup v (arities p) of
+              Just n -> n
+              Nothing -> error $ "unknown predicate " ++ v
+            k = arity - length vs
+            extra = [Var . V $ "curry" ++ show i | i <- [1 .. k]]
+            g = Atom $ Pred (Var $ V v) (vs ++ extra)
+        pure $ Rule name (vars ++ extra) g
+  pure . Prog pragmas $ simp . distinctVars . superhomogeneous (arities p') <$> combineDefs p'
 
 logic :: QuasiQuoter
 logic =

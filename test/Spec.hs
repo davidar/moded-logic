@@ -315,7 +315,7 @@ verb "eats"
 
 np (NP d n) z a :- append [d,n] z a, det d, noun n
 vp (VP v n) z a :- compose (append [v]) (np n) z a, verb v
-sentence (S n v) z a :- compose (np n) (vp v) z a
+sentence (S n v) = compose (np n) (vp v)
 |]
 
 programEuler :: Prog Var Var
