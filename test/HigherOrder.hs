@@ -1110,3 +1110,63 @@ composeTest = rget $ (procedure @'[ 'In, 'In ] composeTestII) :& (procedure @'[ 
        )
       pure (OneTuple (a))
     
+{- inlineTest/1
+inlineTest y :- (((data0 = y), data0 = 7, (p x :- (x = y)))).
+constraints:
+~x[0]
+~(data0[0,0] & data0[0,1])
+~(data0[0,0,0] & y[0,0,0])
+~(x[0,2,0,0] & y[0,2,0,0])
+(data0[0,0] | data0[0,1])
+(data0[0,0] <-> data0[0,0,0])
+(x[0,2,0] <-> x[0,2,0,0])
+(y[] <-> y[0])
+(y[0] <-> y[0,0])
+(y[0,0] <-> y[0,0,0])
+(y[0,2,0] <-> y[0,2,0,0])
+(p(1) <-> x[0,2,0])
+1
+-}
+
+inlineTest = rget $ (procedure @'[ 'In ] inlineTestI) :& (procedure @'[ 'Out ] inlineTestO) :& RNil
+  where
+    inlineTestI = \y -> Logic.once $ do
+      -- solution: data0[0,0] data0[0,0,0] x[0,2,0] x[0,2,0,0] p(1) ~data0[0,1] ~x[0] ~y[] ~y[0] ~y[0,0] ~y[0,0,0] ~y[0,2,0] ~y[0,2,0,0]
+      -- cost: 0
+      () <- (do
+        (data0) <- (do
+          data0 <- pure y
+          pure (data0)
+         )
+        guard $ data0 == 7
+        let p = procedure @'[ 'Out ] $
+              do
+                (x) <- (do
+                  x <- pure y
+                  pure (x)
+                 )
+                pure (OneTuple (x))
+        pure ()
+       )
+      pure ()
+    
+    inlineTestO = do
+      -- solution: data0[0,1] x[0,2,0] x[0,2,0,0] y[] y[0] y[0,0] y[0,0,0] p(1) ~data0[0,0] ~data0[0,0,0] ~x[0] ~y[0,2,0] ~y[0,2,0,0]
+      -- cost: 0
+      (y) <- (do
+        data0 <- pure 7
+        (y) <- (do
+          y <- pure data0
+          pure (y)
+         )
+        let p = procedure @'[ 'Out ] $
+              do
+                (x) <- (do
+                  x <- pure y
+                  pure (x)
+                 )
+                pure (OneTuple (x))
+        pure (y)
+       )
+      pure (OneTuple (y))
+    

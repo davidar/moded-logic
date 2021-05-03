@@ -5,6 +5,7 @@ module Control.Monad.Logic.Moded.Preprocess
   , distinctVars
   , simplify
   , simp
+  , inlinePreds
   ) where
 
 import Control.Monad.Logic.Moded.AST
@@ -174,3 +175,28 @@ simplify (Atom a) = Atom a
 
 simp :: Rule u Var -> Rule u Var
 simp r = r {ruleBody = simplify (ruleBody r)}
+
+inlinePreds :: Rule Var Var -> Rule Var Var
+inlinePreds r = r {ruleBody = evalState (tGoal $ ruleBody r) 0}
+  where
+    tGoal :: Goal Var -> State Int (Goal Var)
+    tGoal (Disj gs) = Disj <$> mapM tGoal gs
+    tGoal (Conj gs) = pure . Conj $ do
+      let lams = [(name, (vs, body)) | Anon (V name) vs body <- gs]
+      g <- gs
+      pure $ case g of
+        Atom (Pred name vs) | Just (us, body) <- lookup name lams ->
+          let binds = zip us vs
+              f u | Just v <- lookup u binds = v
+                  | otherwise = u
+          in fmap f body
+        _ -> g
+    tGoal (Ifte c t e) = do
+      c' <- tGoal c
+      t' <- tGoal t
+      e' <- tGoal e
+      return $ Ifte c' t' e'
+    tGoal (Anon name vs g) = do
+      g' <- tGoal g
+      return $ Anon name vs g'
+    tGoal (Atom a) = return $ Atom a

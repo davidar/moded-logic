@@ -86,6 +86,8 @@ smallerTransitive x y :- closure smaller x y
 
 compose f g a z :- g a b, f b z
 composeTest a z :- compose (times 2) (plus 1) a z
+
+inlineTest y :- (p x :- x = y), p 7
 |]
 
 programPrimes :: Prog Var Var
@@ -498,6 +500,8 @@ main = do
       it "compose" $ do
         observeAll (call @'[In, Out] HigherOrder.composeTest 7) `shouldBe` [2 * (1 + 7)]
         observeAll (call @'[Out, In] HigherOrder.composeTest (2 * (1 + 7))) `shouldBe` [7]
+      it "inline" $ do
+        observeAll (call @'[Out] HigherOrder.inlineTest) `shouldBe` [7]
     describe "Primes" $ do
       it "compile" $ compileTest "Primes" programPrimes
       it "primes" $ do
