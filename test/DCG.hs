@@ -386,230 +386,286 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure (arg1,z)
     
 {- vp/3
-vp arg1 z a :- ((np n z b, append data1 b a, data0 = [], data1 = v1:data0, v1 = v, arg1 = VP v0 n, v0 = v, verb v)).
+vp arg1 z a :- ((arg1 = VP v0 n, v0 = v, ((np n z b, append data1 b a, data0 = [], data1 = v1:data0, v1 = v)), verb v)).
 constraints:
-~append[0]
-~np[0]
+~append[0,2,0]
+~np[0,2,0]
 ~verb[0]
-~(arg1[0,5] & v0[0,5])
-~(b[0,0] & b[0,1])
-~(data0[0,2] & data0[0,3])
-~(data1[0,1] & data1[0,3])
-~(data1[0,3] & v1[0,3])
-~(n[0,0] & n[0,5])
-~(v[0,4] & v[0,6])
-~(v[0,4] & v[0,7])
-~(v[0,6] & v[0,7])
-~(v0[0,5] & v0[0,6])
-~(v0[0,6] & v[0,6])
-~(v1[0,3] & v1[0,4])
-~(v1[0,4] & v[0,4])
-(b[0,0] | b[0,1])
-(data0[0,2] | data0[0,3])
-(data1[0,1] | data1[0,3])
-(n[0,0] | n[0,5])
-(v[0,4] | (v[0,6] | v[0,7]))
-(v[0,7] | ~v[0,7])
-(v0[0,5] | v0[0,6])
-(v1[0,3] | v1[0,4])
-((data1[0,1] & (b[0,1] & ~a[0,1])) | ((data1[0,1] & (~b[0,1] & ~a[0,1])) | ((~data1[0,1] & (b[0,1] & ~a[0,1])) | ((~data1[0,1] & (~b[0,1] & a[0,1])) | (~data1[0,1] & (~b[0,1] & ~a[0,1]))))))
-((n[0,0] & (z[0,0] & ~b[0,0])) | ((n[0,0] & (~z[0,0] & b[0,0])) | ((n[0,0] & (~z[0,0] & ~b[0,0])) | ((~n[0,0] & (z[0,0] & ~b[0,0])) | ((~n[0,0] & (~z[0,0] & b[0,0])) | (~n[0,0] & (~z[0,0] & ~b[0,0])))))))
+~(arg1[0,0] & v0[0,0])
+~(b[0,2,0,0] & b[0,2,0,1])
+~(data0[0,2,0,2] & data0[0,2,0,3])
+~(data1[0,2,0,1] & data1[0,2,0,3])
+~(data1[0,2,0,3] & v1[0,2,0,3])
+~(n[0,0] & n[0,2])
+~(v[0,1] & v[0,2])
+~(v[0,1] & v[0,3])
+~(v[0,2] & v[0,3])
+~(v0[0,0] & v0[0,1])
+~(v0[0,1] & v[0,1])
+~(v1[0,2,0,3] & v1[0,2,0,4])
+~(v1[0,2,0,4] & v[0,2,0,4])
+(b[0,2,0,0] | b[0,2,0,1])
+(data0[0,2,0,2] | data0[0,2,0,3])
+(data1[0,2,0,1] | data1[0,2,0,3])
+(n[0,0] | n[0,2])
+(v[0,1] | (v[0,2] | v[0,3]))
+(v[0,3] | ~v[0,3])
+(v0[0,0] | v0[0,1])
+(v1[0,2,0,3] | v1[0,2,0,4])
+((data1[0,2,0,1] & (b[0,2,0,1] & ~a[0,2,0,1])) | ((data1[0,2,0,1] & (~b[0,2,0,1] & ~a[0,2,0,1])) | ((~data1[0,2,0,1] & (b[0,2,0,1] & ~a[0,2,0,1])) | ((~data1[0,2,0,1] & (~b[0,2,0,1] & a[0,2,0,1])) | (~data1[0,2,0,1] & (~b[0,2,0,1] & ~a[0,2,0,1]))))))
+((n[0,2,0,0] & (z[0,2,0,0] & ~b[0,2,0,0])) | ((n[0,2,0,0] & (~z[0,2,0,0] & b[0,2,0,0])) | ((n[0,2,0,0] & (~z[0,2,0,0] & ~b[0,2,0,0])) | ((~n[0,2,0,0] & (z[0,2,0,0] & ~b[0,2,0,0])) | ((~n[0,2,0,0] & (~z[0,2,0,0] & b[0,2,0,0])) | (~n[0,2,0,0] & (~z[0,2,0,0] & ~b[0,2,0,0])))))))
 (a[] <-> a[0])
-(a[0] <-> a[0,1])
+(a[0] <-> a[0,2])
+(a[0,2] <-> a[0,2,0])
+(a[0,2,0] <-> a[0,2,0,1])
+(append[0] <-> append[0,2])
 (arg1[] <-> arg1[0])
-(arg1[0] <-> arg1[0,5])
-(v0[0,5] <-> n[0,5])
-(v1[0,3] <-> data0[0,3])
+(arg1[0] <-> arg1[0,0])
+(n[0,2] <-> n[0,2,0])
+(n[0,2,0] <-> n[0,2,0,0])
+(np[0] <-> np[0,2])
+(v[0,2] <-> v[0,2,0])
+(v[0,2,0] <-> v[0,2,0,4])
+(v0[0,0] <-> n[0,0])
+(v1[0,2,0,3] <-> data0[0,2,0,3])
 (z[] <-> z[0])
-(z[0] <-> z[0,0])
+(z[0] <-> z[0,2])
+(z[0,2] <-> z[0,2,0])
+(z[0,2,0] <-> z[0,2,0,0])
 1
 -}
 
 vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'Out ] vpIIO) :& (procedure @'[ 'In, 'Out, 'In ] vpIOI) :& (procedure @'[ 'Out, 'In, 'In ] vpOII) :& (procedure @'[ 'Out, 'In, 'Out ] vpOIO) :& (procedure @'[ 'Out, 'Out, 'In ] vpOOI) :& RNil
   where
     vpIII = \arg1 z a -> Logic.once $ do
-      -- solution: b[0,0] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4]
+      -- solution: append[0] append[0,2] b[0,2,0,0] data0[0,2,0,2] data1[0,2,0,3] n[0,0] np[0] np[0,2] v[0,1] v0[0,0] v1[0,2,0,4]
       -- cost: 4
       () <- (do
         (VP v0 n) <- pure arg1
         v <- pure v0
-        v1 <- pure v
-        data0 <- pure []
-        data1 <- pure (v1:data0)
         () <- runProcedure @'[ 'In ] verb v
-        (OneTuple (b)) <- runProcedure @'[ 'In, 'In, 'Out ] np n z
-        () <- runProcedure @'[ 'In, 'In, 'In ] append data1 b a
+        () <- (do
+          v1 <- pure v
+          data0 <- pure []
+          data1 <- pure (v1:data0)
+          (OneTuple (b)) <- runProcedure @'[ 'In, 'In, 'Out ] np n z
+          () <- runProcedure @'[ 'In, 'In, 'In ] append data1 b a
+          pure ()
+         )
         pure ()
        )
       pure ()
     
     vpIIO = \arg1 z -> do
-      -- solution: a[] a[0] a[0,1] b[0,0] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4]
+      -- solution: a[] a[0] a[0,2] a[0,2,0] a[0,2,0,1] append[0] append[0,2] b[0,2,0,0] data0[0,2,0,2] data1[0,2,0,3] n[0,0] np[0] np[0,2] v[0,1] v0[0,0] v1[0,2,0,4]
       -- cost: 5
       (a) <- (do
         (VP v0 n) <- pure arg1
         v <- pure v0
-        v1 <- pure v
-        data0 <- pure []
-        data1 <- pure (v1:data0)
         () <- runProcedure @'[ 'In ] verb v
-        (OneTuple (b)) <- runProcedure @'[ 'In, 'In, 'Out ] np n z
-        (OneTuple (a)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1 b
+        (a) <- (do
+          v1 <- pure v
+          data0 <- pure []
+          data1 <- pure (v1:data0)
+          (OneTuple (b)) <- runProcedure @'[ 'In, 'In, 'Out ] np n z
+          (OneTuple (a)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1 b
+          pure (a)
+         )
         pure (a)
        )
       pure (OneTuple (a))
     
     vpIOI = \arg1 a -> do
-      -- solution: b[0,1] data0[0,2] data1[0,3] n[0,5] v[0,6] v0[0,5] v1[0,4] z[] z[0] z[0,0]
+      -- solution: append[0] append[0,2] b[0,2,0,1] data0[0,2,0,2] data1[0,2,0,3] n[0,0] np[0] np[0,2] v[0,1] v0[0,0] v1[0,2,0,4] z[] z[0] z[0,2] z[0,2,0] z[0,2,0,0]
       -- cost: 5
       (z) <- (do
         (VP v0 n) <- pure arg1
         v <- pure v0
-        v1 <- pure v
-        data0 <- pure []
-        data1 <- pure (v1:data0)
         () <- runProcedure @'[ 'In ] verb v
-        (OneTuple (b)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1 a
-        (OneTuple (z)) <- runProcedure @'[ 'In, 'Out, 'In ] np n b
+        (z) <- (do
+          v1 <- pure v
+          data0 <- pure []
+          data1 <- pure (v1:data0)
+          (OneTuple (b)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1 a
+          (OneTuple (z)) <- runProcedure @'[ 'In, 'Out, 'In ] np n b
+          pure (z)
+         )
         pure (z)
        )
       pure (OneTuple (z))
     
     vpOII = \z a -> do
-      -- solution: arg1[] arg1[0] arg1[0,5] b[0,0] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4]
+      -- solution: append[0] append[0,2] arg1[] arg1[0] arg1[0,0] b[0,2,0,0] data0[0,2,0,2] data1[0,2,0,3] n[0,2] n[0,2,0] n[0,2,0,0] np[0] np[0,2] v[0,3] v0[0,1] v1[0,2,0,4]
       -- cost: 6
       (arg1) <- (do
-        data0 <- pure []
         (OneTuple (v)) <- runProcedure @'[ 'Out ] verb 
         v0 <- pure v
-        v1 <- pure v
-        data1 <- pure (v1:data0)
-        (n,b) <- runProcedure @'[ 'Out, 'In, 'Out ] np z
+        (n) <- (do
+          v1 <- pure v
+          data0 <- pure []
+          data1 <- pure (v1:data0)
+          (n,b) <- runProcedure @'[ 'Out, 'In, 'Out ] np z
+          () <- runProcedure @'[ 'In, 'In, 'In ] append data1 b a
+          pure (n)
+         )
         arg1 <- pure (VP v0 n)
-        () <- runProcedure @'[ 'In, 'In, 'In ] append data1 b a
         pure (arg1)
        )
       pure (OneTuple (arg1))
     
     vpOIO = \z -> do
-      -- solution: a[] a[0] a[0,1] arg1[] arg1[0] arg1[0,5] b[0,0] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4]
+      -- solution: a[] a[0] a[0,2] a[0,2,0] a[0,2,0,1] append[0] append[0,2] arg1[] arg1[0] arg1[0,0] b[0,2,0,0] data0[0,2,0,2] data1[0,2,0,3] n[0,2] n[0,2,0] n[0,2,0,0] np[0] np[0,2] v[0,3] v0[0,1] v1[0,2,0,4]
       -- cost: 7
       (a,arg1) <- (do
-        data0 <- pure []
         (OneTuple (v)) <- runProcedure @'[ 'Out ] verb 
         v0 <- pure v
-        v1 <- pure v
-        data1 <- pure (v1:data0)
-        (n,b) <- runProcedure @'[ 'Out, 'In, 'Out ] np z
+        (a,n) <- (do
+          v1 <- pure v
+          data0 <- pure []
+          data1 <- pure (v1:data0)
+          (n,b) <- runProcedure @'[ 'Out, 'In, 'Out ] np z
+          (OneTuple (a)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1 b
+          pure (a,n)
+         )
         arg1 <- pure (VP v0 n)
-        (OneTuple (a)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1 b
         pure (a,arg1)
        )
       pure (arg1,a)
     
     vpOOI = \a -> do
-      -- solution: arg1[] arg1[0] arg1[0,5] b[0,1] data0[0,2] data1[0,3] n[0,0] v[0,7] v0[0,6] v1[0,4] z[] z[0] z[0,0]
+      -- solution: append[0] append[0,2] arg1[] arg1[0] arg1[0,0] b[0,2,0,1] data0[0,2,0,2] data1[0,2,0,3] n[0,2] n[0,2,0] n[0,2,0,0] np[0] np[0,2] v[0,3] v0[0,1] v1[0,2,0,4] z[] z[0] z[0,2] z[0,2,0] z[0,2,0,0]
       -- cost: 7
       (arg1,z) <- (do
-        data0 <- pure []
         (OneTuple (v)) <- runProcedure @'[ 'Out ] verb 
         v0 <- pure v
-        v1 <- pure v
-        data1 <- pure (v1:data0)
-        (OneTuple (b)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1 a
-        (n,z) <- runProcedure @'[ 'Out, 'Out, 'In ] np b
+        (n,z) <- (do
+          v1 <- pure v
+          data0 <- pure []
+          data1 <- pure (v1:data0)
+          (OneTuple (b)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1 a
+          (n,z) <- runProcedure @'[ 'Out, 'Out, 'In ] np b
+          pure (n,z)
+         )
         arg1 <- pure (VP v0 n)
         pure (arg1,z)
        )
       pure (arg1,z)
     
 {- sentence/3
-sentence arg1 z a :- ((vp v z b, np n b a, arg1 = S n v)).
+sentence arg1 z a :- ((arg1 = S n v, ((vp v z b, np n b a)))).
 constraints:
-~np[0]
-~vp[0]
-~(arg1[0,2] & n[0,2])
-~(b[0,0] & b[0,1])
-~(n[0,1] & n[0,2])
-~(v[0,0] & v[0,2])
-(b[0,0] | b[0,1])
-(n[0,1] | n[0,2])
-(v[0,0] | v[0,2])
-((n[0,1] & (b[0,1] & ~a[0,1])) | ((n[0,1] & (~b[0,1] & a[0,1])) | ((n[0,1] & (~b[0,1] & ~a[0,1])) | ((~n[0,1] & (b[0,1] & ~a[0,1])) | ((~n[0,1] & (~b[0,1] & a[0,1])) | (~n[0,1] & (~b[0,1] & ~a[0,1])))))))
-((v[0,0] & (z[0,0] & ~b[0,0])) | ((v[0,0] & (~z[0,0] & b[0,0])) | ((v[0,0] & (~z[0,0] & ~b[0,0])) | ((~v[0,0] & (z[0,0] & ~b[0,0])) | ((~v[0,0] & (~z[0,0] & b[0,0])) | (~v[0,0] & (~z[0,0] & ~b[0,0])))))))
+~np[0,1,0]
+~vp[0,1,0]
+~(arg1[0,0] & n[0,0])
+~(b[0,1,0,0] & b[0,1,0,1])
+~(n[0,0] & n[0,1])
+~(v[0,0] & v[0,1])
+(b[0,1,0,0] | b[0,1,0,1])
+(n[0,0] | n[0,1])
+(v[0,0] | v[0,1])
+((n[0,1,0,1] & (b[0,1,0,1] & ~a[0,1,0,1])) | ((n[0,1,0,1] & (~b[0,1,0,1] & a[0,1,0,1])) | ((n[0,1,0,1] & (~b[0,1,0,1] & ~a[0,1,0,1])) | ((~n[0,1,0,1] & (b[0,1,0,1] & ~a[0,1,0,1])) | ((~n[0,1,0,1] & (~b[0,1,0,1] & a[0,1,0,1])) | (~n[0,1,0,1] & (~b[0,1,0,1] & ~a[0,1,0,1])))))))
+((v[0,1,0,0] & (z[0,1,0,0] & ~b[0,1,0,0])) | ((v[0,1,0,0] & (~z[0,1,0,0] & b[0,1,0,0])) | ((v[0,1,0,0] & (~z[0,1,0,0] & ~b[0,1,0,0])) | ((~v[0,1,0,0] & (z[0,1,0,0] & ~b[0,1,0,0])) | ((~v[0,1,0,0] & (~z[0,1,0,0] & b[0,1,0,0])) | (~v[0,1,0,0] & (~z[0,1,0,0] & ~b[0,1,0,0])))))))
 (a[] <-> a[0])
 (a[0] <-> a[0,1])
+(a[0,1] <-> a[0,1,0])
+(a[0,1,0] <-> a[0,1,0,1])
 (arg1[] <-> arg1[0])
-(arg1[0] <-> arg1[0,2])
-(n[0,2] <-> v[0,2])
+(arg1[0] <-> arg1[0,0])
+(n[0,0] <-> v[0,0])
+(n[0,1] <-> n[0,1,0])
+(n[0,1,0] <-> n[0,1,0,1])
+(np[0] <-> np[0,1])
+(v[0,1] <-> v[0,1,0])
+(v[0,1,0] <-> v[0,1,0,0])
+(vp[0] <-> vp[0,1])
 (z[] <-> z[0])
-(z[0] <-> z[0,0])
+(z[0] <-> z[0,1])
+(z[0,1] <-> z[0,1,0])
+(z[0,1,0] <-> z[0,1,0,0])
 1
 -}
 
 sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 'In, 'In, 'Out ] sentenceIIO) :& (procedure @'[ 'In, 'Out, 'In ] sentenceIOI) :& (procedure @'[ 'Out, 'In, 'In ] sentenceOII) :& (procedure @'[ 'Out, 'In, 'Out ] sentenceOIO) :& (procedure @'[ 'Out, 'Out, 'In ] sentenceOOI) :& RNil
   where
     sentenceIII = \arg1 z a -> Logic.once $ do
-      -- solution: b[0,0] n[0,2] v[0,2]
+      -- solution: b[0,1,0,0] n[0,0] np[0] np[0,1] v[0,0] vp[0] vp[0,1]
       -- cost: 3
       () <- (do
         (S n v) <- pure arg1
-        (OneTuple (b)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v z
-        () <- runProcedure @'[ 'In, 'In, 'In ] np n b a
+        () <- (do
+          (OneTuple (b)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v z
+          () <- runProcedure @'[ 'In, 'In, 'In ] np n b a
+          pure ()
+         )
         pure ()
        )
       pure ()
     
     sentenceIIO = \arg1 z -> do
-      -- solution: a[] a[0] a[0,1] b[0,0] n[0,2] v[0,2]
+      -- solution: a[] a[0] a[0,1] a[0,1,0] a[0,1,0,1] b[0,1,0,0] n[0,0] np[0] np[0,1] v[0,0] vp[0] vp[0,1]
       -- cost: 4
       (a) <- (do
         (S n v) <- pure arg1
-        (OneTuple (b)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v z
-        (OneTuple (a)) <- runProcedure @'[ 'In, 'In, 'Out ] np n b
+        (a) <- (do
+          (OneTuple (b)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v z
+          (OneTuple (a)) <- runProcedure @'[ 'In, 'In, 'Out ] np n b
+          pure (a)
+         )
         pure (a)
        )
       pure (OneTuple (a))
     
     sentenceIOI = \arg1 a -> do
-      -- solution: b[0,1] n[0,2] v[0,2] z[] z[0] z[0,0]
+      -- solution: b[0,1,0,1] n[0,0] np[0] np[0,1] v[0,0] vp[0] vp[0,1] z[] z[0] z[0,1] z[0,1,0] z[0,1,0,0]
       -- cost: 4
       (z) <- (do
         (S n v) <- pure arg1
-        (OneTuple (b)) <- runProcedure @'[ 'In, 'Out, 'In ] np n a
-        (OneTuple (z)) <- runProcedure @'[ 'In, 'Out, 'In ] vp v b
+        (z) <- (do
+          (OneTuple (b)) <- runProcedure @'[ 'In, 'Out, 'In ] np n a
+          (OneTuple (z)) <- runProcedure @'[ 'In, 'Out, 'In ] vp v b
+          pure (z)
+         )
         pure (z)
        )
       pure (OneTuple (z))
     
     sentenceOII = \z a -> do
-      -- solution: arg1[] arg1[0] arg1[0,2] b[0,0] n[0,1] v[0,0]
+      -- solution: arg1[] arg1[0] arg1[0,0] b[0,1,0,0] n[0,1] n[0,1,0] n[0,1,0,1] np[0] np[0,1] v[0,1] v[0,1,0] v[0,1,0,0] vp[0] vp[0,1]
       -- cost: 5
       (arg1) <- (do
-        (v,b) <- runProcedure @'[ 'Out, 'In, 'Out ] vp z
-        (OneTuple (n)) <- runProcedure @'[ 'Out, 'In, 'In ] np b a
+        (n,v) <- (do
+          (v,b) <- runProcedure @'[ 'Out, 'In, 'Out ] vp z
+          (OneTuple (n)) <- runProcedure @'[ 'Out, 'In, 'In ] np b a
+          pure (n,v)
+         )
         arg1 <- pure (S n v)
         pure (arg1)
        )
       pure (OneTuple (arg1))
     
     sentenceOIO = \z -> do
-      -- solution: a[] a[0] a[0,1] arg1[] arg1[0] arg1[0,2] b[0,0] n[0,1] v[0,0]
+      -- solution: a[] a[0] a[0,1] a[0,1,0] a[0,1,0,1] arg1[] arg1[0] arg1[0,0] b[0,1,0,0] n[0,1] n[0,1,0] n[0,1,0,1] np[0] np[0,1] v[0,1] v[0,1,0] v[0,1,0,0] vp[0] vp[0,1]
       -- cost: 6
       (a,arg1) <- (do
-        (v,b) <- runProcedure @'[ 'Out, 'In, 'Out ] vp z
-        (n,a) <- runProcedure @'[ 'Out, 'In, 'Out ] np b
+        (a,n,v) <- (do
+          (v,b) <- runProcedure @'[ 'Out, 'In, 'Out ] vp z
+          (n,a) <- runProcedure @'[ 'Out, 'In, 'Out ] np b
+          pure (a,n,v)
+         )
         arg1 <- pure (S n v)
         pure (a,arg1)
        )
       pure (arg1,a)
     
     sentenceOOI = \a -> do
-      -- solution: arg1[] arg1[0] arg1[0,2] b[0,1] n[0,1] v[0,0] z[] z[0] z[0,0]
+      -- solution: arg1[] arg1[0] arg1[0,0] b[0,1,0,1] n[0,1] n[0,1,0] n[0,1,0,1] np[0] np[0,1] v[0,1] v[0,1,0] v[0,1,0,0] vp[0] vp[0,1] z[] z[0] z[0,1] z[0,1,0] z[0,1,0,0]
       -- cost: 6
       (arg1,z) <- (do
-        (n,b) <- runProcedure @'[ 'Out, 'Out, 'In ] np a
-        (v,z) <- runProcedure @'[ 'Out, 'Out, 'In ] vp b
+        (n,v,z) <- (do
+          (n,b) <- runProcedure @'[ 'Out, 'Out, 'In ] np a
+          (v,z) <- runProcedure @'[ 'Out, 'Out, 'In ] vp b
+          pure (n,v,z)
+         )
         arg1 <- pure (S n v)
         pure (arg1,z)
        )

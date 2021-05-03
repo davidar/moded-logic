@@ -179,8 +179,8 @@ simplify (Atom a) = Atom a
 simp :: Rule u Var -> Rule u Var
 simp r = r {ruleBody = simplify (ruleBody r)}
 
-inlinePreds :: Rule Var Var -> Rule Var Var
-inlinePreds r = r {ruleBody = tGoal [] (ruleBody r)}
+inlinePreds :: [(Name, ([Var], Goal Var))] -> Rule Var Var -> Rule Var Var
+inlinePreds env_ r = r {ruleBody = tGoal env_ (ruleBody r)}
   where
     tGoal :: [(Name, ([Var], Goal Var))] -> Goal Var -> Goal Var
     tGoal env (Disj gs) = Disj $ tGoal env <$> gs

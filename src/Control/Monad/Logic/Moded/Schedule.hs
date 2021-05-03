@@ -4,10 +4,11 @@ module Control.Monad.Logic.Moded.Schedule
   ( ModedVar(..)
   , Procedure(..)
   , CompiledPredicate(..)
+  , CompiledProgram(..)
   , stripMode
   , varMode
   , cost
-  , mode'
+  , compileRule
   ) where
 
 import Algebra.Graph.AdjacencyMap (edges, overlay, vertices)
@@ -17,6 +18,7 @@ import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
   , Name
+  , Pragma(..)
   , Rule(..)
   , Var(..)
   , subgoals
@@ -31,6 +33,7 @@ import Control.Monad.Logic.Moded.Constraints
   )
 import Control.Monad.Logic.Moded.Path (nonlocals)
 import Control.Monad.Logic.Moded.Prelude (modesPrelude)
+import Control.Monad.Logic.Moded.Preprocess (inlinePreds, prunePreds, simp)
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.Foldable (Foldable(toList))
 import Data.List (intercalate)
@@ -58,10 +61,21 @@ data CompiledPredicate =
     , errors :: [String]
     }
 
-type CompiledProgram = [(Name, CompiledPredicate)]
+data CompiledProgram =
+  CompiledProgram
+    { predicates :: [(Name, CompiledPredicate)]
+    , macros :: [(Name, ([Var], Goal Var))]
+    }
 
 instance Show ModedVar where
   show (MV v m) = v ++ "::" ++ show m
+
+instance Semigroup CompiledProgram where
+  CompiledProgram p m <> CompiledProgram p' m' =
+    CompiledProgram (p <> p') (m <> m')
+
+instance Monoid CompiledProgram where
+  mempty = CompiledProgram [] []
 
 data DepNode =
   DepNode Int (Goal ModedVar)
@@ -138,9 +152,13 @@ mode r@(Rule name vars body) soln =
       pure . Atom $ Pred (MV n In) (annotate p <$> vs)
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
-mode' :: CompiledProgram -> Rule Var Var -> CompiledProgram
-mode' procs rule = procs ++ [(ruleName rule, obj)]
+compileRule :: [Pragma] -> CompiledProgram -> Rule Var Var -> CompiledProgram
+compileRule pragmas cp r
+  | Pragma ["inline", ruleName r] `elem` pragmas =
+    cp <> mempty {macros = [(ruleName r, (ruleArgs r, ruleBody r))]}
+  | otherwise = cp <> mempty {predicates = [(ruleName rule, obj)]}
   where
+    rule = simp . prunePreds $ inlinePreds (macros cp) r
     eithers = do
       soln <- Set.elems $ unsafeSolveConstraints m rule
       pure $ do
@@ -159,7 +177,7 @@ mode' procs rule = procs ++ [(ruleName rule, obj)]
         }
     m =
       flip Map.union (Map.map (map ModeString) modesPrelude) . Map.fromList $ do
-        (name', c) <- procs
+        (name', c) <- predicates cp
         pure (name', Map.keys (procedures c))
 
 predMode :: Var -> Constraints -> [Mode]

@@ -19,8 +19,6 @@ import Control.Monad.Logic.Moded.Preprocess
   ( Val(..)
   , combineDefs
   , distinctVars
-  , inlinePreds
-  , prunePreds
   , simp
   , superhomogeneous
   )
@@ -223,9 +221,7 @@ parseProg fn lp = do
         [ (name, length (head modes))
         | (name, modes) <- Map.toAscList modesPrelude
         ]
-      pass1 = simp . distinctVars . superhomogeneous arities
-      pass2 = simp . prunePreds . inlinePreds
-  pure . Prog pragmas $ pass2 . pass1 <$> p'
+  pure . Prog pragmas $ simp . distinctVars . superhomogeneous arities <$> p'
 
 logic :: QuasiQuoter
 logic =

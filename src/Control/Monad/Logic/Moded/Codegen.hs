@@ -17,10 +17,11 @@ import Control.Monad.Logic.Moded.Constraints (Mode(..), ModeString(..))
 import Control.Monad.Logic.Moded.Path (Path, extract, nonlocals)
 import Control.Monad.Logic.Moded.Schedule
   ( CompiledPredicate(..)
+  , CompiledProgram(..)
   , ModedVar(..)
   , Procedure(..)
+  , compileRule
   , cost
-  , mode'
   , stripMode
   , varMode
   )
@@ -231,7 +232,7 @@ compile moduleName (Prog pragmas rules) =
       | Pragma d <- pragmas
       , head d == "data"
       ] ++ do
-        (name, c) <- foldl mode' [] rules
+        (name, c) <- predicates $ foldl (compileRule pragmas) mempty rules
         let arity = length . ruleArgs $ unmodedRule c
             doc =
               T.unlines $
