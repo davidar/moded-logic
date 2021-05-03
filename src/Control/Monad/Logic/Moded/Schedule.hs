@@ -134,7 +134,8 @@ mode r@(Rule name vars body) soln =
                        else error $ show t ++ " not in " ++ show soln
       g' <- walk (p ++ [0]) g
       pure $ Anon (MV n Out) vs' g'
-    walk p (Atom (Pred (V n) vs)) = pure . Atom $ Pred (MV n In) (annotate p <$> vs)
+    walk p (Atom (Pred (V n) vs)) =
+      pure . Atom $ Pred (MV n In) (annotate p <$> vs)
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
 mode' :: CompiledProgram -> Rule Var Var -> CompiledProgram

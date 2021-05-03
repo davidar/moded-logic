@@ -102,7 +102,7 @@ superhomogeneous arities r =
     tAtom (Pred (Var name) vs) = do
       vs' <- mapM tVal vs
       return $ Pred name vs'
-    tAtom Pred{} = error "tAtom Pred"
+    tAtom Pred {} = error "tAtom Pred"
     tGoal :: Goal Val -> State (Int, [Goal Var]) (Goal Var)
     tGoal (Disj gs) = Disj <$> mapM tGoal gs
     tGoal (Conj gs) = Conj <$> mapM tGoal gs
@@ -184,16 +184,20 @@ inlinePreds r = r {ruleBody = tGoal [] (ruleBody r)}
   where
     tGoal :: [(Name, ([Var], Goal Var))] -> Goal Var -> Goal Var
     tGoal env (Disj gs) = Disj $ tGoal env <$> gs
-    tGoal env (Conj gs) = Conj $ do
-      let env' = [(name, (vs, body)) | Anon (V name) vs body <- gs] ++ env
-      g <- gs
-      pure $ case g of
-        Atom (Pred (V name) vs) | Just (us, body) <- lookup name env' ->
-          let binds = zip us vs
-              f u | Just v <- lookup u binds = v
-                  | otherwise = u
-          in tGoal env' (fmap f body)
-        _ -> g
+    tGoal env (Conj gs) =
+      Conj $ do
+        let env' = [(name, (vs, body)) | Anon (V name) vs body <- gs] ++ env
+        g <- gs
+        pure $
+          case g of
+            Atom (Pred (V name) vs)
+              | Just (us, body) <- lookup name env' ->
+                let binds = zip us vs
+                    f u
+                      | Just v <- lookup u binds = v
+                      | otherwise = u
+                 in tGoal env' (fmap f body)
+            _ -> g
     tGoal env (Ifte c t e) = Ifte (tGoal env c) (tGoal env t) (tGoal env e)
     tGoal env (Anon name vs g) = Anon name vs (tGoal env g)
     tGoal _ (Atom a) = Atom a
@@ -206,6 +210,7 @@ prunePreds r = r {ruleBody = tGoal (ruleBody r)}
     tGoal (Conj gs) = Conj $ tGoal <$> gs
     tGoal (Ifte c t e) = Ifte (tGoal c) (tGoal t) (tGoal e)
     tGoal (Anon name vs g)
-      | (length . filter (== name) . toList $ ruleBody r) > 1 = Anon name vs (tGoal g)
+      | (length . filter (== name) . toList $ ruleBody r) > 1 =
+        Anon name vs (tGoal g)
       | otherwise = Conj []
     tGoal (Atom a) = Atom a

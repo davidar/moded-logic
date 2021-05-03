@@ -161,42 +161,45 @@ cAtom m p r =
     Func _ [v] u -> Set.singleton $ nand p u v
     Func _ (v:vs) u ->
       Set.fromList $ nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
-    Pred (V name) vars -> Sat.Neg (term p (V name)) `Set.insert` cPred m p r name vars
+    Pred (V name) vars ->
+      Sat.Neg (term p (V name)) `Set.insert` cPred m p r name vars
 
 cPred :: Modes -> Path -> Rule Var Var -> Name -> [Var] -> Constraints
 cPred m p r name vars
-      | Rule rname rvars _ <- r
-      , name == rname
-      , length vars == length rvars =
-        Set.fromList $ do
-          (u, v) <- zip vars rvars
-          pure $ term p u `Sat.Iff` term [] v
-      | Just modeset <- Map.lookup name m =
-        Set.singleton . cOr . nub . sort $ do
-          ModeString modes <- modeset
-          pure . cAnd $ do
-            (v, mode) <- zip vars modes
-            let t = term p v
-            case mode of
-              In -> pure $ Sat.Neg t
-              Out -> pure t
-              PredMode ms ->
-                Sat.Neg t : do
-                  (i, mode') <- zip [1 ..] ms
-                  let t' = Sat.Var $ ProduceArg v i
-                  pure $
-                    case mode' of
-                      In -> Sat.Neg t'
-                      Out -> t'
-                      PredMode _ -> error "nested modestring"
-      | head name == '('
-      , last name == ')' = Set.singleton . cAnd $ Sat.Neg . term p <$> vars
-      | V name `elem` ruleArgs r =
-        Set.fromList $ do
-          (i, v) <- zip [1 ..] vars
-          pure $ term p v `Sat.Iff` Sat.Var (ProduceArg (V name) i)
-      | otherwise =
-        error $ "unknown predicate " ++ name ++ "/" ++ show (length vars) ++ " in " ++ show r
+  | Rule rname rvars _ <- r
+  , name == rname
+  , length vars == length rvars =
+    Set.fromList $ do
+      (u, v) <- zip vars rvars
+      pure $ term p u `Sat.Iff` term [] v
+  | Just modeset <- Map.lookup name m =
+    Set.singleton . cOr . nub . sort $ do
+      ModeString modes <- modeset
+      pure . cAnd $ do
+        (v, mode) <- zip vars modes
+        let t = term p v
+        case mode of
+          In -> pure $ Sat.Neg t
+          Out -> pure t
+          PredMode ms ->
+            Sat.Neg t : do
+              (i, mode') <- zip [1 ..] ms
+              let t' = Sat.Var $ ProduceArg v i
+              pure $
+                case mode' of
+                  In -> Sat.Neg t'
+                  Out -> t'
+                  PredMode _ -> error "nested modestring"
+  | head name == '('
+  , last name == ')' = Set.singleton . cAnd $ Sat.Neg . term p <$> vars
+  | V name `elem` ruleArgs r =
+    Set.fromList $ do
+      (i, v) <- zip [1 ..] vars
+      pure $ term p v `Sat.Iff` Sat.Var (ProduceArg (V name) i)
+  | otherwise =
+    error $
+    "unknown predicate " ++
+    name ++ "/" ++ show (length vars) ++ " in " ++ show r
 
 constraints :: Modes -> Rule Var Var -> Constraints
 constraints m rule = Set.map f cs
