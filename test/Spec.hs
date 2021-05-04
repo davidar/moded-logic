@@ -339,15 +339,18 @@ span p (x:xs) ys zs :-
   then span p xs yt zs, ys = (x:yt)
   else ys = [], zs = (x:xs)
 
+takeWhile p xs ys :- span p xs ys _
+
 reverseDL [] xs xs
 reverseDL (h:t) rest r :- reverseDL t (h:rest) r
 reverse s r :- reverseDL s [] r
 
 all p []
-all p (h:t) :- if p h then all p t else empty
+all p (h:t) :- p h, all p t
 
 multiple x y :- mod x y 0
 
+#inline apply
 apply f p y :- p x, f x y
 
 #nub euler1
@@ -360,30 +363,27 @@ fib 0 0
 fib 1 1
 fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
 
-fib' f :- nat i, fib i f
+fib' = fib <$> nat
 
-euler2 s :-
-  observeAll (\x :- fib' x, even x) fs
-  span (\x :- x < 1000000) fs xs _, sum xs s
+euler2 = sum <$> takeWhile (\x :- x < 1000000) <$> observeAll (\x :- fib' x, even x)
 
-nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0
+nontrivialDivisor n d :- succ n' n, elem d [2..n'], multiple n d
 
 primeSlow n :- nat n, n > 1, if nontrivialDivisor n _ then empty else
 
-factor (p:ps) n f :-
+factor n (p:ps) f :-
   if timesInt p p pp, pp > n then f = n
-  else if divMod n p d 0 then (f = p; factor (p:ps) d f)
-  else factor ps n f
+  else if divMod n p d 0 then (f = p; factor d (p:ps) f)
+  else factor n ps f
 
 #memo prime
 prime 2
 prime p :-
   oddNat p, p > 2
   observeAll prime primes
-  if factor primes p d, p /= d then empty else
+  if factor p primes d, p /= d then empty else
 
-primeFactor n d :-
-  observeAll prime primes, factor primes n d
+primeFactor n = factor n <$> observeAll prime
 
 euler3 n = maximum <$> observeAll (primeFactor n)
 
