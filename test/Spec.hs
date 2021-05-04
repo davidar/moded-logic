@@ -278,13 +278,13 @@ oddsPlusTest x :- (n = 0; n = 1), oddsPlus n x, even x
 
 oddsPrime n :-
   odds n, n > 1, succ n' n
-  if elem d [1..n'], d > 1, mod n d 0 then empty else
+  not (elem d [1..n'], d > 1, mod n d 0)
 
 nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0
 
 oddsPrimeIO n :-
   odds n, n > 1
-  if nontrivialDivisor n d, print d then empty else
+  not (nontrivialDivisor n d, print d)
 
 bogosort l p :- permute l p, sorted p
 
@@ -369,7 +369,7 @@ euler2 = sum <$> takeWhile (\x :- x < 1000000) <$> observeAll (\x :- fib' x, eve
 
 nontrivialDivisor n d :- succ n' n, elem d [2..n'], multiple n d
 
-primeSlow n :- nat n, n > 1, if nontrivialDivisor n _ then empty else
+primeSlow n :- nat n, n > 1, not (nontrivialDivisor n _)
 
 factor n (p:ps) f :-
   if timesInt p p pp, pp > n then f = n
@@ -381,7 +381,7 @@ prime 2
 prime p :-
   oddNat p, p > 2
   observeAll prime primes
-  if factor p primes d, p /= d then empty else
+  not (factor p primes d, p /= d)
 
 primeFactor n = factor n <$> observeAll prime
 

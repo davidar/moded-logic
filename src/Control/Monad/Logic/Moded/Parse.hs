@@ -70,7 +70,7 @@ rword :: Text -> Parser ()
 rword w = string w *> notFollowedBy alphaNumChar *> spaceConsumer
 
 rws :: [String] -- list of reserved words
-rws = ["if", "then", "else"]
+rws = ["if", "then", "else", "not"]
 
 identifier :: Parser String
 identifier = (lexeme . try) (p >>= check)
@@ -180,6 +180,14 @@ softcut = do
   e <- conj
   pure $ Ifte c t e
 
+neg :: Parser (Goal Val)
+neg = do
+  rword "not"
+  symbol "("
+  c <- conj
+  symbol ")"
+  pure $ Ifte c (Atom $ Pred (Var $ V "empty") []) (Conj [])
+
 disj :: Parser (Goal Val)
 disj = Disj <$> parens (conj `sepBy` symbol ";")
 
@@ -194,7 +202,7 @@ lambda = do
   pure $ Anon (Var $ V name) vars body
 
 goal :: Parser (Goal Val)
-goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> try disj <|> lambda
+goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> neg <|> try disj <|> lambda
 
 conj :: Parser (Goal Val)
 conj =
