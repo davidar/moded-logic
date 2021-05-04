@@ -40,6 +40,7 @@ import Control.Monad.Logic.Moded.Preprocess
   , simp
   )
 import qualified Control.Monad.Logic.Moded.Solver as Sat
+import Control.Monad.State (evalState)
 import Data.Foldable (Foldable(toList))
 import Data.List (intercalate)
 import Data.List.Extra (groupSort)
@@ -163,7 +164,7 @@ compileRule pragmas cp r
     cp <> mempty {macros = [(ruleName r, (ruleArgs r, ruleBody r, mempty))]}
   | otherwise = cp <> mempty {predicates = [(ruleName rule, obj)]}
   where
-    rule = simp . prunePreds $ inlinePreds m (macros cp) r
+    rule = evalState (fixpt (fmap (simp . prunePreds) . inlinePreds m (macros cp)) r) 0
     eithers = do
       soln <- Set.elems $ unsafeSolveConstraints m rule
       pure $ do
@@ -184,6 +185,9 @@ compileRule pragmas cp r
       flip Map.union (Map.map (map ModeString) modesPrelude) . Map.fromList $ do
         (name', c) <- predicates cp
         pure (name', Map.keys (procedures c))
+    fixpt f x = do
+      y <- f x
+      if x == y then pure x else fixpt f y
 
 predMode :: Var -> Constraints -> [Mode]
 predMode name soln = go 1

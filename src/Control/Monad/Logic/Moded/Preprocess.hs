@@ -175,8 +175,10 @@ simplify (Conj gs) = Conj $ conjs ++ other
   where
     gs' = simplify <$> gs
     isConj (Conj _) = True
+    isConj (Disj [Conj _]) = True
     isConj _ = False
     unConj (Conj c) = c
+    unConj (Disj [Conj c]) = c
     unConj _ = undefined
     conjs = concat $ unConj <$> filter isConj gs'
     other = filter (not . isConj) gs'
@@ -189,8 +191,10 @@ simp :: Rule u Var -> Rule u Var
 simp r = r {ruleBody = simplify (ruleBody r)}
 
 inlinePreds ::
-     Map Name [ModeString] -> [(Name, Macro)] -> Rule Var Var -> Rule Var Var
-inlinePreds m env_ r = r {ruleBody = tGoal env_ [] (ruleBody r) `evalState` 0}
+     Map Name [ModeString] -> [(Name, Macro)] -> Rule Var Var -> State Int (Rule Var Var)
+inlinePreds m env_ r = do
+  body' <- tGoal env_ [] (ruleBody r)
+  pure $ r {ruleBody = body'}
   where
     tGoal :: [(Name, Macro)] -> Path -> Goal Var -> State Int (Goal Var)
     tGoal env p (Disj gs) =
@@ -201,9 +205,10 @@ inlinePreds m env_ r = r {ruleBody = tGoal env_ [] (ruleBody r) `evalState` 0}
               env ++ do
                 (c, Anon (V name) vs body) <- zip [0 ..] gs
                 let preds = Set.map V $ ruleName r `Set.insert` Map.keysSet m
+                    macros = Set.fromList $ V . fst <$> env
                     nls = nonlocals (p ++ [c]) r
-                pure (name, (vs, body, preds `Set.union` nls))
-        (c, g) <- zip [0 ..] gs
+                pure (name, (vs, body, Set.unions [preds, macros, nls]))
+        g <- gs
         pure $
           case g of
             Atom (Pred (V name) vs)
@@ -215,7 +220,7 @@ inlinePreds m env_ r = r {ruleBody = tGoal env_ [] (ruleBody r) `evalState` 0}
                       | Just v <- lookup (V u) binds = v
                       | V u `elem` nls = V u
                       | otherwise = V $ u ++ "_" ++ show count
-                tGoal env' (p ++ [c]) (f <$> body)
+                return (f <$> body)
             _ -> return g
     tGoal env p (Ifte c t e) = do
       c' <- tGoal env (p ++ [0]) c
