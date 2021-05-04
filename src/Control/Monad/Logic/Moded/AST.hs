@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveLift, LambdaCase
-  #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable,
+  DeriveLift, LambdaCase #-}
 
 module Control.Monad.Logic.Moded.AST
   ( Prog(..)
@@ -8,8 +8,6 @@ module Control.Monad.Logic.Moded.AST
   , Goal(..)
   , Atom(..)
   , Var(..)
-  , Mode(..)
-  , ModeString(..)
   , Name
   , subgoals
   ) where
@@ -27,7 +25,7 @@ data Atom v
   = Unif v v
   | Func Name [v] v
   | Pred v [v]
-  deriving (Eq, Ord, Functor, Foldable, Lift)
+  deriving (Eq, Ord, Functor, Foldable, Traversable, Lift)
 
 data Goal v
   = Atom (Atom v)
@@ -35,7 +33,7 @@ data Goal v
   | Disj [Goal v]
   | Ifte (Goal v) (Goal v) (Goal v)
   | Anon v [v] (Goal v)
-  deriving (Eq, Ord, Functor, Foldable, Lift)
+  deriving (Eq, Ord, Functor, Foldable, Traversable, Lift)
 
 data Rule u v =
   Rule
@@ -52,18 +50,6 @@ newtype Pragma =
 data Prog u v =
   Prog [Pragma] [Rule u v]
   deriving (Eq, Ord, Lift)
-
-data Mode
-  = In
-  | Out
-  | PredMode [Mode]
-  deriving (Eq, Ord)
-
-newtype ModeString =
-  ModeString
-    { unModeString :: [Mode]
-    }
-  deriving (Eq, Ord)
 
 instance Show Var where
   show (V v) = v
@@ -94,14 +80,6 @@ instance Show Pragma where
 
 instance (Show u, Show v) => Show (Prog u v) where
   show (Prog pragmas rules) = unlines $ map show pragmas ++ map show rules
-
-instance Show Mode where
-  show In = "I"
-  show Out = "O"
-  show (PredMode ms) = "P" ++ show (length ms) ++ show (ModeString ms)
-
-instance Show ModeString where
-  show (ModeString ms) = concat $ show <$> ms
 
 subgoals :: Goal v -> [Goal v]
 subgoals (Conj gs) = gs

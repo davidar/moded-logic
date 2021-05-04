@@ -1,5 +1,6 @@
 module Control.Monad.Logic.Moded.Preprocess
-  ( Val(..)
+  ( Macro
+  , Val(..)
   , combineDefs
   , superhomogeneous
   , distinctVars
@@ -17,9 +18,17 @@ import Control.Monad.Logic.Moded.AST
   , Var(..)
   , subgoals
   )
+import Control.Monad.Logic.Moded.Mode
+import Control.Monad.Logic.Moded.Path
 import Control.Monad.State
 import Data.Foldable (toList)
 import Data.List (group, groupBy, sort, transpose)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
+
+type Macro = ([Var], Goal Var, Set Var)
 
 data Val
   = Var Var
@@ -179,28 +188,44 @@ simplify (Atom a) = Atom a
 simp :: Rule u Var -> Rule u Var
 simp r = r {ruleBody = simplify (ruleBody r)}
 
-inlinePreds :: [(Name, ([Var], Goal Var))] -> Rule Var Var -> Rule Var Var
-inlinePreds env_ r = r {ruleBody = tGoal env_ (ruleBody r)}
+inlinePreds ::
+     Map Name [ModeString] -> [(Name, Macro)] -> Rule Var Var -> Rule Var Var
+inlinePreds m env_ r = r {ruleBody = tGoal env_ [] (ruleBody r) `evalState` 0}
   where
-    tGoal :: [(Name, ([Var], Goal Var))] -> Goal Var -> Goal Var
-    tGoal env (Disj gs) = Disj $ tGoal env <$> gs
-    tGoal env (Conj gs) =
-      Conj $ do
-        let env' = [(name, (vs, body)) | Anon (V name) vs body <- gs] ++ env
-        g <- gs
+    tGoal :: [(Name, Macro)] -> Path -> Goal Var -> State Int (Goal Var)
+    tGoal env p (Disj gs) =
+      Disj <$> sequence [tGoal env (p ++ [d]) g | (d, g) <- zip [0 ..] gs]
+    tGoal env p (Conj gs) =
+      fmap Conj . sequence $ do
+        let env' =
+              env ++ do
+                (c, Anon (V name) vs body) <- zip [0 ..] gs
+                let preds = Set.map V $ ruleName r `Set.insert` Map.keysSet m
+                    nls = nonlocals (p ++ [c]) r
+                pure (name, (vs, body, preds `Set.union` nls))
+        (c, g) <- zip [0 ..] gs
         pure $
           case g of
             Atom (Pred (V name) vs)
-              | Just (us, body) <- lookup name env' ->
+              | Just (us, body, nls) <- lookup name env' -> do
+                count <- get
+                put (count + 1)
                 let binds = zip us vs
-                    f u
-                      | Just v <- lookup u binds = v
-                      | otherwise = u
-                 in tGoal env' (fmap f body)
-            _ -> g
-    tGoal env (Ifte c t e) = Ifte (tGoal env c) (tGoal env t) (tGoal env e)
-    tGoal env (Anon name vs g) = Anon name vs (tGoal env g)
-    tGoal _ (Atom a) = Atom a
+                    f (V u)
+                      | Just v <- lookup (V u) binds = v
+                      | V u `elem` nls = V u
+                      | otherwise = V $ u ++ "_" ++ show count
+                tGoal env' (p ++ [c]) (f <$> body)
+            _ -> return g
+    tGoal env p (Ifte c t e) = do
+      c' <- tGoal env (p ++ [0]) c
+      t' <- tGoal env (p ++ [1]) t
+      e' <- tGoal env (p ++ [2]) e
+      return $ Ifte c' t' e'
+    tGoal env p (Anon name vs g) = do
+      g' <- tGoal env (p ++ [0]) g
+      return $ Anon name vs g'
+    tGoal _ _ (Atom a) = return $ Atom a
 
 prunePreds :: Rule Var Var -> Rule Var Var
 prunePreds r = r {ruleBody = tGoal (ruleBody r)}

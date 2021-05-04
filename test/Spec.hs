@@ -15,8 +15,9 @@ import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, observeAllT)
 import qualified Control.Monad.Logic.Fair as FairLogic
-import Control.Monad.Logic.Moded.AST (Prog, Var, Mode(..))
+import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
+import Control.Monad.Logic.Moded.Mode (Mode(..))
 import Control.Monad.Logic.Moded.Parse (logic, rule)
 import qualified Control.Monad.Logic.Moded.Prelude as MPrelude
 import Control.Monad.Logic.Moded.Preprocess (combineDefs, superhomogeneous, simp)

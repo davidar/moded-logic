@@ -9,7 +9,7 @@ module Control.Monad.Logic.Moded.Procedure
   , PredType
   ) where
 
-import Control.Monad.Logic.Moded.AST (Mode(..))
+import Control.Monad.Logic.Moded.Mode (Mode(..))
 import Data.Tuple.OneTuple (OneTuple(..), only)
 
 data PredType m z as

@@ -33,7 +33,12 @@ import Control.Monad.Logic.Moded.Constraints
   )
 import Control.Monad.Logic.Moded.Path (nonlocals)
 import Control.Monad.Logic.Moded.Prelude (modesPrelude)
-import Control.Monad.Logic.Moded.Preprocess (inlinePreds, prunePreds, simp)
+import Control.Monad.Logic.Moded.Preprocess
+  ( Macro
+  , inlinePreds
+  , prunePreds
+  , simp
+  )
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.Foldable (Foldable(toList))
 import Data.List (intercalate)
@@ -64,7 +69,7 @@ data CompiledPredicate =
 data CompiledProgram =
   CompiledProgram
     { predicates :: [(Name, CompiledPredicate)]
-    , macros :: [(Name, ([Var], Goal Var))]
+    , macros :: [(Name, Macro)]
     }
 
 instance Show ModedVar where
@@ -155,10 +160,10 @@ mode r@(Rule name vars body) soln =
 compileRule :: [Pragma] -> CompiledProgram -> Rule Var Var -> CompiledProgram
 compileRule pragmas cp r
   | Pragma ["inline", ruleName r] `elem` pragmas =
-    cp <> mempty {macros = [(ruleName r, (ruleArgs r, ruleBody r))]}
+    cp <> mempty {macros = [(ruleName r, (ruleArgs r, ruleBody r, mempty))]}
   | otherwise = cp <> mempty {predicates = [(ruleName rule, obj)]}
   where
-    rule = simp . prunePreds $ inlinePreds (macros cp) r
+    rule = simp . prunePreds $ inlinePreds m (macros cp) r
     eithers = do
       soln <- Set.elems $ unsafeSolveConstraints m rule
       pure $ do

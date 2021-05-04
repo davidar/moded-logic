@@ -12,12 +12,11 @@ module Control.Monad.Logic.Moded.Constraints
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
-  , Mode(..)
-  , ModeString(..)
   , Name
   , Rule(..)
   , Var(..)
   )
+import Control.Monad.Logic.Moded.Mode (Mode(..), ModeString(..))
 import Control.Monad.Logic.Moded.Path
   ( Path
   , extendPath
