@@ -314,9 +314,9 @@ noun "cat"
 noun "bat"
 verb "eats"
 
-np (NP d n) = append [d,n] :- det d, noun n
-vp (VP v n) = compose (append [v]) (np n) :- verb v
-sentence (S n v) = compose (np n) (vp v)
+np (NP d n) = compose (append d) (compose (append " ") (append n)) :- det d, noun n
+vp (VP v n) = compose (append v) (compose (append " ") (np n)) :- verb v
+sentence (S n v) = compose (np n) (compose (append " ") (vp v))
 |]
 
 programEuler :: Prog Var Var
@@ -569,10 +569,10 @@ main = do
       it "sentence" $ do
         let dets = ["a", "the"]
             nouns = ["bat", "cat"]
-            sent = words "the bat eats a cat"
+            sent = "the bat eats a cat"
             tree = DCG.S (DCG.NP "the" "bat") (DCG.VP "eats" (DCG.NP "a" "cat"))
         List.sort (snd <$> observeAll (call @'[Out, In, Out] DCG.sentence [])) `shouldBe`
-          [[d, n, "eats", d', n'] | d <- dets, n <- nouns, d' <- dets, n' <- nouns]
+          [unwords [d, n, "eats", d', n'] | d <- dets, n <- nouns, d' <- dets, n' <- nouns]
         observeAll (call @'[Out, In, In] DCG.sentence [] sent) `shouldBe` [tree]
         observeAll (call @'[In, In, Out] DCG.sentence tree []) `shouldBe` [sent]
     describe "Euler" $ do
