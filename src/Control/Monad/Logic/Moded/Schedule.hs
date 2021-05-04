@@ -164,7 +164,10 @@ compileRule pragmas cp r
     cp <> mempty {macros = [(ruleName r, (ruleArgs r, ruleBody r, mempty))]}
   | otherwise = cp <> mempty {predicates = [(ruleName rule, obj)]}
   where
-    rule = evalState (fixpt (fmap (simp . prunePreds) . inlinePreds m (macros cp)) r) 0
+    rule =
+      evalState
+        (fixpt (fmap (simp . prunePreds) . inlinePreds m (macros cp)) r)
+        0
     eithers = do
       soln <- Set.elems $ unsafeSolveConstraints m rule
       pure $ do
@@ -187,7 +190,9 @@ compileRule pragmas cp r
         pure (name', Map.keys (procedures c))
     fixpt f x = do
       y <- f x
-      if x == y then pure x else fixpt f y
+      if x == y
+        then pure x
+        else fixpt f y
 
 predMode :: Var -> Constraints -> [Mode]
 predMode name soln = go 1

@@ -353,7 +353,7 @@ apply f p y :- p x, f x y
 #nub euler1
 euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5)
 
-euler1' s :- apply sum (observeAll euler1) s
+euler1' = sum <$> observeAll euler1
 
 #memo fib
 fib 0 0
@@ -385,13 +385,13 @@ prime p :-
 primeFactor n d :-
   observeAll prime primes, factor primes n d
 
-euler3 n r :- apply maximum (observeAll (primeFactor n)) r
+euler3 n = maximum <$> observeAll (primeFactor n)
 
 euler4 n :-
   elem x [10..99], elem y [10..99], timesInt x y n
   show n s, reverse s s
 
-euler4' n :- apply maximum (observeAll euler4) n
+euler4' = maximum <$> observeAll euler4
 
 euler5 n :- nat n, n > 0, all (multiple n) [1..5]
 |]

@@ -91,9 +91,14 @@ parenValue' :: Parser Val
 parenValue' =
   try
     (do lhs <- parenValue
-        symbol "."
+        symbol "." -- Control.Category
         rhs <- parenValue'
         pure $ Curry "compose" [lhs, rhs]) <|>
+  try
+    (do lhs <- parenValue
+        symbol "<$>" -- Control.Categorical.Functor
+        rhs <- parenValue'
+        pure $ Curry "apply" [lhs, rhs]) <|>
   parenValue
 
 parenValue :: Parser Val
@@ -240,23 +245,22 @@ parseProg fn lp = do
     forM (zip [1 :: Int ..] inputs) $ \(i, line) ->
       parse (spaceConsumer *> parseLine <* eof) (fn ++ ":" ++ show i) line
   let pragmas = [pr | PPragma pr <- prs]
-      p = [r | PRule r <- prs]
       arities rs =
         [(ruleName r, length (ruleArgs r)) | r <- rs] ++
         [ (name, length (head modes))
         | (name, modes) <- Map.toAscList modesPrelude
         ]
-      p' =
-        p ++ do
-          PDef name vars (Curry v vs) ctxt <- prs
-          let arity =
-                case lookup v (arities p) of
-                  Just n -> n
-                  Nothing -> error $ "unknown predicate " ++ v
-              k = arity - length vs
-              extra = [Var . V $ "curry" ++ show i | i <- [1 .. k]]
-              g = Atom $ Pred (Var $ V v) (vs ++ extra)
-          pure $ Rule name (vars ++ extra) (Conj [g, ctxt])
+      extractRule rs (PRule r) = rs ++ [r]
+      extractRule rs (PDef name vars (Curry v vs) ctxt) =
+        let arity =
+              case lookup v (arities rs) of
+                Just n -> n
+                Nothing -> error $ "unknown predicate " ++ v
+            extra = [Var . V $ "carg" ++ show i | i <- [length vs + 1 .. arity]]
+            g = Atom $ Pred (Var $ V v) (vs ++ extra)
+         in rs ++ [Rule name (vars ++ extra) (Conj [g, ctxt])]
+      extractRule rs _ = rs
+      p' = foldl extractRule [] prs
   pure . Prog pragmas $
     simp . distinctVars . superhomogeneous (arities p') <$> combineDefs p'
 

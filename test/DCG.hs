@@ -229,7 +229,7 @@ verb = rget $ (procedure @'[ 'In ] verbI) :& (procedure @'[ 'Out ] verbO) :& RNi
       pure (OneTuple (arg1))
     
 {- np/3
-np arg1 curry1 curry2 :- ((append n curry1 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", append d b_0 curry2, arg1 = NP d n, det d, noun n)).
+np arg1 carg3 carg4 :- ((append n carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", append d b_0 carg4, arg1 = NP d n, det d, noun n)).
 constraints:
 ~append[0]
 ~det[0]
@@ -251,22 +251,22 @@ constraints:
 (data1_1_5[0,1] | data1_1_5[0,2])
 (n[0,0] | (n[0,4] | n[0,6]))
 (n[0,6] | ~n[0,6])
-((d[0,3] & (b_0[0,3] & ~curry2[0,3])) | ((d[0,3] & (~b_0[0,3] & ~curry2[0,3])) | ((~d[0,3] & (b_0[0,3] & ~curry2[0,3])) | ((~d[0,3] & (~b_0[0,3] & curry2[0,3])) | (~d[0,3] & (~b_0[0,3] & ~curry2[0,3]))))))
+((d[0,3] & (b_0[0,3] & ~carg4[0,3])) | ((d[0,3] & (~b_0[0,3] & ~carg4[0,3])) | ((~d[0,3] & (b_0[0,3] & ~carg4[0,3])) | ((~d[0,3] & (~b_0[0,3] & carg4[0,3])) | (~d[0,3] & (~b_0[0,3] & ~carg4[0,3]))))))
 ((data1_1_5[0,1] & (b_3[0,1] & ~b_0[0,1])) | ((data1_1_5[0,1] & (~b_3[0,1] & ~b_0[0,1])) | ((~data1_1_5[0,1] & (b_3[0,1] & ~b_0[0,1])) | ((~data1_1_5[0,1] & (~b_3[0,1] & b_0[0,1])) | (~data1_1_5[0,1] & (~b_3[0,1] & ~b_0[0,1]))))))
-((n[0,0] & (curry1[0,0] & ~b_3[0,0])) | ((n[0,0] & (~curry1[0,0] & ~b_3[0,0])) | ((~n[0,0] & (curry1[0,0] & ~b_3[0,0])) | ((~n[0,0] & (~curry1[0,0] & b_3[0,0])) | (~n[0,0] & (~curry1[0,0] & ~b_3[0,0]))))))
+((n[0,0] & (carg3[0,0] & ~b_3[0,0])) | ((n[0,0] & (~carg3[0,0] & ~b_3[0,0])) | ((~n[0,0] & (carg3[0,0] & ~b_3[0,0])) | ((~n[0,0] & (~carg3[0,0] & b_3[0,0])) | (~n[0,0] & (~carg3[0,0] & ~b_3[0,0]))))))
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,4])
-(curry1[] <-> curry1[0])
-(curry1[0] <-> curry1[0,0])
-(curry2[] <-> curry2[0])
-(curry2[0] <-> curry2[0,3])
+(carg3[] <-> carg3[0])
+(carg3[0] <-> carg3[0,0])
+(carg4[] <-> carg4[0])
+(carg4[0] <-> carg4[0,3])
 (d[0,4] <-> n[0,4])
 1
 -}
 
 np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'Out ] npIIO) :& (procedure @'[ 'In, 'Out, 'In ] npIOI) :& (procedure @'[ 'Out, 'In, 'In ] npOII) :& (procedure @'[ 'Out, 'In, 'Out ] npOIO) :& (procedure @'[ 'Out, 'Out, 'In ] npOOI) :& RNil
   where
-    npIII = \arg1 curry1 curry2 -> Logic.once $ do
+    npIII = \arg1 carg3 carg4 -> Logic.once $ do
       -- solution: b_0[0,1] b_3[0,0] d[0,4] data1_1_5[0,2] n[0,4]
       -- cost: 7
       () <- (do
@@ -274,90 +274,90 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
         (NP d n) <- pure arg1
         () <- runProcedure @'[ 'In ] det d
         () <- runProcedure @'[ 'In ] noun n
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n curry1
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        () <- runProcedure @'[ 'In, 'In, 'In ] append d b_0 curry2
+        () <- runProcedure @'[ 'In, 'In, 'In ] append d b_0 carg4
         pure ()
        )
       pure ()
     
-    npIIO = \arg1 curry1 -> do
-      -- solution: b_0[0,1] b_3[0,0] curry2[] curry2[0] curry2[0,3] d[0,4] data1_1_5[0,2] n[0,4]
+    npIIO = \arg1 carg3 -> do
+      -- solution: b_0[0,1] b_3[0,0] carg4[] carg4[0] carg4[0,3] d[0,4] data1_1_5[0,2] n[0,4]
       -- cost: 8
-      (curry2) <- (do
+      (carg4) <- (do
         data1_1_5 <- pure " "
         (NP d n) <- pure arg1
         () <- runProcedure @'[ 'In ] det d
         () <- runProcedure @'[ 'In ] noun n
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n curry1
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (curry2)) <- runProcedure @'[ 'In, 'In, 'Out ] append d b_0
-        pure (curry2)
+        (OneTuple (carg4)) <- runProcedure @'[ 'In, 'In, 'Out ] append d b_0
+        pure (carg4)
        )
-      pure (OneTuple (curry2))
+      pure (OneTuple (carg4))
     
-    npIOI = \arg1 curry2 -> do
-      -- solution: b_0[0,3] b_3[0,1] curry1[] curry1[0] curry1[0,0] d[0,4] data1_1_5[0,2] n[0,4]
+    npIOI = \arg1 carg4 -> do
+      -- solution: b_0[0,3] b_3[0,1] carg3[] carg3[0] carg3[0,0] d[0,4] data1_1_5[0,2] n[0,4]
       -- cost: 8
-      (curry1) <- (do
+      (carg3) <- (do
         data1_1_5 <- pure " "
         (NP d n) <- pure arg1
         () <- runProcedure @'[ 'In ] det d
         () <- runProcedure @'[ 'In ] noun n
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append d curry2
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append d carg4
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
-        (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out, 'In ] append n b_3
-        pure (curry1)
+        (OneTuple (carg3)) <- runProcedure @'[ 'In, 'Out, 'In ] append n b_3
+        pure (carg3)
        )
-      pure (OneTuple (curry1))
+      pure (OneTuple (carg3))
     
-    npOII = \curry1 curry2 -> do
+    npOII = \carg3 carg4 -> do
       -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] d[0,3] data1_1_5[0,2] n[0,6]
       -- cost: 9
       (arg1) <- (do
         data1_1_5 <- pure " "
         (OneTuple (n)) <- runProcedure @'[ 'Out ] noun 
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n curry1
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (d)) <- runProcedure @'[ 'Out, 'In, 'In ] append b_0 curry2
+        (OneTuple (d)) <- runProcedure @'[ 'Out, 'In, 'In ] append b_0 carg4
         arg1 <- pure (NP d n)
         () <- runProcedure @'[ 'In ] det d
         pure (arg1)
        )
       pure (OneTuple (arg1))
     
-    npOIO = \curry1 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] curry2[] curry2[0] curry2[0,3] d[0,5] data1_1_5[0,2] n[0,6]
+    npOIO = \carg3 -> do
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] carg4[] carg4[0] carg4[0,3] d[0,5] data1_1_5[0,2] n[0,6]
       -- cost: 10
-      (arg1,curry2) <- (do
+      (arg1,carg4) <- (do
         data1_1_5 <- pure " "
         (OneTuple (d)) <- runProcedure @'[ 'Out ] det 
         (OneTuple (n)) <- runProcedure @'[ 'Out ] noun 
         arg1 <- pure (NP d n)
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n curry1
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (curry2)) <- runProcedure @'[ 'In, 'In, 'Out ] append d b_0
-        pure (arg1,curry2)
+        (OneTuple (carg4)) <- runProcedure @'[ 'In, 'In, 'Out ] append d b_0
+        pure (arg1,carg4)
        )
-      pure (arg1,curry2)
+      pure (arg1,carg4)
     
-    npOOI = \curry2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] curry1[] curry1[0] curry1[0,0] d[0,3] data1_1_5[0,2] n[0,0]
+    npOOI = \carg4 -> do
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] carg3[] carg3[0] carg3[0,0] d[0,3] data1_1_5[0,2] n[0,0]
       -- cost: 10
-      (arg1,curry1) <- (do
+      (arg1,carg3) <- (do
         data1_1_5 <- pure " "
-        (d,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] append curry2
+        (d,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] append carg4
         () <- runProcedure @'[ 'In ] det d
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
-        (n,curry1) <- runProcedure @'[ 'Out, 'Out, 'In ] append b_3
+        (n,carg3) <- runProcedure @'[ 'Out, 'Out, 'In ] append b_3
         arg1 <- pure (NP d n)
         () <- runProcedure @'[ 'In ] noun n
-        pure (arg1,curry1)
+        pure (arg1,carg3)
        )
-      pure (arg1,curry1)
+      pure (arg1,carg3)
     
 {- vp/3
-vp arg1 curry1 curry2 :- ((np n curry1 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", append v b_0 curry2, arg1 = VP v n, verb v)).
+vp arg1 carg3 carg4 :- ((np n carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", append v b_0 carg4, arg1 = VP v n, verb v)).
 constraints:
 ~append[0]
 ~np[0]
@@ -377,106 +377,106 @@ constraints:
 (v[0,3] | (v[0,4] | v[0,5]))
 (v[0,5] | ~v[0,5])
 ((data1_1_5[0,1] & (b_3[0,1] & ~b_0[0,1])) | ((data1_1_5[0,1] & (~b_3[0,1] & ~b_0[0,1])) | ((~data1_1_5[0,1] & (b_3[0,1] & ~b_0[0,1])) | ((~data1_1_5[0,1] & (~b_3[0,1] & b_0[0,1])) | (~data1_1_5[0,1] & (~b_3[0,1] & ~b_0[0,1]))))))
-((n[0,0] & (curry1[0,0] & ~b_3[0,0])) | ((n[0,0] & (~curry1[0,0] & b_3[0,0])) | ((n[0,0] & (~curry1[0,0] & ~b_3[0,0])) | ((~n[0,0] & (curry1[0,0] & ~b_3[0,0])) | ((~n[0,0] & (~curry1[0,0] & b_3[0,0])) | (~n[0,0] & (~curry1[0,0] & ~b_3[0,0])))))))
-((v[0,3] & (b_0[0,3] & ~curry2[0,3])) | ((v[0,3] & (~b_0[0,3] & ~curry2[0,3])) | ((~v[0,3] & (b_0[0,3] & ~curry2[0,3])) | ((~v[0,3] & (~b_0[0,3] & curry2[0,3])) | (~v[0,3] & (~b_0[0,3] & ~curry2[0,3]))))))
+((n[0,0] & (carg3[0,0] & ~b_3[0,0])) | ((n[0,0] & (~carg3[0,0] & b_3[0,0])) | ((n[0,0] & (~carg3[0,0] & ~b_3[0,0])) | ((~n[0,0] & (carg3[0,0] & ~b_3[0,0])) | ((~n[0,0] & (~carg3[0,0] & b_3[0,0])) | (~n[0,0] & (~carg3[0,0] & ~b_3[0,0])))))))
+((v[0,3] & (b_0[0,3] & ~carg4[0,3])) | ((v[0,3] & (~b_0[0,3] & ~carg4[0,3])) | ((~v[0,3] & (b_0[0,3] & ~carg4[0,3])) | ((~v[0,3] & (~b_0[0,3] & carg4[0,3])) | (~v[0,3] & (~b_0[0,3] & ~carg4[0,3]))))))
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,4])
-(curry1[] <-> curry1[0])
-(curry1[0] <-> curry1[0,0])
-(curry2[] <-> curry2[0])
-(curry2[0] <-> curry2[0,3])
+(carg3[] <-> carg3[0])
+(carg3[0] <-> carg3[0,0])
+(carg4[] <-> carg4[0])
+(carg4[0] <-> carg4[0,3])
 (v[0,4] <-> n[0,4])
 1
 -}
 
 vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'Out ] vpIIO) :& (procedure @'[ 'In, 'Out, 'In ] vpIOI) :& (procedure @'[ 'Out, 'In, 'In ] vpOII) :& (procedure @'[ 'Out, 'In, 'Out ] vpOIO) :& (procedure @'[ 'Out, 'Out, 'In ] vpOOI) :& RNil
   where
-    vpIII = \arg1 curry1 curry2 -> Logic.once $ do
+    vpIII = \arg1 carg3 carg4 -> Logic.once $ do
       -- solution: b_0[0,1] b_3[0,0] data1_1_5[0,2] n[0,4] v[0,4]
       -- cost: 6
       () <- (do
         data1_1_5 <- pure " "
         (VP v n) <- pure arg1
         () <- runProcedure @'[ 'In ] verb v
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] np n curry1
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] np n carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        () <- runProcedure @'[ 'In, 'In, 'In ] append v b_0 curry2
+        () <- runProcedure @'[ 'In, 'In, 'In ] append v b_0 carg4
         pure ()
        )
       pure ()
     
-    vpIIO = \arg1 curry1 -> do
-      -- solution: b_0[0,1] b_3[0,0] curry2[] curry2[0] curry2[0,3] data1_1_5[0,2] n[0,4] v[0,4]
+    vpIIO = \arg1 carg3 -> do
+      -- solution: b_0[0,1] b_3[0,0] carg4[] carg4[0] carg4[0,3] data1_1_5[0,2] n[0,4] v[0,4]
       -- cost: 7
-      (curry2) <- (do
+      (carg4) <- (do
         data1_1_5 <- pure " "
         (VP v n) <- pure arg1
         () <- runProcedure @'[ 'In ] verb v
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] np n curry1
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] np n carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (curry2)) <- runProcedure @'[ 'In, 'In, 'Out ] append v b_0
-        pure (curry2)
+        (OneTuple (carg4)) <- runProcedure @'[ 'In, 'In, 'Out ] append v b_0
+        pure (carg4)
        )
-      pure (OneTuple (curry2))
+      pure (OneTuple (carg4))
     
-    vpIOI = \arg1 curry2 -> do
-      -- solution: b_0[0,3] b_3[0,1] curry1[] curry1[0] curry1[0,0] data1_1_5[0,2] n[0,4] v[0,4]
+    vpIOI = \arg1 carg4 -> do
+      -- solution: b_0[0,3] b_3[0,1] carg3[] carg3[0] carg3[0,0] data1_1_5[0,2] n[0,4] v[0,4]
       -- cost: 7
-      (curry1) <- (do
+      (carg3) <- (do
         data1_1_5 <- pure " "
         (VP v n) <- pure arg1
         () <- runProcedure @'[ 'In ] verb v
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append v curry2
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append v carg4
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
-        (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out, 'In ] np n b_3
-        pure (curry1)
+        (OneTuple (carg3)) <- runProcedure @'[ 'In, 'Out, 'In ] np n b_3
+        pure (carg3)
        )
-      pure (OneTuple (curry1))
+      pure (OneTuple (carg3))
     
-    vpOII = \curry1 curry2 -> do
+    vpOII = \carg3 carg4 -> do
       -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] data1_1_5[0,2] n[0,0] v[0,3]
       -- cost: 8
       (arg1) <- (do
         data1_1_5 <- pure " "
-        (n,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] np curry1
+        (n,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] np carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (v)) <- runProcedure @'[ 'Out, 'In, 'In ] append b_0 curry2
+        (OneTuple (v)) <- runProcedure @'[ 'Out, 'In, 'In ] append b_0 carg4
         arg1 <- pure (VP v n)
         () <- runProcedure @'[ 'In ] verb v
         pure (arg1)
        )
       pure (OneTuple (arg1))
     
-    vpOIO = \curry1 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] curry2[] curry2[0] curry2[0,3] data1_1_5[0,2] n[0,0] v[0,5]
+    vpOIO = \carg3 -> do
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] carg4[] carg4[0] carg4[0,3] data1_1_5[0,2] n[0,0] v[0,5]
       -- cost: 9
-      (arg1,curry2) <- (do
+      (arg1,carg4) <- (do
         data1_1_5 <- pure " "
         (OneTuple (v)) <- runProcedure @'[ 'Out ] verb 
-        (n,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] np curry1
+        (n,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] np carg3
         arg1 <- pure (VP v n)
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (curry2)) <- runProcedure @'[ 'In, 'In, 'Out ] append v b_0
-        pure (arg1,curry2)
+        (OneTuple (carg4)) <- runProcedure @'[ 'In, 'In, 'Out ] append v b_0
+        pure (arg1,carg4)
        )
-      pure (arg1,curry2)
+      pure (arg1,carg4)
     
-    vpOOI = \curry2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] curry1[] curry1[0] curry1[0,0] data1_1_5[0,2] n[0,0] v[0,3]
+    vpOOI = \carg4 -> do
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] carg3[] carg3[0] carg3[0,0] data1_1_5[0,2] n[0,0] v[0,3]
       -- cost: 9
-      (arg1,curry1) <- (do
+      (arg1,carg3) <- (do
         data1_1_5 <- pure " "
-        (v,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] append curry2
+        (v,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] append carg4
         () <- runProcedure @'[ 'In ] verb v
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
-        (n,curry1) <- runProcedure @'[ 'Out, 'Out, 'In ] np b_3
+        (n,carg3) <- runProcedure @'[ 'Out, 'Out, 'In ] np b_3
         arg1 <- pure (VP v n)
-        pure (arg1,curry1)
+        pure (arg1,carg3)
        )
-      pure (arg1,curry1)
+      pure (arg1,carg3)
     
 {- sentence/3
-sentence arg1 curry1 curry2 :- ((vp v curry1 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", np n b_0 curry2, arg1 = S n v)).
+sentence arg1 carg3 carg4 :- ((vp v carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", np n b_0 carg4, arg1 = S n v)).
 constraints:
 ~append[0]
 ~np[0]
@@ -493,95 +493,95 @@ constraints:
 (n[0,3] | n[0,4])
 (v[0,0] | v[0,4])
 ((data1_1_5[0,1] & (b_3[0,1] & ~b_0[0,1])) | ((data1_1_5[0,1] & (~b_3[0,1] & ~b_0[0,1])) | ((~data1_1_5[0,1] & (b_3[0,1] & ~b_0[0,1])) | ((~data1_1_5[0,1] & (~b_3[0,1] & b_0[0,1])) | (~data1_1_5[0,1] & (~b_3[0,1] & ~b_0[0,1]))))))
-((n[0,3] & (b_0[0,3] & ~curry2[0,3])) | ((n[0,3] & (~b_0[0,3] & curry2[0,3])) | ((n[0,3] & (~b_0[0,3] & ~curry2[0,3])) | ((~n[0,3] & (b_0[0,3] & ~curry2[0,3])) | ((~n[0,3] & (~b_0[0,3] & curry2[0,3])) | (~n[0,3] & (~b_0[0,3] & ~curry2[0,3])))))))
-((v[0,0] & (curry1[0,0] & ~b_3[0,0])) | ((v[0,0] & (~curry1[0,0] & b_3[0,0])) | ((v[0,0] & (~curry1[0,0] & ~b_3[0,0])) | ((~v[0,0] & (curry1[0,0] & ~b_3[0,0])) | ((~v[0,0] & (~curry1[0,0] & b_3[0,0])) | (~v[0,0] & (~curry1[0,0] & ~b_3[0,0])))))))
+((n[0,3] & (b_0[0,3] & ~carg4[0,3])) | ((n[0,3] & (~b_0[0,3] & carg4[0,3])) | ((n[0,3] & (~b_0[0,3] & ~carg4[0,3])) | ((~n[0,3] & (b_0[0,3] & ~carg4[0,3])) | ((~n[0,3] & (~b_0[0,3] & carg4[0,3])) | (~n[0,3] & (~b_0[0,3] & ~carg4[0,3])))))))
+((v[0,0] & (carg3[0,0] & ~b_3[0,0])) | ((v[0,0] & (~carg3[0,0] & b_3[0,0])) | ((v[0,0] & (~carg3[0,0] & ~b_3[0,0])) | ((~v[0,0] & (carg3[0,0] & ~b_3[0,0])) | ((~v[0,0] & (~carg3[0,0] & b_3[0,0])) | (~v[0,0] & (~carg3[0,0] & ~b_3[0,0])))))))
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,4])
-(curry1[] <-> curry1[0])
-(curry1[0] <-> curry1[0,0])
-(curry2[] <-> curry2[0])
-(curry2[0] <-> curry2[0,3])
+(carg3[] <-> carg3[0])
+(carg3[0] <-> carg3[0,0])
+(carg4[] <-> carg4[0])
+(carg4[0] <-> carg4[0,3])
 (n[0,4] <-> v[0,4])
 1
 -}
 
 sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 'In, 'In, 'Out ] sentenceIIO) :& (procedure @'[ 'In, 'Out, 'In ] sentenceIOI) :& (procedure @'[ 'Out, 'In, 'In ] sentenceOII) :& (procedure @'[ 'Out, 'In, 'Out ] sentenceOIO) :& (procedure @'[ 'Out, 'Out, 'In ] sentenceOOI) :& RNil
   where
-    sentenceIII = \arg1 curry1 curry2 -> Logic.once $ do
+    sentenceIII = \arg1 carg3 carg4 -> Logic.once $ do
       -- solution: b_0[0,1] b_3[0,0] data1_1_5[0,2] n[0,4] v[0,4]
       -- cost: 5
       () <- (do
         data1_1_5 <- pure " "
         (S n v) <- pure arg1
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v curry1
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        () <- runProcedure @'[ 'In, 'In, 'In ] np n b_0 curry2
+        () <- runProcedure @'[ 'In, 'In, 'In ] np n b_0 carg4
         pure ()
        )
       pure ()
     
-    sentenceIIO = \arg1 curry1 -> do
-      -- solution: b_0[0,1] b_3[0,0] curry2[] curry2[0] curry2[0,3] data1_1_5[0,2] n[0,4] v[0,4]
+    sentenceIIO = \arg1 carg3 -> do
+      -- solution: b_0[0,1] b_3[0,0] carg4[] carg4[0] carg4[0,3] data1_1_5[0,2] n[0,4] v[0,4]
       -- cost: 6
-      (curry2) <- (do
+      (carg4) <- (do
         data1_1_5 <- pure " "
         (S n v) <- pure arg1
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v curry1
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (curry2)) <- runProcedure @'[ 'In, 'In, 'Out ] np n b_0
-        pure (curry2)
+        (OneTuple (carg4)) <- runProcedure @'[ 'In, 'In, 'Out ] np n b_0
+        pure (carg4)
        )
-      pure (OneTuple (curry2))
+      pure (OneTuple (carg4))
     
-    sentenceIOI = \arg1 curry2 -> do
-      -- solution: b_0[0,3] b_3[0,1] curry1[] curry1[0] curry1[0,0] data1_1_5[0,2] n[0,4] v[0,4]
+    sentenceIOI = \arg1 carg4 -> do
+      -- solution: b_0[0,3] b_3[0,1] carg3[] carg3[0] carg3[0,0] data1_1_5[0,2] n[0,4] v[0,4]
       -- cost: 6
-      (curry1) <- (do
+      (carg3) <- (do
         data1_1_5 <- pure " "
         (S n v) <- pure arg1
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] np n curry2
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] np n carg4
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
-        (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out, 'In ] vp v b_3
-        pure (curry1)
+        (OneTuple (carg3)) <- runProcedure @'[ 'In, 'Out, 'In ] vp v b_3
+        pure (carg3)
        )
-      pure (OneTuple (curry1))
+      pure (OneTuple (carg3))
     
-    sentenceOII = \curry1 curry2 -> do
+    sentenceOII = \carg3 carg4 -> do
       -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] data1_1_5[0,2] n[0,3] v[0,0]
       -- cost: 7
       (arg1) <- (do
         data1_1_5 <- pure " "
-        (v,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] vp curry1
+        (v,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] vp carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (n)) <- runProcedure @'[ 'Out, 'In, 'In ] np b_0 curry2
+        (OneTuple (n)) <- runProcedure @'[ 'Out, 'In, 'In ] np b_0 carg4
         arg1 <- pure (S n v)
         pure (arg1)
        )
       pure (OneTuple (arg1))
     
-    sentenceOIO = \curry1 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] curry2[] curry2[0] curry2[0,3] data1_1_5[0,2] n[0,3] v[0,0]
+    sentenceOIO = \carg3 -> do
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] carg4[] carg4[0] carg4[0,3] data1_1_5[0,2] n[0,3] v[0,0]
       -- cost: 8
-      (arg1,curry2) <- (do
+      (arg1,carg4) <- (do
         data1_1_5 <- pure " "
-        (v,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] vp curry1
+        (v,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] vp carg3
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (n,curry2) <- runProcedure @'[ 'Out, 'In, 'Out ] np b_0
+        (n,carg4) <- runProcedure @'[ 'Out, 'In, 'Out ] np b_0
         arg1 <- pure (S n v)
-        pure (arg1,curry2)
+        pure (arg1,carg4)
        )
-      pure (arg1,curry2)
+      pure (arg1,carg4)
     
-    sentenceOOI = \curry2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] curry1[] curry1[0] curry1[0,0] data1_1_5[0,2] n[0,3] v[0,0]
+    sentenceOOI = \carg4 -> do
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] carg3[] carg3[0] carg3[0,0] data1_1_5[0,2] n[0,3] v[0,0]
       -- cost: 8
-      (arg1,curry1) <- (do
+      (arg1,carg3) <- (do
         data1_1_5 <- pure " "
-        (n,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] np curry2
+        (n,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] np carg4
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
-        (v,curry1) <- runProcedure @'[ 'Out, 'Out, 'In ] vp b_3
+        (v,carg3) <- runProcedure @'[ 'Out, 'Out, 'In ] vp b_3
         arg1 <- pure (S n v)
-        pure (arg1,curry1)
+        pure (arg1,carg3)
        )
-      pure (arg1,curry1)
+      pure (arg1,carg3)
     

@@ -191,7 +191,10 @@ simp :: Rule u Var -> Rule u Var
 simp r = r {ruleBody = simplify (ruleBody r)}
 
 inlinePreds ::
-     Map Name [ModeString] -> [(Name, Macro)] -> Rule Var Var -> State Int (Rule Var Var)
+     Map Name [ModeString]
+  -> [(Name, Macro)]
+  -> Rule Var Var
+  -> State Int (Rule Var Var)
 inlinePreds m env_ r = do
   body' <- tGoal env_ [] (ruleBody r)
   pure $ r {ruleBody = body'}
