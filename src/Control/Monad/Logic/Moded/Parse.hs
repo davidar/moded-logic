@@ -87,6 +87,15 @@ operator = lexeme $ some (oneOf ("!#$%&*+./<=>?@\\^|-~:" :: [Char]))
 variable :: Parser Val
 variable = (symbol "_" >> pure (Var (V "_"))) <|> (Var . V <$> identifier)
 
+parenValue' :: Parser Val
+parenValue' =
+  try
+    (do lhs <- parenValue
+        symbol "."
+        rhs <- parenValue'
+        pure $ Curry "compose" [lhs, rhs]) <|>
+  parenValue
+
 parenValue :: Parser Val
 parenValue =
   try
@@ -212,7 +221,7 @@ definition = do
   name <- identifier
   vars <- many value
   symbol "="
-  rhs <- parenValue
+  rhs <- parenValue'
   body <- (symbol ":-" >> conj) <|> pure (Conj [])
   pure $ PDef name vars rhs body
 

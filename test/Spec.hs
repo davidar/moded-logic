@@ -314,9 +314,9 @@ noun "cat"
 noun "bat"
 verb "eats"
 
-np (NP d n) = compose (append d) (compose (append " ") (append n)) :- det d, noun n
-vp (VP v n) = compose (append v) (compose (append " ") (np n)) :- verb v
-sentence (S n v) = compose (np n) (compose (append " ") (vp v))
+np (NP d n) = append d . append " " . append n :- det d, noun n
+vp (VP v n) = append v . append " " . np n :- verb v
+sentence (S n v) = np n . append " " . vp v
 |]
 
 programEuler :: Prog Var Var
