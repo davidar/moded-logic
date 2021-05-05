@@ -202,7 +202,9 @@ lambda = do
   pure $ Anon (Var $ V name) vars body
 
 goal :: Parser (Goal Val)
-goal = (Atom <$> (try unify <|> predicate)) <|> softcut <|> neg <|> try disj <|> lambda
+goal =
+  (Atom <$> (try unify <|> predicate)) <|> softcut <|> neg <|> try disj <|>
+  lambda
 
 conj :: Parser (Goal Val)
 conj =

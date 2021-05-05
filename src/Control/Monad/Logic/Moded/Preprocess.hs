@@ -135,31 +135,33 @@ superhomogeneous arities r =
           else Conj $ Atom a' : body
 
 distinctVars :: Rule Var Var -> Rule Var Var
-distinctVars r = r {ruleBody = evalState (tGoal $ ruleBody r) 0}
+distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) 0}
   where
     vars (Atom (Func _ vs _)) = vs
     vars (Atom _) = []
     vars g = subgoals g >>= vars
-    fdups = [head l | l <- group . sort . vars $ ruleBody r, length l > 1]
-    tGoal :: Goal Var -> State Int (Goal Var)
-    tGoal (Disj gs) = Disj <$> mapM tGoal gs
-    tGoal (Conj gs) = Conj <$> mapM tGoal gs
-    tGoal (Ifte c t e) = do
-      c' <- tGoal c
-      t' <- tGoal t
-      e' <- tGoal e
+    tGoal :: [Var] -> Goal Var -> State Int (Goal Var)
+    tGoal fdups (Disj gs) = Disj <$> tGoal fdups `mapM` gs
+    tGoal fdups (Conj gs) = Conj <$> tGoal fdups' `mapM` gs
+      where
+        fdups' =
+          fdups ++ [head l | l <- group . sort . vars $ Conj gs, length l > 1]
+    tGoal fdups (Ifte c t e) = do
+      c' <- tGoal fdups c
+      t' <- tGoal fdups t
+      e' <- tGoal fdups e
       return $ Ifte c' t' e'
-    tGoal (Anon name vs g) = do
-      g' <- tGoal g
+    tGoal fdups (Anon name vs g) = do
+      g' <- tGoal fdups g
       return $ Anon name vs g'
-    tGoal (Atom (Func name vs u)) = do
+    tGoal fdups (Atom (Func name vs u)) = do
       (vs', body) <- tVars fdups vs
       return . Conj $ Atom <$> Func name vs' u : concat body
-    tGoal (Atom (Pred name vs)) = do
+    tGoal _ (Atom (Pred name vs)) = do
       let pdups = [head l | l <- group (sort vs), length l > 1]
       (vs', body) <- tVars pdups vs
       return . Conj $ Atom <$> Pred name vs' : concat body
-    tGoal (Atom a) = return $ Atom a
+    tGoal _ (Atom a) = return $ Atom a
     tVars dups vs =
       fmap unzip . forM vs $ \v ->
         if v `elem` dups && show v /= "_"
