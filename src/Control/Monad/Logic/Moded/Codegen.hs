@@ -228,7 +228,7 @@ compile moduleName (Prog pragmas rules) =
   where
     code =
       T.unlines $
-      [ T.pack (unwords d) <> " deriving (Eq, Ord, Show)"
+      [ T.pack (unwords d) <> " deriving (Eq, Ord, Read, Show)"
       | Pragma d <- pragmas
       , head d == "data"
       ] ++ do

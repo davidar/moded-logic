@@ -4,7 +4,7 @@ module DCG where
 import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.Prelude
 
-data Tree = S Tree Tree | NP String String | VP String Tree deriving (Eq, Ord, Show)
+data Tree = S Tree Tree | NP String String | VP String Tree deriving (Eq, Ord, Read, Show)
 {- append/3
 append arg1 b arg3 :- ((arg1 = [], arg3 = b); (arg1 = h0:t, h0 = h, arg3 = h1:tb, h1 = h, append t b tb)).
 constraints:

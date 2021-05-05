@@ -1,7 +1,8 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings, TypeApplications, DataKinds #-}
+{-# LANGUAGE QuasiQuotes, OverloadedStrings, TypeApplications, DataKinds, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wno-type-defaults -Wno-unticked-promoted-constructors #-}
 
 import qualified Append
+import qualified Cannibals
 import qualified DCG
 import qualified Euler
 import qualified HigherOrder
@@ -11,6 +12,7 @@ import qualified Queens
 import qualified Sort
 
 import Control.Applicative (Alternative(..))
+import Control.Exception
 import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, observeAllT)
@@ -396,6 +398,75 @@ euler4' = maximum <$> observeAll euler4
 euler5 n :- nat n, n > 0, all (multiple n) [1..5]
 |]
 
+-- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs
+programCannibals :: Prog Var Var
+programCannibals = [logic|
+elem x' (x:_) :- x' = x
+elem x (_:xs) :- elem x xs
+
+append [] b b
+append (h:t) b (h:tb) :- append t b tb
+
+#inline compose
+compose f g a z :- g a b, f b z
+
+#data State = State Int Int Int Int Int Int
+#data Action = MoveFwd Int Int | MoveBwd Int Int
+#data Search = Search State [State] [Action]
+
+final (State 0 0 _ _ _ _)
+
+action (MoveFwd 1 0)
+action (MoveFwd 0 1)
+action (MoveFwd 2 0)
+action (MoveFwd 0 2)
+action (MoveFwd 1 1)
+action (MoveBwd 1 0)
+action (MoveBwd 0 1)
+action (MoveBwd 2 0)
+action (MoveBwd 0 2)
+action (MoveBwd 1 1)
+
+check (State m1 c1 _ m2 c2 _) :-
+  m1 >= 0, m2 >= 0, c1 >= 0, c2 >= 0
+  (m1 = 0; c1 <= m1)
+  (m2 = 0; c2 <= m2)
+
+move (State m1 c1 b1 m2 c2 b2) (MoveFwd mm cm) s :-
+  b1 > 0
+  plus mm m1' m1
+  plus cm c1' c1
+  succ b1' b1
+  plus mm m2 m2'
+  plus cm c2 c2'
+  succ b2 b2'
+  s = State m1' c1' b1' m2' c2' b2'
+  check s
+move (State m1 c1 b1 m2 c2 b2) (MoveBwd mm cm) s :-
+  b2 > 0
+  plus mm m1 m1'
+  plus cm c1 c1'
+  succ b1 b1'
+  plus mm m2' m2
+  plus cm c2' c2
+  succ b2' b2
+  s = State m1' c1' b1' m2' c2' b2'
+  check s
+
+appendShow x = append s :- show x s
+
+showMove c a s = append "Tentative move: " . appendShow c . append " -" . appendShow a . append "-> " . appendShow s
+
+solve (Search current seen actions) r :-
+  action a
+  move current a s
+  not (elem s seen)
+  showMove current a s [] msg
+  print msg
+  news = Search s (s:seen) (a:actions)
+  if final s then r = news else solve news r
+|]
+
 prime25 :: [Integer]
 prime25 =
   [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41
@@ -408,7 +479,7 @@ compileTest name program = do
   code `shouldSatisfy` (not . T.null)
   updateCode <- isJust <$> lookupEnv "UPDATE_CODE"
   when updateCode $ do
-    expect <- TIO.readFile file
+    expect <- TIO.readFile file `catch` \(_ :: IOException) -> return ""
     when (code /= expect) $
       TIO.writeFile file code
   expect <- TIO.readFile file
@@ -426,6 +497,7 @@ main = do
     , programKiselyov
     , programDCG
     , programEuler
+    , programCannibals
     ]
   hspec $ do
     describe "Parse" $ do
@@ -594,3 +666,8 @@ main = do
         observeAll (call @'[Out] Euler.euler4') `shouldBe` [9009]
       it "5" $ do
         observe (call @'[Out] Euler.euler5) `shouldBe` 60
+    describe "Cannibals" $ do
+      it "compile" $ compileTest "Cannibals" programCannibals
+      it "solve" $ do
+        let s = Cannibals.State 3 3 1 0 0 0
+        print =<< observeAllT (call @'[In, Out] Cannibals.solve (Cannibals.Search s [s] []))

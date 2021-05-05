@@ -47,10 +47,12 @@ import qualified Prelude
 import Prelude
   ( Eq(..)
   , Fractional(..)
+  , Int
   , Integer
   , Maybe(..)
   , Num(..)
   , Ord(..)
+  , Read
   , Show
   , String
   , ($)
@@ -227,8 +229,8 @@ print = procedure $ liftIO . Prelude.print
 show ::
      ( mode ∈ '[ '[ In, In], '[ In, Out], '[ Out, In]]
      , Alternative m
-     , Prelude.Read a
-     , Prelude.Show a
+     , Read a
+     , Show a
      )
   => Procedure m () '[ a, Prelude.String] mode
 show =
