@@ -18,8 +18,8 @@ import Control.Monad.Logic.Moded.AST
   , Var(..)
   , subgoals
   )
-import Control.Monad.Logic.Moded.Mode
-import Control.Monad.Logic.Moded.Path
+import Control.Monad.Logic.Moded.Mode (ModeString)
+import Control.Monad.Logic.Moded.Path (Path, nonlocals)
 import Control.Monad.State
 import Data.Foldable (toList)
 import Data.List (group, groupBy, sort, transpose)
@@ -54,7 +54,7 @@ combineDefs rules = do
         pure $
           case a of
             Var v
-              | (a ==) `all` as -> v
+              | null as -> v
             _ -> V $ "arg" ++ show i
       body' =
         Disj $ do

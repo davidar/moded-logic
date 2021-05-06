@@ -60,12 +60,12 @@ programHigherOrder :: Prog Var Var
 programHigherOrder = [logic|
 even n :- mod n 2 0
 
-map p [] []
+map _ [] []
 map p (x:xs) (y:ys) :- p x y, map p xs ys
 
 succs xs ys :- map succ xs ys
 
-filter p [] []
+filter _ [] []
 filter p (h:t) ts :-
   if p h
   then filter p t t', ts = (h:t')
@@ -73,7 +73,7 @@ filter p (h:t) ts :-
 
 evens xs ys :- filter even xs ys
 
-foldl p [] a a
+foldl _ [] a a
 foldl p (h:t) a a'' :- p h a a', foldl p t a' a''
 
 sum xs z r :- foldl plus xs z r
@@ -335,7 +335,7 @@ even x :- mod x 2 0
 elem x (x:_)
 elem x (_:xs) :- elem x xs
 
-span p [] [] []
+span _ [] [] []
 span p (x:xs) ys zs :-
   if p x
   then span p xs yt zs, ys = (x:yt)
@@ -347,7 +347,7 @@ reverseDL [] xs xs
 reverseDL (h:t) rest r :- reverseDL t (h:rest) r
 reverse s r :- reverseDL s [] r
 
-all p []
+all _ []
 all p (h:t) :- p h, all p t
 
 multiple x y :- mod x y 0
@@ -401,7 +401,7 @@ euler5 n :- nat n, n > 0, all (multiple n) [1..5]
 -- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs
 programCannibals :: Prog Var Var
 programCannibals = [logic|
-elem x' (x:_) :- x' = x
+elem x (x:_)
 elem x (_:xs) :- elem x xs
 
 append [] b b
@@ -571,6 +571,7 @@ main = do
       it "closure" $ do
         observeAll (call @'[In, Out] HigherOrder.smaller 1) `shouldBe` [2]
         observeAll (call @'[In, Out] HigherOrder.smallerTransitive 1) `shouldBe` [2, 3]
+        observeAll (call @'[In, In] HigherOrder.smallerTransitive 1 3) `shouldBe` guard True
       it "compose" $ do
         observeAll (call @'[In, Out] HigherOrder.composeTest 7) `shouldBe` [2 * (1 + 7)]
         observeAll (call @'[Out, In] HigherOrder.composeTest (2 * (1 + 7))) `shouldBe` [7]
@@ -602,6 +603,8 @@ main = do
         observeAll (call @'[In, Out] Queens.queens2 [1 .. n])
     describe "Kiselyov" $ do
       it "compile" $ compileTest "Kiselyov" programKiselyov
+      it "elem" $ do
+        observeAll (call @'[In, In] Kiselyov.elem 2 [1,2,3]) `shouldBe` guard True
       it "pythag" $ do
         FairLogic.observeMany 7 (call @'[Out, Out, Out] Kiselyov.pythag) `shouldBe`
           [(3,4,5),(6,8,10),(5,12,13),(9,12,15),(8,15,17),(12,16,20),(7,24,25)]
@@ -621,6 +624,8 @@ main = do
       it "bogosort" $ do
         observeAll (call @'[In, Out] Kiselyov.bogosort [5,0,3,4,0,1]) `shouldBe`
           replicate 2 [0,0,1,3,4,5]
+        observeAll (call @'[In, In] Kiselyov.bogosort [5,0,3,4,0,1] [0,0,1,3,4,5]) `shouldBe`
+          guard True
         List.sort (observeAll (call @'[Out, In] Kiselyov.bogosort [1 .. 5])) `shouldBe`
           List.sort (List.permutations [1 .. 5])
         observeAll (call @'[Out, In] Kiselyov.bogosort [1,0]) `shouldBe` empty

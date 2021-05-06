@@ -226,16 +226,20 @@ partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (proced
       pure (arg3,arg4)
     
 {- qsort/3
-qsort arg1 r arg3 :- ((arg1 = [], arg3 = r); (arg1 = x0:xs, x0 = x, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x1:r1, x1 = x, arg3 = r0)).
+qsort arg1 arg2 arg3 :- ((arg1 = [], arg2 = r, arg3 = r); (arg1 = x0:xs, x0 = x, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x1:r1, x1 = x, arg2 = r, arg3 = r0)).
 constraints:
 ~partition[1]
 ~qsort[1]
 ~(arg1[1,0] & x0[1,0])
-~(arg3[0,1] & r[0,1])
-~(arg3[1,7] & r0[1,7])
+~(arg2[0,1] & r[0,1])
+~(arg2[1,7] & r[1,7])
+~(arg3[0,2] & r[0,2])
+~(arg3[1,8] & r0[1,8])
 ~(data0[1,4] & data0[1,5])
 ~(data0[1,5] & x1[1,5])
-~(r0[1,3] & r0[1,7])
+~(r[0,1] & r[0,2])
+~(r[1,4] & r[1,7])
+~(r0[1,3] & r0[1,8])
 ~(r1[1,3] & r1[1,5])
 ~(x[1,1] & x[1,2])
 ~(x[1,1] & x[1,6])
@@ -248,7 +252,9 @@ constraints:
 ~(ys[1,2] & ys[1,4])
 ~(zs[1,2] & zs[1,3])
 (data0[1,4] | data0[1,5])
-(r0[1,3] | r0[1,7])
+(r[0,1] | r[0,2])
+(r[1,4] | r[1,7])
+(r0[1,3] | r0[1,8])
 (r1[1,3] | r1[1,5])
 (x[1,1] | (x[1,2] | x[1,6]))
 (x0[1,0] | x0[1,1])
@@ -261,18 +267,18 @@ constraints:
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
 (arg1[1] <-> arg1[1,0])
+(arg2[] <-> arg2[0])
+(arg2[] <-> arg2[1])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,7])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
-(arg3[0] <-> arg3[0,1])
-(arg3[1] <-> arg3[1,7])
+(arg3[0] <-> arg3[0,2])
+(arg3[1] <-> arg3[1,8])
 (data0[1,4] <-> arg3[])
-(r[] <-> r[0])
-(r[] <-> r[1])
-(r[0] <-> r[0,1])
-(r[1] <-> r[1,4])
-(r[1,4] <-> r[])
+(r[1,4] <-> arg2[])
 (r0[1,3] <-> arg3[])
-(r1[1,3] <-> r[])
+(r1[1,3] <-> arg2[])
 (x0[1,0] <-> xs[1,0])
 (x1[1,5] <-> r1[1,5])
 (ys[1,4] <-> arg1[])
@@ -282,14 +288,16 @@ constraints:
 --mode ordering failure, cyclic dependency: [2] partition::I xs::I x::I ys::O zs::O -> [4] qsort::I ys::I r::I data0::O -> [5] data0::I = x1::O:r1::O -> [6] x1::I = x::O
 qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 'Out, 'In ] qsortIOI) :& RNil
   where
-    qsortIIO = \arg1 r -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,7] data0[1,4] r0[1,3] r1[1,5] x[1,1] x0[1,0] x1[1,5] xs[1,0] ys[1,2] zs[1,2]
+    qsortIIO = \arg1 arg2 -> do
+      -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,8] data0[1,4] r[0,1] r[1,7] r0[1,3] r1[1,5] x[1,1] x0[1,0] x1[1,5] xs[1,0] ys[1,2] zs[1,2]
       -- cost: 7
       (arg3) <- (do
+        r <- pure arg2
         arg3 <- pure r
         guard $ arg1 == []
         pure (arg3)
        ) <|> (do
+        r <- pure arg2
         (x0:xs) <- pure arg1
         x <- pure x0
         (ys,zs) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] partition xs x
@@ -303,12 +311,13 @@ qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 
       pure (OneTuple (arg3))
     
     qsortIOI = \arg1 arg3 -> do
-      -- solution: data0[1,5] r[] r[0] r[0,1] r[1] r[1,4] r0[1,7] r1[1,3] x[1,1] x0[1,0] x1[1,6] xs[1,0] ys[1,2] zs[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,7] data0[1,5] r[0,2] r[1,4] r0[1,8] r1[1,3] x[1,1] x0[1,0] x1[1,6] xs[1,0] ys[1,2] zs[1,2]
       -- cost: 7
-      (r) <- (do
+      (arg2) <- (do
         r <- pure arg3
+        arg2 <- pure r
         guard $ arg1 == []
-        pure (r)
+        pure (arg2)
        ) <|> (do
         r0 <- pure arg3
         (x0:xs) <- pure arg1
@@ -318,9 +327,10 @@ qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 
         (OneTuple (r1)) <- qsortIOI zs r0
         data0 <- pure (x1:r1)
         (OneTuple (r)) <- qsortIOI ys data0
-        pure (r)
+        arg2 <- pure r
+        pure (arg2)
        )
-      pure (OneTuple (r))
+      pure (OneTuple (arg2))
     
 {- sort/2
 sort list sorted :- ((qsort list sorted data0, data0 = [])).

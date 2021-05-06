@@ -15,6 +15,7 @@ import Control.Monad.Logic.Moded.AST
   , Name
   , Rule(..)
   , Var(..)
+  , subgoals
   )
 import Control.Monad.Logic.Moded.Mode (Mode(..), ModeString(..))
 import Control.Monad.Logic.Moded.Path
@@ -27,6 +28,7 @@ import Control.Monad.Logic.Moded.Path
   , nonlocals
   )
 import qualified Control.Monad.Logic.Moded.Solver as Sat
+import Data.Equivalence.Monad (EquivM, MonadEquiv(..), runEquivM)
 import Data.List (nub, sort)
 import qualified Data.Map as Map
 import Data.Map (Map)
@@ -191,14 +193,26 @@ cPred m p r name vars
                   PredMode _ -> error "nested modestring"
   | head name == '('
   , last name == ')' = Set.singleton . cAnd $ Sat.Neg . term p <$> vars
-  | V name `elem` ruleArgs r =
+  | equiv <- Set.elems . equivClassOf $ V name
+  , (`elem` ruleArgs r) `any` equiv =
     Set.fromList $ do
       (i, v) <- zip [1 ..] vars
-      pure $ term p v `Sat.Iff` Sat.Var (ProduceArg (V name) i)
+      u <- equiv
+      pure $ term p v `Sat.Iff` Sat.Var (ProduceArg u i)
   | otherwise =
     error $
     "unknown predicate " ++
     name ++ "/" ++ show (length vars) ++ " in " ++ show r
+  where
+    equivClasses :: EquivM s (Set Var) Var ()
+    equivClasses =
+      let f (Atom (Unif u v)) = equate u v
+          f (Atom _) = pure ()
+          f g = f `mapM_` subgoals g
+       in f (ruleBody r)
+    equivClassOf :: Var -> Set Var
+    equivClassOf v =
+      runEquivM Set.singleton Set.union (equivClasses >> classDesc v)
 
 constraints :: Modes -> Rule Var Var -> Constraints
 constraints m rule = Set.map f cs

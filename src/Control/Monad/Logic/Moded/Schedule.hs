@@ -127,7 +127,12 @@ mode r@(Rule name vars body) soln =
         case predMode (V v) soln of
           [] -> In
           ms' -> PredMode ms'
-      | otherwise = error $ show r ++ "\n" ++ show t ++ " not in " ++ show soln
+      | otherwise =
+        error $
+        show r ++
+        "\n" ++
+        show t ++
+        " not in " ++ show soln ++ " (perhaps this variable is unused?)"
       where
         t = Sat.Var $ Produce (V v) p
     walk p (Disj disj) =
