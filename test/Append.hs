@@ -771,3 +771,49 @@ perm = rget $ (procedure @'[ 'In, 'In ] permII) :& (procedure @'[ 'In, 'Out ] pe
        )
       pure (OneTuple (arg1))
     
+{- id/2
+id arg1 arg2 :- ((arg1 = x, arg2 = x)).
+constraints:
+~(arg1[0,0] & x[0,0])
+~(arg2[0,1] & x[0,1])
+~(x[0,0] & x[0,1])
+(x[0,0] | x[0,1])
+(arg1[] <-> arg1[0])
+(arg1[0] <-> arg1[0,0])
+(arg2[] <-> arg2[0])
+(arg2[0] <-> arg2[0,1])
+1
+-}
+
+id = rget $ (procedure @'[ 'In, 'In ] idII) :& (procedure @'[ 'In, 'Out ] idIO) :& (procedure @'[ 'Out, 'In ] idOI) :& RNil
+  where
+    idII = \arg1 arg2 -> Logic.once $ do
+      -- solution: x[0,0]
+      -- cost: 0
+      () <- (do
+        x <- pure arg1
+        guard $ arg2 == x
+        pure ()
+       )
+      pure ()
+    
+    idIO = \arg1 -> do
+      -- solution: arg2[] arg2[0] arg2[0,1] x[0,0]
+      -- cost: 0
+      (arg2) <- (do
+        x <- pure arg1
+        arg2 <- pure x
+        pure (arg2)
+       )
+      pure (OneTuple (arg2))
+    
+    idOI = \arg2 -> do
+      -- solution: arg1[] arg1[0] arg1[0,0] x[0,1]
+      -- cost: 0
+      (arg1) <- (do
+        x <- pure arg2
+        arg1 <- pure x
+        pure (arg1)
+       )
+      pure (OneTuple (arg1))
+    

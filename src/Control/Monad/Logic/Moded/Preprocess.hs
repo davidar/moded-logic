@@ -22,7 +22,7 @@ import Control.Monad.Logic.Moded.Mode (ModeString)
 import Control.Monad.Logic.Moded.Path (Path, nonlocals)
 import Control.Monad.State
 import Data.Foldable (toList)
-import Data.List (group, groupBy, sort, transpose)
+import Data.List (group, groupBy, nub, sort)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Set (Set)
@@ -49,13 +49,17 @@ combineDefs rules = do
     groupBy
       (\(Rule n vs _) (Rule n' vs' _) -> n == n' && length vs == length vs')
       rules
-  let params = do
-        (i, a:as) <- zip [1 :: Integer ..] (transpose $ ruleArgs <$> defs)
-        pure $
-          case a of
-            Var v
-              | null as -> v
-            _ -> V $ "arg" ++ show i
+  let params
+        | [def] <- defs
+        , args <- ruleArgs def
+        , args == nub args
+        , isVar `all` args = unVar <$> args
+        | otherwise =
+          [V ("arg" ++ show i) | i <- [1 .. length (ruleArgs (head defs))]]
+      isVar Var {} = True
+      isVar _ = False
+      unVar (Var v) = v
+      unVar _ = undefined
       body' =
         Disj $ do
           Rule _ vars' body <- defs

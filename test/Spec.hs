@@ -12,7 +12,7 @@ import qualified Queens
 import qualified Sort
 
 import Control.Applicative (Alternative(..))
-import Control.Exception
+import Control.Exception (IOException, catch)
 import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, observeAllT)
@@ -54,6 +54,8 @@ delete h (h:t) t
 delete x (h:t) (h:r) :- delete x t r
 perm [] []
 perm xs (h:t) :- delete h xs ys, perm ys t
+
+id x x
 |]
 
 programHigherOrder :: Prog Var Var
@@ -553,6 +555,10 @@ main = do
           List.sort (List.permutations [1 .. 5])
         observeAll (call @'[In, In] Append.perm [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` guard True
         observeAll (call @'[In, In] Append.perm [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` guard False
+      it "id" $ do
+        observeAll (call @[In, Out] Append.id 7) `shouldBe` [7]
+        observeAll (call @[In, In] Append.id 7 7) `shouldBe` guard True
+        observeAll (call @[In, In] Append.id 7 8) `shouldBe` guard False
     describe "HigherOrder" $ do
       it "compile" $ compileTest "HigherOrder" programHigherOrder
       it "map" $ do

@@ -1237,7 +1237,7 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
       pure (c,a,s,carg3)
     
 {- solve/2
-solve arg1 r :- ((arg1 = Search current seen0 actions1, seen0 = seen, actions1 = actions, action a, move current a s, showMove current a s data0 msg, data0 = [], print msg, news = Search s2 data1 data2, s2 = s, data1 = s3:seen4, s3 = s, seen4 = seen, data2 = a:actions5, actions5 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r))).
+solve arg1 arg2 :- ((arg1 = Search current seen0 actions1, seen0 = seen, actions1 = actions, action a, move current a s, showMove current a s data0 msg, data0 = [], print msg, news = Search s2 data1 data2, s2 = s, data1 = s3:seen4, s3 = s, seen4 = seen, data2 = a:actions5, actions5 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r), arg2 = r)).
 constraints:
 ~action[0]
 ~elem[0,15,0]
@@ -1266,6 +1266,7 @@ constraints:
 ~(actions5[0,13] & actions5[0,14])
 ~(actions5[0,14] & actions[0,14])
 ~(arg1[0,0] & current[0,0])
+~(arg2[0,17] & r[0,17])
 ~(current[0,0] & current[0,4])
 ~(current[0,0] & current[0,5])
 ~(current[0,4] & current[0,5])
@@ -1277,6 +1278,7 @@ constraints:
 ~(msg[0,5] & msg[0,7])
 ~(news[0,8] & news[0,16])
 ~(news[0,8] & s2[0,8])
+~(r[0,16] & r[0,17])
 ~(r[0,16,1,0] & news[0,16,1,0])
 ~(s[0,4] & s[0,5])
 ~(s[0,4] & s[0,9])
@@ -1315,6 +1317,7 @@ constraints:
 (data2[0,8] | data2[0,13])
 (msg[0,5] | msg[0,7])
 (news[0,8] | news[0,16])
+(r[0,16] | r[0,17])
 (s[0,4] | (s[0,5] | (s[0,9] | (s[0,11] | (s[0,15] | s[0,16])))))
 (s2[0,8] | s2[0,9])
 (s3[0,10] | s3[0,11])
@@ -1327,6 +1330,8 @@ constraints:
 (a[0,13] <-> actions5[0,13])
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,0])
+(arg2[] <-> arg2[0])
+(arg2[0] <-> arg2[0,17])
 (current[0,0] <-> actions1[0,0])
 (current[0,0] <-> seen0[0,0])
 (elem[0] <-> elem[0,15])
@@ -1340,13 +1345,11 @@ constraints:
 (news[0,16,1] <-> news[0,16,2])
 (news[0,16,2] <-> news[0,16,2,0])
 (news[0,16,2,0] <-> arg1[])
-(r[] <-> r[0])
-(r[0] <-> r[0,16])
 (r[0,16] <-> (r[0,16,1] | r[0,16,2]))
 (r[0,16,1] <-> r[0,16,1,0])
 (r[0,16,1] <-> r[0,16,2])
 (r[0,16,2] <-> r[0,16,2,0])
-(r[0,16,2,0] <-> r[])
+(r[0,16,2,0] <-> arg2[])
 (s2[0,8] <-> data1[0,8])
 (s2[0,8] <-> data2[0,8])
 (s3[0,10] <-> seen4[0,10])
@@ -1358,10 +1361,11 @@ constraints:
 --mode ordering failure, cyclic dependency: [16] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [8] news::I = Search s2::O data1::O data2::O -> [10] data1::I = s3::O:seen4::O -> [11] s3::I = s::O
 solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] solveIO) :& RNil
   where
-    solveII = \arg1 r -> Logic.once $ do
-      -- solution: a[0,3] actions[0,2] actions1[0,0] actions5[0,14] current[0,0] data0[0,6] data1[0,10] data2[0,13] msg[0,5] news[0,8] s[0,4] s2[0,9] s3[0,11] seen[0,1] seen0[0,0] seen4[0,12]
+    solveII = \arg1 arg2 -> Logic.once $ do
+      -- solution: a[0,3] actions[0,2] actions1[0,0] actions5[0,14] current[0,0] data0[0,6] data1[0,10] data2[0,13] msg[0,5] news[0,8] r[0,17] s[0,4] s2[0,9] s3[0,11] seen[0,1] seen0[0,0] seen4[0,12]
       -- cost: 11
       () <- (do
+        r <- pure arg2
         (Search current seen0 actions1) <- pure arg1
         actions <- pure actions1
         actions5 <- pure actions
@@ -1402,9 +1406,9 @@ solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     solveIO = \arg1 -> do
-      -- solution: a[0,3] actions[0,2] actions1[0,0] actions5[0,14] current[0,0] data0[0,6] data1[0,10] data2[0,13] msg[0,5] news[0,8] r[] r[0] r[0,16] r[0,16,1] r[0,16,1,0] r[0,16,2] r[0,16,2,0] s[0,4] s2[0,9] s3[0,11] seen[0,1] seen0[0,0] seen4[0,12]
+      -- solution: a[0,3] actions[0,2] actions1[0,0] actions5[0,14] arg2[] arg2[0] arg2[0,17] current[0,0] data0[0,6] data1[0,10] data2[0,13] msg[0,5] news[0,8] r[0,16] r[0,16,1] r[0,16,1,0] r[0,16,2] r[0,16,2,0] s[0,4] s2[0,9] s3[0,11] seen[0,1] seen0[0,0] seen4[0,12]
       -- cost: 12
-      (r) <- (do
+      (arg2) <- (do
         (Search current seen0 actions1) <- pure arg1
         actions <- pure actions1
         actions5 <- pure actions
@@ -1440,7 +1444,8 @@ solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] 
           (OneTuple (r)) <- solveIO news
           pure (r)
          ))
-        pure (r)
+        arg2 <- pure r
+        pure (arg2)
        )
-      pure (OneTuple (r))
+      pure (OneTuple (arg2))
     
