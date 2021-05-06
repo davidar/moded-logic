@@ -15,6 +15,7 @@ module Control.Monad.Logic.Moded.Prelude
   , sum
   , maximum
   , print
+  , putStrLn
   , show
   , observeAll
   , nub
@@ -82,6 +83,7 @@ modesPrelude =
     , ("sum", [[In, In], [In, Out]])
     , ("maximum", [[In, In], [In, Out]])
     , ("print", [[In]])
+    , ("putStrLn", [[In]])
     , ("show", [[In, In], [In, Out], [Out, In]])
     , ("observeAll", [[PredMode [Out], Out]])
     , ("(<)", [[In, In]])
@@ -225,6 +227,9 @@ maximum =
 
 print :: (MonadIO m, Prelude.Show a) => Procedure m () '[ a] '[ In]
 print = procedure $ liftIO . Prelude.print
+
+putStrLn :: (MonadIO m) => Procedure m () '[ String] '[ In]
+putStrLn = procedure $ liftIO . Prelude.putStrLn
 
 show ::
      ( mode ∈ '[ '[ In, In], '[ In, Out], '[ Out, In]]

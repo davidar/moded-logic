@@ -3,6 +3,7 @@
 
 import qualified Append
 import qualified Cannibals
+import Cannibals (Action(..))
 import qualified DCG
 import qualified Euler
 import qualified HigherOrder
@@ -413,28 +414,28 @@ append (h:t) b (h:tb) :- append t b tb
 compose f g a z :- g a b, f b z
 
 #data State = State Int Int Int Int Int Int
-#data Action = MoveFwd Int Int | MoveBwd Int Int
+#data Action = F Int Int | B Int Int
 #data Search = Search State [State] [Action]
 
 final (State 0 0 _ _ _ _)
 
-action (MoveFwd 1 0)
-action (MoveFwd 0 1)
-action (MoveFwd 2 0)
-action (MoveFwd 0 2)
-action (MoveFwd 1 1)
-action (MoveBwd 1 0)
-action (MoveBwd 0 1)
-action (MoveBwd 2 0)
-action (MoveBwd 0 2)
-action (MoveBwd 1 1)
+action (F 1 0)
+action (F 0 1)
+action (F 2 0)
+action (F 0 2)
+action (F 1 1)
+action (B 1 0)
+action (B 0 1)
+action (B 2 0)
+action (B 0 2)
+action (B 1 1)
 
 check (State m1 c1 _ m2 c2 _) :-
   m1 >= 0, m2 >= 0, c1 >= 0, c2 >= 0
   (m1 = 0; c1 <= m1)
   (m2 = 0; c2 <= m2)
 
-move (State m1 c1 b1 m2 c2 b2) (MoveFwd mm cm) s :-
+move (State m1 c1 b1 m2 c2 b2) (F mm cm) s :-
   b1 > 0
   plus mm m1' m1
   plus cm c1' c1
@@ -444,7 +445,7 @@ move (State m1 c1 b1 m2 c2 b2) (MoveFwd mm cm) s :-
   succ b2 b2'
   s = State m1' c1' b1' m2' c2' b2'
   check s
-move (State m1 c1 b1 m2 c2 b2) (MoveBwd mm cm) s :-
+move (State m1 c1 b1 m2 c2 b2) (B mm cm) s :-
   b2 > 0
   plus mm m1 m1'
   plus cm c1 c1'
@@ -464,7 +465,7 @@ solve (Search current seen actions) r :-
   move current a s
   not (elem s seen)
   showMove current a s [] msg
-  print msg
+  putStrLn msg
   news = Search s (s:seen) (a:actions)
   if final s then r = news else solve news r
 |]
@@ -681,4 +682,11 @@ main = do
       it "compile" $ compileTest "Cannibals" programCannibals
       it "solve" $ do
         let s = Cannibals.State 3 3 1 0 0 0
-        print =<< observeAllT (call @'[In, Out] Cannibals.solve (Cannibals.Search s [s] []))
+            start = Cannibals.Search s [s] []
+            actions (Cannibals.Search _ _ a) = a
+            expect =
+              [[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 0 1,F 0 2]
+              ,[F 0 2,B 0 1,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 0 1,F 0 2]
+              ,[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]
+              ,[F 0 2,B 0 1,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]]
+        observeAllT (actions <$> call @'[In, Out] Cannibals.solve start) `shouldReturn` expect

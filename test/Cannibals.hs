@@ -5,7 +5,7 @@ import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.Prelude
 
 data State = State Int Int Int Int Int Int deriving (Eq, Ord, Read, Show)
-data Action = MoveFwd Int Int | MoveBwd Int Int deriving (Eq, Ord, Read, Show)
+data Action = F Int Int | B Int Int deriving (Eq, Ord, Read, Show)
 data Search = Search State [ State ] [ Action ] deriving (Eq, Ord, Read, Show)
 {- elem/2
 elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
@@ -239,7 +239,7 @@ final = rget $ (procedure @'[ 'In ] finalI) :& RNil
       pure ()
     
 {- action/1
-action arg1 :- ((arg1 = MoveFwd data0 data1, data0 = 1, data1 = 0); (arg1 = MoveFwd data2 data3, data2 = 0, data3 = 1); (arg1 = MoveFwd data4 data5, data4 = 2, data5 = 0); (arg1 = MoveFwd data6 data7, data6 = 0, data7 = 2); (arg1 = MoveFwd data8 data9, data8 = 1, data9 = 1); (arg1 = MoveBwd data10 data11, data10 = 1, data11 = 0); (arg1 = MoveBwd data12 data13, data12 = 0, data13 = 1); (arg1 = MoveBwd data14 data15, data14 = 2, data15 = 0); (arg1 = MoveBwd data16 data17, data16 = 0, data17 = 2); (arg1 = MoveBwd data18 data19, data18 = 1, data19 = 1)).
+action arg1 :- ((arg1 = F data0 data1, data0 = 1, data1 = 0); (arg1 = F data2 data3, data2 = 0, data3 = 1); (arg1 = F data4 data5, data4 = 2, data5 = 0); (arg1 = F data6 data7, data6 = 0, data7 = 2); (arg1 = F data8 data9, data8 = 1, data9 = 1); (arg1 = B data10 data11, data10 = 1, data11 = 0); (arg1 = B data12 data13, data12 = 0, data13 = 1); (arg1 = B data14 data15, data14 = 2, data15 = 0); (arg1 = B data16 data17, data16 = 0, data17 = 2); (arg1 = B data18 data19, data18 = 1, data19 = 1)).
 constraints:
 ~(arg1[0,0] & data0[0,0])
 ~(arg1[1,0] & data2[1,0])
@@ -330,52 +330,52 @@ action = rget $ (procedure @'[ 'In ] actionI) :& (procedure @'[ 'Out ] actionO) 
       -- solution: data0[0,0] data1[0,0] data10[5,0] data11[5,0] data12[6,0] data13[6,0] data14[7,0] data15[7,0] data16[8,0] data17[8,0] data18[9,0] data19[9,0] data2[1,0] data3[1,0] data4[2,0] data5[2,0] data6[3,0] data7[3,0] data8[4,0] data9[4,0]
       -- cost: 0
       () <- (do
-        (MoveFwd data0 data1) <- pure arg1
+        (F data0 data1) <- pure arg1
         guard $ data1 == 0
         guard $ data0 == 1
         pure ()
        ) <|> (do
-        (MoveFwd data2 data3) <- pure arg1
+        (F data2 data3) <- pure arg1
         guard $ data2 == 0
         guard $ data3 == 1
         pure ()
        ) <|> (do
-        (MoveFwd data4 data5) <- pure arg1
+        (F data4 data5) <- pure arg1
         guard $ data5 == 0
         guard $ data4 == 2
         pure ()
        ) <|> (do
-        (MoveFwd data6 data7) <- pure arg1
+        (F data6 data7) <- pure arg1
         guard $ data6 == 0
         guard $ data7 == 2
         pure ()
        ) <|> (do
-        (MoveFwd data8 data9) <- pure arg1
+        (F data8 data9) <- pure arg1
         guard $ data8 == 1
         guard $ data9 == 1
         pure ()
        ) <|> (do
-        (MoveBwd data10 data11) <- pure arg1
+        (B data10 data11) <- pure arg1
         guard $ data11 == 0
         guard $ data10 == 1
         pure ()
        ) <|> (do
-        (MoveBwd data12 data13) <- pure arg1
+        (B data12 data13) <- pure arg1
         guard $ data12 == 0
         guard $ data13 == 1
         pure ()
        ) <|> (do
-        (MoveBwd data14 data15) <- pure arg1
+        (B data14 data15) <- pure arg1
         guard $ data15 == 0
         guard $ data14 == 2
         pure ()
        ) <|> (do
-        (MoveBwd data16 data17) <- pure arg1
+        (B data16 data17) <- pure arg1
         guard $ data16 == 0
         guard $ data17 == 2
         pure ()
        ) <|> (do
-        (MoveBwd data18 data19) <- pure arg1
+        (B data18 data19) <- pure arg1
         guard $ data18 == 1
         guard $ data19 == 1
         pure ()
@@ -388,52 +388,52 @@ action = rget $ (procedure @'[ 'In ] actionI) :& (procedure @'[ 'Out ] actionO) 
       (arg1) <- (do
         data1 <- pure 0
         data0 <- pure 1
-        arg1 <- pure (MoveFwd data0 data1)
+        arg1 <- pure (F data0 data1)
         pure (arg1)
        ) <|> (do
         data2 <- pure 0
         data3 <- pure 1
-        arg1 <- pure (MoveFwd data2 data3)
+        arg1 <- pure (F data2 data3)
         pure (arg1)
        ) <|> (do
         data5 <- pure 0
         data4 <- pure 2
-        arg1 <- pure (MoveFwd data4 data5)
+        arg1 <- pure (F data4 data5)
         pure (arg1)
        ) <|> (do
         data6 <- pure 0
         data7 <- pure 2
-        arg1 <- pure (MoveFwd data6 data7)
+        arg1 <- pure (F data6 data7)
         pure (arg1)
        ) <|> (do
         data8 <- pure 1
         data9 <- pure 1
-        arg1 <- pure (MoveFwd data8 data9)
+        arg1 <- pure (F data8 data9)
         pure (arg1)
        ) <|> (do
         data11 <- pure 0
         data10 <- pure 1
-        arg1 <- pure (MoveBwd data10 data11)
+        arg1 <- pure (B data10 data11)
         pure (arg1)
        ) <|> (do
         data12 <- pure 0
         data13 <- pure 1
-        arg1 <- pure (MoveBwd data12 data13)
+        arg1 <- pure (B data12 data13)
         pure (arg1)
        ) <|> (do
         data15 <- pure 0
         data14 <- pure 2
-        arg1 <- pure (MoveBwd data14 data15)
+        arg1 <- pure (B data14 data15)
         pure (arg1)
        ) <|> (do
         data16 <- pure 0
         data17 <- pure 2
-        arg1 <- pure (MoveBwd data16 data17)
+        arg1 <- pure (B data16 data17)
         pure (arg1)
        ) <|> (do
         data18 <- pure 1
         data19 <- pure 1
-        arg1 <- pure (MoveBwd data18 data19)
+        arg1 <- pure (B data18 data19)
         pure (arg1)
        )
       pure (OneTuple (arg1))
@@ -538,7 +538,7 @@ check = rget $ (procedure @'[ 'In ] checkI) :& RNil
       pure ()
     
 {- move/3
-move arg1 arg2 arg3 :- ((arg1 = State m1 c1 b1 m2 c2 b2, arg2 = MoveFwd mm cm, (>) b1 data0, data0 = 0, plus mm m1' m1, plus cm c1' c1, succ b1' b1, plus mm m2 m2', plus cm c2 c2', succ b2 b2', s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s); (arg1 = State m1 c1 b1 m2 c2 b2, arg2 = MoveBwd mm cm, (>) b2 data1, data1 = 0, plus mm m1 m1', plus cm c1 c1', succ b1 b1', plus mm m2' m2, plus cm c2' c2, succ b2' b2, s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s)).
+move arg1 arg2 arg3 :- ((arg1 = State m1 c1 b1 m2 c2 b2, arg2 = F mm cm, (>) b1 data0, data0 = 0, plus mm m1' m1, plus cm c1' c1, succ b1' b1, plus mm m2 m2', plus cm c2 c2', succ b2 b2', s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s); (arg1 = State m1 c1 b1 m2 c2 b2, arg2 = B mm cm, (>) b2 data1, data1 = 0, plus mm m1 m1', plus cm c1 c1', succ b1 b1', plus mm m2' m2, plus cm c2' c2, succ b2' b2, s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s)).
 constraints:
 ~(>)[0]
 ~(>)[1]
@@ -697,7 +697,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       () <- (do
         s <- pure arg3
         data0 <- pure 0
-        (MoveFwd mm cm) <- pure arg2
+        (F mm cm) <- pure arg2
         (State m1 c1 b1 m2 c2 b2) <- pure arg1
         (State m1' c1' b1' m2' c2' b2') <- pure s
         guard $ (>) b1 data0
@@ -712,7 +712,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
        ) <|> (do
         s <- pure arg3
         data1 <- pure 0
-        (MoveBwd mm cm) <- pure arg2
+        (B mm cm) <- pure arg2
         (State m1 c1 b1 m2 c2 b2) <- pure arg1
         (State m1' c1' b1' m2' c2' b2') <- pure s
         guard $ (>) b2 data1
@@ -732,7 +732,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       -- cost: 28
       (arg3) <- (do
         data0 <- pure 0
-        (MoveFwd mm cm) <- pure arg2
+        (F mm cm) <- pure arg2
         (State m1 c1 b1 m2 c2 b2) <- pure arg1
         guard $ (>) b1 data0
         (OneTuple (c1')) <- runProcedure @'[ 'In, 'Out, 'In ] plus cm c1
@@ -747,7 +747,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg3)
        ) <|> (do
         data1 <- pure 0
-        (MoveBwd mm cm) <- pure arg2
+        (B mm cm) <- pure arg2
         (State m1 c1 b1 m2 c2 b2) <- pure arg1
         guard $ (>) b2 data1
         (OneTuple (c1')) <- runProcedure @'[ 'In, 'In, 'Out ] plus cm c1
@@ -778,7 +778,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         (OneTuple (cm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus c1' c1
         () <- runProcedure @'[ 'In, 'In, 'In ] plus cm c2 c2'
         (OneTuple (mm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus m1' m1
-        arg2 <- pure (MoveFwd mm cm)
+        arg2 <- pure (F mm cm)
         () <- runProcedure @'[ 'In, 'In, 'In ] plus mm m2 m2'
         pure (arg2)
        ) <|> (do
@@ -793,7 +793,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         (OneTuple (cm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus c1 c1'
         () <- runProcedure @'[ 'In, 'In, 'In ] plus cm c2' c2
         (OneTuple (mm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus m1 m1'
-        arg2 <- pure (MoveBwd mm cm)
+        arg2 <- pure (B mm cm)
         () <- runProcedure @'[ 'In, 'In, 'In ] plus mm m2' m2
         pure (arg2)
        )
@@ -805,7 +805,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       (arg1) <- (do
         s <- pure arg3
         data0 <- pure 0
-        (MoveFwd mm cm) <- pure arg2
+        (F mm cm) <- pure arg2
         (State m1' c1' b1' m2' c2' b2') <- pure s
         () <- runProcedure @'[ 'In ] check s
         (OneTuple (c1)) <- runProcedure @'[ 'In, 'In, 'Out ] plus cm c1'
@@ -820,7 +820,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
        ) <|> (do
         s <- pure arg3
         data1 <- pure 0
-        (MoveBwd mm cm) <- pure arg2
+        (B mm cm) <- pure arg2
         (State m1' c1' b1' m2' c2' b2') <- pure s
         () <- runProcedure @'[ 'In ] check s
         (OneTuple (c1)) <- runProcedure @'[ 'In, 'Out, 'In ] plus cm c1'
@@ -1237,7 +1237,7 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
       pure (c,a,s,carg3)
     
 {- solve/2
-solve arg1 arg2 :- ((arg1 = Search current seen0 actions1, seen0 = seen, actions1 = actions, action a, move current a s, showMove current a s data0 msg, data0 = [], print msg, news = Search s2 data1 data2, s2 = s, data1 = s3:seen4, s3 = s, seen4 = seen, data2 = a:actions5, actions5 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r), arg2 = r)).
+solve arg1 arg2 :- ((arg1 = Search current seen0 actions1, seen0 = seen, actions1 = actions, action a, move current a s, showMove current a s data0 msg, data0 = [], putStrLn msg, news = Search s2 data1 data2, s2 = s, data1 = s3:seen4, s3 = s, seen4 = seen, data2 = a:actions5, actions5 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r), arg2 = r)).
 constraints:
 ~action[0]
 ~elem[0,15,0]
@@ -1245,7 +1245,7 @@ constraints:
 ~final[0,16,0]
 ~move[0]
 ~msg[0,7]
-~print[0]
+~putStrLn[0]
 ~s[0,15]
 ~s[0,15,0,0]
 ~s[0,16]
@@ -1380,7 +1380,7 @@ solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] 
         data1 <- pure (s3:seen4)
         news <- pure (Search s2 data1 data2)
         (OneTuple (msg)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out ] showMove current a s data0
-        () <- runProcedure @'[ 'In ] print msg
+        () <- runProcedure @'[ 'In ] putStrLn msg
         () <- Logic.ifte ((do
           () <- runProcedure @'[ 'In, 'In ] elem s seen
           pure ()
@@ -1423,7 +1423,7 @@ solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] 
         data1 <- pure (s3:seen4)
         news <- pure (Search s2 data1 data2)
         (OneTuple (msg)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out ] showMove current a s data0
-        () <- runProcedure @'[ 'In ] print msg
+        () <- runProcedure @'[ 'In ] putStrLn msg
         () <- Logic.ifte ((do
           () <- runProcedure @'[ 'In, 'In ] elem s seen
           pure ()
