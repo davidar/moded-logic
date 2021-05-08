@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 414ac6d09c232c8a562c530fbc094d45e98813618a9a9cd539c9a54e6fd4d8cc
+-- hash: fd44f1bad7faf3e8c52b36e1706c37a76c71d7af49d3e6aa45f3b4318062db0d
 
 name:           moded-logic
 version:        0.1.0.0
@@ -59,6 +59,7 @@ library
     , mtl
     , neat-interpolation
     , picosat
+    , sbv
     , template-haskell
     , text
     , vinyl
@@ -88,6 +89,7 @@ executable moded-logic-exe
     , mtl
     , neat-interpolation
     , picosat
+    , sbv
     , template-haskell
     , text
     , vinyl
@@ -127,6 +129,7 @@ test-suite moded-logic-test
     , mtl
     , neat-interpolation
     , picosat
+    , sbv
     , template-haskell
     , text
     , vinyl

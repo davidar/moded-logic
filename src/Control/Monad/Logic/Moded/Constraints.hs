@@ -29,9 +29,26 @@ import Control.Monad.Logic.Moded.Path
   )
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.Equivalence.Monad (EquivM, MonadEquiv(..), runEquivM)
+import Data.Foldable (Foldable(toList))
 import Data.List (nub, sort)
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Data.Maybe (fromMaybe)
+import Data.SBV
+  ( AllSatResult(..)
+  , Predicate
+  , SMTResult(..)
+  , (.&&)
+  , (.<=>)
+  , (.=>)
+  , (.||)
+  , allSat
+  , sBools
+  , sFalse
+  , sNot
+  , sTrue
+  )
+import Data.SBV.Internals (SMTModel(..), cvToBool)
 import qualified Data.Set as Set
 import Data.Set (Set)
 import System.IO.Unsafe (unsafePerformIO)
@@ -230,11 +247,32 @@ constraints m rule = Set.map f cs
           show rule ++ "\n" ++ show c ++ " always fails with " ++ show env
         e -> e
 
-solveConstraints :: Modes -> Rule Var Var -> IO (Set Constraints)
-solveConstraints m rule = do
-  let cs = constraints m rule
-  Sat.Solutions solutions <- Sat.solveProp . cAnd $ Set.elems cs
-  return . Set.fromList $ Set.fromList <$> solutions
+convert :: Constraint -> Predicate
+convert expr = do
+  let names = map show . nub . sort $ toList expr
+  terms <- sBools names
+  let env = zip names terms
+      f (Sat.Var v) = fromMaybe undefined (lookup (show v) env)
+      f (Sat.Neg e) = sNot (f e)
+      f (Sat.Conj d e) = f d .&& f e
+      f (Sat.Disj d e) = f d .|| f e
+      f (Sat.Iff d e) = f d .<=> f e
+      f (Sat.Implies d e) = f d .=> f e
+      f Sat.Top = sTrue
+      f Sat.Bottom = sFalse
+  pure (f expr)
 
-unsafeSolveConstraints :: Modes -> Rule Var Var -> Set Constraints
+solveConstraints :: Modes -> Rule Var Var -> IO [Map String Bool]
+solveConstraints m rule = do
+  res <- allSat . convert . cAnd . Set.elems $ constraints m rule
+  print res
+  return $ do
+    r <- allSatResults res
+    case r of
+      Satisfiable _ model ->
+        pure $
+        Map.fromList [(name, cvToBool cv) | (name, cv) <- modelAssocs model]
+      _ -> error "SBV error"
+
+unsafeSolveConstraints :: Modes -> Rule Var Var -> [Map String Bool]
 unsafeSolveConstraints m = unsafePerformIO . solveConstraints m

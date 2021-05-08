@@ -55,7 +55,7 @@ data ModedVar =
 
 data Procedure =
   Procedure
-    { modeSolution :: Constraints
+    { modeSolution :: Map String Bool
     , modedRule :: Rule ModedVar ModedVar
     }
 
@@ -111,7 +111,8 @@ cost (Atom Func {}) = 0
 cost g@(Atom Pred {}) = 1 + length [v | MV v Out <- toList g]
 cost g = sum $ cost <$> subgoals g
 
-mode :: Rule Var Var -> Constraints -> Either String (Rule ModedVar ModedVar)
+mode ::
+     Rule Var Var -> Map String Bool -> Either String (Rule ModedVar ModedVar)
 mode r@(Rule name vars body) soln =
   case walk [] body of
     Left cyc ->
@@ -121,8 +122,8 @@ mode r@(Rule name vars body) soln =
     Right body' -> Right $ Rule name (annotate [] <$> vars) body'
   where
     annotate p (V v)
-      | t `Set.member` soln || v == "_" = MV v Out
-      | Sat.Neg t `Set.member` soln || null p =
+      | Map.lookup (show t) soln == Just True || v == "_" = MV v Out
+      | Map.lookup (show t) soln == Just False || null p =
         MV v $
         case predMode (V v) soln of
           [] -> In
@@ -152,9 +153,9 @@ mode r@(Rule name vars body) soln =
             (i, V v) <- zip [1 ..] vs
             let t = Sat.Var $ ProduceArg (V n) i
             pure $
-              if t `Set.member` soln
+              if Map.lookup (show t) soln == Just True
                 then MV v Out
-                else if Sat.Neg t `Set.member` soln
+                else if Map.lookup (show t) soln == Just False
                        then MV v In
                        else error $ show t ++ " not in " ++ show soln
       g' <- walk (p ++ [0]) g
@@ -174,7 +175,7 @@ compileRule pragmas cp r
         (fixpt (fmap (simp . prunePreds) . inlinePreds m (macros cp)) r)
         0
     eithers = do
-      soln <- Set.elems $ unsafeSolveConstraints m rule
+      soln <- unsafeSolveConstraints m rule
       pure $ do
         mr <- mode rule soln
         let ms =
@@ -199,14 +200,14 @@ compileRule pragmas cp r
         then pure x
         else fixpt f y
 
-predMode :: Var -> Constraints -> [Mode]
+predMode :: Var -> Map String Bool -> [Mode]
 predMode name soln = go 1
   where
     go i =
       let t = Sat.Var $ ProduceArg name i
-       in if Sat.Neg t `Set.member` soln
+       in if Map.lookup (show t) soln == Just False
             then In : go (i + 1)
-            else if t `Set.member` soln
+            else if Map.lookup (show t) soln == Just True
                    then Out : go (i + 1)
                    else []
 

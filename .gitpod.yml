@@ -7,10 +7,13 @@ tasks:
       mv ~/.stack /workspace/.stack
       ln -sv /workspace/.stack/ ~/.stack
       stack build
+      mkdir z3/build && cd z3/build && cmake .. && make -j4 && cd ../..
+      mkdir -p ~/.local/bin && cp z3/build/z3 ~/.local/bin/
     command: |
       rm -rf ~/.stack
       ln -sv /workspace/.stack/ ~/.stack
       stack test
+      mkdir -p ~/.local/bin && cp z3/build/z3 ~/.local/bin/
 
 vscode:
   extensions:

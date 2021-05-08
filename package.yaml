@@ -35,6 +35,7 @@ dependencies:
 - neat-interpolation
 - OneTuple
 - picosat
+- sbv
 - template-haskell
 - text
 - vinyl

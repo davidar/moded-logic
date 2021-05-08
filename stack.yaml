@@ -41,6 +41,8 @@ packages:
 #
 extra-deps:
 - picosat-0.1.6
+- libBF-0.6.2
+- sbv-8.14
 - git: https://github.com/davidar/logict.git
   commit: 98aa8da4f84bacde51916058fa1353284ffa0adc
 

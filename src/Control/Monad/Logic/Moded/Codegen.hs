@@ -25,7 +25,6 @@ import Control.Monad.Logic.Moded.Schedule
   , stripMode
   , varMode
   )
-import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.List (sortOn)
 import qualified Data.Map as Map
 import Data.Maybe (listToMaybe)
@@ -260,9 +259,9 @@ compile moduleName (Prog pragmas rules) =
                             meta =
                               "  -- solution: " <>
                               T.unwords
-                                [ T.pack (show v)
-                                | Sat.Var v <-
-                                    Set.elems (modeSolution procedure)
+                                [ T.pack v
+                                | (v, True) <-
+                                    Map.assocs (modeSolution procedure)
                                 ]
                             meta2 =
                               "  -- cost: " <>
