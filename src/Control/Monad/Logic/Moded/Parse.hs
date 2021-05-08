@@ -223,7 +223,7 @@ pragma :: Parser Pragma
 pragma = do
   symbol "#"
   ws <-
-    some (identifier <|> operator <|> lexeme (some (oneOf ("()[]" :: [Char]))))
+    some (identifier <|> operator <|> lexeme (some (oneOf ("()[]," :: [Char]))))
   pure $ Pragma ws
 
 data ParseResult
