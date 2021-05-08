@@ -29,7 +29,7 @@ import Control.Monad.Logic.Moded.Constraints
   , Mode(..)
   , ModeString(..)
   , constraints
-  , unsafeSolveConstraints
+  , solveConstraints
   )
 import Control.Monad.Logic.Moded.Path (nonlocals)
 import Control.Monad.Logic.Moded.Prelude (modesPrelude)
@@ -48,6 +48,7 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
+import Debug.Trace
 
 data ModedVar =
   MV Name Mode
@@ -174,14 +175,19 @@ compileRule pragmas cp r
         (fixpt (fmap (simp . prunePreds) . inlinePreds m (macros cp)) r)
         0
     eithers = do
-      soln <- Set.elems $ unsafeSolveConstraints m rule
-      pure $ do
-        mr <- mode rule soln
-        let ms =
-              ModeString $ do
-                MV _ mv <- ruleArgs mr
-                pure mv
-        pure (ms, Procedure {modeSolution = soln, modedRule = mr})
+      soln <-
+        trace ("inferring modes for rule " ++ show rule) $
+        solveConstraints m rule
+      pure $
+        case mode rule soln of
+          Left e -> Left (traceId e)
+          Right mr ->
+            let ms =
+                  ModeString $ do
+                    MV _ mv <- ruleArgs mr
+                    pure mv
+             in trace (show ms ++ " (cost " ++ show (cost $ ruleBody mr) ++ ")") $
+                Right (ms, Procedure {modeSolution = soln, modedRule = mr})
     obj =
       CompiledPredicate
         { unmodedRule = rule

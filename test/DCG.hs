@@ -110,11 +110,11 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg2))
     
     appendOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[0,1] b[1,5] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[0,2] b[1,5] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
       -- cost: 2
       (arg1) <- (do
-        b <- pure arg2
-        guard $ arg3 == b
+        b <- pure arg3
+        guard $ arg2 == b
         arg1 <- pure []
         pure (arg1)
        ) <|> (do
@@ -289,7 +289,7 @@ constraints:
 np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'Out ] npIIO) :& (procedure @'[ 'In, 'Out, 'In ] npIOI) :& (procedure @'[ 'Out, 'In, 'In ] npOII) :& (procedure @'[ 'Out, 'In, 'Out ] npOIO) :& (procedure @'[ 'Out, 'Out, 'In ] npOOI) :& RNil
   where
     npIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: b_0[0,1] b_3[0,0] carg3[0,7] carg4[0,8] d[0,4] data1_1_5[0,2] n[0,4]
+      -- solution: b_0[0,3] b_3[0,1] carg3[0,7] carg4[0,8] d[0,4] data1_1_5[0,2] n[0,4]
       -- cost: 7
       () <- (do
         carg3 <- pure arg2
@@ -298,9 +298,9 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
         (NP d n) <- pure arg1
         () <- runProcedure @'[ 'In ] det d
         () <- runProcedure @'[ 'In ] noun n
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n carg3
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        () <- runProcedure @'[ 'In, 'In, 'In ] append d b_0 carg4
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append d carg4
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
+        () <- runProcedure @'[ 'In, 'In, 'In ] append n carg3 b_3
         pure ()
        )
       pure ()
@@ -340,18 +340,18 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure (OneTuple (arg2))
     
     npOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] carg3[0,7] carg4[0,8] d[0,3] data1_1_5[0,2] n[0,6]
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] carg3[0,7] carg4[0,8] d[0,3] data1_1_5[0,2] n[0,6]
       -- cost: 9
       (arg1) <- (do
         carg3 <- pure arg2
         carg4 <- pure arg3
         data1_1_5 <- pure " "
         (OneTuple (n)) <- runProcedure @'[ 'Out ] noun 
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append n carg3
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (d)) <- runProcedure @'[ 'Out, 'In, 'In ] append b_0 carg4
+        (d,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] append carg4
         arg1 <- pure (NP d n)
         () <- runProcedure @'[ 'In ] det d
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
+        () <- runProcedure @'[ 'In, 'In, 'In ] append n carg3 b_3
         pure (arg1)
        )
       pure (OneTuple (arg1))
@@ -374,18 +374,18 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure (arg1,arg3)
     
     npOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] arg2[] arg2[0] arg2[0,7] b_0[0,3] b_3[0,1] carg3[0,0] carg4[0,8] d[0,3] data1_1_5[0,2] n[0,0]
+      -- solution: arg1[] arg1[0] arg1[0,4] arg2[] arg2[0] arg2[0,7] b_0[0,3] b_3[0,1] carg3[0,0] carg4[0,8] d[0,5] data1_1_5[0,2] n[0,6]
       -- cost: 10
       (arg1,arg2) <- (do
         carg4 <- pure arg3
         data1_1_5 <- pure " "
-        (d,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] append carg4
-        () <- runProcedure @'[ 'In ] det d
+        (OneTuple (d)) <- runProcedure @'[ 'Out ] det 
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append d carg4
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
-        (n,carg3) <- runProcedure @'[ 'Out, 'Out, 'In ] append b_3
-        arg2 <- pure carg3
+        (OneTuple (n)) <- runProcedure @'[ 'Out ] noun 
         arg1 <- pure (NP d n)
-        () <- runProcedure @'[ 'In ] noun n
+        (OneTuple (carg3)) <- runProcedure @'[ 'In, 'Out, 'In ] append n b_3
+        arg2 <- pure carg3
         pure (arg1,arg2)
        )
       pure (arg1,arg2)
@@ -432,7 +432,7 @@ constraints:
 vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'Out ] vpIIO) :& (procedure @'[ 'In, 'Out, 'In ] vpIOI) :& (procedure @'[ 'Out, 'In, 'In ] vpOII) :& (procedure @'[ 'Out, 'In, 'Out ] vpOIO) :& (procedure @'[ 'Out, 'Out, 'In ] vpOOI) :& RNil
   where
     vpIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: b_0[0,1] b_3[0,0] carg3[0,6] carg4[0,7] data1_1_5[0,2] n[0,4] v[0,4]
+      -- solution: b_0[0,3] b_3[0,1] carg3[0,6] carg4[0,7] data1_1_5[0,2] n[0,4] v[0,4]
       -- cost: 6
       () <- (do
         carg3 <- pure arg2
@@ -440,9 +440,9 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
         data1_1_5 <- pure " "
         (VP v n) <- pure arg1
         () <- runProcedure @'[ 'In ] verb v
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] np n carg3
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        () <- runProcedure @'[ 'In, 'In, 'In ] append v b_0 carg4
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append v carg4
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
+        () <- runProcedure @'[ 'In, 'In, 'In ] np n carg3 b_3
         pure ()
        )
       pure ()
@@ -480,17 +480,17 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
       pure (OneTuple (arg2))
     
     vpOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] carg3[0,6] carg4[0,7] data1_1_5[0,2] n[0,0] v[0,3]
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] carg3[0,6] carg4[0,7] data1_1_5[0,2] n[0,0] v[0,3]
       -- cost: 8
       (arg1) <- (do
         carg3 <- pure arg2
         carg4 <- pure arg3
         data1_1_5 <- pure " "
-        (n,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] np carg3
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (v)) <- runProcedure @'[ 'Out, 'In, 'In ] append b_0 carg4
-        arg1 <- pure (VP v n)
+        (v,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] append carg4
         () <- runProcedure @'[ 'In ] verb v
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
+        (OneTuple (n)) <- runProcedure @'[ 'Out, 'In, 'In ] np carg3 b_3
+        arg1 <- pure (VP v n)
         pure (arg1)
        )
       pure (OneTuple (arg1))
@@ -512,13 +512,13 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
       pure (arg1,arg3)
     
     vpOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] arg2[] arg2[0] arg2[0,6] b_0[0,3] b_3[0,1] carg3[0,0] carg4[0,7] data1_1_5[0,2] n[0,0] v[0,3]
+      -- solution: arg1[] arg1[0] arg1[0,4] arg2[] arg2[0] arg2[0,6] b_0[0,3] b_3[0,1] carg3[0,0] carg4[0,7] data1_1_5[0,2] n[0,0] v[0,5]
       -- cost: 9
       (arg1,arg2) <- (do
         carg4 <- pure arg3
         data1_1_5 <- pure " "
-        (v,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] append carg4
-        () <- runProcedure @'[ 'In ] verb v
+        (OneTuple (v)) <- runProcedure @'[ 'Out ] verb 
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append v carg4
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
         (n,carg3) <- runProcedure @'[ 'Out, 'Out, 'In ] np b_3
         arg2 <- pure carg3
@@ -566,16 +566,16 @@ constraints:
 sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 'In, 'In, 'Out ] sentenceIIO) :& (procedure @'[ 'In, 'Out, 'In ] sentenceIOI) :& (procedure @'[ 'Out, 'In, 'In ] sentenceOII) :& (procedure @'[ 'Out, 'In, 'Out ] sentenceOIO) :& (procedure @'[ 'Out, 'Out, 'In ] sentenceOOI) :& RNil
   where
     sentenceIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: b_0[0,1] b_3[0,0] carg3[0,5] carg4[0,6] data1_1_5[0,2] n[0,4] v[0,4]
+      -- solution: b_0[0,3] b_3[0,1] carg3[0,5] carg4[0,6] data1_1_5[0,2] n[0,4] v[0,4]
       -- cost: 5
       () <- (do
         carg3 <- pure arg2
         carg4 <- pure arg3
         data1_1_5 <- pure " "
         (S n v) <- pure arg1
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] vp v carg3
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        () <- runProcedure @'[ 'In, 'In, 'In ] np n b_0 carg4
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] np n carg4
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
+        () <- runProcedure @'[ 'In, 'In, 'In ] vp v carg3 b_3
         pure ()
        )
       pure ()
@@ -611,15 +611,15 @@ sentence = rget $ (procedure @'[ 'In, 'In, 'In ] sentenceIII) :& (procedure @'[ 
       pure (OneTuple (arg2))
     
     sentenceOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,1] b_3[0,0] carg3[0,5] carg4[0,6] data1_1_5[0,2] n[0,3] v[0,0]
+      -- solution: arg1[] arg1[0] arg1[0,4] b_0[0,3] b_3[0,1] carg3[0,5] carg4[0,6] data1_1_5[0,2] n[0,3] v[0,0]
       -- cost: 7
       (arg1) <- (do
         carg3 <- pure arg2
         carg4 <- pure arg3
         data1_1_5 <- pure " "
-        (v,b_3) <- runProcedure @'[ 'Out, 'In, 'Out ] vp carg3
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] append data1_1_5 b_3
-        (OneTuple (n)) <- runProcedure @'[ 'Out, 'In, 'In ] np b_0 carg4
+        (n,b_0) <- runProcedure @'[ 'Out, 'Out, 'In ] np carg4
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] append data1_1_5 b_0
+        (OneTuple (v)) <- runProcedure @'[ 'Out, 'In, 'In ] vp carg3 b_3
         arg1 <- pure (S n v)
         pure (arg1)
        )

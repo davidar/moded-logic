@@ -18,7 +18,7 @@ import Data.Foldable (toList)
 import Data.List (group, sort)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
-import Picosat (Solution(..), solveAll)
+import Picosat (Solution(..), unsafeSolve)
 import Prelude hiding (and, or)
 
 newtype Solutions v =
@@ -116,23 +116,29 @@ partEval vs = subst (M.map constants vs)
     constants False = Bottom
 
 -- | Yield the solutions for an expression using the PicoSAT solver.
-solveProp :: (Ord v, Show v, Tseitin v) => Expr v -> IO (Solutions v)
+solveProp :: (Ord v, Show v, Tseitin v) => Expr v -> Solutions v
 solveProp p = solveCNF $ tseitinCNF p
 
 -- | Yield the solutions for an expression using the PicoSAT
 -- solver. The Expression must be in CNF form already.
-solveCNF :: (Ord v, Show v, Tseitin v) => Expr v -> IO (Solutions v)
-solveCNF Top = return $ Solutions [[]]
-solveCNF Bottom = return $ Solutions []
+solveCNF :: (Ord v, Show v, Tseitin v) => Expr v -> Solutions v
+solveCNF Top = Solutions [[]]
+solveCNF Bottom = Solutions []
 solveCNF p =
-  dropTseitinVarsInSolutions . Solutions . mapMaybe (backSubst vs') <$>
-  solveAll ds
+  Solutions . mapMaybe (fmap dropTseitinVars . backSubst vs' . Solution) $
+  unsafeSolveAll ds
   where
     cs = clausesFromCNF p
     ds = cnfToDimacs vs cs
     vs = M.fromList $ zip vars [1 ..]
     vs' = M.fromList $ zip [1 ..] vars
     vars = map head . group . sort $ toList p
+
+unsafeSolveAll :: [[Int]] -> [[Int]]
+unsafeSolveAll e =
+  case unsafeSolve e of
+    Solution x -> x : unsafeSolveAll (map negate x : e)
+    _ -> []
 
 clausesFromCNF :: Show v => Expr v -> [[Expr v]]
 clausesFromCNF p = do
@@ -267,9 +273,6 @@ tseitin (Neg x) = do
   return c
 tseitin Top = return Top
 tseitin Bottom = return Bottom
-
-dropTseitinVarsInSolutions :: Tseitin v => Solutions v -> Solutions v
-dropTseitinVarsInSolutions (Solutions xs) = Solutions $ map dropTseitinVars xs
 
 dropTseitinVars :: Tseitin v => [Expr v] -> [Expr v]
 dropTseitinVars = filter (not . isTseitinLiteral)

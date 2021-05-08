@@ -173,11 +173,11 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg2))
     
     appendOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[0,1] b[1,5] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[0,2] b[1,5] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
       -- cost: 2
       (arg1) <- (do
-        b <- pure arg2
-        guard $ arg3 == b
+        b <- pure arg3
+        guard $ arg2 == b
         arg1 <- pure []
         pure (arg1)
        ) <|> (do
@@ -764,7 +764,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (OneTuple (arg3))
     
     moveIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] b1[0,0] b1[1,0] b1'[0,10] b1'[1,10] b2[0,0] b2[1,0] b2'[0,10] b2'[1,10] c1[0,0] c1[1,0] c1'[0,10] c1'[1,10] c2[0,0] c2[1,0] c2'[0,10] c2'[1,10] cm[0,5] cm[1,5] data0[0,3] data1[1,3] m1[0,0] m1[1,0] m1'[0,10] m1'[1,10] m2[0,0] m2[1,0] m2'[0,10] m2'[1,10] mm[0,4] mm[1,4] s[0,12] s[1,12]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] b1[0,0] b1[1,0] b1'[0,10] b1'[1,10] b2[0,0] b2[1,0] b2'[0,10] b2'[1,10] c1[0,0] c1[1,0] c1'[0,10] c1'[1,10] c2[0,0] c2[1,0] c2'[0,10] c2'[1,10] cm[0,8] cm[1,8] data0[0,3] data1[1,3] m1[0,0] m1[1,0] m1'[0,10] m1'[1,10] m2[0,0] m2[1,0] m2'[0,10] m2'[1,10] mm[0,7] mm[1,7] s[0,12] s[1,12]
       -- cost: 20
       (arg2) <- (do
         s <- pure arg3
@@ -775,11 +775,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         () <- runProcedure @'[ 'In ] check s
         () <- runProcedure @'[ 'In, 'In ] succ b1' b1
         () <- runProcedure @'[ 'In, 'In ] succ b2 b2'
-        (OneTuple (cm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus c1' c1
-        () <- runProcedure @'[ 'In, 'In, 'In ] plus cm c2 c2'
-        (OneTuple (mm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus m1' m1
+        (OneTuple (cm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus c2 c2'
+        () <- runProcedure @'[ 'In, 'In, 'In ] plus cm c1' c1
+        (OneTuple (mm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus m2 m2'
         arg2 <- pure (F mm cm)
-        () <- runProcedure @'[ 'In, 'In, 'In ] plus mm m2 m2'
+        () <- runProcedure @'[ 'In, 'In, 'In ] plus mm m1' m1
         pure (arg2)
        ) <|> (do
         s <- pure arg3
@@ -790,11 +790,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         () <- runProcedure @'[ 'In ] check s
         () <- runProcedure @'[ 'In, 'In ] succ b1 b1'
         () <- runProcedure @'[ 'In, 'In ] succ b2' b2
-        (OneTuple (cm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus c1 c1'
-        () <- runProcedure @'[ 'In, 'In, 'In ] plus cm c2' c2
-        (OneTuple (mm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus m1 m1'
+        (OneTuple (cm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus c2' c2
+        () <- runProcedure @'[ 'In, 'In, 'In ] plus cm c1 c1'
+        (OneTuple (mm)) <- runProcedure @'[ 'Out, 'In, 'In ] plus m2' m2
         arg2 <- pure (B mm cm)
-        () <- runProcedure @'[ 'In, 'In, 'In ] plus mm m2' m2
+        () <- runProcedure @'[ 'In, 'In, 'In ] plus mm m1 m1'
         pure (arg2)
        )
       pure (OneTuple (arg2))
@@ -856,11 +856,11 @@ constraints:
 appendShow = rget $ (procedure @'[ 'In, 'In, 'In ] appendShowIII) :& (procedure @'[ 'In, 'In, 'Out ] appendShowIIO) :& (procedure @'[ 'In, 'Out, 'In ] appendShowIOI) :& (procedure @'[ 'Out, 'In, 'In ] appendShowOII) :& (procedure @'[ 'Out, 'Out, 'In ] appendShowOOI) :& RNil
   where
     appendShowIII = \x carg2 carg3 -> Logic.once $ do
-      -- solution: s[0,0]
+      -- solution: s[0,1]
       -- cost: 3
       () <- (do
-        (OneTuple (s)) <- runProcedure @'[ 'Out, 'In, 'In ] append carg2 carg3
-        () <- runProcedure @'[ 'In, 'In ] show x s
+        (OneTuple (s)) <- runProcedure @'[ 'In, 'Out ] show x
+        () <- runProcedure @'[ 'In, 'In, 'In ] append s carg2 carg3
         pure ()
        )
       pure ()
@@ -876,11 +876,11 @@ appendShow = rget $ (procedure @'[ 'In, 'In, 'In ] appendShowIII) :& (procedure 
       pure (OneTuple (carg3))
     
     appendShowIOI = \x carg3 -> do
-      -- solution: carg2[] carg2[0] carg2[0,0] s[0,0]
+      -- solution: carg2[] carg2[0] carg2[0,0] s[0,1]
       -- cost: 4
       (carg2) <- (do
-        (s,carg2) <- runProcedure @'[ 'Out, 'Out, 'In ] append carg3
-        () <- runProcedure @'[ 'In, 'In ] show x s
+        (OneTuple (s)) <- runProcedure @'[ 'In, 'Out ] show x
+        (OneTuple (carg2)) <- runProcedure @'[ 'In, 'Out, 'In ] append s carg3
         pure (carg2)
        )
       pure (OneTuple (carg2))
@@ -948,18 +948,18 @@ constraints:
 showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out ] showMoveIIIIO) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'In ] showMoveIIIOI) :& (procedure @'[ 'In, 'In, 'Out, 'In, 'In ] showMoveIIOII) :& (procedure @'[ 'In, 'In, 'Out, 'Out, 'In ] showMoveIIOOI) :& (procedure @'[ 'In, 'Out, 'In, 'In, 'In ] showMoveIOIII) :& (procedure @'[ 'In, 'Out, 'In, 'Out, 'In ] showMoveIOIOI) :& (procedure @'[ 'In, 'Out, 'Out, 'In, 'In ] showMoveIOOII) :& (procedure @'[ 'In, 'Out, 'Out, 'Out, 'In ] showMoveIOOOI) :& (procedure @'[ 'Out, 'In, 'In, 'In, 'In ] showMoveOIIII) :& (procedure @'[ 'Out, 'In, 'In, 'Out, 'In ] showMoveOIIOI) :& (procedure @'[ 'Out, 'In, 'Out, 'In, 'In ] showMoveOIOII) :& (procedure @'[ 'Out, 'In, 'Out, 'Out, 'In ] showMoveOIOOI) :& (procedure @'[ 'Out, 'Out, 'In, 'In, 'In ] showMoveOOIII) :& (procedure @'[ 'Out, 'Out, 'In, 'Out, 'In ] showMoveOOIOI) :& (procedure @'[ 'Out, 'Out, 'Out, 'In, 'In ] showMoveOOOII) :& (procedure @'[ 'Out, 'Out, 'Out, 'Out, 'In ] showMoveOOOOI) :& RNil
   where
     showMoveIIIII = \c a s carg3 carg4 -> Logic.once $ do
-      -- solution: b_0[0,6] b_12[0,0] b_3[0,4] b_6[0,3] b_9[0,1] data0_2[0,8] data3_1_4_8[0,5] data6_1_4_7_10_14[0,2]
+      -- solution: b_0[0,7] b_12[0,1] b_3[0,6] b_6[0,4] b_9[0,3] data0_2[0,8] data3_1_4_8[0,5] data6_1_4_7_10_14[0,2]
       -- cost: 11
       () <- (do
         data3_1_4_8 <- pure " -"
         data6_1_4_7_10_14 <- pure "-> "
         data0_2 <- pure "Tentative move: "
-        (OneTuple (b_12)) <- runProcedure @'[ 'In, 'In, 'Out ] appendShow s carg3
-        (OneTuple (b_9)) <- runProcedure @'[ 'In, 'In, 'Out ] append data6_1_4_7_10_14 b_12
-        (OneTuple (b_6)) <- runProcedure @'[ 'In, 'In, 'Out ] appendShow a b_9
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append data3_1_4_8 b_6
-        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'In, 'Out ] appendShow c b_3
-        () <- runProcedure @'[ 'In, 'In, 'In ] append data0_2 b_0 carg4
+        (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append data0_2 carg4
+        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] appendShow c b_0
+        (OneTuple (b_6)) <- runProcedure @'[ 'In, 'Out, 'In ] append data3_1_4_8 b_3
+        (OneTuple (b_9)) <- runProcedure @'[ 'In, 'Out, 'In ] appendShow a b_6
+        (OneTuple (b_12)) <- runProcedure @'[ 'In, 'Out, 'In ] append data6_1_4_7_10_14 b_9
+        () <- runProcedure @'[ 'In, 'In, 'In ] appendShow s carg3 b_12
         pure ()
        )
       pure ()
@@ -1033,7 +1033,7 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
       pure (s,carg3)
     
     showMoveIOIII = \c s carg3 carg4 -> do
-      -- solution: a[] a[0] a[0,3] b_0[0,7] b_12[0,0] b_3[0,6] b_6[0,4] b_9[0,1] data0_2[0,8] data3_1_4_8[0,5] data6_1_4_7_10_14[0,2]
+      -- solution: a[] a[0] a[0,3] b_0[0,7] b_12[0,1] b_3[0,6] b_6[0,4] b_9[0,3] data0_2[0,8] data3_1_4_8[0,5] data6_1_4_7_10_14[0,2]
       -- cost: 12
       (a) <- (do
         data3_1_4_8 <- pure " -"
@@ -1042,9 +1042,9 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append data0_2 carg4
         (OneTuple (b_3)) <- runProcedure @'[ 'In, 'Out, 'In ] appendShow c b_0
         (OneTuple (b_6)) <- runProcedure @'[ 'In, 'Out, 'In ] append data3_1_4_8 b_3
-        (OneTuple (b_12)) <- runProcedure @'[ 'In, 'In, 'Out ] appendShow s carg3
-        (OneTuple (b_9)) <- runProcedure @'[ 'In, 'In, 'Out ] append data6_1_4_7_10_14 b_12
-        (OneTuple (a)) <- runProcedure @'[ 'Out, 'In, 'In ] appendShow b_9 b_6
+        (a,b_9) <- runProcedure @'[ 'Out, 'Out, 'In ] appendShow b_6
+        (OneTuple (b_12)) <- runProcedure @'[ 'In, 'Out, 'In ] append data6_1_4_7_10_14 b_9
+        () <- runProcedure @'[ 'In, 'In, 'In ] appendShow s carg3 b_12
         pure (a)
        )
       pure (OneTuple (a))
@@ -1101,18 +1101,18 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
       pure (a,s,carg3)
     
     showMoveOIIII = \a s carg3 carg4 -> do
-      -- solution: b_0[0,7] b_12[0,0] b_3[0,4] b_6[0,3] b_9[0,1] c[] c[0] c[0,6] data0_2[0,8] data3_1_4_8[0,5] data6_1_4_7_10_14[0,2]
+      -- solution: b_0[0,7] b_12[0,1] b_3[0,6] b_6[0,4] b_9[0,3] c[] c[0] c[0,6] data0_2[0,8] data3_1_4_8[0,5] data6_1_4_7_10_14[0,2]
       -- cost: 12
       (c) <- (do
         data3_1_4_8 <- pure " -"
         data6_1_4_7_10_14 <- pure "-> "
         data0_2 <- pure "Tentative move: "
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append data0_2 carg4
-        (OneTuple (b_12)) <- runProcedure @'[ 'In, 'In, 'Out ] appendShow s carg3
-        (OneTuple (b_9)) <- runProcedure @'[ 'In, 'In, 'Out ] append data6_1_4_7_10_14 b_12
-        (OneTuple (b_6)) <- runProcedure @'[ 'In, 'In, 'Out ] appendShow a b_9
-        (OneTuple (b_3)) <- runProcedure @'[ 'In, 'In, 'Out ] append data3_1_4_8 b_6
-        (OneTuple (c)) <- runProcedure @'[ 'Out, 'In, 'In ] appendShow b_3 b_0
+        (c,b_3) <- runProcedure @'[ 'Out, 'Out, 'In ] appendShow b_0
+        (OneTuple (b_6)) <- runProcedure @'[ 'In, 'Out, 'In ] append data3_1_4_8 b_3
+        (OneTuple (b_9)) <- runProcedure @'[ 'In, 'Out, 'In ] appendShow a b_6
+        (OneTuple (b_12)) <- runProcedure @'[ 'In, 'Out, 'In ] append data6_1_4_7_10_14 b_9
+        () <- runProcedure @'[ 'In, 'In, 'In ] appendShow s carg3 b_12
         pure (c)
        )
       pure (OneTuple (c))
@@ -1169,18 +1169,18 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
       pure (c,s,carg3)
     
     showMoveOOIII = \s carg3 carg4 -> do
-      -- solution: a[] a[0] a[0,3] b_0[0,7] b_12[0,0] b_3[0,6] b_6[0,4] b_9[0,1] c[] c[0] c[0,6] data0_2[0,8] data3_1_4_8[0,5] data6_1_4_7_10_14[0,2]
+      -- solution: a[] a[0] a[0,3] b_0[0,7] b_12[0,1] b_3[0,6] b_6[0,4] b_9[0,3] c[] c[0] c[0,6] data0_2[0,8] data3_1_4_8[0,5] data6_1_4_7_10_14[0,2]
       -- cost: 13
       (a,c) <- (do
         data3_1_4_8 <- pure " -"
         data6_1_4_7_10_14 <- pure "-> "
         data0_2 <- pure "Tentative move: "
         (OneTuple (b_0)) <- runProcedure @'[ 'In, 'Out, 'In ] append data0_2 carg4
-        (OneTuple (b_12)) <- runProcedure @'[ 'In, 'In, 'Out ] appendShow s carg3
-        (OneTuple (b_9)) <- runProcedure @'[ 'In, 'In, 'Out ] append data6_1_4_7_10_14 b_12
         (c,b_3) <- runProcedure @'[ 'Out, 'Out, 'In ] appendShow b_0
         (OneTuple (b_6)) <- runProcedure @'[ 'In, 'Out, 'In ] append data3_1_4_8 b_3
-        (OneTuple (a)) <- runProcedure @'[ 'Out, 'In, 'In ] appendShow b_9 b_6
+        (a,b_9) <- runProcedure @'[ 'Out, 'Out, 'In ] appendShow b_6
+        (OneTuple (b_12)) <- runProcedure @'[ 'In, 'Out, 'In ] append data6_1_4_7_10_14 b_9
+        () <- runProcedure @'[ 'In, 'In, 'In ] appendShow s carg3 b_12
         pure (a,c)
        )
       pure (c,a)

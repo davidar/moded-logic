@@ -113,7 +113,7 @@ qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'I
       pure (OneTuple (arg2))
     
     qdeleteOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,1] arg1[1] arg1[1,5] h[0,0] h[1,1] h0[1,0] h1[1,2] r[1,2] t[0,0] t[1,0] x[1,4]
+      -- solution: arg1[] arg1[0] arg1[0,1] arg1[1] arg1[1,5] h[0,0] h[1,3] h0[1,0] h1[1,2] r[1,2] t[0,0] t[1,0] x[1,4]
       -- cost: 2
       (arg1) <- (do
         (h:t) <- pure arg2
@@ -122,9 +122,9 @@ qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'I
         pure (arg1)
        ) <|> (do
         (h0:t) <- pure arg2
-        h <- pure h0
         (h1:r) <- pure arg3
-        guard $ h1 == h
+        h <- pure h1
+        guard $ h0 == h
         (OneTuple (x)) <- qdeleteOII t r
         arg1 <- pure x
         pure (arg1)

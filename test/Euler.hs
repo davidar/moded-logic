@@ -350,7 +350,7 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
       pure (OneTuple (arg4))
     
     spanP1IIOI = \arg1 arg2 arg4 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,5] p[1,4] x[1,1] x0[1,0] x2[1,3,1,2] x3[1,3,2,1] xs[1,2] xs1[1,0] xs4[1,3,2,1] ys[1,3] ys[1,3,1] ys[1,3,1,1] ys[1,3,2] ys[1,3,2,0] yt[1,3,1,0] zs[1,6]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,5] p[1,4] x[1,1] x0[1,0] x2[1,3,1,2] x3[1,3,2,2] xs[1,2] xs1[1,0] xs4[1,3,2,3] ys[1,3] ys[1,3,1] ys[1,3,1,1] ys[1,3,2] ys[1,3,2,0] yt[1,3,1,0] zs[1,6]
       -- cost: 3
       (arg3) <- (do
         guard $ arg2 == []
@@ -372,9 +372,9 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
           ys <- pure (x2:yt)
           pure (ys)
          )) ((do
-          (x3:xs4) <- pure zs
-          guard $ x3 == x
-          guard $ xs4 == xs
+          x3 <- pure x
+          xs4 <- pure xs
+          guard $ zs == (x3:xs4)
           ys <- pure []
           pure (ys)
          ))
@@ -804,7 +804,7 @@ constraints:
 euler1' = rget $ (procedure @'[ 'In ] euler1'I) :& (procedure @'[ 'Out ] euler1'O) :& RNil
   where
     euler1'I = \carg3 -> Logic.once $ do
-      -- solution: euler1[0] euler1[0,1] x_0[0,0] x_0[0,1,0] x_0[0,1,0,0] pred1_1(1)
+      -- solution: x_0[0,0] x_0[0,1,0] x_0[0,1,0,0] pred1_1(1)
       -- cost: 5
       () <- (do
         let pred1_1 = procedure @'[ 'Out ] $
@@ -956,11 +956,11 @@ constraints:
 fib' = rget $ (procedure @'[ 'Out ] fib'O) :& RNil
   where
     fib'O = do
-      -- solution: carg3[] carg3[0] carg3[0,1] x_0[0,0]
+      -- solution: carg3[] carg3[0] carg3[0,1] x_0[0,1]
       -- cost: 4
       (carg3) <- (do
-        (OneTuple (x_0)) <- runProcedure @'[ 'Out ] nat 
-        (OneTuple (carg3)) <- runProcedure @'[ 'In, 'Out ] fib x_0
+        (x_0,carg3) <- runProcedure @'[ 'Out, 'Out ] fib 
+        () <- runProcedure @'[ 'In ] nat x_0
         pure (carg3)
        )
       pure (OneTuple (carg3))
@@ -1006,7 +1006,7 @@ x_1[0,1,0,0]
 euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) :& RNil
   where
     euler2I = \carg3 -> Logic.once $ do
-      -- solution: (<)[0] (<)[0,3] data1_1_5[0] data1_1_5[0,3] data1_1_5[0,3,0,1] even[0] even[0,1] fib'[0] fib'[0,1] x_0[0,2] x_1[0,1,0] x_1[0,1,0,0] x_3[0,0] pred4_1_4(1)
+      -- solution: data1_1_5[0,3,0,1] x_0[0,2] x_1[0,1,0] x_1[0,1,0,0] x_3[0,0] pred4_1_4(1)
       -- cost: 9
       () <- (do
         let pred4_1_4 = procedure @'[ 'Out ] $
@@ -1033,7 +1033,7 @@ euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) 
       pure ()
     
     euler2O = do
-      -- solution: (<)[0] (<)[0,3] carg3[] carg3[0] carg3[0,4] data1_1_5[0] data1_1_5[0,3] data1_1_5[0,3,0,1] even[0] even[0,1] fib'[0] fib'[0,1] x_0[0,2] x_1[0,1,0] x_1[0,1,0,0] x_3[0,0] pred4_1_4(1)
+      -- solution: carg3[] carg3[0] carg3[0,4] data1_1_5[0] data1_1_5[0,3] data1_1_5[0,3,0,1] x_0[0,2] x_1[0,1,0] x_1[0,1,0,0] x_3[0,0] pred4_1_4(1)
       -- cost: 10
       (carg3) <- (do
         let pred4_1_4 = procedure @'[ 'Out ] $
@@ -1324,7 +1324,7 @@ pp[0,3]
 factor = rget $ (procedure @'[ 'In, 'In, 'In ] factorIII) :& (procedure @'[ 'In, 'In, 'Out ] factorIIO) :& RNil
   where
     factorIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,1] data1[0,3,2,0,1,0,1,1] f[0,5] factor[0] factor[0,3] factor[0,3,2] factor[0,3,2,0] factor[0,3,2,0,1] factor[0,3,2,0,1,0] n[0,4] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3]
+      -- solution: d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,1] data1[0,3,2,0,1,0,1,1] f[0,5] n[0,4] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3]
       -- cost: 7
       () <- (do
         n <- pure arg1
@@ -1369,7 +1369,7 @@ factor = rget $ (procedure @'[ 'In, 'In, 'In ] factorIII) :& (procedure @'[ 'In,
       pure ()
     
     factorIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,5] d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,1] data1[0,3,2,0,1,0,1,1] f[0,3] f[0,3,1] f[0,3,1,0] f[0,3,2] f[0,3,2,0] f[0,3,2,0,1] f[0,3,2,0,1,0] f[0,3,2,0,1,0,0] f[0,3,2,0,1,0,0,0] f[0,3,2,0,1,0,1] f[0,3,2,0,1,0,1,0] f[0,3,2,0,2] f[0,3,2,0,2,0] factor[0] factor[0,3] factor[0,3,2] factor[0,3,2,0] factor[0,3,2,0,1] factor[0,3,2,0,1,0] n[0,4] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3]
+      -- solution: arg3[] arg3[0] arg3[0,5] d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,1] data1[0,3,2,0,1,0,1,1] f[0,3] f[0,3,1] f[0,3,1,0] f[0,3,2] f[0,3,2,0] f[0,3,2,0,1] f[0,3,2,0,1,0] f[0,3,2,0,1,0,0] f[0,3,2,0,1,0,0,0] f[0,3,2,0,1,0,1] f[0,3,2,0,1,0,1,0] f[0,3,2,0,2] f[0,3,2,0,2,0] n[0,4] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3]
       -- cost: 9
       (arg3) <- (do
         n <- pure arg1
@@ -1471,7 +1471,7 @@ d[1,5]
 prime = rget $ (procedure @'[ 'Out ] primeO) :& RNil
   where
     primeO = choose . Logic.observeAll $ do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,6] curry1[1,4,0] curry1[1,4,0,0] d[1] d[1,5] d[1,5,0,0] data0[1,2] p[1,0] prime[1] prime[1,4] primes[1,3] pred1(1)
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,6] curry1[1,4,0] curry1[1,4,0,0] d[1] d[1,5] d[1,5,0,0] data0[1,2] p[1,0] primes[1,3] pred1(1)
       -- cost: 11
       (arg1) <- (do
         arg1 <- pure 2
@@ -1529,7 +1529,7 @@ x_0[0,1,0,0]
 primeFactor = rget $ (procedure @'[ 'In, 'In ] primeFactorII) :& (procedure @'[ 'In, 'Out ] primeFactorIO) :& RNil
   where
     primeFactorII = \n carg3 -> Logic.once $ do
-      -- solution: prime[0] prime[0,1] x_0[0,0] x_0[0,1,0] x_0[0,1,0,0] pred1_1(1)
+      -- solution: x_0[0,0] x_0[0,1,0] x_0[0,1,0,0] pred1_1(1)
       -- cost: 5
       () <- (do
         let pred1_1 = procedure @'[ 'Out ] $
@@ -1588,7 +1588,7 @@ constraints:
 euler3 = rget $ (procedure @'[ 'In, 'In ] euler3II) :& (procedure @'[ 'In, 'Out ] euler3IO) :& RNil
   where
     euler3II = \n carg3 -> Logic.once $ do
-      -- solution: primeFactor[0] primeFactor[0,1] x_0[0,0] x_0[0,1,0] x_0[0,1,0,0] pred1_1(1)
+      -- solution: x_0[0,0] x_0[0,1,0] x_0[0,1,0,0] pred1_1(1)
       -- cost: 5
       () <- (do
         let pred1_1 = procedure @'[ 'Out ] $
@@ -1669,10 +1669,10 @@ constraints:
 1
 -}
 --mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
+--mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
+--mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
+--mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
 --mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
 --mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
 --mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
 --mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
@@ -1685,7 +1685,7 @@ constraints:
 euler4 = rget $ (procedure @'[ 'In ] euler4I) :& (procedure @'[ 'Out ] euler4O) :& RNil
   where
     euler4I = \n -> Logic.once $ do
-      -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,7] s[0,9] s0[0,11] s1[0,12] x[0,0] y[0,4]
+      -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,7] s[0,9] s0[0,11] s1[0,12] x[0,8] y[0,4]
       -- cost: 8
       () <- (do
         data0 <- pure 10
@@ -1694,13 +1694,13 @@ euler4 = rget $ (procedure @'[ 'In ] euler4I) :& (procedure @'[ 'Out ] euler4O) 
         data2 <- pure [data0..data1]
         data4 <- pure 99
         data5 <- pure [data3..data4]
-        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] elem data2
         (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] elem data5
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt x y n
         (OneTuple (s)) <- runProcedure @'[ 'In, 'Out ] show n
         s0 <- pure s
         s1 <- pure s
         () <- runProcedure @'[ 'In, 'In ] reverse s0 s1
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In, 'In ] timesInt y n
+        () <- runProcedure @'[ 'In, 'In ] elem x data2
         pure ()
        )
       pure ()
@@ -1749,7 +1749,7 @@ constraints:
 euler4' = rget $ (procedure @'[ 'In ] euler4'I) :& (procedure @'[ 'Out ] euler4'O) :& RNil
   where
     euler4'I = \carg3 -> Logic.once $ do
-      -- solution: euler4[0] euler4[0,1] x_0[0,0] x_0[0,1,0] x_0[0,1,0,0] pred1_1(1)
+      -- solution: x_0[0,0] x_0[0,1,0] x_0[0,1,0,0] pred1_1(1)
       -- cost: 5
       () <- (do
         let pred1_1 = procedure @'[ 'Out ] $
@@ -1818,7 +1818,7 @@ constraints:
 euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) :& RNil
   where
     euler5I = \n -> Logic.once $ do
-      -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6] multiple[0] multiple[0,7]
+      -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6]
       -- cost: 4
       () <- (do
         data0 <- pure 0

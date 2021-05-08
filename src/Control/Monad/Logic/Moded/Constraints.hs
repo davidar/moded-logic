@@ -6,7 +6,7 @@ module Control.Monad.Logic.Moded.Constraints
   , Mode(..)
   , ModeString(..)
   , constraints
-  , unsafeSolveConstraints
+  , solveConstraints
   ) where
 
 import Control.Monad.Logic.Moded.AST
@@ -34,7 +34,6 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
-import System.IO.Unsafe (unsafePerformIO)
 
 type Constraint = Sat.Expr CAtom
 
@@ -230,11 +229,8 @@ constraints m rule = Set.map f cs
           show rule ++ "\n" ++ show c ++ " always fails with " ++ show env
         e -> e
 
-solveConstraints :: Modes -> Rule Var Var -> IO (Set Constraints)
-solveConstraints m rule = do
+solveConstraints :: Modes -> Rule Var Var -> [Constraints]
+solveConstraints m rule =
   let cs = constraints m rule
-  Sat.Solutions solutions <- Sat.solveProp . cAnd $ Set.elems cs
-  return . Set.fromList $ Set.fromList <$> solutions
-
-unsafeSolveConstraints :: Modes -> Rule Var Var -> Set Constraints
-unsafeSolveConstraints m = unsafePerformIO . solveConstraints m
+      Sat.Solutions solutions = Sat.solveProp . cAnd $ Set.elems cs
+   in Set.fromList <$> solutions

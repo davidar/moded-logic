@@ -166,7 +166,7 @@ constraints:
 succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] succsIO) :& (procedure @'[ 'Out, 'In ] succsOI) :& RNil
   where
     succsII = \xs ys -> Logic.once $ do
-      -- solution: succ[0] succ[0,1]
+      -- solution: 
       -- cost: 2
       () <- (do
         let pred0 = procedure @'[ 'In, 'In ] $
@@ -182,7 +182,7 @@ succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     succsIO = \xs -> do
-      -- solution: curry2[0,1,0] curry2[0,1,0,0] succ[0] succ[0,1] ys[] ys[0] ys[0,0] pred0(2)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] ys[] ys[0] ys[0,0] pred0(2)
       -- cost: 4
       (ys) <- (do
         let pred0 = procedure @'[ 'In, 'Out ] $
@@ -359,7 +359,7 @@ constraints:
 evens = rget $ (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] evensIO) :& RNil
   where
     evensII = \xs ys -> Logic.once $ do
-      -- solution: even[0] even[0,1]
+      -- solution: 
       -- cost: 2
       () <- (do
         let pred0 = procedure @'[ 'In ] $
@@ -665,7 +665,7 @@ constraints:
 sum = rget $ (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 'Out ] sumIIO) :& (procedure @'[ 'In, 'Out, 'In ] sumIOI) :& RNil
   where
     sumIII = \xs z r -> Logic.once $ do
-      -- solution: curry3[0,1,0] curry3[0,1,0,0] plus[0] plus[0,1] pred0(3)
+      -- solution: curry3[0,1,0] curry3[0,1,0,0] pred0(3)
       -- cost: 3
       () <- (do
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
@@ -681,7 +681,7 @@ sum = rget $ (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 
       pure ()
     
     sumIIO = \xs z -> do
-      -- solution: curry3[0,1,0] curry3[0,1,0,0] plus[0] plus[0,1] r[] r[0] r[0,0] pred0(3)
+      -- solution: curry3[0,1,0] curry3[0,1,0,0] r[] r[0] r[0,0] pred0(3)
       -- cost: 4
       (r) <- (do
         let pred0 = procedure @'[ 'In, 'In, 'Out ] $
@@ -1107,7 +1107,7 @@ constraints:
 smallerTransitive = rget $ (procedure @'[ 'In, 'In ] smallerTransitiveII) :& (procedure @'[ 'In, 'Out ] smallerTransitiveIO) :& (procedure @'[ 'Out, 'In ] smallerTransitiveOI) :& RNil
   where
     smallerTransitiveII = \x y -> Logic.once $ do
-      -- solution: curry2[0,1,0] curry2[0,1,0,0] smaller[0] smaller[0,1] pred0(2)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] pred0(2)
       -- cost: 3
       () <- (do
         let pred0 = procedure @'[ 'In, 'Out ] $
@@ -1123,7 +1123,7 @@ smallerTransitive = rget $ (procedure @'[ 'In, 'In ] smallerTransitiveII) :& (pr
       pure ()
     
     smallerTransitiveIO = \x -> do
-      -- solution: curry2[0,1,0] curry2[0,1,0,0] smaller[0] smaller[0,1] y[] y[0] y[0,0] pred0(2)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] y[] y[0] y[0,0] pred0(2)
       -- cost: 4
       (y) <- (do
         let pred0 = procedure @'[ 'In, 'Out ] $
@@ -1295,32 +1295,32 @@ constraints:
 composeTest = rget $ (procedure @'[ 'In, 'In ] composeTestII) :& (procedure @'[ 'In, 'Out ] composeTestIO) :& (procedure @'[ 'Out, 'In ] composeTestOI) :& RNil
   where
     composeTestII = \a z -> Logic.once $ do
-      -- solution: curry1[0,1,0] curry1[0,1,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] plus[0] plus[0,2] times[0] times[0,1] pred1(1)
+      -- solution: curry2[0,2,0] curry2[0,2,0,0] data0[0,1,0,1] data2[0,2,0,1] pred3(2)
       -- cost: 4
       () <- (do
-        let pred1 = procedure @'[ 'Out, 'In ] $
-              \curry2 -> do
-                (curry1) <- (do
-                  data0 <- pure 2
-                  (OneTuple (curry1)) <- runProcedure @'[ 'In, 'Out, 'In ] times data0 curry2
-                  pure (curry1)
+        let pred3 = procedure @'[ 'In, 'Out ] $
+              \curry1 -> do
+                (curry2) <- (do
+                  data2 <- pure 1
+                  (OneTuple (curry2)) <- runProcedure @'[ 'In, 'In, 'Out ] plus data2 curry1
+                  pure (curry2)
                  )
-                pure (OneTuple (curry1))
-        let pred3 = procedure @'[ 'In, 'In ] $
+                pure (OneTuple (curry2))
+        let pred1 = procedure @'[ 'In, 'In ] $
               \curry1 curry2 -> do
                 () <- (do
-                  data2 <- pure 1
-                  () <- runProcedure @'[ 'In, 'In, 'In ] plus data2 curry1 curry2
+                  data0 <- pure 2
+                  () <- runProcedure @'[ 'In, 'In, 'In ] times data0 curry1 curry2
                   pure ()
                  )
                 pure ()
-        () <- runProcedure @'[ 'PredMode '[ 'Out, 'In ], 'PredMode '[ 'In, 'In ], 'In, 'In ] compose pred1 pred3 a z
+        () <- runProcedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out ], 'In, 'In ] compose pred1 pred3 a z
         pure ()
        )
       pure ()
     
     composeTestIO = \a -> do
-      -- solution: curry2[0,1,0] curry2[0,1,0,0] curry2[0,2,0] curry2[0,2,0,0] data0[0] data0[0,1] data0[0,1,0,1] data2[0] data2[0,2] data2[0,2,0,1] plus[0] plus[0,2] times[0] times[0,1] z[] z[0] z[0,0] pred1(2) pred3(2)
+      -- solution: curry2[0,1,0] curry2[0,1,0,0] curry2[0,2,0] curry2[0,2,0,0] data0[0,1,0,1] data2[0,2,0,1] z[] z[0] z[0,0] pred1(2) pred3(2)
       -- cost: 6
       (z) <- (do
         let pred1 = procedure @'[ 'In, 'Out ] $
