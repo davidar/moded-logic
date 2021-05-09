@@ -5,28 +5,28 @@ import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.Prelude
 
 {- nat/1
-nat arg1 :- ((arg1 = 0); (arg1 = n', nat n, succ n n')).
+nat arg1 :- ((arg1 = 0); (nat n, succ n n', arg1 = n')).
 constraints:
 ~nat[1]
 ~succ[1]
-~(arg1[1,0] & n'[1,0])
-~(n[1,1] & n[1,2])
-~(n'[1,0] & n'[1,2])
-(n[1,1] | n[1,2])
-(n'[1,0] | n'[1,2])
-((n[1,2] & ~n'[1,2]) | ((~n[1,2] & n'[1,2]) | (~n[1,2] & ~n'[1,2])))
+~(arg1[1,2] & n'[1,2])
+~(n[1,0] & n[1,1])
+~(n'[1,1] & n'[1,2])
+(n[1,0] | n[1,1])
+(n'[1,1] | n'[1,2])
+((n[1,1] & ~n'[1,1]) | ((~n[1,1] & n'[1,1]) | (~n[1,1] & ~n'[1,1])))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,0])
-(n[1,1] <-> arg1[])
+(arg1[1] <-> arg1[1,2])
+(n[1,0] <-> arg1[])
 1
 -}
 
 nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
   where
     natI = \arg1 -> Logic.once $ do
-      -- solution: n[1,2] n'[1,0]
+      -- solution: n[1,1] n'[1,2]
       -- cost: 3
       () <- (do
         guard $ arg1 == 0
@@ -40,7 +40,7 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
       pure ()
     
     natO = do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] n[1,1] n'[1,2]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,2] n[1,0] n'[1,1]
       -- cost: 4
       (arg1) <- (do
         arg1 <- pure 0
@@ -54,50 +54,46 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
       pure (OneTuple (arg1))
     
 {- elem/2
-elem arg1 arg2 :- ((arg1 = x0, x0 = x, arg2 = x1:_, x1 = x); (arg1 = x, arg2 = _:xs, elem x xs)).
+elem arg1 arg2 :- ((arg2 = x0:_, x0 = x, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
 constraints:
-x1[0,2]
-xs[1,1]
-~arg2[1,1]
+x0[0,0]
+xs[1,0]
+~arg2[1,0]
 ~elem[1]
-~(arg1[0,0] & x0[0,0])
-~(arg1[1,0] & x[1,0])
-~(arg2[0,2] & x1[0,2])
-~(x[0,1] & x[0,3])
-~(x[1,0] & x[1,2])
+~(arg1[0,2] & x[0,2])
+~(arg1[1,2] & x[1,2])
+~(arg2[0,0] & x0[0,0])
+~(x[0,1] & x[0,2])
+~(x[1,1] & x[1,2])
 ~(x0[0,0] & x0[0,1])
 ~(x0[0,1] & x[0,1])
-~(x1[0,2] & x1[0,3])
-~(x1[0,3] & x[0,3])
-~(xs[1,1] & xs[1,2])
-(x[0,1] | x[0,3])
-(x[1,0] | x[1,2])
+~(xs[1,0] & xs[1,1])
+(x[0,1] | x[0,2])
+(x[1,1] | x[1,2])
 (x0[0,0] | x0[0,1])
-(x1[0,2] | x1[0,3])
-(xs[1,1] | xs[1,2])
+(xs[1,0] | xs[1,1])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
-(arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,0])
+(arg1[0] <-> arg1[0,2])
+(arg1[1] <-> arg1[1,2])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
-(arg2[0] <-> arg2[0,2])
-(arg2[1] <-> arg2[1,1])
-(x[1,2] <-> arg1[])
-(xs[1,2] <-> arg2[])
+(arg2[0] <-> arg2[0,0])
+(arg2[1] <-> arg2[1,0])
+(x[1,1] <-> arg1[])
+(xs[1,1] <-> arg2[])
 1
 -}
 
 elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] elemOI) :& RNil
   where
     elemII = \arg1 arg2 -> Logic.once $ do
-      -- solution: x[0,1] x[1,0] x0[0,0] x1[0,2] xs[1,1]
+      -- solution: x[0,1] x[1,2] x0[0,0] xs[1,0]
       -- cost: 1
       () <- (do
-        x0 <- pure arg1
-        (x1:_) <- pure arg2
+        (x0:_) <- pure arg2
         x <- pure x0
-        guard $ x1 == x
+        guard $ arg1 == x
         pure ()
        ) <|> (do
         x <- pure arg1
@@ -108,13 +104,12 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure ()
     
     elemOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] x[0,3] x[1,2] x0[0,1] x1[0,2] xs[1,1]
+      -- solution: arg1[] arg1[0] arg1[0,2] arg1[1] arg1[1,2] x[0,1] x[1,1] x0[0,0] xs[1,0]
       -- cost: 2
       (arg1) <- (do
-        (x1:_) <- pure arg2
-        x <- pure x1
-        x0 <- pure x
-        arg1 <- pure x0
+        (x0:_) <- pure arg2
+        x <- pure x0
+        arg1 <- pure x
         pure (arg1)
        ) <|> (do
         (_:xs) <- pure arg2
@@ -125,154 +120,140 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure (OneTuple (arg1))
     
 {- insert/3
-insert arg1 arg2 arg3 :- ((arg1 = e0, e0 = e, arg2 = l1, l1 = l, arg3 = e2:l3, e2 = e, l3 = l); (arg1 = e, arg2 = h4:t, h4 = h, arg3 = h5:t', h5 = h, insert e t t')).
+insert arg1 arg2 arg3 :- ((arg3 = e0:l1, e0 = e, l1 = l, arg1 = e, arg2 = l); (arg2 = h2:t, h2 = h, arg3 = h3:t', h3 = h, insert e t t', arg1 = e)).
 constraints:
 ~insert[1]
-~(arg1[0,0] & e0[0,0])
-~(arg1[1,0] & e[1,0])
-~(arg2[0,2] & l1[0,2])
-~(arg2[1,1] & h4[1,1])
-~(arg3[0,4] & e2[0,4])
-~(arg3[1,3] & h5[1,3])
-~(e[0,1] & e[0,5])
-~(e[1,0] & e[1,5])
+~(arg1[0,3] & e[0,3])
+~(arg1[1,5] & e[1,5])
+~(arg2[0,4] & l[0,4])
+~(arg2[1,0] & h2[1,0])
+~(arg3[0,0] & e0[0,0])
+~(arg3[1,2] & h3[1,2])
+~(e[0,1] & e[0,3])
+~(e[1,4] & e[1,5])
 ~(e0[0,0] & e0[0,1])
 ~(e0[0,1] & e[0,1])
-~(e2[0,4] & e2[0,5])
-~(e2[0,5] & e[0,5])
-~(h[1,2] & h[1,4])
-~(h4[1,1] & h4[1,2])
-~(h4[1,2] & h[1,2])
-~(h5[1,3] & h5[1,4])
-~(h5[1,4] & h[1,4])
-~(l[0,3] & l[0,6])
-~(l1[0,2] & l1[0,3])
-~(l1[0,3] & l[0,3])
-~(l3[0,4] & l3[0,6])
-~(l3[0,6] & l[0,6])
-~(t[1,1] & t[1,5])
-~(t'[1,3] & t'[1,5])
-(e[0,1] | e[0,5])
-(e[1,0] | e[1,5])
+~(h[1,1] & h[1,3])
+~(h2[1,0] & h2[1,1])
+~(h2[1,1] & h[1,1])
+~(h3[1,2] & h3[1,3])
+~(h3[1,3] & h[1,3])
+~(l[0,2] & l[0,4])
+~(l1[0,0] & l1[0,2])
+~(l1[0,2] & l[0,2])
+~(t[1,0] & t[1,4])
+~(t'[1,2] & t'[1,4])
+(e[0,1] | e[0,3])
+(e[1,4] | e[1,5])
 (e0[0,0] | e0[0,1])
-(e2[0,4] | e2[0,5])
-(h[1,2] | h[1,4])
-(h4[1,1] | h4[1,2])
-(h5[1,3] | h5[1,4])
-(l[0,3] | l[0,6])
-(l1[0,2] | l1[0,3])
-(l3[0,4] | l3[0,6])
-(t[1,1] | t[1,5])
-(t'[1,3] | t'[1,5])
+(h[1,1] | h[1,3])
+(h2[1,0] | h2[1,1])
+(h3[1,2] | h3[1,3])
+(l[0,2] | l[0,4])
+(l1[0,0] | l1[0,2])
+(t[1,0] | t[1,4])
+(t'[1,2] | t'[1,4])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
-(arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,0])
+(arg1[0] <-> arg1[0,3])
+(arg1[1] <-> arg1[1,5])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
-(arg2[0] <-> arg2[0,2])
-(arg2[1] <-> arg2[1,1])
+(arg2[0] <-> arg2[0,4])
+(arg2[1] <-> arg2[1,0])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
-(arg3[0] <-> arg3[0,4])
-(arg3[1] <-> arg3[1,3])
-(e[1,5] <-> arg1[])
-(e2[0,4] <-> l3[0,4])
-(h4[1,1] <-> t[1,1])
-(h5[1,3] <-> t'[1,3])
-(t[1,5] <-> arg2[])
-(t'[1,5] <-> arg3[])
+(arg3[0] <-> arg3[0,0])
+(arg3[1] <-> arg3[1,2])
+(e[1,4] <-> arg1[])
+(e0[0,0] <-> l1[0,0])
+(h2[1,0] <-> t[1,0])
+(h3[1,2] <-> t'[1,2])
+(t[1,4] <-> arg2[])
+(t'[1,4] <-> arg3[])
 1
 -}
 
 insert = rget $ (procedure @'[ 'In, 'In, 'In ] insertIII) :& (procedure @'[ 'In, 'In, 'Out ] insertIIO) :& (procedure @'[ 'In, 'Out, 'In ] insertIOI) :& (procedure @'[ 'Out, 'In, 'In ] insertOII) :& (procedure @'[ 'Out, 'Out, 'In ] insertOOI) :& RNil
   where
     insertIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: e[0,1] e[1,0] e0[0,0] e2[0,4] h[1,2] h4[1,1] h5[1,3] l[0,3] l1[0,2] l3[0,4] t[1,1] t'[1,3]
+      -- solution: e[0,1] e[1,5] e0[0,0] h[1,1] h2[1,0] h3[1,2] l[0,2] l1[0,0] t[1,0] t'[1,2]
       -- cost: 1
       () <- (do
-        e0 <- pure arg1
-        l1 <- pure arg2
-        (e2:l3) <- pure arg3
+        (e0:l1) <- pure arg3
         e <- pure e0
-        guard $ e2 == e
+        guard $ arg1 == e
         l <- pure l1
-        guard $ l3 == l
+        guard $ arg2 == l
         pure ()
        ) <|> (do
         e <- pure arg1
-        (h4:t) <- pure arg2
-        (h5:t') <- pure arg3
-        h <- pure h4
-        guard $ h5 == h
+        (h2:t) <- pure arg2
+        (h3:t') <- pure arg3
+        h <- pure h2
+        guard $ h3 == h
         () <- insertIII e t t'
         pure ()
        )
       pure ()
     
     insertIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,4] arg3[1] arg3[1,3] e[0,1] e[1,0] e0[0,0] e2[0,5] h[1,2] h4[1,1] h5[1,4] l[0,3] l1[0,2] l3[0,6] t[1,1] t'[1,5]
+      -- solution: arg3[] arg3[0] arg3[0,0] arg3[1] arg3[1,2] e[0,3] e[1,5] e0[0,1] h[1,1] h2[1,0] h3[1,3] l[0,4] l1[0,2] t[1,0] t'[1,4]
       -- cost: 2
       (arg3) <- (do
-        e0 <- pure arg1
-        l1 <- pure arg2
-        e <- pure e0
-        e2 <- pure e
-        l <- pure l1
-        l3 <- pure l
-        arg3 <- pure (e2:l3)
+        e <- pure arg1
+        l <- pure arg2
+        e0 <- pure e
+        l1 <- pure l
+        arg3 <- pure (e0:l1)
         pure (arg3)
        ) <|> (do
         e <- pure arg1
-        (h4:t) <- pure arg2
-        h <- pure h4
-        h5 <- pure h
+        (h2:t) <- pure arg2
+        h <- pure h2
+        h3 <- pure h
         (OneTuple (t')) <- insertIIO e t
-        arg3 <- pure (h5:t')
+        arg3 <- pure (h3:t')
         pure (arg3)
        )
       pure (OneTuple (arg3))
     
     insertIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,2] arg2[1] arg2[1,1] e[0,1] e[1,0] e0[0,0] e2[0,4] h[1,4] h4[1,2] h5[1,3] l[0,6] l1[0,3] l3[0,4] t[1,5] t'[1,3]
+      -- solution: arg2[] arg2[0] arg2[0,4] arg2[1] arg2[1,0] e[0,1] e[1,5] e0[0,0] h[1,3] h2[1,1] h3[1,2] l[0,2] l1[0,0] t[1,4] t'[1,2]
       -- cost: 2
       (arg2) <- (do
-        e0 <- pure arg1
-        (e2:l3) <- pure arg3
+        (e0:l1) <- pure arg3
         e <- pure e0
-        guard $ e2 == e
-        l <- pure l3
-        l1 <- pure l
-        arg2 <- pure l1
+        guard $ arg1 == e
+        l <- pure l1
+        arg2 <- pure l
         pure (arg2)
        ) <|> (do
         e <- pure arg1
-        (h5:t') <- pure arg3
-        h <- pure h5
-        h4 <- pure h
+        (h3:t') <- pure arg3
+        h <- pure h3
+        h2 <- pure h
         (OneTuple (t)) <- insertIOI e t'
-        arg2 <- pure (h4:t)
+        arg2 <- pure (h2:t)
         pure (arg2)
        )
       pure (OneTuple (arg2))
     
     insertOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] e[0,5] e[1,5] e0[0,1] e2[0,4] h[1,4] h4[1,1] h5[1,3] l[0,6] l1[0,3] l3[0,4] t[1,1] t'[1,3]
+      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,5] e[0,1] e[1,4] e0[0,0] h[1,3] h2[1,0] h3[1,2] l[0,2] l1[0,0] t[1,0] t'[1,2]
       -- cost: 2
       (arg1) <- (do
-        (e2:l3) <- pure arg3
-        e <- pure e2
-        e0 <- pure e
-        arg1 <- pure e0
-        l <- pure l3
-        l1 <- pure l
-        guard $ arg2 == l1
+        (e0:l1) <- pure arg3
+        e <- pure e0
+        arg1 <- pure e
+        l <- pure l1
+        guard $ arg2 == l
         pure (arg1)
        ) <|> (do
-        (h4:t) <- pure arg2
-        (h5:t') <- pure arg3
-        h <- pure h5
-        guard $ h4 == h
+        (h2:t) <- pure arg2
+        (h3:t') <- pure arg3
+        h <- pure h3
+        guard $ h2 == h
         (OneTuple (e)) <- insertOII t t'
         arg1 <- pure e
         pure (arg1)
@@ -280,44 +261,42 @@ insert = rget $ (procedure @'[ 'In, 'In, 'In ] insertIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg1))
     
     insertOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,2] arg2[1] arg2[1,1] e[0,5] e[1,5] e0[0,1] e2[0,4] h[1,4] h4[1,2] h5[1,3] l[0,6] l1[0,3] l3[0,4] t[1,5] t'[1,3]
+      -- solution: arg1[] arg1[0] arg1[0,3] arg1[1] arg1[1,5] arg2[] arg2[0] arg2[0,4] arg2[1] arg2[1,0] e[0,1] e[1,4] e0[0,0] h[1,3] h2[1,1] h3[1,2] l[0,2] l1[0,0] t[1,4] t'[1,2]
       -- cost: 3
       (arg1,arg2) <- (do
-        (e2:l3) <- pure arg3
-        e <- pure e2
-        e0 <- pure e
-        arg1 <- pure e0
-        l <- pure l3
-        l1 <- pure l
-        arg2 <- pure l1
+        (e0:l1) <- pure arg3
+        e <- pure e0
+        arg1 <- pure e
+        l <- pure l1
+        arg2 <- pure l
         pure (arg1,arg2)
        ) <|> (do
-        (h5:t') <- pure arg3
-        h <- pure h5
-        h4 <- pure h
+        (h3:t') <- pure arg3
+        h <- pure h3
+        h2 <- pure h
         (e,t) <- insertOOI t'
         arg1 <- pure e
-        arg2 <- pure (h4:t)
+        arg2 <- pure (h2:t)
         pure (arg1,arg2)
        )
       pure (arg1,arg2)
     
 {- permute/2
-permute arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h:t, arg2 = r, permute t t', insert h t' r)).
+permute arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h:t, permute t t', insert h t' r, arg2 = r)).
 constraints:
 ~insert[1]
 ~permute[1]
 ~(arg1[1,0] & h[1,0])
-~(arg2[1,1] & r[1,1])
-~(h[1,0] & h[1,3])
-~(r[1,1] & r[1,3])
-~(t[1,0] & t[1,2])
-~(t'[1,2] & t'[1,3])
-(h[1,0] | h[1,3])
-(r[1,1] | r[1,3])
-(t[1,0] | t[1,2])
-(t'[1,2] | t'[1,3])
-((h[1,3] & (t'[1,3] & ~r[1,3])) | ((h[1,3] & (~t'[1,3] & ~r[1,3])) | ((~h[1,3] & (t'[1,3] & ~r[1,3])) | ((~h[1,3] & (~t'[1,3] & r[1,3])) | (~h[1,3] & (~t'[1,3] & ~r[1,3]))))))
+~(arg2[1,3] & r[1,3])
+~(h[1,0] & h[1,2])
+~(r[1,2] & r[1,3])
+~(t[1,0] & t[1,1])
+~(t'[1,1] & t'[1,2])
+(h[1,0] | h[1,2])
+(r[1,2] | r[1,3])
+(t[1,0] | t[1,1])
+(t'[1,1] | t'[1,2])
+((h[1,2] & (t'[1,2] & ~r[1,2])) | ((h[1,2] & (~t'[1,2] & ~r[1,2])) | ((~h[1,2] & (t'[1,2] & ~r[1,2])) | ((~h[1,2] & (~t'[1,2] & r[1,2])) | (~h[1,2] & (~t'[1,2] & ~r[1,2]))))))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
@@ -325,17 +304,17 @@ constraints:
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,1])
-(arg2[1] <-> arg2[1,1])
+(arg2[1] <-> arg2[1,3])
 (h[1,0] <-> t[1,0])
-(t[1,2] <-> arg1[])
-(t'[1,2] <-> arg2[])
+(t[1,1] <-> arg1[])
+(t'[1,1] <-> arg2[])
 1
 -}
 
 permute = rget $ (procedure @'[ 'In, 'In ] permuteII) :& (procedure @'[ 'In, 'Out ] permuteIO) :& (procedure @'[ 'Out, 'In ] permuteOI) :& RNil
   where
     permuteII = \arg1 arg2 -> Logic.once $ do
-      -- solution: h[1,0] r[1,1] t[1,0] t'[1,3]
+      -- solution: h[1,0] r[1,3] t[1,0] t'[1,2]
       -- cost: 3
       () <- (do
         guard $ arg1 == []
@@ -351,7 +330,7 @@ permute = rget $ (procedure @'[ 'In, 'In ] permuteII) :& (procedure @'[ 'In, 'Ou
       pure ()
     
     permuteIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] h[1,0] r[1,3] t[1,0] t'[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,3] h[1,0] r[1,2] t[1,0] t'[1,1]
       -- cost: 4
       (arg2) <- (do
         guard $ arg1 == []
@@ -367,7 +346,7 @@ permute = rget $ (procedure @'[ 'In, 'In ] permuteII) :& (procedure @'[ 'In, 'Ou
       pure (OneTuple (arg2))
     
     permuteOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,3] r[1,1] t[1,2] t'[1,3]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] h[1,2] r[1,3] t[1,1] t'[1,2]
       -- cost: 5
       (arg1) <- (do
         arg1 <- pure []
@@ -451,49 +430,41 @@ sorted = rget $ (procedure @'[ 'In ] sortedI) :& RNil
       pure ()
     
 {- suffix/2
-suffix arg1 arg2 :- ((arg1 = l0, l0 = l, arg2 = l1, l1 = l); (arg1 = _:t, arg2 = r, suffix t r)).
+suffix arg1 arg2 :- ((arg1 = l, arg2 = l); (arg1 = _:t, suffix t r, arg2 = r)).
 constraints:
 t[1,0]
 ~arg1[1,0]
 ~suffix[1]
-~(arg1[0,0] & l0[0,0])
-~(arg2[0,2] & l1[0,2])
-~(arg2[1,1] & r[1,1])
-~(l[0,1] & l[0,3])
-~(l0[0,0] & l0[0,1])
-~(l0[0,1] & l[0,1])
-~(l1[0,2] & l1[0,3])
-~(l1[0,3] & l[0,3])
+~(arg1[0,0] & l[0,0])
+~(arg2[0,1] & l[0,1])
+~(arg2[1,2] & r[1,2])
+~(l[0,0] & l[0,1])
 ~(r[1,1] & r[1,2])
-~(t[1,0] & t[1,2])
-(l[0,1] | l[0,3])
-(l0[0,0] | l0[0,1])
-(l1[0,2] | l1[0,3])
+~(t[1,0] & t[1,1])
+(l[0,0] | l[0,1])
 (r[1,1] | r[1,2])
-(t[1,0] | t[1,2])
+(t[1,0] | t[1,1])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
 (arg1[1] <-> arg1[1,0])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
-(arg2[0] <-> arg2[0,2])
-(arg2[1] <-> arg2[1,1])
-(r[1,2] <-> arg2[])
-(t[1,2] <-> arg1[])
+(arg2[0] <-> arg2[0,1])
+(arg2[1] <-> arg2[1,2])
+(r[1,1] <-> arg2[])
+(t[1,1] <-> arg1[])
 1
 -}
 
 suffix = rget $ (procedure @'[ 'In, 'In ] suffixII) :& (procedure @'[ 'In, 'Out ] suffixIO) :& RNil
   where
     suffixII = \arg1 arg2 -> Logic.once $ do
-      -- solution: l[0,1] l0[0,0] l1[0,2] r[1,1] t[1,0]
+      -- solution: l[0,0] r[1,2] t[1,0]
       -- cost: 1
       () <- (do
-        l0 <- pure arg1
-        l1 <- pure arg2
-        l <- pure l0
-        guard $ l1 == l
+        l <- pure arg1
+        guard $ arg2 == l
         pure ()
        ) <|> (do
         (_:t) <- pure arg1
@@ -504,13 +475,11 @@ suffix = rget $ (procedure @'[ 'In, 'In ] suffixII) :& (procedure @'[ 'In, 'Out 
       pure ()
     
     suffixIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,2] arg2[1] arg2[1,1] l[0,1] l0[0,0] l1[0,3] r[1,2] t[1,0]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] l[0,0] r[1,1] t[1,0]
       -- cost: 2
       (arg2) <- (do
-        l0 <- pure arg1
-        l <- pure l0
-        l1 <- pure l
-        arg2 <- pure l1
+        l <- pure arg1
+        arg2 <- pure l
         pure (arg2)
        ) <|> (do
         (_:t) <- pure arg1
@@ -587,20 +556,20 @@ prefix = rget $ (procedure @'[ 'In, 'In ] prefixII) :& (procedure @'[ 'In, 'Out 
       pure (OneTuple (arg2))
     
 {- length/2
-length arg1 arg2 :- ((arg1 = [], arg2 = 0); (arg1 = _:t, arg2 = n', length t n, succ n n')).
+length arg1 arg2 :- ((arg1 = [], arg2 = 0); (arg1 = _:t, length t n, succ n n', arg2 = n')).
 constraints:
 t[1,0]
 ~arg1[1,0]
 ~length[1]
 ~succ[1]
-~(arg2[1,1] & n'[1,1])
-~(n[1,2] & n[1,3])
-~(n'[1,1] & n'[1,3])
-~(t[1,0] & t[1,2])
-(n[1,2] | n[1,3])
-(n'[1,1] | n'[1,3])
-(t[1,0] | t[1,2])
-((n[1,3] & ~n'[1,3]) | ((~n[1,3] & n'[1,3]) | (~n[1,3] & ~n'[1,3])))
+~(arg2[1,3] & n'[1,3])
+~(n[1,1] & n[1,2])
+~(n'[1,2] & n'[1,3])
+~(t[1,0] & t[1,1])
+(n[1,1] | n[1,2])
+(n'[1,2] | n'[1,3])
+(t[1,0] | t[1,1])
+((n[1,2] & ~n'[1,2]) | ((~n[1,2] & n'[1,2]) | (~n[1,2] & ~n'[1,2])))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
@@ -608,16 +577,16 @@ t[1,0]
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,1])
-(arg2[1] <-> arg2[1,1])
-(n[1,2] <-> arg2[])
-(t[1,2] <-> arg1[])
+(arg2[1] <-> arg2[1,3])
+(n[1,1] <-> arg2[])
+(t[1,1] <-> arg1[])
 1
 -}
 
 length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out ] lengthIO) :& RNil
   where
     lengthII = \arg1 arg2 -> Logic.once $ do
-      -- solution: n[1,3] n'[1,1] t[1,0]
+      -- solution: n[1,2] n'[1,3] t[1,0]
       -- cost: 3
       () <- (do
         guard $ arg1 == []
@@ -633,7 +602,7 @@ length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out 
       pure ()
     
     lengthIO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] n[1,2] n'[1,3] t[1,0]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,3] n[1,1] n'[1,2] t[1,0]
       -- cost: 4
       (arg2) <- (do
         guard $ arg1 == []
@@ -1130,58 +1099,58 @@ ptriang = rget $ (procedure @'[ 'In ] ptriangI) :& (procedure @'[ 'Out ] ptriang
       pure (OneTuple (k))
     
 {- stepN/2
-stepN arg1 arg2 :- ((arg1 = 0, arg2 = 0); (arg1 = n', arg2 = r, (>) n' data0, data0 = 0, succ n n', stepN n i, succ i i', elem r data2, data1 = [], data2 = i:i':data1)).
+stepN arg1 arg2 :- ((arg1 = 0, arg2 = 0); ((>) n' data0, data0 = 0, succ n n', stepN n i, succ i i', elem r data2, data1 = [], data2 = i:i':data1, arg1 = n', arg2 = r)).
 constraints:
 ~(>)[1]
 ~elem[1]
 ~stepN[1]
 ~succ[1]
-~(arg1[1,0] & n'[1,0])
-~(arg2[1,1] & r[1,1])
-~(data0[1,2] & data0[1,3])
-~(data1[1,8] & data1[1,9])
-~(data2[1,7] & data2[1,9])
-~(data2[1,9] & i[1,9])
-~(i[1,5] & i[1,6])
-~(i[1,5] & i[1,9])
-~(i[1,6] & i[1,9])
-~(i'[1,6] & i'[1,9])
-~(n[1,4] & n[1,5])
+~(arg1[1,8] & n'[1,8])
+~(arg2[1,9] & r[1,9])
+~(data0[1,0] & data0[1,1])
+~(data1[1,6] & data1[1,7])
+~(data2[1,5] & data2[1,7])
+~(data2[1,7] & i[1,7])
+~(i[1,3] & i[1,4])
+~(i[1,3] & i[1,7])
+~(i[1,4] & i[1,7])
+~(i'[1,4] & i'[1,7])
+~(n[1,2] & n[1,3])
 ~(n'[1,0] & n'[1,2])
-~(n'[1,0] & n'[1,4])
-~(n'[1,2] & n'[1,4])
-~(r[1,1] & r[1,7])
-(~n'[1,2] & ~data0[1,2])
-(data0[1,2] | data0[1,3])
-(data1[1,8] | data1[1,9])
-(data2[1,7] | data2[1,9])
-(i[1,5] | (i[1,6] | i[1,9]))
-(i'[1,6] | i'[1,9])
-(n[1,4] | n[1,5])
-(n'[1,0] | (n'[1,2] | n'[1,4]))
-(r[1,1] | r[1,7])
-((i[1,6] & ~i'[1,6]) | ((~i[1,6] & i'[1,6]) | (~i[1,6] & ~i'[1,6])))
-((n[1,4] & ~n'[1,4]) | ((~n[1,4] & n'[1,4]) | (~n[1,4] & ~n'[1,4])))
-((r[1,7] & ~data2[1,7]) | (~r[1,7] & ~data2[1,7]))
+~(n'[1,0] & n'[1,8])
+~(n'[1,2] & n'[1,8])
+~(r[1,5] & r[1,9])
+(~n'[1,0] & ~data0[1,0])
+(data0[1,0] | data0[1,1])
+(data1[1,6] | data1[1,7])
+(data2[1,5] | data2[1,7])
+(i[1,3] | (i[1,4] | i[1,7]))
+(i'[1,4] | i'[1,7])
+(n[1,2] | n[1,3])
+(n'[1,0] | (n'[1,2] | n'[1,8]))
+(r[1,5] | r[1,9])
+((i[1,4] & ~i'[1,4]) | ((~i[1,4] & i'[1,4]) | (~i[1,4] & ~i'[1,4])))
+((n[1,2] & ~n'[1,2]) | ((~n[1,2] & n'[1,2]) | (~n[1,2] & ~n'[1,2])))
+((r[1,5] & ~data2[1,5]) | (~r[1,5] & ~data2[1,5]))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,0])
+(arg1[1] <-> arg1[1,8])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,1])
-(arg2[1] <-> arg2[1,1])
-(i[1,5] <-> arg2[])
-(i[1,9] <-> data1[1,9])
-(i[1,9] <-> i'[1,9])
-(n[1,5] <-> arg1[])
+(arg2[1] <-> arg2[1,9])
+(i[1,3] <-> arg2[])
+(i[1,7] <-> data1[1,7])
+(i[1,7] <-> i'[1,7])
+(n[1,3] <-> arg1[])
 1
 -}
 
 stepN = rget $ (procedure @'[ 'In, 'Out ] stepNIO) :& (procedure @'[ 'Out, 'Out ] stepNOO) :& RNil
   where
     stepNIO = \arg1 -> choose . nub . Logic.observeAll $ do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] data0[1,3] data1[1,8] data2[1,9] i[1,5] i'[1,6] n[1,4] n'[1,0] r[1,7]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,2] n'[1,8] r[1,5]
       -- cost: 9
       (arg2) <- (do
         guard $ arg1 == 0
@@ -1203,7 +1172,7 @@ stepN = rget $ (procedure @'[ 'In, 'Out ] stepNIO) :& (procedure @'[ 'Out, 'Out 
       pure (OneTuple (arg2))
     
     stepNOO = choose . nub . Logic.observeAll $ do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] data0[1,3] data1[1,8] data2[1,9] i[1,5] i'[1,6] n[1,5] n'[1,4] r[1,7]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,8] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,3] n'[1,2] r[1,5]
       -- cost: 10
       (arg1,arg2) <- (do
         arg1 <- pure 0
@@ -1268,30 +1237,30 @@ test = rget $ (procedure @'[ 'In ] testI) :& (procedure @'[ 'Out ] testO) :& RNi
       pure (OneTuple (arg1))
     
 {- odds/1
-odds arg1 :- ((arg1 = 1); (arg1 = n, odds m, plus data0 m n, data0 = 2)).
+odds arg1 :- ((arg1 = 1); (odds m, plus data0 m n, data0 = 2, arg1 = n)).
 constraints:
 ~odds[1]
 ~plus[1]
-~(arg1[1,0] & n[1,0])
-~(data0[1,2] & data0[1,3])
-~(m[1,1] & m[1,2])
-~(n[1,0] & n[1,2])
-(data0[1,2] | data0[1,3])
-(m[1,1] | m[1,2])
-(n[1,0] | n[1,2])
-((data0[1,2] & (~m[1,2] & ~n[1,2])) | ((~data0[1,2] & (m[1,2] & ~n[1,2])) | ((~data0[1,2] & (~m[1,2] & n[1,2])) | (~data0[1,2] & (~m[1,2] & ~n[1,2])))))
+~(arg1[1,3] & n[1,3])
+~(data0[1,1] & data0[1,2])
+~(m[1,0] & m[1,1])
+~(n[1,1] & n[1,3])
+(data0[1,1] | data0[1,2])
+(m[1,0] | m[1,1])
+(n[1,1] | n[1,3])
+((data0[1,1] & (~m[1,1] & ~n[1,1])) | ((~data0[1,1] & (m[1,1] & ~n[1,1])) | ((~data0[1,1] & (~m[1,1] & n[1,1])) | (~data0[1,1] & (~m[1,1] & ~n[1,1])))))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,0])
-(m[1,1] <-> arg1[])
+(arg1[1] <-> arg1[1,3])
+(m[1,0] <-> arg1[])
 1
 -}
 
 odds = rget $ (procedure @'[ 'In ] oddsI) :& (procedure @'[ 'Out ] oddsO) :& RNil
   where
     oddsI = \arg1 -> Logic.once $ do
-      -- solution: data0[1,3] m[1,2] n[1,0]
+      -- solution: data0[1,2] m[1,1] n[1,3]
       -- cost: 3
       () <- (do
         guard $ arg1 == 1
@@ -1306,7 +1275,7 @@ odds = rget $ (procedure @'[ 'In ] oddsI) :& (procedure @'[ 'Out ] oddsO) :& RNi
       pure ()
     
     oddsO = do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] data0[1,3] m[1,1] n[1,2]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] data0[1,2] m[1,0] n[1,1]
       -- cost: 4
       (arg1) <- (do
         arg1 <- pure 1
@@ -1814,28 +1783,28 @@ bogosort = rget $ (procedure @'[ 'In, 'In ] bogosortII) :& (procedure @'[ 'In, '
       pure (OneTuple (l))
     
 {- tcomp_ex1/1
-tcomp_ex1 r :- ((if (i = j, ((i = 2); (i = 1); (i = 3)), ((j = 0); (j = 1))) then (r = Just i) else (r = Nothing))).
+tcomp_ex1 r :- ((if (((i = 2); (i = 1); (i = 3)), ((j = 0); (j = 1)), i = j) then (r = Just i) else (r = Nothing))).
 constraints:
 i[0,0,0]
 j[0,0]
 ~i[0,0,1,0]
-~(i[0,0,0,0] & i[0,0,0,1])
-~(i[0,0,0,0] & j[0,0,0,0])
-~(j[0,0,0,0] & j[0,0,0,2])
+~(i[0,0,0,0] & i[0,0,0,2])
+~(i[0,0,0,2] & j[0,0,0,2])
+~(j[0,0,0,1] & j[0,0,0,2])
 ~(r[0,0,1,0] & i[0,0,1,0])
-(j[0,0,0,0] | j[0,0,0,2])
-(i[0,0,0] <-> (i[0,0,0,0] | i[0,0,0,1]))
-(i[0,0,0,1] <-> i[0,0,0,1,0])
-(i[0,0,0,1] <-> i[0,0,0,1,1])
-(i[0,0,0,1] <-> i[0,0,0,1,2])
-(i[0,0,0,1,0] <-> i[0,0,0,1,0,0])
-(i[0,0,0,1,1] <-> i[0,0,0,1,1,0])
-(i[0,0,0,1,2] <-> i[0,0,0,1,2,0])
+(j[0,0,0,1] | j[0,0,0,2])
+(i[0,0,0] <-> (i[0,0,0,0] | i[0,0,0,2]))
+(i[0,0,0,0] <-> i[0,0,0,0,0])
+(i[0,0,0,0] <-> i[0,0,0,0,1])
+(i[0,0,0,0] <-> i[0,0,0,0,2])
+(i[0,0,0,0,0] <-> i[0,0,0,0,0,0])
+(i[0,0,0,0,1] <-> i[0,0,0,0,1,0])
+(i[0,0,0,0,2] <-> i[0,0,0,0,2,0])
 (j[0] <-> j[0,0])
-(j[0,0,0,2] <-> j[0,0,0,2,0])
-(j[0,0,0,2] <-> j[0,0,0,2,1])
-(j[0,0,0,2,0] <-> j[0,0,0,2,0,0])
-(j[0,0,0,2,1] <-> j[0,0,0,2,1,0])
+(j[0,0,0,1] <-> j[0,0,0,1,0])
+(j[0,0,0,1] <-> j[0,0,0,1,1])
+(j[0,0,0,1,0] <-> j[0,0,0,1,0,0])
+(j[0,0,0,1,1] <-> j[0,0,0,1,1,0])
 (r[] <-> r[0])
 (r[0] <-> r[0,0])
 (r[0,0] <-> (r[0,0,1] | r[0,0,2]))
@@ -1848,7 +1817,7 @@ j[0,0]
 tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tcomp_ex1O) :& RNil
   where
     tcomp_ex1I = \r -> Logic.once $ do
-      -- solution: i[0,0,0] i[0,0,0,0] j[0] j[0,0] j[0,0,0,2] j[0,0,0,2,0] j[0,0,0,2,0,0] j[0,0,0,2,1] j[0,0,0,2,1,0]
+      -- solution: i[0,0,0] i[0,0,0,2] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0]
       -- cost: 0
       () <- (do
         () <- Logic.ifte ((do
@@ -1883,26 +1852,26 @@ tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tco
       pure ()
     
     tcomp_ex1O = do
-      -- solution: i[0,0,0] i[0,0,0,0] j[0] j[0,0] j[0,0,0,2] j[0,0,0,2,0] j[0,0,0,2,0,0] j[0,0,0,2,1] j[0,0,0,2,1,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0]
+      -- solution: i[0,0,0] i[0,0,0,0] i[0,0,0,0,0] i[0,0,0,0,0,0] i[0,0,0,0,1] i[0,0,0,0,1,0] i[0,0,0,0,2] i[0,0,0,0,2,0] j[0] j[0,0] j[0,0,0,2] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0]
       -- cost: 0
       (r) <- (do
         (r) <- Logic.ifte ((do
-          (j) <- (do
-            j <- pure 0
-            pure (j)
+          (i) <- (do
+            i <- pure 2
+            pure (i)
            ) <|> (do
-            j <- pure 1
-            pure (j)
+            i <- pure 1
+            pure (i)
+           ) <|> (do
+            i <- pure 3
+            pure (i)
            )
-          i <- pure j
+          j <- pure i
           () <- (do
-            guard $ i == 2
+            guard $ j == 0
             pure ()
            ) <|> (do
-            guard $ i == 1
-            pure ()
-           ) <|> (do
-            guard $ i == 3
+            guard $ j == 1
             pure ()
            )
           pure (i)

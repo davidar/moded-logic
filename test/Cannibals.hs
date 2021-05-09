@@ -8,50 +8,46 @@ data State = State Int Int Int Int Int Int deriving (Eq, Ord, Read, Show)
 data Action = F Int Int | B Int Int deriving (Eq, Ord, Read, Show)
 data Search = Search State [ State ] [ Action ] deriving (Eq, Ord, Read, Show)
 {- elem/2
-elem arg1 arg2 :- ((arg1 = x0, x0 = x, arg2 = x1:_, x1 = x); (arg1 = x, arg2 = _:xs, elem x xs)).
+elem arg1 arg2 :- ((arg2 = x0:_, x0 = x, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
 constraints:
-x1[0,2]
-xs[1,1]
-~arg2[1,1]
+x0[0,0]
+xs[1,0]
+~arg2[1,0]
 ~elem[1]
-~(arg1[0,0] & x0[0,0])
-~(arg1[1,0] & x[1,0])
-~(arg2[0,2] & x1[0,2])
-~(x[0,1] & x[0,3])
-~(x[1,0] & x[1,2])
+~(arg1[0,2] & x[0,2])
+~(arg1[1,2] & x[1,2])
+~(arg2[0,0] & x0[0,0])
+~(x[0,1] & x[0,2])
+~(x[1,1] & x[1,2])
 ~(x0[0,0] & x0[0,1])
 ~(x0[0,1] & x[0,1])
-~(x1[0,2] & x1[0,3])
-~(x1[0,3] & x[0,3])
-~(xs[1,1] & xs[1,2])
-(x[0,1] | x[0,3])
-(x[1,0] | x[1,2])
+~(xs[1,0] & xs[1,1])
+(x[0,1] | x[0,2])
+(x[1,1] | x[1,2])
 (x0[0,0] | x0[0,1])
-(x1[0,2] | x1[0,3])
-(xs[1,1] | xs[1,2])
+(xs[1,0] | xs[1,1])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
-(arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,0])
+(arg1[0] <-> arg1[0,2])
+(arg1[1] <-> arg1[1,2])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
-(arg2[0] <-> arg2[0,2])
-(arg2[1] <-> arg2[1,1])
-(x[1,2] <-> arg1[])
-(xs[1,2] <-> arg2[])
+(arg2[0] <-> arg2[0,0])
+(arg2[1] <-> arg2[1,0])
+(x[1,1] <-> arg1[])
+(xs[1,1] <-> arg2[])
 1
 -}
 
 elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] elemOI) :& RNil
   where
     elemII = \arg1 arg2 -> Logic.once $ do
-      -- solution: x[0,1] x[1,0] x0[0,0] x1[0,2] xs[1,1]
+      -- solution: x[0,1] x[1,2] x0[0,0] xs[1,0]
       -- cost: 1
       () <- (do
-        x0 <- pure arg1
-        (x1:_) <- pure arg2
+        (x0:_) <- pure arg2
         x <- pure x0
-        guard $ x1 == x
+        guard $ arg1 == x
         pure ()
        ) <|> (do
         x <- pure arg1
@@ -62,13 +58,12 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure ()
     
     elemOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] x[0,3] x[1,2] x0[0,1] x1[0,2] xs[1,1]
+      -- solution: arg1[] arg1[0] arg1[0,2] arg1[1] arg1[1,2] x[0,1] x[1,1] x0[0,0] xs[1,0]
       -- cost: 2
       (arg1) <- (do
-        (x1:_) <- pure arg2
-        x <- pure x1
-        x0 <- pure x
-        arg1 <- pure x0
+        (x0:_) <- pure arg2
+        x <- pure x0
+        arg1 <- pure x
         pure (arg1)
        ) <|> (do
         (_:xs) <- pure arg2
@@ -79,36 +74,30 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure (OneTuple (arg1))
     
 {- append/3
-append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b0, b0 = b, arg3 = b1, b1 = b); (arg1 = h2:t, h2 = h, arg2 = b, arg3 = h3:tb, h3 = h, append t b tb)).
+append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h0:t, h0 = h, arg3 = h1:tb, h1 = h, append t b tb, arg2 = b)).
 constraints:
 ~append[1]
-~(arg1[1,0] & h2[1,0])
-~(arg2[0,1] & b0[0,1])
-~(arg2[1,2] & b[1,2])
-~(arg3[0,3] & b1[0,3])
-~(arg3[1,3] & h3[1,3])
-~(b[0,2] & b[0,4])
-~(b[1,2] & b[1,5])
-~(b0[0,1] & b0[0,2])
-~(b0[0,2] & b[0,2])
-~(b1[0,3] & b1[0,4])
-~(b1[0,4] & b[0,4])
-~(h[1,1] & h[1,4])
-~(h2[1,0] & h2[1,1])
-~(h2[1,1] & h[1,1])
-~(h3[1,3] & h3[1,4])
-~(h3[1,4] & h[1,4])
-~(t[1,0] & t[1,5])
-~(tb[1,3] & tb[1,5])
-(b[0,2] | b[0,4])
-(b[1,2] | b[1,5])
-(b0[0,1] | b0[0,2])
-(b1[0,3] | b1[0,4])
-(h[1,1] | h[1,4])
-(h2[1,0] | h2[1,1])
-(h3[1,3] | h3[1,4])
-(t[1,0] | t[1,5])
-(tb[1,3] | tb[1,5])
+~(arg1[1,0] & h0[1,0])
+~(arg2[0,1] & b[0,1])
+~(arg2[1,5] & b[1,5])
+~(arg3[0,2] & b[0,2])
+~(arg3[1,2] & h1[1,2])
+~(b[0,1] & b[0,2])
+~(b[1,4] & b[1,5])
+~(h[1,1] & h[1,3])
+~(h0[1,0] & h0[1,1])
+~(h0[1,1] & h[1,1])
+~(h1[1,2] & h1[1,3])
+~(h1[1,3] & h[1,3])
+~(t[1,0] & t[1,4])
+~(tb[1,2] & tb[1,4])
+(b[0,1] | b[0,2])
+(b[1,4] | b[1,5])
+(h[1,1] | h[1,3])
+(h0[1,0] | h0[1,1])
+(h1[1,2] | h1[1,3])
+(t[1,0] | t[1,4])
+(tb[1,2] | tb[1,4])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
@@ -116,78 +105,72 @@ constraints:
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,1])
-(arg2[1] <-> arg2[1,2])
+(arg2[1] <-> arg2[1,5])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
-(arg3[0] <-> arg3[0,3])
-(arg3[1] <-> arg3[1,3])
-(b[1,5] <-> arg2[])
-(h2[1,0] <-> t[1,0])
-(h3[1,3] <-> tb[1,3])
-(t[1,5] <-> arg1[])
-(tb[1,5] <-> arg3[])
+(arg3[0] <-> arg3[0,2])
+(arg3[1] <-> arg3[1,2])
+(b[1,4] <-> arg2[])
+(h0[1,0] <-> t[1,0])
+(h1[1,2] <-> tb[1,2])
+(t[1,4] <-> arg1[])
+(tb[1,4] <-> arg3[])
 1
 -}
 
 append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In, 'In, 'Out ] appendIIO) :& (procedure @'[ 'In, 'Out, 'In ] appendIOI) :& (procedure @'[ 'Out, 'In, 'In ] appendOII) :& (procedure @'[ 'Out, 'Out, 'In ] appendOOI) :& RNil
   where
     appendIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: b[0,2] b[1,2] b0[0,1] b1[0,3] h[1,1] h2[1,0] h3[1,3] t[1,0] tb[1,3]
+      -- solution: b[0,1] b[1,5] h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2]
       -- cost: 1
       () <- (do
         guard $ arg1 == []
-        b0 <- pure arg2
-        b1 <- pure arg3
-        b <- pure b0
-        guard $ b1 == b
+        b <- pure arg2
+        guard $ arg3 == b
         pure ()
        ) <|> (do
-        (h2:t) <- pure arg1
+        (h0:t) <- pure arg1
         b <- pure arg2
-        (h3:tb) <- pure arg3
-        h <- pure h2
-        guard $ h3 == h
+        (h1:tb) <- pure arg3
+        h <- pure h0
+        guard $ h1 == h
         () <- appendIII t b tb
         pure ()
        )
       pure ()
     
     appendIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,3] arg3[1] arg3[1,3] b[0,2] b[1,2] b0[0,1] b1[0,4] h[1,1] h2[1,0] h3[1,4] t[1,0] tb[1,5]
+      -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,2] b[0,1] b[1,5] h[1,1] h0[1,0] h1[1,3] t[1,0] tb[1,4]
       -- cost: 2
       (arg3) <- (do
         guard $ arg1 == []
-        b0 <- pure arg2
-        b <- pure b0
-        b1 <- pure b
-        arg3 <- pure b1
+        b <- pure arg2
+        arg3 <- pure b
         pure (arg3)
        ) <|> (do
-        (h2:t) <- pure arg1
+        (h0:t) <- pure arg1
         b <- pure arg2
-        h <- pure h2
-        h3 <- pure h
+        h <- pure h0
+        h1 <- pure h
         (OneTuple (tb)) <- appendIIO t b
-        arg3 <- pure (h3:tb)
+        arg3 <- pure (h1:tb)
         pure (arg3)
        )
       pure (OneTuple (arg3))
     
     appendIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] b[0,4] b[1,5] b0[0,2] b1[0,3] h[1,1] h2[1,0] h3[1,3] t[1,0] tb[1,3]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,5] b[0,2] b[1,4] h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2]
       -- cost: 2
       (arg2) <- (do
         guard $ arg1 == []
-        b1 <- pure arg3
-        b <- pure b1
-        b0 <- pure b
-        arg2 <- pure b0
+        b <- pure arg3
+        arg2 <- pure b
         pure (arg2)
        ) <|> (do
-        (h2:t) <- pure arg1
-        (h3:tb) <- pure arg3
-        h <- pure h2
-        guard $ h3 == h
+        (h0:t) <- pure arg1
+        (h1:tb) <- pure arg3
+        h <- pure h0
+        guard $ h1 == h
         (OneTuple (b)) <- appendIOI t tb
         arg2 <- pure b
         pure (arg2)
@@ -195,42 +178,38 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg2))
     
     appendOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[0,4] b[1,2] b0[0,2] b1[0,3] h[1,4] h2[1,1] h3[1,3] t[1,5] tb[1,3]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[0,2] b[1,5] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
       -- cost: 2
       (arg1) <- (do
         arg1 <- pure []
-        b1 <- pure arg3
-        b <- pure b1
-        b0 <- pure b
-        guard $ arg2 == b0
+        b <- pure arg3
+        guard $ arg2 == b
         pure (arg1)
        ) <|> (do
         b <- pure arg2
-        (h3:tb) <- pure arg3
-        h <- pure h3
-        h2 <- pure h
+        (h1:tb) <- pure arg3
+        h <- pure h1
+        h0 <- pure h
         (OneTuple (t)) <- appendOII b tb
-        arg1 <- pure (h2:t)
+        arg1 <- pure (h0:t)
         pure (arg1)
        )
       pure (OneTuple (arg1))
     
     appendOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] b[0,4] b[1,5] b0[0,2] b1[0,3] h[1,4] h2[1,1] h3[1,3] t[1,5] tb[1,3]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,5] b[0,2] b[1,4] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
       -- cost: 3
       (arg1,arg2) <- (do
         arg1 <- pure []
-        b1 <- pure arg3
-        b <- pure b1
-        b0 <- pure b
-        arg2 <- pure b0
+        b <- pure arg3
+        arg2 <- pure b
         pure (arg1,arg2)
        ) <|> (do
-        (h3:tb) <- pure arg3
-        h <- pure h3
-        h2 <- pure h
+        (h1:tb) <- pure arg3
+        h <- pure h1
+        h0 <- pure h
         (t,b) <- appendOOI tb
-        arg1 <- pure (h2:t)
+        arg1 <- pure (h0:t)
         arg2 <- pure b
         pure (arg1,arg2)
        )
@@ -455,7 +434,7 @@ check = rget $ (procedure @'[ 'In ] checkI) :& RNil
       pure ()
     
 {- move/3
-move arg1 arg2 arg3 :- ((arg1 = State m1 c1 b1 m2 c2 b2, arg2 = F mm cm, arg3 = s, (>) b1 data0, data0 = 0, plus mm m1' m1, plus cm c1' c1, succ b1' b1, plus mm m2 m2', plus cm c2 c2', succ b2 b2', s = State m1' c1' b1' m2' c2' b2', check s); (arg1 = State m1 c1 b1 m2 c2 b2, arg2 = B mm cm, arg3 = s, (>) b2 data1, data1 = 0, plus mm m1 m1', plus cm c1 c1', succ b1 b1', plus mm m2' m2, plus cm c2' c2, succ b2' b2, s = State m1' c1' b1' m2' c2' b2', check s)).
+move arg1 arg2 arg3 :- ((arg1 = State m1 c1 b1 m2 c2 b2, arg2 = F mm cm, (>) b1 data0, data0 = 0, plus mm m1' m1, plus cm c1' c1, succ b1' b1, plus mm m2 m2', plus cm c2 c2', succ b2 b2', s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s); (arg1 = State m1 c1 b1 m2 c2 b2, arg2 = B mm cm, (>) b2 data1, data1 = 0, plus mm m1 m1', plus cm c1 c1', succ b1 b1', plus mm m2' m2, plus cm c2' c2, succ b2' b2, s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s)).
 constraints:
 ~(>)[0]
 ~(>)[1]
@@ -463,112 +442,112 @@ constraints:
 ~check[1]
 ~plus[0]
 ~plus[1]
-~s[0,12]
-~s[1,12]
+~s[0,11]
+~s[1,11]
 ~succ[0]
 ~succ[1]
 ~(arg1[0,0] & m1[0,0])
 ~(arg1[1,0] & m1[1,0])
 ~(arg2[0,1] & mm[0,1])
 ~(arg2[1,1] & mm[1,1])
-~(arg3[0,2] & s[0,2])
-~(arg3[1,2] & s[1,2])
-~(b1[0,0] & b1[0,3])
-~(b1[0,0] & b1[0,7])
-~(b1[0,3] & b1[0,7])
-~(b1[1,0] & b1[1,7])
-~(b1'[0,7] & b1'[0,11])
-~(b1'[1,7] & b1'[1,11])
-~(b2[0,0] & b2[0,10])
-~(b2[1,0] & b2[1,3])
-~(b2[1,0] & b2[1,10])
-~(b2[1,3] & b2[1,10])
-~(b2'[0,10] & b2'[0,11])
-~(b2'[1,10] & b2'[1,11])
-~(c1[0,0] & c1[0,6])
-~(c1[1,0] & c1[1,6])
-~(c1'[0,6] & c1'[0,11])
-~(c1'[1,6] & c1'[1,11])
-~(c2[0,0] & c2[0,9])
-~(c2[1,0] & c2[1,9])
-~(c2'[0,9] & c2'[0,11])
-~(c2'[1,9] & c2'[1,11])
-~(cm[0,1] & cm[0,6])
-~(cm[0,1] & cm[0,9])
-~(cm[0,6] & cm[0,9])
-~(cm[1,1] & cm[1,6])
-~(cm[1,1] & cm[1,9])
-~(cm[1,6] & cm[1,9])
-~(data0[0,3] & data0[0,4])
-~(data1[1,3] & data1[1,4])
-~(m1[0,0] & m1[0,5])
-~(m1[1,0] & m1[1,5])
-~(m1'[0,5] & m1'[0,11])
-~(m1'[1,5] & m1'[1,11])
-~(m2[0,0] & m2[0,8])
-~(m2[1,0] & m2[1,8])
-~(m2'[0,8] & m2'[0,11])
-~(m2'[1,8] & m2'[1,11])
-~(mm[0,1] & mm[0,5])
-~(mm[0,1] & mm[0,8])
-~(mm[0,5] & mm[0,8])
-~(mm[1,1] & mm[1,5])
-~(mm[1,1] & mm[1,8])
-~(mm[1,5] & mm[1,8])
-~(s[0,2] & s[0,11])
-~(s[0,2] & s[0,12])
-~(s[0,11] & m1'[0,11])
+~(arg3[0,12] & s[0,12])
+~(arg3[1,12] & s[1,12])
+~(b1[0,0] & b1[0,2])
+~(b1[0,0] & b1[0,6])
+~(b1[0,2] & b1[0,6])
+~(b1[1,0] & b1[1,6])
+~(b1'[0,6] & b1'[0,10])
+~(b1'[1,6] & b1'[1,10])
+~(b2[0,0] & b2[0,9])
+~(b2[1,0] & b2[1,2])
+~(b2[1,0] & b2[1,9])
+~(b2[1,2] & b2[1,9])
+~(b2'[0,9] & b2'[0,10])
+~(b2'[1,9] & b2'[1,10])
+~(c1[0,0] & c1[0,5])
+~(c1[1,0] & c1[1,5])
+~(c1'[0,5] & c1'[0,10])
+~(c1'[1,5] & c1'[1,10])
+~(c2[0,0] & c2[0,8])
+~(c2[1,0] & c2[1,8])
+~(c2'[0,8] & c2'[0,10])
+~(c2'[1,8] & c2'[1,10])
+~(cm[0,1] & cm[0,5])
+~(cm[0,1] & cm[0,8])
+~(cm[0,5] & cm[0,8])
+~(cm[1,1] & cm[1,5])
+~(cm[1,1] & cm[1,8])
+~(cm[1,5] & cm[1,8])
+~(data0[0,2] & data0[0,3])
+~(data1[1,2] & data1[1,3])
+~(m1[0,0] & m1[0,4])
+~(m1[1,0] & m1[1,4])
+~(m1'[0,4] & m1'[0,10])
+~(m1'[1,4] & m1'[1,10])
+~(m2[0,0] & m2[0,7])
+~(m2[1,0] & m2[1,7])
+~(m2'[0,7] & m2'[0,10])
+~(m2'[1,7] & m2'[1,10])
+~(mm[0,1] & mm[0,4])
+~(mm[0,1] & mm[0,7])
+~(mm[0,4] & mm[0,7])
+~(mm[1,1] & mm[1,4])
+~(mm[1,1] & mm[1,7])
+~(mm[1,4] & mm[1,7])
+~(s[0,10] & m1'[0,10])
+~(s[0,10] & s[0,11])
+~(s[0,10] & s[0,12])
 ~(s[0,11] & s[0,12])
-~(s[1,2] & s[1,11])
-~(s[1,2] & s[1,12])
-~(s[1,11] & m1'[1,11])
+~(s[1,10] & m1'[1,10])
+~(s[1,10] & s[1,11])
+~(s[1,10] & s[1,12])
 ~(s[1,11] & s[1,12])
-(~b1[0,3] & ~data0[0,3])
-(~b2[1,3] & ~data1[1,3])
-(b1[0,0] | (b1[0,3] | b1[0,7]))
-(b1[1,0] | b1[1,7])
-(b1'[0,7] | b1'[0,11])
-(b1'[1,7] | b1'[1,11])
-(b2[0,0] | b2[0,10])
-(b2[1,0] | (b2[1,3] | b2[1,10]))
-(b2'[0,10] | b2'[0,11])
-(b2'[1,10] | b2'[1,11])
-(c1[0,0] | c1[0,6])
-(c1[1,0] | c1[1,6])
-(c1'[0,6] | c1'[0,11])
-(c1'[1,6] | c1'[1,11])
-(c2[0,0] | c2[0,9])
-(c2[1,0] | c2[1,9])
-(c2'[0,9] | c2'[0,11])
-(c2'[1,9] | c2'[1,11])
-(cm[0,1] | (cm[0,6] | cm[0,9]))
-(cm[1,1] | (cm[1,6] | cm[1,9]))
-(data0[0,3] | data0[0,4])
-(data1[1,3] | data1[1,4])
-(m1[0,0] | m1[0,5])
-(m1[1,0] | m1[1,5])
-(m1'[0,5] | m1'[0,11])
-(m1'[1,5] | m1'[1,11])
-(m2[0,0] | m2[0,8])
-(m2[1,0] | m2[1,8])
-(m2'[0,8] | m2'[0,11])
-(m2'[1,8] | m2'[1,11])
-(mm[0,1] | (mm[0,5] | mm[0,8]))
-(mm[1,1] | (mm[1,5] | mm[1,8]))
-(s[0,2] | (s[0,11] | s[0,12]))
-(s[1,2] | (s[1,11] | s[1,12]))
-((b1[1,7] & ~b1'[1,7]) | ((~b1[1,7] & b1'[1,7]) | (~b1[1,7] & ~b1'[1,7])))
-((b1'[0,7] & ~b1[0,7]) | ((~b1'[0,7] & b1[0,7]) | (~b1'[0,7] & ~b1[0,7])))
-((b2[0,10] & ~b2'[0,10]) | ((~b2[0,10] & b2'[0,10]) | (~b2[0,10] & ~b2'[0,10])))
-((b2'[1,10] & ~b2[1,10]) | ((~b2'[1,10] & b2[1,10]) | (~b2'[1,10] & ~b2[1,10])))
-((cm[0,6] & (~c1'[0,6] & ~c1[0,6])) | ((~cm[0,6] & (c1'[0,6] & ~c1[0,6])) | ((~cm[0,6] & (~c1'[0,6] & c1[0,6])) | (~cm[0,6] & (~c1'[0,6] & ~c1[0,6])))))
-((cm[0,9] & (~c2[0,9] & ~c2'[0,9])) | ((~cm[0,9] & (c2[0,9] & ~c2'[0,9])) | ((~cm[0,9] & (~c2[0,9] & c2'[0,9])) | (~cm[0,9] & (~c2[0,9] & ~c2'[0,9])))))
-((cm[1,6] & (~c1[1,6] & ~c1'[1,6])) | ((~cm[1,6] & (c1[1,6] & ~c1'[1,6])) | ((~cm[1,6] & (~c1[1,6] & c1'[1,6])) | (~cm[1,6] & (~c1[1,6] & ~c1'[1,6])))))
-((cm[1,9] & (~c2'[1,9] & ~c2[1,9])) | ((~cm[1,9] & (c2'[1,9] & ~c2[1,9])) | ((~cm[1,9] & (~c2'[1,9] & c2[1,9])) | (~cm[1,9] & (~c2'[1,9] & ~c2[1,9])))))
-((mm[0,5] & (~m1'[0,5] & ~m1[0,5])) | ((~mm[0,5] & (m1'[0,5] & ~m1[0,5])) | ((~mm[0,5] & (~m1'[0,5] & m1[0,5])) | (~mm[0,5] & (~m1'[0,5] & ~m1[0,5])))))
-((mm[0,8] & (~m2[0,8] & ~m2'[0,8])) | ((~mm[0,8] & (m2[0,8] & ~m2'[0,8])) | ((~mm[0,8] & (~m2[0,8] & m2'[0,8])) | (~mm[0,8] & (~m2[0,8] & ~m2'[0,8])))))
-((mm[1,5] & (~m1[1,5] & ~m1'[1,5])) | ((~mm[1,5] & (m1[1,5] & ~m1'[1,5])) | ((~mm[1,5] & (~m1[1,5] & m1'[1,5])) | (~mm[1,5] & (~m1[1,5] & ~m1'[1,5])))))
-((mm[1,8] & (~m2'[1,8] & ~m2[1,8])) | ((~mm[1,8] & (m2'[1,8] & ~m2[1,8])) | ((~mm[1,8] & (~m2'[1,8] & m2[1,8])) | (~mm[1,8] & (~m2'[1,8] & ~m2[1,8])))))
+(~b1[0,2] & ~data0[0,2])
+(~b2[1,2] & ~data1[1,2])
+(b1[0,0] | (b1[0,2] | b1[0,6]))
+(b1[1,0] | b1[1,6])
+(b1'[0,6] | b1'[0,10])
+(b1'[1,6] | b1'[1,10])
+(b2[0,0] | b2[0,9])
+(b2[1,0] | (b2[1,2] | b2[1,9]))
+(b2'[0,9] | b2'[0,10])
+(b2'[1,9] | b2'[1,10])
+(c1[0,0] | c1[0,5])
+(c1[1,0] | c1[1,5])
+(c1'[0,5] | c1'[0,10])
+(c1'[1,5] | c1'[1,10])
+(c2[0,0] | c2[0,8])
+(c2[1,0] | c2[1,8])
+(c2'[0,8] | c2'[0,10])
+(c2'[1,8] | c2'[1,10])
+(cm[0,1] | (cm[0,5] | cm[0,8]))
+(cm[1,1] | (cm[1,5] | cm[1,8]))
+(data0[0,2] | data0[0,3])
+(data1[1,2] | data1[1,3])
+(m1[0,0] | m1[0,4])
+(m1[1,0] | m1[1,4])
+(m1'[0,4] | m1'[0,10])
+(m1'[1,4] | m1'[1,10])
+(m2[0,0] | m2[0,7])
+(m2[1,0] | m2[1,7])
+(m2'[0,7] | m2'[0,10])
+(m2'[1,7] | m2'[1,10])
+(mm[0,1] | (mm[0,4] | mm[0,7]))
+(mm[1,1] | (mm[1,4] | mm[1,7]))
+(s[0,10] | (s[0,11] | s[0,12]))
+(s[1,10] | (s[1,11] | s[1,12]))
+((b1[1,6] & ~b1'[1,6]) | ((~b1[1,6] & b1'[1,6]) | (~b1[1,6] & ~b1'[1,6])))
+((b1'[0,6] & ~b1[0,6]) | ((~b1'[0,6] & b1[0,6]) | (~b1'[0,6] & ~b1[0,6])))
+((b2[0,9] & ~b2'[0,9]) | ((~b2[0,9] & b2'[0,9]) | (~b2[0,9] & ~b2'[0,9])))
+((b2'[1,9] & ~b2[1,9]) | ((~b2'[1,9] & b2[1,9]) | (~b2'[1,9] & ~b2[1,9])))
+((cm[0,5] & (~c1'[0,5] & ~c1[0,5])) | ((~cm[0,5] & (c1'[0,5] & ~c1[0,5])) | ((~cm[0,5] & (~c1'[0,5] & c1[0,5])) | (~cm[0,5] & (~c1'[0,5] & ~c1[0,5])))))
+((cm[0,8] & (~c2[0,8] & ~c2'[0,8])) | ((~cm[0,8] & (c2[0,8] & ~c2'[0,8])) | ((~cm[0,8] & (~c2[0,8] & c2'[0,8])) | (~cm[0,8] & (~c2[0,8] & ~c2'[0,8])))))
+((cm[1,5] & (~c1[1,5] & ~c1'[1,5])) | ((~cm[1,5] & (c1[1,5] & ~c1'[1,5])) | ((~cm[1,5] & (~c1[1,5] & c1'[1,5])) | (~cm[1,5] & (~c1[1,5] & ~c1'[1,5])))))
+((cm[1,8] & (~c2'[1,8] & ~c2[1,8])) | ((~cm[1,8] & (c2'[1,8] & ~c2[1,8])) | ((~cm[1,8] & (~c2'[1,8] & c2[1,8])) | (~cm[1,8] & (~c2'[1,8] & ~c2[1,8])))))
+((mm[0,4] & (~m1'[0,4] & ~m1[0,4])) | ((~mm[0,4] & (m1'[0,4] & ~m1[0,4])) | ((~mm[0,4] & (~m1'[0,4] & m1[0,4])) | (~mm[0,4] & (~m1'[0,4] & ~m1[0,4])))))
+((mm[0,7] & (~m2[0,7] & ~m2'[0,7])) | ((~mm[0,7] & (m2[0,7] & ~m2'[0,7])) | ((~mm[0,7] & (~m2[0,7] & m2'[0,7])) | (~mm[0,7] & (~m2[0,7] & ~m2'[0,7])))))
+((mm[1,4] & (~m1[1,4] & ~m1'[1,4])) | ((~mm[1,4] & (m1[1,4] & ~m1'[1,4])) | ((~mm[1,4] & (~m1[1,4] & m1'[1,4])) | (~mm[1,4] & (~m1[1,4] & ~m1'[1,4])))))
+((mm[1,7] & (~m2'[1,7] & ~m2[1,7])) | ((~mm[1,7] & (m2'[1,7] & ~m2[1,7])) | ((~mm[1,7] & (~m2'[1,7] & m2[1,7])) | (~mm[1,7] & (~m2'[1,7] & ~m2[1,7])))))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
@@ -579,8 +558,8 @@ constraints:
 (arg2[1] <-> arg2[1,1])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
-(arg3[0] <-> arg3[0,2])
-(arg3[1] <-> arg3[1,2])
+(arg3[0] <-> arg3[0,12])
+(arg3[1] <-> arg3[1,12])
 (m1[0,0] <-> b1[0,0])
 (m1[0,0] <-> b2[0,0])
 (m1[0,0] <-> c1[0,0])
@@ -591,16 +570,16 @@ constraints:
 (m1[1,0] <-> c1[1,0])
 (m1[1,0] <-> c2[1,0])
 (m1[1,0] <-> m2[1,0])
-(m1'[0,11] <-> b1'[0,11])
-(m1'[0,11] <-> b2'[0,11])
-(m1'[0,11] <-> c1'[0,11])
-(m1'[0,11] <-> c2'[0,11])
-(m1'[0,11] <-> m2'[0,11])
-(m1'[1,11] <-> b1'[1,11])
-(m1'[1,11] <-> b2'[1,11])
-(m1'[1,11] <-> c1'[1,11])
-(m1'[1,11] <-> c2'[1,11])
-(m1'[1,11] <-> m2'[1,11])
+(m1'[0,10] <-> b1'[0,10])
+(m1'[0,10] <-> b2'[0,10])
+(m1'[0,10] <-> c1'[0,10])
+(m1'[0,10] <-> c2'[0,10])
+(m1'[0,10] <-> m2'[0,10])
+(m1'[1,10] <-> b1'[1,10])
+(m1'[1,10] <-> b2'[1,10])
+(m1'[1,10] <-> c1'[1,10])
+(m1'[1,10] <-> c2'[1,10])
+(m1'[1,10] <-> m2'[1,10])
 (mm[0,1] <-> cm[0,1])
 (mm[1,1] <-> cm[1,1])
 1
@@ -609,7 +588,7 @@ constraints:
 move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In, 'Out ] moveIIO) :& (procedure @'[ 'In, 'Out, 'In ] moveIOI) :& (procedure @'[ 'Out, 'In, 'In ] moveOII) :& RNil
   where
     moveIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: b1[0,0] b1[1,0] b1'[0,11] b1'[1,11] b2[0,0] b2[1,0] b2'[0,11] b2'[1,11] c1[0,0] c1[1,0] c1'[0,11] c1'[1,11] c2[0,0] c2[1,0] c2'[0,11] c2'[1,11] cm[0,1] cm[1,1] data0[0,4] data1[1,4] m1[0,0] m1[1,0] m1'[0,11] m1'[1,11] m2[0,0] m2[1,0] m2'[0,11] m2'[1,11] mm[0,1] mm[1,1] s[0,2] s[1,2]
+      -- solution: b1[0,0] b1[1,0] b1'[0,10] b1'[1,10] b2[0,0] b2[1,0] b2'[0,10] b2'[1,10] c1[0,0] c1[1,0] c1'[0,10] c1'[1,10] c2[0,0] c2[1,0] c2'[0,10] c2'[1,10] cm[0,1] cm[1,1] data0[0,3] data1[1,3] m1[0,0] m1[1,0] m1'[0,10] m1'[1,10] m2[0,0] m2[1,0] m2'[0,10] m2'[1,10] mm[0,1] mm[1,1] s[0,12] s[1,12]
       -- cost: 16
       () <- (do
         (State m1 c1 b1 m2 c2 b2) <- pure arg1
@@ -645,7 +624,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure ()
     
     moveIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,2] b1[0,0] b1[1,0] b1'[0,7] b1'[1,7] b2[0,0] b2[1,0] b2'[0,10] b2'[1,10] c1[0,0] c1[1,0] c1'[0,6] c1'[1,6] c2[0,0] c2[1,0] c2'[0,9] c2'[1,9] cm[0,1] cm[1,1] data0[0,4] data1[1,4] m1[0,0] m1[1,0] m1'[0,5] m1'[1,5] m2[0,0] m2[1,0] m2'[0,8] m2'[1,8] mm[0,1] mm[1,1] s[0,11] s[1,11]
+      -- solution: arg3[] arg3[0] arg3[0,12] arg3[1] arg3[1,12] b1[0,0] b1[1,0] b1'[0,6] b1'[1,6] b2[0,0] b2[1,0] b2'[0,9] b2'[1,9] c1[0,0] c1[1,0] c1'[0,5] c1'[1,5] c2[0,0] c2[1,0] c2'[0,8] c2'[1,8] cm[0,1] cm[1,1] data0[0,3] data1[1,3] m1[0,0] m1[1,0] m1'[0,4] m1'[1,4] m2[0,0] m2[1,0] m2'[0,7] m2'[1,7] mm[0,1] mm[1,1] s[0,10] s[1,10]
       -- cost: 28
       (arg3) <- (do
         (State m1 c1 b1 m2 c2 b2) <- pure arg1
@@ -681,7 +660,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (OneTuple (arg3))
     
     moveIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] b1[0,0] b1[1,0] b1'[0,11] b1'[1,11] b2[0,0] b2[1,0] b2'[0,11] b2'[1,11] c1[0,0] c1[1,0] c1'[0,11] c1'[1,11] c2[0,0] c2[1,0] c2'[0,11] c2'[1,11] cm[0,9] cm[1,9] data0[0,4] data1[1,4] m1[0,0] m1[1,0] m1'[0,11] m1'[1,11] m2[0,0] m2[1,0] m2'[0,11] m2'[1,11] mm[0,8] mm[1,8] s[0,2] s[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] b1[0,0] b1[1,0] b1'[0,10] b1'[1,10] b2[0,0] b2[1,0] b2'[0,10] b2'[1,10] c1[0,0] c1[1,0] c1'[0,10] c1'[1,10] c2[0,0] c2[1,0] c2'[0,10] c2'[1,10] cm[0,8] cm[1,8] data0[0,3] data1[1,3] m1[0,0] m1[1,0] m1'[0,10] m1'[1,10] m2[0,0] m2[1,0] m2'[0,10] m2'[1,10] mm[0,7] mm[1,7] s[0,12] s[1,12]
       -- cost: 20
       (arg2) <- (do
         (State m1 c1 b1 m2 c2 b2) <- pure arg1
@@ -717,7 +696,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (OneTuple (arg2))
     
     moveOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b1[0,7] b1[1,7] b1'[0,11] b1'[1,11] b2[0,10] b2[1,10] b2'[0,11] b2'[1,11] c1[0,6] c1[1,6] c1'[0,11] c1'[1,11] c2[0,9] c2[1,9] c2'[0,11] c2'[1,11] cm[0,1] cm[1,1] data0[0,4] data1[1,4] m1[0,5] m1[1,5] m1'[0,11] m1'[1,11] m2[0,8] m2[1,8] m2'[0,11] m2'[1,11] mm[0,1] mm[1,1] s[0,2] s[1,2]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b1[0,6] b1[1,6] b1'[0,10] b1'[1,10] b2[0,9] b2[1,9] b2'[0,10] b2'[1,10] c1[0,5] c1[1,5] c1'[0,10] c1'[1,10] c2[0,8] c2[1,8] c2'[0,10] c2'[1,10] cm[0,1] cm[1,1] data0[0,3] data1[1,3] m1[0,4] m1[1,4] m1'[0,10] m1'[1,10] m2[0,7] m2[1,7] m2'[0,10] m2'[1,10] mm[0,1] mm[1,1] s[0,12] s[1,12]
       -- cost: 28
       (arg1) <- (do
         (F mm cm) <- pure arg2
@@ -1154,126 +1133,126 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
       pure (c,a,s,carg3)
     
 {- solve/2
-solve arg1 arg2 :- ((arg1 = Search current seen0 actions1, seen0 = seen, actions1 = actions, arg2 = r, action a, move current a s, showMove current a s data0 msg, data0 = [], putStrLn msg, news = Search s2 s3:seen4 a:actions5, s2 = s, s3 = s, seen4 = seen, actions5 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r))).
+solve arg1 arg2 :- ((arg1 = Search current seen0 actions1, seen0 = seen, actions1 = actions, action a, move current a s, showMove current a s data0 msg, data0 = [], putStrLn msg, news = Search s2 s3:seen4 a:actions5, s2 = s, s3 = s, seen4 = seen, actions5 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r), arg2 = r)).
 constraints:
 ~action[0]
-~elem[0,14,0]
-~empty[0,14,1]
-~final[0,15,0]
+~elem[0,13,0]
+~empty[0,13,1]
+~final[0,14,0]
 ~move[0]
-~msg[0,8]
+~msg[0,7]
 ~putStrLn[0]
+~s[0,13]
+~s[0,13,0,0]
 ~s[0,14]
 ~s[0,14,0,0]
-~s[0,15]
-~s[0,15,0,0]
-~seen[0,14]
-~seen[0,14,0,0]
+~seen[0,13]
+~seen[0,13,0,0]
 ~showMove[0]
-~solve[0,15,2]
+~solve[0,14,2]
+~(a[0,3] & a[0,4])
+~(a[0,3] & a[0,5])
+~(a[0,3] & a[0,8])
 ~(a[0,4] & a[0,5])
-~(a[0,4] & a[0,6])
-~(a[0,4] & a[0,9])
-~(a[0,5] & a[0,6])
-~(a[0,5] & a[0,9])
-~(a[0,6] & a[0,9])
-~(actions[0,2] & actions[0,13])
+~(a[0,4] & a[0,8])
+~(a[0,5] & a[0,8])
+~(actions[0,2] & actions[0,12])
 ~(actions1[0,0] & actions1[0,2])
 ~(actions1[0,2] & actions[0,2])
-~(actions5[0,9] & actions5[0,13])
-~(actions5[0,13] & actions[0,13])
+~(actions5[0,8] & actions5[0,12])
+~(actions5[0,12] & actions[0,12])
 ~(arg1[0,0] & current[0,0])
-~(arg2[0,3] & r[0,3])
+~(arg2[0,15] & r[0,15])
+~(current[0,0] & current[0,4])
 ~(current[0,0] & current[0,5])
-~(current[0,0] & current[0,6])
-~(current[0,5] & current[0,6])
-~(data0[0,6] & data0[0,7])
-~(msg[0,6] & msg[0,8])
-~(news[0,9] & news[0,15])
-~(news[0,9] & s2[0,9])
-~(r[0,3] & r[0,15])
-~(r[0,15,1,0] & news[0,15,1,0])
-~(s[0,5] & s[0,6])
+~(current[0,4] & current[0,5])
+~(data0[0,5] & data0[0,6])
+~(msg[0,5] & msg[0,7])
+~(news[0,8] & news[0,14])
+~(news[0,8] & s2[0,8])
+~(r[0,14] & r[0,15])
+~(r[0,14,1,0] & news[0,14,1,0])
+~(s[0,4] & s[0,5])
+~(s[0,4] & s[0,9])
+~(s[0,4] & s[0,10])
+~(s[0,4] & s[0,13])
+~(s[0,4] & s[0,14])
+~(s[0,5] & s[0,9])
 ~(s[0,5] & s[0,10])
-~(s[0,5] & s[0,11])
+~(s[0,5] & s[0,13])
 ~(s[0,5] & s[0,14])
-~(s[0,5] & s[0,15])
-~(s[0,6] & s[0,10])
-~(s[0,6] & s[0,11])
-~(s[0,6] & s[0,14])
-~(s[0,6] & s[0,15])
-~(s[0,10] & s[0,11])
+~(s[0,9] & s[0,10])
+~(s[0,9] & s[0,13])
+~(s[0,9] & s[0,14])
+~(s[0,10] & s[0,13])
 ~(s[0,10] & s[0,14])
-~(s[0,10] & s[0,15])
-~(s[0,11] & s[0,14])
-~(s[0,11] & s[0,15])
-~(s[0,14] & s[0,15])
-~(s2[0,9] & s2[0,10])
-~(s2[0,10] & s[0,10])
-~(s3[0,9] & s3[0,11])
-~(s3[0,11] & s[0,11])
-~(seen[0,1] & seen[0,12])
-~(seen[0,1] & seen[0,14])
-~(seen[0,12] & seen[0,14])
+~(s[0,13] & s[0,14])
+~(s2[0,8] & s2[0,9])
+~(s2[0,9] & s[0,9])
+~(s3[0,8] & s3[0,10])
+~(s3[0,10] & s[0,10])
+~(seen[0,1] & seen[0,11])
+~(seen[0,1] & seen[0,13])
+~(seen[0,11] & seen[0,13])
 ~(seen0[0,0] & seen0[0,1])
 ~(seen0[0,1] & seen[0,1])
-~(seen4[0,9] & seen4[0,12])
-~(seen4[0,12] & seen[0,12])
-(a[0,4] | ~a[0,4])
-(a[0,4] | (a[0,5] | (a[0,6] | a[0,9])))
-(actions[0,2] | actions[0,13])
+~(seen4[0,8] & seen4[0,11])
+~(seen4[0,11] & seen[0,11])
+(a[0,3] | ~a[0,3])
+(a[0,3] | (a[0,4] | (a[0,5] | a[0,8])))
+(actions[0,2] | actions[0,12])
 (actions1[0,0] | actions1[0,2])
-(actions5[0,9] | actions5[0,13])
-(current[0,0] | (current[0,5] | current[0,6]))
-(data0[0,6] | data0[0,7])
-(msg[0,6] | msg[0,8])
-(news[0,9] | news[0,15])
-(r[0,3] | r[0,15])
-(s[0,5] | (s[0,6] | (s[0,10] | (s[0,11] | (s[0,14] | s[0,15])))))
-(s2[0,9] | s2[0,10])
-(s3[0,9] | s3[0,11])
-(seen[0,1] | (seen[0,12] | seen[0,14]))
+(actions5[0,8] | actions5[0,12])
+(current[0,0] | (current[0,4] | current[0,5]))
+(data0[0,5] | data0[0,6])
+(msg[0,5] | msg[0,7])
+(news[0,8] | news[0,14])
+(r[0,14] | r[0,15])
+(s[0,4] | (s[0,5] | (s[0,9] | (s[0,10] | (s[0,13] | s[0,14])))))
+(s2[0,8] | s2[0,9])
+(s3[0,8] | s3[0,10])
+(seen[0,1] | (seen[0,11] | seen[0,13]))
 (seen0[0,0] | seen0[0,1])
-(seen4[0,9] | seen4[0,12])
-((current[0,5] & (~a[0,5] & ~s[0,5])) | ((~current[0,5] & (a[0,5] & ~s[0,5])) | ((~current[0,5] & (~a[0,5] & s[0,5])) | (~current[0,5] & (~a[0,5] & ~s[0,5])))))
-((current[0,6] & (a[0,6] & (s[0,6] & (data0[0,6] & ~msg[0,6])))) | ((current[0,6] & (a[0,6] & (s[0,6] & (~data0[0,6] & ~msg[0,6])))) | ((current[0,6] & (a[0,6] & (~s[0,6] & (data0[0,6] & ~msg[0,6])))) | ((current[0,6] & (a[0,6] & (~s[0,6] & (~data0[0,6] & ~msg[0,6])))) | ((current[0,6] & (~a[0,6] & (s[0,6] & (data0[0,6] & ~msg[0,6])))) | ((current[0,6] & (~a[0,6] & (s[0,6] & (~data0[0,6] & ~msg[0,6])))) | ((current[0,6] & (~a[0,6] & (~s[0,6] & (data0[0,6] & ~msg[0,6])))) | ((current[0,6] & (~a[0,6] & (~s[0,6] & (~data0[0,6] & ~msg[0,6])))) | ((~current[0,6] & (a[0,6] & (s[0,6] & (data0[0,6] & ~msg[0,6])))) | ((~current[0,6] & (a[0,6] & (s[0,6] & (~data0[0,6] & ~msg[0,6])))) | ((~current[0,6] & (a[0,6] & (~s[0,6] & (data0[0,6] & ~msg[0,6])))) | ((~current[0,6] & (a[0,6] & (~s[0,6] & (~data0[0,6] & ~msg[0,6])))) | ((~current[0,6] & (~a[0,6] & (s[0,6] & (data0[0,6] & ~msg[0,6])))) | ((~current[0,6] & (~a[0,6] & (s[0,6] & (~data0[0,6] & ~msg[0,6])))) | ((~current[0,6] & (~a[0,6] & (~s[0,6] & (data0[0,6] & ~msg[0,6])))) | ((~current[0,6] & (~a[0,6] & (~s[0,6] & (~data0[0,6] & msg[0,6])))) | (~current[0,6] & (~a[0,6] & (~s[0,6] & (~data0[0,6] & ~msg[0,6]))))))))))))))))))))
-((s[0,14,0,0] & ~seen[0,14,0,0]) | (~s[0,14,0,0] & ~seen[0,14,0,0]))
+(seen4[0,8] | seen4[0,11])
+((current[0,4] & (~a[0,4] & ~s[0,4])) | ((~current[0,4] & (a[0,4] & ~s[0,4])) | ((~current[0,4] & (~a[0,4] & s[0,4])) | (~current[0,4] & (~a[0,4] & ~s[0,4])))))
+((current[0,5] & (a[0,5] & (s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (a[0,5] & (s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (a[0,5] & (~s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (a[0,5] & (~s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (~a[0,5] & (s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (~a[0,5] & (s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (~a[0,5] & (~s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (~a[0,5] & (~s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (a[0,5] & (s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (a[0,5] & (s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (a[0,5] & (~s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (a[0,5] & (~s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (~a[0,5] & (s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (~a[0,5] & (s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (~a[0,5] & (~s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (~a[0,5] & (~s[0,5] & (~data0[0,5] & msg[0,5])))) | (~current[0,5] & (~a[0,5] & (~s[0,5] & (~data0[0,5] & ~msg[0,5]))))))))))))))))))))
+((s[0,13,0,0] & ~seen[0,13,0,0]) | (~s[0,13,0,0] & ~seen[0,13,0,0]))
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,0])
 (arg2[] <-> arg2[0])
-(arg2[0] <-> arg2[0,3])
+(arg2[0] <-> arg2[0,15])
 (current[0,0] <-> actions1[0,0])
 (current[0,0] <-> seen0[0,0])
-(elem[0] <-> elem[0,14])
-(elem[0,14] <-> elem[0,14,0])
-(empty[0] <-> empty[0,14])
-(empty[0,14] <-> empty[0,14,1])
-(final[0] <-> final[0,15])
-(final[0,15] <-> final[0,15,0])
-(news[0,15] <-> (news[0,15,1] | news[0,15,2]))
-(news[0,15,1] <-> news[0,15,1,0])
-(news[0,15,1] <-> news[0,15,2])
-(news[0,15,2] <-> news[0,15,2,0])
-(news[0,15,2,0] <-> arg1[])
-(r[0,15] <-> (r[0,15,1] | r[0,15,2]))
-(r[0,15,1] <-> r[0,15,1,0])
-(r[0,15,1] <-> r[0,15,2])
-(r[0,15,2] <-> r[0,15,2,0])
-(r[0,15,2,0] <-> arg2[])
-(s2[0,9] <-> a[0,9])
-(s2[0,9] <-> actions5[0,9])
-(s2[0,9] <-> s3[0,9])
-(s2[0,9] <-> seen4[0,9])
-(solve[0] <-> solve[0,15])
-(solve[0,15] <-> solve[0,15,2])
+(elem[0] <-> elem[0,13])
+(elem[0,13] <-> elem[0,13,0])
+(empty[0] <-> empty[0,13])
+(empty[0,13] <-> empty[0,13,1])
+(final[0] <-> final[0,14])
+(final[0,14] <-> final[0,14,0])
+(news[0,14] <-> (news[0,14,1] | news[0,14,2]))
+(news[0,14,1] <-> news[0,14,1,0])
+(news[0,14,1] <-> news[0,14,2])
+(news[0,14,2] <-> news[0,14,2,0])
+(news[0,14,2,0] <-> arg1[])
+(r[0,14] <-> (r[0,14,1] | r[0,14,2]))
+(r[0,14,1] <-> r[0,14,1,0])
+(r[0,14,1] <-> r[0,14,2])
+(r[0,14,2] <-> r[0,14,2,0])
+(r[0,14,2,0] <-> arg2[])
+(s2[0,8] <-> a[0,8])
+(s2[0,8] <-> actions5[0,8])
+(s2[0,8] <-> s3[0,8])
+(s2[0,8] <-> seen4[0,8])
+(solve[0] <-> solve[0,14])
+(solve[0,14] <-> solve[0,14,2])
 1
 -}
---mode ordering failure, cyclic dependency: [15] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [9] news::I = Search s2::O s3::O:seen4::O a::O:actions5::O -> [10] s2::I = s::O
---mode ordering failure, cyclic dependency: [15] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [9] news::I = Search s2::O s3::O:seen4::O a::O:actions5::O -> [11] s3::I = s::O
+--mode ordering failure, cyclic dependency: [14] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [8] news::I = Search s2::O s3::O:seen4::O a::O:actions5::O -> [9] s2::I = s::O
+--mode ordering failure, cyclic dependency: [14] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [8] news::I = Search s2::O s3::O:seen4::O a::O:actions5::O -> [10] s3::I = s::O
 solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] solveIO) :& RNil
   where
     solveII = \arg1 arg2 -> Logic.once $ do
-      -- solution: a[0,4] actions[0,2] actions1[0,0] actions5[0,13] current[0,0] data0[0,7] msg[0,6] news[0,9] r[0,3] s[0,5] s2[0,10] s3[0,11] seen[0,1] seen0[0,0] seen4[0,12]
+      -- solution: a[0,3] actions[0,2] actions1[0,0] actions5[0,12] current[0,0] data0[0,6] msg[0,5] news[0,8] r[0,15] s[0,4] s2[0,9] s3[0,10] seen[0,1] seen0[0,0] seen4[0,11]
       -- cost: 11
       () <- (do
         (Search current seen0 actions1) <- pure arg1
@@ -1315,7 +1294,7 @@ solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     solveIO = \arg1 -> do
-      -- solution: a[0,4] actions[0,2] actions1[0,0] actions5[0,13] arg2[] arg2[0] arg2[0,3] current[0,0] data0[0,7] msg[0,6] news[0,9] r[0,15] r[0,15,1] r[0,15,1,0] r[0,15,2] r[0,15,2,0] s[0,5] s2[0,10] s3[0,11] seen[0,1] seen0[0,0] seen4[0,12]
+      -- solution: a[0,3] actions[0,2] actions1[0,0] actions5[0,12] arg2[] arg2[0] arg2[0,15] current[0,0] data0[0,6] msg[0,5] news[0,8] r[0,14] r[0,14,1] r[0,14,1,0] r[0,14,2] r[0,14,2,0] s[0,4] s2[0,9] s3[0,10] seen[0,1] seen0[0,0] seen4[0,11]
       -- cost: 12
       (arg2) <- (do
         (Search current seen0 actions1) <- pure arg1

@@ -172,6 +172,7 @@ distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) 0}
     tGoal fdups (Anon name vs g) = do
       g' <- tGoal fdups g
       return $ Anon name vs g'
+    tGoal _ a@(Atom (Unif _ (FVar _))) = return a
     tGoal fdups (Atom (Unif u v)) = do
       (v', body) <- tFunc fdups v
       return . Conj $ Atom <$> Unif u v' : body
