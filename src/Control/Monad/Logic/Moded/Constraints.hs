@@ -159,10 +159,11 @@ cAtom m p r =
   case let Atom a = extract p (ruleBody r)
         in a of
     Unif _ (Func _ []) -> Set.empty
-    Unif u f -> case toList f of
-      [] -> Set.empty
-      (v:vs) ->
-        Set.fromList $ nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
+    Unif u f ->
+      case toList f of
+        [] -> Set.empty
+        (v:vs) ->
+          Set.fromList $ nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
     Pred (V name) vars ->
       Sat.Neg (term p (V name)) `Set.insert` cPred m p r name vars
 

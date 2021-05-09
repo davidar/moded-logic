@@ -181,17 +181,16 @@ distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) 0}
       (vs', body) <- tVars pdups vs
       return . Conj $ Atom <$> Pred name vs' : concat body
     tVars :: [Var] -> [Var] -> State Int ([Var], [[Atom Var]])
-    tVars dups vs =
-      fmap unzip . forM vs $ tVar dups
+    tVars dups vs = fmap unzip . forM vs $ tVar dups
     tVar :: [Var] -> Var -> State Int (Var, [Atom Var])
     tVar dups v =
-        if v `elem` dups && show v /= "_"
-          then do
-            count <- get
-            put $ count + 1
-            let v' = V (show v ++ show count)
-            return (v', [Unif v' (FVar v)])
-          else return (v, [])
+      if v `elem` dups && show v /= "_"
+        then do
+          count <- get
+          put $ count + 1
+          let v' = V (show v ++ show count)
+          return (v', [Unif v' (FVar v)])
+        else return (v, [])
 
 simplify :: Goal Var -> Goal Var
 simplify (Conj gs) = Conj $ conjs ++ other

@@ -899,7 +899,7 @@ constraints:
 1
 -}
 
-fib = rget $ (procedure @'[ 'In, 'Out ] fibIO) :& (procedure @'[ 'Out, 'Out ] fibOO) :& RNil
+fib = rget $ (procedure @'[ 'In, 'Out ] fibIO) :& RNil
   where
     fibIO = memo $ \arg1 -> choose . Logic.observeAll $ do
       -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,8] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,2] j[2,3] k[2,7]
@@ -926,40 +926,15 @@ fib = rget $ (procedure @'[ 'In, 'Out ] fibIO) :& (procedure @'[ 'Out, 'Out ] fi
        )
       pure (OneTuple (arg2))
     
-    fibOO = choose . Logic.observeAll $ do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,7] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,8] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,4] j[2,5] k[2,3]
-      -- cost: 12
-      (arg1,arg2) <- (do
-        arg1 <- pure 0
-        arg2 <- pure 0
-        pure (arg1,arg2)
-       ) <|> (do
-        arg1 <- pure 1
-        arg2 <- pure 1
-        pure (arg1,arg2)
-       ) <|> (do
-        data0 <- pure 1
-        (i,fi) <- fibOO 
-        (j,fj) <- fibOO 
-        () <- runProcedure @'[ 'In, 'In ] succ i j
-        (OneTuple (fk)) <- runProcedure @'[ 'In, 'In, 'Out ] plus fi fj
-        arg2 <- pure fk
-        (OneTuple (k)) <- runProcedure @'[ 'In, 'Out ] succ j
-        arg1 <- pure k
-        guard $ (>) k data0
-        pure (arg1,arg2)
-       )
-      pure (arg1,arg2)
-    
 {- fib'/1
 fib' carg3 :- ((nat x_0, fib x_0 carg3)).
 constraints:
 ~fib[0]
 ~nat[0]
 ~(x_0[0,0] & x_0[0,1])
+(~x_0[0,1] & carg3[0,1])
 (x_0[0,0] | x_0[0,1])
 (x_0[0,0] | ~x_0[0,0])
-((x_0[0,1] & carg3[0,1]) | (~x_0[0,1] & carg3[0,1]))
 (carg3[] <-> carg3[0])
 (carg3[0] <-> carg3[0,1])
 1
@@ -968,11 +943,11 @@ constraints:
 fib' = rget $ (procedure @'[ 'Out ] fib'O) :& RNil
   where
     fib'O = do
-      -- solution: carg3[] carg3[0] carg3[0,1] x_0[0,1]
+      -- solution: carg3[] carg3[0] carg3[0,1] x_0[0,0]
       -- cost: 4
       (carg3) <- (do
-        (x_0,carg3) <- runProcedure @'[ 'Out, 'Out ] fib 
-        () <- runProcedure @'[ 'In ] nat x_0
+        (OneTuple (x_0)) <- runProcedure @'[ 'Out ] nat 
+        (OneTuple (carg3)) <- runProcedure @'[ 'In, 'Out ] fib x_0
         pure (carg3)
        )
       pure (OneTuple (carg3))

@@ -69,7 +69,8 @@ cgFunc (FVar v) = mv v
 cgAtom :: Path -> Rule ModedVar ModedVar -> Text
 cgAtom p r =
   case a of
-    Unif u f | (MV _ Out:_) <- toList f -> cgFunc f <> " <- pure " <> mv u
+    Unif u f
+      | (MV _ Out:_) <- toList f -> cgFunc f <> " <- pure " <> mv u
     Unif (MV u Out) f -> T.pack u <> " <- pure " <> cgFunc f
     Unif u f -> "guard $ " <> mv u <> " == " <> cgFunc f
     Pred (MV name _) vs

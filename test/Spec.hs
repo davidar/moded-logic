@@ -364,6 +364,7 @@ euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5)
 euler1' = sum <$> observeAll euler1
 
 #memo fib
+#mode fib In Out
 fib 0 0
 fib 1 1
 fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
@@ -713,11 +714,11 @@ main = do
       it "compile" $ compileTest "Euler" programEuler
       it "1" $ do
         observeAll (call @'[Out] Euler.euler1') `shouldBe` [233168]
-      {-it "2" $ do
+      it "2" $ do
         [observeAll (call @'[In, Out] Euler.fib i) | i <- [0 .. 12 :: Integer]] `shouldBe`
           map pure [0,1,1,2,3,5,8,13,21,34,55,89,144]
         observeAll (call @'[In, Out] Euler.fib (100 :: Integer)) `shouldBe` [354224848179261915075]
-        observeAll (call @'[Out] Euler.euler2) `shouldBe` [1089154]-}
+        observeAll (call @'[Out] Euler.euler2) `shouldBe` [1089154]
       it "3" $ do
         observeMany 25 (call @'[Out] Euler.prime) `shouldBe` prime25
         observeMany 25 (call @'[Out] Euler.primeSlow) `shouldBe` prime25

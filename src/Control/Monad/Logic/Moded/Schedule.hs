@@ -178,20 +178,30 @@ compileRule pragmas cp r
       evalState
         (fixpt (fmap (simp . prunePreds) . inlinePreds m (macros cp)) r)
         0
+    userModes = do
+      Pragma ("mode":n:ms) <- pragmas
+      guard $ n == ruleName r
+      pure . ModeString $ do
+        io <- ms
+        pure $
+          case io of
+            "In" -> In
+            "Out" -> Out
+            _ -> undefined
     eithers = do
       soln <-
         trace ("inferring modes for rule " ++ show rule) $
         solveConstraints m rule
-      pure $
-        case mode rule soln of
-          Left e -> Left (traceId e)
-          Right mr ->
-            let ms =
+      case mode rule soln of
+        Left e -> pure $ Left (traceId e)
+        Right mr ->
+          trace (show ms ++ " (cost " ++ show (cost $ ruleBody mr) ++ ")") $ do
+            guard $ null userModes || ms `elem` userModes
+            pure $ Right (ms, Procedure {modeSolution = soln, modedRule = mr})
+          where ms =
                   ModeString $ do
                     MV _ mv <- ruleArgs mr
                     pure mv
-             in trace (show ms ++ " (cost " ++ show (cost $ ruleBody mr) ++ ")") $
-                Right (ms, Procedure {modeSolution = soln, modedRule = mr})
     obj =
       CompiledPredicate
         { unmodedRule = rule
