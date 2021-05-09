@@ -464,7 +464,7 @@ duplicate = rget $ (procedure @'[ 'In, 'In ] duplicateII) :& (procedure @'[ 'In,
       pure (OneTuple (a))
     
 {- classify/2
-classify xs r :- ((if (palindrome xs) then (r = Just data0, data0 = []) else (if (duplicate h xs) then (r = Just h) else (r = Nothing)))).
+classify xs r :- ((if (palindrome xs) then (r = Just []) else (if (duplicate h xs) then (r = Just h) else (r = Nothing)))).
 constraints:
 h[0,0,2,0,0]
 ~duplicate[0,0,2,0,0]
@@ -474,10 +474,7 @@ h[0,0,2,0,0]
 ~xs[0,0,2]
 ~xs[0,0,2,0]
 ~xs[0,0,2,0,0,0]
-~(data0[0,0,1,0] & data0[0,0,1,1])
-~(r[0,0,1,0] & data0[0,0,1,0])
 ~(r[0,0,2,0,1,0] & h[0,0,2,0,1,0])
-(data0[0,0,1,0] | data0[0,0,1,1])
 ((h[0,0,2,0,0,0] & ~xs[0,0,2,0,0,0]) | ((~h[0,0,2,0,0,0] & xs[0,0,2,0,0,0]) | (~h[0,0,2,0,0,0] & ~xs[0,0,2,0,0,0])))
 (duplicate[0] <-> duplicate[0,0])
 (duplicate[0,0] <-> duplicate[0,0,2])
@@ -506,15 +503,14 @@ h[0,0,2,0,0]
 classify = rget $ (procedure @'[ 'In, 'In ] classifyII) :& (procedure @'[ 'In, 'Out ] classifyIO) :& RNil
   where
     classifyII = \xs r -> Logic.once $ do
-      -- solution: data0[0,0,1,0] h[0,0,2,0,0] h[0,0,2,0,0,0]
+      -- solution: h[0,0,2,0,0] h[0,0,2,0,0,0]
       -- cost: 3
       () <- (do
         () <- Logic.ifte ((do
           () <- runProcedure @'[ 'In ] palindrome xs
           pure ()
          )) (\() -> (do
-          (Just data0) <- pure r
-          guard $ data0 == []
+          guard $ r == (Just [])
           pure ()
          )) ((do
           () <- Logic.ifte ((do
@@ -534,15 +530,14 @@ classify = rget $ (procedure @'[ 'In, 'In ] classifyII) :& (procedure @'[ 'In, '
       pure ()
     
     classifyIO = \xs -> do
-      -- solution: data0[0,0,1,1] h[0,0,2,0,0] h[0,0,2,0,0,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0] r[0,0,2,0,1] r[0,0,2,0,1,0] r[0,0,2,0,2] r[0,0,2,0,2,0]
+      -- solution: h[0,0,2,0,0] h[0,0,2,0,0,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0] r[0,0,2,0,1] r[0,0,2,0,1,0] r[0,0,2,0,2] r[0,0,2,0,2,0]
       -- cost: 3
       (r) <- (do
         (r) <- Logic.ifte ((do
           () <- runProcedure @'[ 'In ] palindrome xs
           pure ()
          )) (\() -> (do
-          data0 <- pure []
-          r <- pure (Just data0)
+          r <- pure (Just [])
           pure (r)
          )) ((do
           (r) <- Logic.ifte ((do

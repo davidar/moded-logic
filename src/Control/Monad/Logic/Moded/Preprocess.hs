@@ -104,16 +104,17 @@ superhomogeneous arities r =
           extra = [Var . V $ "curry" ++ show i | i <- [1 .. k]]
           g = Atom $ Pred (Var $ V p) (vs ++ extra)
       tVal (Lambda extra g)
+    tValFunc :: Val -> State (Int, [Goal Var]) (Func Var)
+    tValFunc (Cons name vs) = do
+      vs' <- mapM tValFunc vs
+      return $ Func name vs'
+    tValFunc v = FVar <$> tVal v
     tFunc :: Func Val -> State (Int, [Goal Var]) (Func Var)
     tFunc (Func name vs) = do
       vs' <- mapM tFunc vs
       return $ Func name vs'
-    tFunc (FVar v) = FVar <$> tVal v
+    tFunc (FVar v) = tValFunc v
     tAtom :: Atom Val -> State (Int, [Goal Var]) (Atom Var)
-    tAtom (Unif (Var u) (FVar (Var v))) = return $ Unif u (FVar v)
-    tAtom (Unif (Var u) (FVar (Cons name vs))) = do
-      vs' <- mapM tVal vs
-      return . Unif u . Func name $ FVar <$> vs'
     tAtom (Unif u v) = do
       u' <- tVal u
       v' <- tFunc v
