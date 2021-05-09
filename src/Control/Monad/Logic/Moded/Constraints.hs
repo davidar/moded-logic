@@ -11,6 +11,7 @@ module Control.Monad.Logic.Moded.Constraints
 
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
+  , Func(..)
   , Goal(..)
   , Name
   , Rule(..)
@@ -29,6 +30,7 @@ import Control.Monad.Logic.Moded.Path
   )
 import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.Equivalence.Monad (EquivM, MonadEquiv(..), runEquivM)
+import Data.Foldable (Foldable(toList))
 import Data.List (nub, sort)
 import qualified Data.Map as Map
 import Data.Map (Map)
@@ -156,11 +158,11 @@ cAtom :: Modes -> Path -> Rule Var Var -> Constraints
 cAtom m p r =
   case let Atom a = extract p (ruleBody r)
         in a of
-    Unif u v -> Set.singleton $ nand p u v
-    Func _ [] _ -> Set.empty
-    Func _ [v] u -> Set.singleton $ nand p u v
-    Func _ (v:vs) u ->
-      Set.fromList $ nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
+    Unif _ (Func _ []) -> Set.empty
+    Unif u f -> case toList f of
+      [] -> Set.empty
+      (v:vs) ->
+        Set.fromList $ nand p u v : [term p v `Sat.Iff` term p v' | v' <- vs]
     Pred (V name) vars ->
       Sat.Neg (term p (V name)) `Set.insert` cPred m p r name vars
 
@@ -205,7 +207,7 @@ cPred m p r name vars
   where
     equivClasses :: EquivM s (Set Var) Var ()
     equivClasses =
-      let f (Atom (Unif u v)) = equate u v
+      let f (Atom (Unif u (FVar v))) = equate u v
           f (Atom _) = pure ()
           f g = f `mapM_` subgoals g
        in f (ruleBody r)

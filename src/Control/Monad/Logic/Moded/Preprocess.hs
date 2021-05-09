@@ -13,6 +13,7 @@ module Control.Monad.Logic.Moded.Preprocess
 import Control.Monad (forM)
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
+  , Func(..)
   , Goal(..)
   , Name
   , Rule(..)
@@ -65,7 +66,7 @@ combineDefs rules = do
         Disj $ do
           Rule _ vars' body <- defs
           let unifs =
-                [ Atom $ Unif p v
+                [ Atom $ Unif p (FVar v)
                 | (p, v) <- map Var params `zip` vars'
                 , show v /= "_"
                 , show p /= show v
@@ -85,7 +86,7 @@ superhomogeneous arities r =
       vs' <- mapM tVal vs
       (count, body) <- get
       let u = V $ "data" ++ show count
-      put (count + 1, body ++ [Atom $ Func name vs' u])
+      put (count + 1, body ++ [Atom . Unif u . Func name $ FVar <$> vs'])
       return u
     tVal (Lambda vs g) = do
       vs' <- mapM tVal vs
@@ -103,16 +104,20 @@ superhomogeneous arities r =
           extra = [Var . V $ "curry" ++ show i | i <- [1 .. k]]
           g = Atom $ Pred (Var $ V p) (vs ++ extra)
       tVal (Lambda extra g)
+    tFunc :: Func Val -> State (Int, [Goal Var]) (Func Var)
+    tFunc (Func name vs) = do
+      vs' <- mapM tFunc vs
+      return $ Func name vs'
+    tFunc (FVar v) = FVar <$> tVal v
     tAtom :: Atom Val -> State (Int, [Goal Var]) (Atom Var)
-    tAtom (Unif (Var u) (Var v)) = return $ Unif u v
-    tAtom (Unif (Var u) (Cons name vs)) = do
+    tAtom (Unif (Var u) (FVar (Var v))) = return $ Unif u (FVar v)
+    tAtom (Unif (Var u) (FVar (Cons name vs))) = do
       vs' <- mapM tVal vs
-      return $ Func name vs' u
-    tAtom (Unif u v) = error $ "tAtom " ++ show (Unif u v)
-    tAtom (Func name vs u) = do
+      return . Unif u . Func name $ FVar <$> vs'
+    tAtom (Unif u v) = do
       u' <- tVal u
-      vs' <- mapM tVal vs
-      return $ Func name vs' u'
+      v' <- tFunc v
+      return $ Unif u' v'
     tAtom (Pred (Var name) vs) = do
       vs' <- mapM tVal vs
       return $ Pred name vs'
@@ -142,9 +147,16 @@ superhomogeneous arities r =
 distinctVars :: Rule Var Var -> Rule Var Var
 distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) 0}
   where
-    vars (Atom (Func _ vs _)) = vs
+    vars (Atom (Unif _ f)) = toList f
     vars (Atom _) = []
     vars g = subgoals g >>= vars
+    tFunc :: [Var] -> Func Var -> State Int (Func Var, [Atom Var])
+    tFunc fdups (Func name vs) = do
+      (vs', bodies) <- unzip <$> tFunc fdups `mapM` vs
+      return (Func name vs', concat bodies)
+    tFunc fdups (FVar v) = do
+      (v', body) <- tVar fdups v
+      return (FVar v', body)
     tGoal :: [Var] -> Goal Var -> State Int (Goal Var)
     tGoal fdups (Disj gs) = Disj <$> tGoal fdups `mapM` gs
     tGoal fdups (Conj gs) = Conj <$> tGoal fdups' `mapM` gs
@@ -159,22 +171,24 @@ distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) 0}
     tGoal fdups (Anon name vs g) = do
       g' <- tGoal fdups g
       return $ Anon name vs g'
-    tGoal fdups (Atom (Func name vs u)) = do
-      (vs', body) <- tVars fdups vs
-      return . Conj $ Atom <$> Func name vs' u : concat body
+    tGoal fdups (Atom (Unif u v)) = do
+      (v', body) <- tFunc fdups v
+      return . Conj $ Atom <$> Unif u v' : body
     tGoal _ (Atom (Pred name vs)) = do
       let pdups = [head l | l <- group (sort vs), length l > 1]
       (vs', body) <- tVars pdups vs
       return . Conj $ Atom <$> Pred name vs' : concat body
-    tGoal _ (Atom a) = return $ Atom a
+    tVars :: [Var] -> [Var] -> State Int ([Var], [[Atom Var]])
     tVars dups vs =
-      fmap unzip . forM vs $ \v ->
+      fmap unzip . forM vs $ tVar dups
+    tVar :: [Var] -> Var -> State Int (Var, [Atom Var])
+    tVar dups v =
         if v `elem` dups && show v /= "_"
           then do
             count <- get
             put $ count + 1
             let v' = V (show v ++ show count)
-            return (v', [Unif v' v])
+            return (v', [Unif v' (FVar v)])
           else return (v, [])
 
 simplify :: Goal Var -> Goal Var

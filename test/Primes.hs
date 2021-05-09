@@ -70,74 +70,80 @@ integers = rget $ (procedure @'[ 'In, 'In, 'Out ] integersIIO) :& RNil
       pure (OneTuple (result))
     
 {- remove/3
-remove arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = j0:js, j0 = j, mod j p m, remove p js njs, if (m = 0) then (result = njs) else (result = j1:njs, j1 = j), arg1 = p, arg3 = result)).
+remove arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg1 = p, arg2 = j0:js, j0 = j, arg3 = result, mod j p m, remove p js njs, if (m = 0) then (result = njs1, njs1 = njs) else (result = j2:njs3, j2 = j, njs3 = njs))).
 constraints:
 ~arg1[]
-~j[1,4,2]
-~m[1,4]
-~m[1,4,0,0]
+~j[1,6,2]
+~m[1,6]
+~m[1,6,0,0]
 ~mod[1]
 ~remove[1]
-~(arg1[1,5] & p[1,5])
-~(arg2[1,0] & j0[1,0])
-~(arg3[1,6] & result[1,6])
-~(j[1,1] & j[1,2])
-~(j[1,1] & j[1,4])
+~(arg1[1,0] & p[1,0])
+~(arg2[1,1] & j0[1,1])
+~(arg3[1,3] & result[1,3])
 ~(j[1,2] & j[1,4])
-~(j0[1,0] & j0[1,1])
-~(j0[1,1] & j[1,1])
-~(j1[1,4,2,0] & j1[1,4,2,1])
-~(j1[1,4,2,1] & j[1,4,2,1])
-~(js[1,0] & js[1,3])
-~(m[1,2] & m[1,4])
-~(njs[1,3] & njs[1,4])
-~(p[1,2] & p[1,3])
-~(p[1,2] & p[1,5])
-~(p[1,3] & p[1,5])
-~(result[1,4] & result[1,6])
-~(result[1,4,1,0] & njs[1,4,1,0])
-~(result[1,4,2,0] & j1[1,4,2,0])
-(j[1,1] | (j[1,2] | j[1,4]))
-(j0[1,0] | j0[1,1])
-(j1[1,4,2,0] | j1[1,4,2,1])
-(js[1,0] | js[1,3])
-(m[1,2] | m[1,4])
-(njs[1,3] | njs[1,4])
-(p[1,2] | (p[1,3] | p[1,5]))
-(result[1,4] | result[1,6])
-((~j[1,2] & (~p[1,2] & m[1,2])) | (~j[1,2] & (~p[1,2] & ~m[1,2])))
+~(j[1,2] & j[1,6])
+~(j[1,4] & j[1,6])
+~(j0[1,1] & j0[1,2])
+~(j0[1,2] & j[1,2])
+~(j2[1,6,2,0] & j2[1,6,2,1])
+~(j2[1,6,2,1] & j[1,6,2,1])
+~(js[1,1] & js[1,5])
+~(m[1,4] & m[1,6])
+~(njs[1,5] & njs[1,6])
+~(njs1[1,6,1,0] & njs1[1,6,1,1])
+~(njs1[1,6,1,1] & njs[1,6,1,1])
+~(njs3[1,6,2,0] & njs3[1,6,2,2])
+~(njs3[1,6,2,2] & njs[1,6,2,2])
+~(p[1,0] & p[1,4])
+~(p[1,0] & p[1,5])
+~(p[1,4] & p[1,5])
+~(result[1,3] & result[1,6])
+~(result[1,6,1,0] & njs1[1,6,1,0])
+~(result[1,6,2,0] & j2[1,6,2,0])
+(j[1,2] | (j[1,4] | j[1,6]))
+(j0[1,1] | j0[1,2])
+(j2[1,6,2,0] | j2[1,6,2,1])
+(js[1,1] | js[1,5])
+(m[1,4] | m[1,6])
+(njs[1,5] | njs[1,6])
+(njs1[1,6,1,0] | njs1[1,6,1,1])
+(njs3[1,6,2,0] | njs3[1,6,2,2])
+(p[1,0] | (p[1,4] | p[1,5]))
+(result[1,3] | result[1,6])
+((~j[1,4] & (~p[1,4] & m[1,4])) | (~j[1,4] & (~p[1,4] & ~m[1,4])))
 (arg1[] <-> arg1[1])
-(arg1[1] <-> arg1[1,5])
+(arg1[1] <-> arg1[1,0])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,0])
-(arg2[1] <-> arg2[1,0])
+(arg2[1] <-> arg2[1,1])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
 (arg3[0] <-> arg3[0,1])
-(arg3[1] <-> arg3[1,6])
-(j[1,4] <-> j[1,4,2])
-(j[1,4,2] <-> j[1,4,2,1])
-(j0[1,0] <-> js[1,0])
-(j1[1,4,2,0] <-> njs[1,4,2,0])
-(js[1,3] <-> arg2[])
-(njs[1,3] <-> arg3[])
-(njs[1,4] <-> (njs[1,4,1] | njs[1,4,2]))
-(njs[1,4,1] <-> njs[1,4,1,0])
-(njs[1,4,1] <-> njs[1,4,2])
-(njs[1,4,2] <-> njs[1,4,2,0])
-(p[1,3] <-> arg1[])
-(result[1,4] <-> (result[1,4,1] | result[1,4,2]))
-(result[1,4,1] <-> result[1,4,1,0])
-(result[1,4,1] <-> result[1,4,2])
-(result[1,4,2] <-> result[1,4,2,0])
+(arg3[1] <-> arg3[1,3])
+(j[1,6] <-> j[1,6,2])
+(j[1,6,2] <-> j[1,6,2,1])
+(j0[1,1] <-> js[1,1])
+(j2[1,6,2,0] <-> njs3[1,6,2,0])
+(js[1,5] <-> arg2[])
+(njs[1,5] <-> arg3[])
+(njs[1,6] <-> (njs[1,6,1] | njs[1,6,2]))
+(njs[1,6,1] <-> njs[1,6,1,1])
+(njs[1,6,1] <-> njs[1,6,2])
+(njs[1,6,2] <-> njs[1,6,2,2])
+(p[1,5] <-> arg1[])
+(result[1,6] <-> (result[1,6,1] | result[1,6,2]))
+(result[1,6,1] <-> result[1,6,1,0])
+(result[1,6,1] <-> result[1,6,2])
+(result[1,6,2] <-> result[1,6,2,0])
 1
 -}
 
 remove = rget $ (procedure @'[ 'In, 'In, 'In ] removeIII) :& (procedure @'[ 'In, 'In, 'Out ] removeIIO) :& RNil
   where
     removeIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: j[1,1] j0[1,0] j1[1,4,2,0] js[1,0] m[1,2] njs[1,4] njs[1,4,1] njs[1,4,1,0] njs[1,4,2] njs[1,4,2,0] p[1,5] result[1,6]
+      -- solution: j[1,2] j0[1,1] j2[1,6,2,0] js[1,1] m[1,4] njs[1,6] njs[1,6,1] njs[1,6,1,1] njs[1,6,2] njs[1,6,2,2] njs1[1,6,1,0] njs3[1,6,2,0] p[1,0] result[1,3]
       -- cost: 3
       () <- (do
         guard $ arg2 == []
@@ -145,19 +151,21 @@ remove = rget $ (procedure @'[ 'In, 'In, 'In ] removeIII) :& (procedure @'[ 'In,
         pure ()
        ) <|> (do
         p <- pure arg1
-        result <- pure arg3
         (j0:js) <- pure arg2
+        result <- pure arg3
         j <- pure j0
         (OneTuple (m)) <- runProcedure @'[ 'In, 'In, 'Out ] mod j p
         (njs) <- Logic.ifte ((do
           guard $ m == 0
           pure ()
          )) (\() -> (do
-          njs <- pure result
+          njs1 <- pure result
+          njs <- pure njs1
           pure (njs)
          )) ((do
-          (j1:njs) <- pure result
-          guard $ j1 == j
+          (j2:njs3) <- pure result
+          guard $ j2 == j
+          njs <- pure njs3
           pure (njs)
          ))
         () <- removeIII p js njs
@@ -166,7 +174,7 @@ remove = rget $ (procedure @'[ 'In, 'In, 'In ] removeIII) :& (procedure @'[ 'In,
       pure ()
     
     removeIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,6] j[1,1] j0[1,0] j1[1,4,2,1] js[1,0] m[1,2] njs[1,3] p[1,5] result[1,4] result[1,4,1] result[1,4,1,0] result[1,4,2] result[1,4,2,0]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,3] j[1,2] j0[1,1] j2[1,6,2,1] js[1,1] m[1,4] njs[1,5] njs1[1,6,1,1] njs3[1,6,2,2] p[1,0] result[1,6] result[1,6,1] result[1,6,1,0] result[1,6,2] result[1,6,2,0]
       -- cost: 4
       (arg3) <- (do
         guard $ arg2 == []
@@ -182,11 +190,13 @@ remove = rget $ (procedure @'[ 'In, 'In, 'In ] removeIII) :& (procedure @'[ 'In,
           guard $ m == 0
           pure ()
          )) (\() -> (do
-          result <- pure njs
+          njs1 <- pure njs
+          result <- pure njs1
           pure (result)
          )) ((do
-          j1 <- pure j
-          result <- pure (j1:njs)
+          j2 <- pure j
+          njs3 <- pure njs
+          result <- pure (j2:njs3)
           pure (result)
          ))
         arg3 <- pure result
@@ -244,8 +254,8 @@ sift = rget $ (procedure @'[ 'In, 'In ] siftII) :& (procedure @'[ 'In, 'Out ] si
         pure ()
        ) <|> (do
         (p0:js) <- pure arg1
-        p <- pure p0
         (p1:ps) <- pure arg2
+        p <- pure p0
         guard $ p1 == p
         (OneTuple (new)) <- runProcedure @'[ 'In, 'In, 'Out ] remove p js
         () <- siftII new ps

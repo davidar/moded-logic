@@ -9,6 +9,7 @@ module Control.Monad.Logic.Moded.Parse
 
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
+  , Func(..)
   , Goal(..)
   , Pragma(..)
   , Prog(..)
@@ -157,7 +158,7 @@ unify = do
   lhs <- variable
   symbol "="
   rhs <- parenValue
-  pure $ Unif lhs rhs
+  pure $ Unif lhs (FVar rhs)
 
 predicate :: Parser (Atom Val)
 predicate =

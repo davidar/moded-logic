@@ -5,6 +5,7 @@ module Control.Monad.Logic.Moded.AST
   ( Prog(..)
   , Pragma(..)
   , Rule(..)
+  , Func(..)
   , Goal(..)
   , Atom(..)
   , Var(..)
@@ -21,9 +22,13 @@ newtype Var =
   V Name
   deriving (Eq, Ord, Lift)
 
+data Func v
+  = Func Name [Func v]
+  | FVar v
+  deriving (Eq, Ord, Functor, Foldable, Traversable, Lift)
+
 data Atom v
-  = Unif v v
-  | Func Name [v] v
+  = Unif v (Func v)
   | Pred v [v]
   deriving (Eq, Ord, Functor, Foldable, Traversable, Lift)
 
@@ -54,11 +59,14 @@ data Prog u v =
 instance Show Var where
   show (V v) = v
 
+instance (Show v) => Show (Func v) where
+  show (FVar v) = show v
+  show (Func ":" vs)
+    | length vs > 1 = intercalate ":" (map show vs)
+  show (Func name vs) = unwords (name : map show vs)
+
 instance (Show v) => Show (Atom v) where
   show (Unif u v) = show u ++ " = " ++ show v
-  show (Func ":" vs u)
-    | length vs > 1 = show u ++ " = " ++ intercalate ":" (map show vs)
-  show (Func name vs u) = show u ++ " = " ++ unwords (name : map show vs)
   show (Pred name []) = show name
   show (Pred name vs) = unwords (show name : map show vs)
 

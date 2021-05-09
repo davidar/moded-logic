@@ -108,7 +108,6 @@ unDepNode (DepNode _ g) = g
 
 cost :: Goal ModedVar -> Int
 cost (Atom Unif {}) = 0
-cost (Atom Func {}) = 0
 cost g@(Atom Pred {}) = 1 + length [v | MV v Out <- toList g]
 cost g = sum $ cost <$> subgoals g
 

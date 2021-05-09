@@ -5,28 +5,28 @@ import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.Prelude
 
 {- nat/1
-nat arg1 :- ((arg1 = 0); (nat n, succ n n', arg1 = n')).
+nat arg1 :- ((arg1 = 0); (arg1 = n', nat n, succ n n')).
 constraints:
 ~nat[1]
 ~succ[1]
-~(arg1[1,2] & n'[1,2])
-~(n[1,0] & n[1,1])
-~(n'[1,1] & n'[1,2])
-(n[1,0] | n[1,1])
-(n'[1,1] | n'[1,2])
-((n[1,1] & ~n'[1,1]) | ((~n[1,1] & n'[1,1]) | (~n[1,1] & ~n'[1,1])))
+~(arg1[1,0] & n'[1,0])
+~(n[1,1] & n[1,2])
+~(n'[1,0] & n'[1,2])
+(n[1,1] | n[1,2])
+(n'[1,0] | n'[1,2])
+((n[1,2] & ~n'[1,2]) | ((~n[1,2] & n'[1,2]) | (~n[1,2] & ~n'[1,2])))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,2])
-(n[1,0] <-> arg1[])
+(arg1[1] <-> arg1[1,0])
+(n[1,1] <-> arg1[])
 1
 -}
 
 nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
   where
     natI = \arg1 -> Logic.once $ do
-      -- solution: n[1,1] n'[1,2]
+      -- solution: n[1,2] n'[1,0]
       -- cost: 3
       () <- (do
         guard $ arg1 == 0
@@ -40,7 +40,7 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
       pure ()
     
     natO = do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,2] n[1,0] n'[1,1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] n[1,1] n'[1,2]
       -- cost: 4
       (arg1) <- (do
         arg1 <- pure 0
@@ -54,30 +54,30 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
       pure (OneTuple (arg1 :: Integer))
     
 {- oddNat/1
-oddNat arg1 :- ((arg1 = 1); (oddNat n, plus n data0 n', data0 = 2, arg1 = n')).
+oddNat arg1 :- ((arg1 = 1); (arg1 = n', oddNat n, plus n data0 n', data0 = 2)).
 constraints:
 ~oddNat[1]
 ~plus[1]
-~(arg1[1,3] & n'[1,3])
-~(data0[1,1] & data0[1,2])
-~(n[1,0] & n[1,1])
-~(n'[1,1] & n'[1,3])
-(data0[1,1] | data0[1,2])
-(n[1,0] | n[1,1])
-(n'[1,1] | n'[1,3])
-((n[1,1] & (~data0[1,1] & ~n'[1,1])) | ((~n[1,1] & (data0[1,1] & ~n'[1,1])) | ((~n[1,1] & (~data0[1,1] & n'[1,1])) | (~n[1,1] & (~data0[1,1] & ~n'[1,1])))))
+~(arg1[1,0] & n'[1,0])
+~(data0[1,2] & data0[1,3])
+~(n[1,1] & n[1,2])
+~(n'[1,0] & n'[1,2])
+(data0[1,2] | data0[1,3])
+(n[1,1] | n[1,2])
+(n'[1,0] | n'[1,2])
+((n[1,2] & (~data0[1,2] & ~n'[1,2])) | ((~n[1,2] & (data0[1,2] & ~n'[1,2])) | ((~n[1,2] & (~data0[1,2] & n'[1,2])) | (~n[1,2] & (~data0[1,2] & ~n'[1,2])))))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,3])
-(n[1,0] <-> arg1[])
+(arg1[1] <-> arg1[1,0])
+(n[1,1] <-> arg1[])
 1
 -}
 
 oddNat = rget $ (procedure @'[ 'In ] oddNatI) :& (procedure @'[ 'Out ] oddNatO) :& RNil
   where
     oddNatI = \arg1 -> Logic.once $ do
-      -- solution: data0[1,2] n[1,1] n'[1,3]
+      -- solution: data0[1,3] n[1,2] n'[1,0]
       -- cost: 3
       () <- (do
         guard $ arg1 == 1
@@ -92,7 +92,7 @@ oddNat = rget $ (procedure @'[ 'In ] oddNatI) :& (procedure @'[ 'Out ] oddNatO) 
       pure ()
     
     oddNatO = do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,3] data0[1,2] n[1,0] n'[1,1]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] data0[1,3] n[1,1] n'[1,2]
       -- cost: 4
       (arg1) <- (do
         arg1 <- pure 1
@@ -126,50 +126,58 @@ even = rget $ (procedure @'[ 'In ] evenI) :& RNil
       -- solution: data0[0,1] data1[0,2]
       -- cost: 1
       () <- (do
-        data1 <- pure 0
         data0 <- pure 2
+        data1 <- pure 0
         () <- runProcedure @'[ 'In, 'In, 'In ] mod x data0 data1
         pure ()
        )
       pure ()
     
 {- elem/2
-elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
+elem arg1 arg2 :- ((arg1 = x0, x0 = x, arg2 = x1:_, x1 = x); (arg1 = x, arg2 = _:xs, elem x xs)).
 constraints:
-x[0,0]
-xs[1,0]
-~arg2[1,0]
+x1[0,2]
+xs[1,1]
+~arg2[1,1]
 ~elem[1]
-~(arg1[0,1] & x[0,1])
-~(arg1[1,2] & x[1,2])
-~(arg2[0,0] & x[0,0])
-~(x[0,0] & x[0,1])
-~(x[1,1] & x[1,2])
-~(xs[1,0] & xs[1,1])
-(x[0,0] | x[0,1])
-(x[1,1] | x[1,2])
-(xs[1,0] | xs[1,1])
+~(arg1[0,0] & x0[0,0])
+~(arg1[1,0] & x[1,0])
+~(arg2[0,2] & x1[0,2])
+~(x[0,1] & x[0,3])
+~(x[1,0] & x[1,2])
+~(x0[0,0] & x0[0,1])
+~(x0[0,1] & x[0,1])
+~(x1[0,2] & x1[0,3])
+~(x1[0,3] & x[0,3])
+~(xs[1,1] & xs[1,2])
+(x[0,1] | x[0,3])
+(x[1,0] | x[1,2])
+(x0[0,0] | x0[0,1])
+(x1[0,2] | x1[0,3])
+(xs[1,1] | xs[1,2])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
-(arg1[0] <-> arg1[0,1])
-(arg1[1] <-> arg1[1,2])
+(arg1[0] <-> arg1[0,0])
+(arg1[1] <-> arg1[1,0])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
-(arg2[0] <-> arg2[0,0])
-(arg2[1] <-> arg2[1,0])
-(x[1,1] <-> arg1[])
-(xs[1,1] <-> arg2[])
+(arg2[0] <-> arg2[0,2])
+(arg2[1] <-> arg2[1,1])
+(x[1,2] <-> arg1[])
+(xs[1,2] <-> arg2[])
 1
 -}
 
 elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] elemOI) :& RNil
   where
     elemII = \arg1 arg2 -> Logic.once $ do
-      -- solution: x[0,0] x[1,2] xs[1,0]
+      -- solution: x[0,1] x[1,0] x0[0,0] x1[0,2] xs[1,1]
       -- cost: 1
       () <- (do
-        (x:_) <- pure arg2
-        guard $ arg1 == x
+        x0 <- pure arg1
+        (x1:_) <- pure arg2
+        x <- pure x0
+        guard $ x1 == x
         pure ()
        ) <|> (do
         x <- pure arg1
@@ -180,11 +188,13 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure ()
     
     elemOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,1] arg1[1] arg1[1,2] x[0,0] x[1,1] xs[1,0]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] x[0,3] x[1,2] x0[0,1] x1[0,2] xs[1,1]
       -- cost: 2
       (arg1) <- (do
-        (x:_) <- pure arg2
-        arg1 <- pure x
+        (x1:_) <- pure arg2
+        x <- pure x1
+        x0 <- pure x
+        arg1 <- pure x0
         pure (arg1)
        ) <|> (do
         (_:xs) <- pure arg2
@@ -195,94 +205,94 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure (OneTuple (arg1))
     
 {- span/4
-span arg1 arg2 arg3 arg4 :- ((arg2 = [], arg3 = [], arg4 = []); (arg2 = x0:xs1, x0 = x, xs1 = xs, if (p x) then (span p xs yt zs, ys = x2:yt, x2 = x) else (ys = [], zs = x3:xs4, x3 = x, xs4 = xs), arg1 = p, arg3 = ys, arg4 = zs)).
+span arg1 arg2 arg3 arg4 :- ((arg2 = [], arg3 = [], arg4 = []); (arg1 = p, arg2 = x0:xs1, x0 = x, xs1 = xs, arg3 = ys, arg4 = zs, if (p x) then (span p xs yt zs, ys = x2:yt, x2 = x) else (ys = [], zs = x3:xs4, x3 = x, xs4 = xs))).
 constraints:
 ~arg1[]
-~p[1,3]
-~p[1,3,1,0]
-~span[1,3,1]
-~x[1,3,0,0]
-~x[1,3,1,2]
-~x[1,3,2]
-~(arg1[1,4] & p[1,4])
-~(arg2[1,0] & x0[1,0])
-~(arg3[1,5] & ys[1,5])
-~(arg4[1,6] & zs[1,6])
-~(p[1,3] & p[1,4])
-~(x[1,1] & x[1,3])
-~(x0[1,0] & x0[1,1])
-~(x0[1,1] & x[1,1])
-~(x2[1,3,1,1] & x2[1,3,1,2])
-~(x2[1,3,1,2] & x[1,3,1,2])
-~(x3[1,3,2,1] & x3[1,3,2,2])
-~(x3[1,3,2,2] & x[1,3,2,2])
-~(xs[1,2] & xs[1,3])
-~(xs1[1,0] & xs1[1,2])
-~(xs1[1,2] & xs[1,2])
-~(xs4[1,3,2,1] & xs4[1,3,2,3])
-~(xs4[1,3,2,3] & xs[1,3,2,3])
-~(ys[1,3] & ys[1,5])
-~(ys[1,3,1,1] & x2[1,3,1,1])
-~(yt[1,3,1,0] & yt[1,3,1,1])
-~(zs[1,3] & zs[1,6])
-~(zs[1,3,2,1] & x3[1,3,2,1])
-(p[1,3] | p[1,4])
-(x[1,1] | x[1,3])
-(x0[1,0] | x0[1,1])
-(x2[1,3,1,1] | x2[1,3,1,2])
-(x3[1,3,2,1] | x3[1,3,2,2])
-(xs[1,2] | xs[1,3])
-(xs1[1,0] | xs1[1,2])
-(xs4[1,3,2,1] | xs4[1,3,2,3])
-(ys[1,3] | ys[1,5])
-(yt[1,3,1,0] | yt[1,3,1,1])
-(zs[1,3] | zs[1,6])
+~p[1,6]
+~p[1,6,1,0]
+~span[1,6,1]
+~x[1,6,0,0]
+~x[1,6,1,2]
+~x[1,6,2]
+~(arg1[1,0] & p[1,0])
+~(arg2[1,1] & x0[1,1])
+~(arg3[1,4] & ys[1,4])
+~(arg4[1,5] & zs[1,5])
+~(p[1,0] & p[1,6])
+~(x[1,2] & x[1,6])
+~(x0[1,1] & x0[1,2])
+~(x0[1,2] & x[1,2])
+~(x2[1,6,1,1] & x2[1,6,1,2])
+~(x2[1,6,1,2] & x[1,6,1,2])
+~(x3[1,6,2,1] & x3[1,6,2,2])
+~(x3[1,6,2,2] & x[1,6,2,2])
+~(xs[1,3] & xs[1,6])
+~(xs1[1,1] & xs1[1,3])
+~(xs1[1,3] & xs[1,3])
+~(xs4[1,6,2,1] & xs4[1,6,2,3])
+~(xs4[1,6,2,3] & xs[1,6,2,3])
+~(ys[1,4] & ys[1,6])
+~(ys[1,6,1,1] & x2[1,6,1,1])
+~(yt[1,6,1,0] & yt[1,6,1,1])
+~(zs[1,5] & zs[1,6])
+~(zs[1,6,2,1] & x3[1,6,2,1])
+(p[1,0] | p[1,6])
+(x[1,2] | x[1,6])
+(x0[1,1] | x0[1,2])
+(x2[1,6,1,1] | x2[1,6,1,2])
+(x3[1,6,2,1] | x3[1,6,2,2])
+(xs[1,3] | xs[1,6])
+(xs1[1,1] | xs1[1,3])
+(xs4[1,6,2,1] | xs4[1,6,2,3])
+(ys[1,4] | ys[1,6])
+(yt[1,6,1,0] | yt[1,6,1,1])
+(zs[1,5] | zs[1,6])
 (arg1[] <-> arg1[1])
-(arg1[1] <-> arg1[1,4])
+(arg1[1] <-> arg1[1,0])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,0])
-(arg2[1] <-> arg2[1,0])
+(arg2[1] <-> arg2[1,1])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
 (arg3[0] <-> arg3[0,1])
-(arg3[1] <-> arg3[1,5])
+(arg3[1] <-> arg3[1,4])
 (arg4[] <-> arg4[0])
 (arg4[] <-> arg4[1])
 (arg4[0] <-> arg4[0,2])
-(arg4[1] <-> arg4[1,6])
-(p[1,3,1,0] <-> arg1[])
-(span[1] <-> span[1,3])
-(span[1,3] <-> span[1,3,1])
-(x[1,3] <-> x[1,3,2])
-(x[1,3,0,0] <-> arg1(1))
-(x[1,3,0,0] <-> p(1))
-(x[1,3,2] <-> x[1,3,2,2])
-(x0[1,0] <-> xs1[1,0])
-(x2[1,3,1,1] <-> yt[1,3,1,1])
-(x3[1,3,2,1] <-> xs4[1,3,2,1])
-(xs[1,3] <-> (xs[1,3,1] | xs[1,3,2]))
-(xs[1,3,1] <-> xs[1,3,1,0])
-(xs[1,3,1] <-> xs[1,3,2])
-(xs[1,3,1,0] <-> arg2[])
-(xs[1,3,2] <-> xs[1,3,2,3])
-(ys[1,3] <-> (ys[1,3,1] | ys[1,3,2]))
-(ys[1,3,1] <-> ys[1,3,1,1])
-(ys[1,3,1] <-> ys[1,3,2])
-(ys[1,3,2] <-> ys[1,3,2,0])
-(yt[1,3,1,0] <-> arg3[])
-(zs[1,3] <-> (zs[1,3,1] | zs[1,3,2]))
-(zs[1,3,1] <-> zs[1,3,1,0])
-(zs[1,3,1] <-> zs[1,3,2])
-(zs[1,3,1,0] <-> arg4[])
-(zs[1,3,2] <-> zs[1,3,2,1])
+(arg4[1] <-> arg4[1,5])
+(p[1,6,1,0] <-> arg1[])
+(span[1] <-> span[1,6])
+(span[1,6] <-> span[1,6,1])
+(x[1,6] <-> x[1,6,2])
+(x[1,6,0,0] <-> arg1(1))
+(x[1,6,0,0] <-> p(1))
+(x[1,6,2] <-> x[1,6,2,2])
+(x0[1,1] <-> xs1[1,1])
+(x2[1,6,1,1] <-> yt[1,6,1,1])
+(x3[1,6,2,1] <-> xs4[1,6,2,1])
+(xs[1,6] <-> (xs[1,6,1] | xs[1,6,2]))
+(xs[1,6,1] <-> xs[1,6,1,0])
+(xs[1,6,1] <-> xs[1,6,2])
+(xs[1,6,1,0] <-> arg2[])
+(xs[1,6,2] <-> xs[1,6,2,3])
+(ys[1,6] <-> (ys[1,6,1] | ys[1,6,2]))
+(ys[1,6,1] <-> ys[1,6,1,1])
+(ys[1,6,1] <-> ys[1,6,2])
+(ys[1,6,2] <-> ys[1,6,2,0])
+(yt[1,6,1,0] <-> arg3[])
+(zs[1,6] <-> (zs[1,6,1] | zs[1,6,2]))
+(zs[1,6,1] <-> zs[1,6,1,0])
+(zs[1,6,1] <-> zs[1,6,2])
+(zs[1,6,1,0] <-> arg4[])
+(zs[1,6,2] <-> zs[1,6,2,1])
 1
 -}
 
 span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'Out ] spanP1IIIO) :& (procedure @'[ 'PredMode '[ 'In ], 'In, 'Out, 'In ] spanP1IIOI) :& (procedure @'[ 'PredMode '[ 'In ], 'In, 'Out, 'Out ] spanP1IIOO) :& RNil
   where
     spanP1IIII = \arg1 arg2 arg3 arg4 -> Logic.once $ do
-      -- solution: p[1,4] x[1,1] x0[1,0] x2[1,3,1,1] x3[1,3,2,1] xs[1,2] xs1[1,0] xs4[1,3,2,1] ys[1,5] yt[1,3,1,1] zs[1,6]
+      -- solution: p[1,0] x[1,2] x0[1,1] x2[1,6,1,1] x3[1,6,2,1] xs[1,3] xs1[1,1] xs4[1,6,2,1] ys[1,4] yt[1,6,1,1] zs[1,5]
       -- cost: 2
       () <- (do
         guard $ arg2 == []
@@ -291,9 +301,9 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
         pure ()
        ) <|> (do
         p <- pure arg1
+        (x0:xs1) <- pure arg2
         ys <- pure arg3
         zs <- pure arg4
-        (x0:xs1) <- pure arg2
         x <- pure x0
         xs <- pure xs1
         () <- Logic.ifte ((do
@@ -305,10 +315,10 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
           () <- spanP1IIII p xs yt zs
           pure ()
          )) ((do
+          guard $ ys == []
           (x3:xs4) <- pure zs
           guard $ x3 == x
           guard $ xs4 == xs
-          guard $ ys == []
           pure ()
          ))
         pure ()
@@ -316,7 +326,7 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
       pure ()
     
     spanP1IIIO = \arg1 arg2 arg3 -> do
-      -- solution: arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,6] p[1,4] x[1,1] x0[1,0] x2[1,3,1,1] x3[1,3,2,2] xs[1,2] xs1[1,0] xs4[1,3,2,3] ys[1,5] yt[1,3,1,1] zs[1,3] zs[1,3,1] zs[1,3,1,0] zs[1,3,2] zs[1,3,2,1]
+      -- solution: arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] p[1,0] x[1,2] x0[1,1] x2[1,6,1,1] x3[1,6,2,2] xs[1,3] xs1[1,1] xs4[1,6,2,3] ys[1,4] yt[1,6,1,1] zs[1,6] zs[1,6,1] zs[1,6,1,0] zs[1,6,2] zs[1,6,2,1]
       -- cost: 3
       (arg4) <- (do
         guard $ arg2 == []
@@ -325,8 +335,8 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
         pure (arg4)
        ) <|> (do
         p <- pure arg1
-        ys <- pure arg3
         (x0:xs1) <- pure arg2
+        ys <- pure arg3
         x <- pure x0
         xs <- pure xs1
         (zs) <- Logic.ifte ((do
@@ -340,8 +350,8 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
          )) ((do
           x3 <- pure x
           xs4 <- pure xs
-          zs <- pure (x3:xs4)
           guard $ ys == []
+          zs <- pure (x3:xs4)
           pure (zs)
          ))
         arg4 <- pure zs
@@ -350,7 +360,7 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
       pure (OneTuple (arg4))
     
     spanP1IIOI = \arg1 arg2 arg4 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,5] p[1,4] x[1,1] x0[1,0] x2[1,3,1,2] x3[1,3,2,2] xs[1,2] xs1[1,0] xs4[1,3,2,3] ys[1,3] ys[1,3,1] ys[1,3,1,1] ys[1,3,2] ys[1,3,2,0] yt[1,3,1,0] zs[1,6]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] p[1,0] x[1,2] x0[1,1] x2[1,6,1,2] x3[1,6,2,2] xs[1,3] xs1[1,1] xs4[1,6,2,3] ys[1,6] ys[1,6,1] ys[1,6,1,1] ys[1,6,2] ys[1,6,2,0] yt[1,6,1,0] zs[1,5]
       -- cost: 3
       (arg3) <- (do
         guard $ arg2 == []
@@ -359,8 +369,8 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
         pure (arg3)
        ) <|> (do
         p <- pure arg1
-        zs <- pure arg4
         (x0:xs1) <- pure arg2
+        zs <- pure arg4
         x <- pure x0
         xs <- pure xs1
         (ys) <- Logic.ifte ((do
@@ -374,8 +384,8 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
          )) ((do
           x3 <- pure x
           xs4 <- pure xs
-          guard $ zs == (x3:xs4)
           ys <- pure []
+          guard $ zs == (x3:xs4)
           pure (ys)
          ))
         arg3 <- pure ys
@@ -384,7 +394,7 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
       pure (OneTuple (arg3))
     
     spanP1IIOO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,5] arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,6] p[1,4] x[1,1] x0[1,0] x2[1,3,1,2] x3[1,3,2,2] xs[1,2] xs1[1,0] xs4[1,3,2,3] ys[1,3] ys[1,3,1] ys[1,3,1,1] ys[1,3,2] ys[1,3,2,0] yt[1,3,1,0] zs[1,3] zs[1,3,1] zs[1,3,1,0] zs[1,3,2] zs[1,3,2,1]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] arg4[] arg4[0] arg4[0,2] arg4[1] arg4[1,5] p[1,0] x[1,2] x0[1,1] x2[1,6,1,2] x3[1,6,2,2] xs[1,3] xs1[1,1] xs4[1,6,2,3] ys[1,6] ys[1,6,1] ys[1,6,1,1] ys[1,6,2] ys[1,6,2,0] yt[1,6,1,0] zs[1,6] zs[1,6,1] zs[1,6,1,0] zs[1,6,2] zs[1,6,2,1]
       -- cost: 4
       (arg3,arg4) <- (do
         guard $ arg2 == []
@@ -407,8 +417,8 @@ span = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In, 'In ] spanP1IIII) :& 
          )) ((do
           x3 <- pure x
           xs4 <- pure xs
-          zs <- pure (x3:xs4)
           ys <- pure []
+          zs <- pure (x3:xs4)
           pure (ys,zs)
          ))
         arg3 <- pure ys
@@ -452,33 +462,45 @@ takeWhile = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] takeWhileP1III)
       pure (OneTuple (ys))
     
 {- reverseDL/3
-reverseDL arg1 arg2 arg3 :- ((arg1 = [], arg2 = xs, arg3 = xs); (arg1 = h0:t, h0 = h, reverseDL t data0 r, data0 = h1:rest, h1 = h, arg2 = rest, arg3 = r)).
+reverseDL arg1 arg2 arg3 :- ((arg1 = [], arg2 = xs0, xs0 = xs, arg3 = xs1, xs1 = xs); (arg1 = h2:t, h2 = h, arg2 = rest3, rest3 = rest, arg3 = r, reverseDL t data0 r, data0 = h4:rest5, h4 = h, rest5 = rest)).
 constraints:
 ~reverseDL[1]
-~(arg1[1,0] & h0[1,0])
-~(arg2[0,1] & xs[0,1])
-~(arg2[1,5] & rest[1,5])
-~(arg3[0,2] & xs[0,2])
-~(arg3[1,6] & r[1,6])
-~(data0[1,2] & data0[1,3])
-~(data0[1,3] & h1[1,3])
-~(h[1,1] & h[1,4])
-~(h0[1,0] & h0[1,1])
-~(h0[1,1] & h[1,1])
-~(h1[1,3] & h1[1,4])
-~(h1[1,4] & h[1,4])
-~(r[1,2] & r[1,6])
-~(rest[1,3] & rest[1,5])
-~(t[1,0] & t[1,2])
-~(xs[0,1] & xs[0,2])
-(data0[1,2] | data0[1,3])
-(h[1,1] | h[1,4])
-(h0[1,0] | h0[1,1])
-(h1[1,3] | h1[1,4])
-(r[1,2] | r[1,6])
-(rest[1,3] | rest[1,5])
-(t[1,0] | t[1,2])
-(xs[0,1] | xs[0,2])
+~(arg1[1,0] & h2[1,0])
+~(arg2[0,1] & xs0[0,1])
+~(arg2[1,2] & rest3[1,2])
+~(arg3[0,3] & xs1[0,3])
+~(arg3[1,4] & r[1,4])
+~(data0[1,5] & data0[1,6])
+~(data0[1,6] & h4[1,6])
+~(h[1,1] & h[1,7])
+~(h2[1,0] & h2[1,1])
+~(h2[1,1] & h[1,1])
+~(h4[1,6] & h4[1,7])
+~(h4[1,7] & h[1,7])
+~(r[1,4] & r[1,5])
+~(rest[1,3] & rest[1,8])
+~(rest3[1,2] & rest3[1,3])
+~(rest3[1,3] & rest[1,3])
+~(rest5[1,6] & rest5[1,8])
+~(rest5[1,8] & rest[1,8])
+~(t[1,0] & t[1,5])
+~(xs[0,2] & xs[0,4])
+~(xs0[0,1] & xs0[0,2])
+~(xs0[0,2] & xs[0,2])
+~(xs1[0,3] & xs1[0,4])
+~(xs1[0,4] & xs[0,4])
+(data0[1,5] | data0[1,6])
+(h[1,1] | h[1,7])
+(h2[1,0] | h2[1,1])
+(h4[1,6] | h4[1,7])
+(r[1,4] | r[1,5])
+(rest[1,3] | rest[1,8])
+(rest3[1,2] | rest3[1,3])
+(rest5[1,6] | rest5[1,8])
+(t[1,0] | t[1,5])
+(xs[0,2] | xs[0,4])
+(xs0[0,1] | xs0[0,2])
+(xs1[0,3] | xs1[0,4])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
@@ -486,55 +508,63 @@ constraints:
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,1])
-(arg2[1] <-> arg2[1,5])
+(arg2[1] <-> arg2[1,2])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
-(arg3[0] <-> arg3[0,2])
-(arg3[1] <-> arg3[1,6])
-(data0[1,2] <-> arg2[])
-(h0[1,0] <-> t[1,0])
-(h1[1,3] <-> rest[1,3])
-(r[1,2] <-> arg3[])
-(t[1,2] <-> arg1[])
+(arg3[0] <-> arg3[0,3])
+(arg3[1] <-> arg3[1,4])
+(data0[1,5] <-> arg2[])
+(h2[1,0] <-> t[1,0])
+(h4[1,6] <-> rest5[1,6])
+(r[1,5] <-> arg3[])
+(t[1,5] <-> arg1[])
 1
 -}
 
 reverseDL = rget $ (procedure @'[ 'In, 'In, 'In ] reverseDLIII) :& (procedure @'[ 'In, 'In, 'Out ] reverseDLIIO) :& (procedure @'[ 'In, 'Out, 'In ] reverseDLIOI) :& (procedure @'[ 'Out, 'Out, 'In ] reverseDLOOI) :& RNil
   where
     reverseDLIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: data0[1,3] h[1,1] h0[1,0] h1[1,4] r[1,6] rest[1,5] t[1,0] xs[0,1]
+      -- solution: data0[1,6] h[1,1] h2[1,0] h4[1,7] r[1,4] rest[1,3] rest3[1,2] rest5[1,8] t[1,0] xs[0,2] xs0[0,1] xs1[0,3]
       -- cost: 1
       () <- (do
-        xs <- pure arg2
-        guard $ arg3 == xs
         guard $ arg1 == []
+        xs0 <- pure arg2
+        xs1 <- pure arg3
+        xs <- pure xs0
+        guard $ xs1 == xs
         pure ()
        ) <|> (do
-        rest <- pure arg2
+        (h2:t) <- pure arg1
+        rest3 <- pure arg2
         r <- pure arg3
-        (h0:t) <- pure arg1
-        h <- pure h0
-        h1 <- pure h
-        data0 <- pure (h1:rest)
+        h <- pure h2
+        h4 <- pure h
+        rest <- pure rest3
+        rest5 <- pure rest
+        data0 <- pure (h4:rest5)
         () <- reverseDLIII t data0 r
         pure ()
        )
       pure ()
     
     reverseDLIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,6] data0[1,3] h[1,1] h0[1,0] h1[1,4] r[1,2] rest[1,5] t[1,0] xs[0,1]
+      -- solution: arg3[] arg3[0] arg3[0,3] arg3[1] arg3[1,4] data0[1,6] h[1,1] h2[1,0] h4[1,7] r[1,5] rest[1,3] rest3[1,2] rest5[1,8] t[1,0] xs[0,2] xs0[0,1] xs1[0,4]
       -- cost: 2
       (arg3) <- (do
-        xs <- pure arg2
-        arg3 <- pure xs
         guard $ arg1 == []
+        xs0 <- pure arg2
+        xs <- pure xs0
+        xs1 <- pure xs
+        arg3 <- pure xs1
         pure (arg3)
        ) <|> (do
-        rest <- pure arg2
-        (h0:t) <- pure arg1
-        h <- pure h0
-        h1 <- pure h
-        data0 <- pure (h1:rest)
+        (h2:t) <- pure arg1
+        rest3 <- pure arg2
+        h <- pure h2
+        h4 <- pure h
+        rest <- pure rest3
+        rest5 <- pure rest
+        data0 <- pure (h4:rest5)
         (OneTuple (r)) <- reverseDLIIO t data0
         arg3 <- pure r
         pure (arg3)
@@ -542,41 +572,49 @@ reverseDL = rget $ (procedure @'[ 'In, 'In, 'In ] reverseDLIII) :& (procedure @'
       pure (OneTuple (arg3))
     
     reverseDLIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,5] data0[1,2] h[1,1] h0[1,0] h1[1,3] r[1,6] rest[1,3] t[1,0] xs[0,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] data0[1,5] h[1,1] h2[1,0] h4[1,6] r[1,4] rest[1,8] rest3[1,3] rest5[1,6] t[1,0] xs[0,4] xs0[0,2] xs1[0,3]
       -- cost: 2
       (arg2) <- (do
-        xs <- pure arg3
-        arg2 <- pure xs
         guard $ arg1 == []
+        xs1 <- pure arg3
+        xs <- pure xs1
+        xs0 <- pure xs
+        arg2 <- pure xs0
         pure (arg2)
        ) <|> (do
+        (h2:t) <- pure arg1
         r <- pure arg3
-        (h0:t) <- pure arg1
-        h <- pure h0
+        h <- pure h2
         (OneTuple (data0)) <- reverseDLIOI t r
-        (h1:rest) <- pure data0
-        arg2 <- pure rest
-        guard $ h1 == h
+        (h4:rest5) <- pure data0
+        guard $ h4 == h
+        rest <- pure rest5
+        rest3 <- pure rest
+        arg2 <- pure rest3
         pure (arg2)
        )
       pure (OneTuple (arg2))
     
     reverseDLOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,5] data0[1,2] h[1,4] h0[1,1] h1[1,3] r[1,6] rest[1,3] t[1,2] xs[0,2]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,2] data0[1,5] h[1,7] h2[1,1] h4[1,6] r[1,4] rest[1,8] rest3[1,3] rest5[1,6] t[1,5] xs[0,4] xs0[0,2] xs1[0,3]
       -- cost: 3
       (arg1,arg2) <- (do
-        xs <- pure arg3
-        arg2 <- pure xs
         arg1 <- pure []
+        xs1 <- pure arg3
+        xs <- pure xs1
+        xs0 <- pure xs
+        arg2 <- pure xs0
         pure (arg1,arg2)
        ) <|> (do
         r <- pure arg3
         (t,data0) <- reverseDLOOI r
-        (h1:rest) <- pure data0
-        arg2 <- pure rest
-        h <- pure h1
-        h0 <- pure h
-        arg1 <- pure (h0:t)
+        (h4:rest5) <- pure data0
+        h <- pure h4
+        h2 <- pure h
+        arg1 <- pure (h2:t)
+        rest <- pure rest5
+        rest3 <- pure rest
+        arg2 <- pure rest3
         pure (arg1,arg2)
        )
       pure (arg1,arg2)
@@ -628,36 +666,36 @@ reverse = rget $ (procedure @'[ 'In, 'In ] reverseII) :& (procedure @'[ 'In, 'Ou
       pure (OneTuple (s))
     
 {- all/2
-all arg1 arg2 :- ((arg2 = []); (arg2 = h:t, p h, all p t, arg1 = p)).
+all arg1 arg2 :- ((arg2 = []); (arg1 = p, arg2 = h:t, p h, all p t)).
 constraints:
 ~all[1]
 ~arg1[]
-~(arg1[1,3] & p[1,3])
-~(arg2[1,0] & h[1,0])
-~(h[1,0] & h[1,1])
-~(p[1,2] & p[1,3])
-~(t[1,0] & t[1,2])
-(h[1,0] | h[1,1])
-(p[1,2] | p[1,3])
-(t[1,0] | t[1,2])
+~(arg1[1,0] & p[1,0])
+~(arg2[1,1] & h[1,1])
+~(h[1,1] & h[1,2])
+~(p[1,0] & p[1,3])
+~(t[1,1] & t[1,3])
+(h[1,1] | h[1,2])
+(p[1,0] | p[1,3])
+(t[1,1] | t[1,3])
 (arg1[] <-> arg1[1])
-(arg1[1] <-> arg1[1,3])
+(arg1[1] <-> arg1[1,0])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,0])
-(arg2[1] <-> arg2[1,0])
-(h[1,0] <-> t[1,0])
-(h[1,1] <-> arg1(1))
-(h[1,1] <-> p(1))
-(p[1,2] <-> arg1[])
-(t[1,2] <-> arg2[])
+(arg2[1] <-> arg2[1,1])
+(h[1,1] <-> t[1,1])
+(h[1,2] <-> arg1(1))
+(h[1,2] <-> p(1))
+(p[1,3] <-> arg1[])
+(t[1,3] <-> arg2[])
 1
 -}
 
 all = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In ] allP1II) :& (procedure @'[ 'PredMode '[ 'Out ], 'Out ] allP1OO) :& RNil
   where
     allP1II = \arg1 arg2 -> Logic.once $ do
-      -- solution: h[1,0] p[1,3] t[1,0]
+      -- solution: h[1,1] p[1,0] t[1,1]
       -- cost: 2
       () <- (do
         guard $ arg2 == []
@@ -672,7 +710,7 @@ all = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In ] allP1II) :& (procedure @'[
       pure ()
     
     allP1OO = \arg1 -> do
-      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,0] h[1,1] p[1,3] t[1,2] arg1(1) p(1)
+      -- solution: arg2[] arg2[0] arg2[0,0] arg2[1] arg2[1,1] h[1,2] p[1,0] t[1,3] arg1(1) p(1)
       -- cost: 4
       (arg2) <- (do
         arg2 <- pure []
@@ -838,59 +876,59 @@ euler1' = rget $ (procedure @'[ 'In ] euler1'I) :& (procedure @'[ 'Out ] euler1'
       pure (OneTuple (carg3))
     
 {- fib/2
-fib arg1 arg2 :- ((arg1 = 0, arg2 = 0); (arg1 = 1, arg2 = 1); ((>) k data0, data0 = 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk, arg1 = k, arg2 = fk)).
+fib arg1 arg2 :- ((arg1 = 0, arg2 = 0); (arg1 = 1, arg2 = 1); (arg1 = k, arg2 = fk, (>) k data0, data0 = 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk)).
 constraints:
 ~(>)[2]
 ~fib[2]
 ~plus[2]
 ~succ[2]
-~(arg1[2,7] & k[2,7])
-~(arg2[2,8] & fk[2,8])
-~(data0[2,0] & data0[2,1])
-~(fi[2,4] & fi[2,6])
-~(fj[2,5] & fj[2,6])
-~(fk[2,6] & fk[2,8])
-~(i[2,2] & i[2,4])
-~(j[2,2] & j[2,3])
-~(j[2,2] & j[2,5])
-~(j[2,3] & j[2,5])
-~(k[2,0] & k[2,3])
-~(k[2,0] & k[2,7])
-~(k[2,3] & k[2,7])
-(~k[2,0] & ~data0[2,0])
-(data0[2,0] | data0[2,1])
-(fi[2,4] | fi[2,6])
-(fj[2,5] | fj[2,6])
-(fk[2,6] | fk[2,8])
-(i[2,2] | i[2,4])
-(j[2,2] | (j[2,3] | j[2,5]))
-(k[2,0] | (k[2,3] | k[2,7]))
-((fi[2,6] & (~fj[2,6] & ~fk[2,6])) | ((~fi[2,6] & (fj[2,6] & ~fk[2,6])) | ((~fi[2,6] & (~fj[2,6] & fk[2,6])) | (~fi[2,6] & (~fj[2,6] & ~fk[2,6])))))
-((i[2,2] & ~j[2,2]) | ((~i[2,2] & j[2,2]) | (~i[2,2] & ~j[2,2])))
-((j[2,3] & ~k[2,3]) | ((~j[2,3] & k[2,3]) | (~j[2,3] & ~k[2,3])))
+~(arg1[2,0] & k[2,0])
+~(arg2[2,1] & fk[2,1])
+~(data0[2,2] & data0[2,3])
+~(fi[2,6] & fi[2,8])
+~(fj[2,7] & fj[2,8])
+~(fk[2,1] & fk[2,8])
+~(i[2,4] & i[2,6])
+~(j[2,4] & j[2,5])
+~(j[2,4] & j[2,7])
+~(j[2,5] & j[2,7])
+~(k[2,0] & k[2,2])
+~(k[2,0] & k[2,5])
+~(k[2,2] & k[2,5])
+(~k[2,2] & ~data0[2,2])
+(data0[2,2] | data0[2,3])
+(fi[2,6] | fi[2,8])
+(fj[2,7] | fj[2,8])
+(fk[2,1] | fk[2,8])
+(i[2,4] | i[2,6])
+(j[2,4] | (j[2,5] | j[2,7]))
+(k[2,0] | (k[2,2] | k[2,5]))
+((fi[2,8] & (~fj[2,8] & ~fk[2,8])) | ((~fi[2,8] & (fj[2,8] & ~fk[2,8])) | ((~fi[2,8] & (~fj[2,8] & fk[2,8])) | (~fi[2,8] & (~fj[2,8] & ~fk[2,8])))))
+((i[2,4] & ~j[2,4]) | ((~i[2,4] & j[2,4]) | (~i[2,4] & ~j[2,4])))
+((j[2,5] & ~k[2,5]) | ((~j[2,5] & k[2,5]) | (~j[2,5] & ~k[2,5])))
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[] <-> arg1[2])
 (arg1[0] <-> arg1[0,0])
 (arg1[1] <-> arg1[1,0])
-(arg1[2] <-> arg1[2,7])
+(arg1[2] <-> arg1[2,0])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[] <-> arg2[2])
 (arg2[0] <-> arg2[0,1])
 (arg2[1] <-> arg2[1,1])
-(arg2[2] <-> arg2[2,8])
-(fi[2,4] <-> arg2[])
-(fj[2,5] <-> arg2[])
-(i[2,4] <-> arg1[])
-(j[2,5] <-> arg1[])
+(arg2[2] <-> arg2[2,1])
+(fi[2,6] <-> arg2[])
+(fj[2,7] <-> arg2[])
+(i[2,6] <-> arg1[])
+(j[2,7] <-> arg1[])
 1
 -}
 
 fib = rget $ (procedure @'[ 'In, 'Out ] fibIO) :& (procedure @'[ 'Out, 'Out ] fibOO) :& RNil
   where
     fibIO = memo $ \arg1 -> choose . Logic.observeAll $ do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,8] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,2] j[2,3] k[2,7]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,1] data0[2,3] fi[2,6] fj[2,7] fk[2,8] i[2,4] j[2,5] k[2,0]
       -- cost: 11
       (arg2) <- (do
         guard $ arg1 == 0
@@ -915,7 +953,7 @@ fib = rget $ (procedure @'[ 'In, 'Out ] fibIO) :& (procedure @'[ 'Out, 'Out ] fi
       pure (OneTuple (arg2))
     
     fibOO = choose . Logic.observeAll $ do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,7] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,8] data0[2,1] fi[2,4] fj[2,5] fk[2,6] i[2,4] j[2,5] k[2,3]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,1] data0[2,3] fi[2,6] fj[2,7] fk[2,8] i[2,6] j[2,7] k[2,5]
       -- cost: 12
       (arg1,arg2) <- (do
         arg1 <- pure 0
@@ -1185,161 +1223,172 @@ primeSlow = rget $ (procedure @'[ 'In ] primeSlowI) :& (procedure @'[ 'Out ] pri
       pure (OneTuple (n))
     
 {- factor/3
-factor arg1 arg2 arg3 :- ((arg2 = p0:ps1, p0 = p, ps1 = ps, if (timesInt p2 p3 pp, p2 = p, p3 = p, (>) pp n) then (f = n) else (if (divMod n p d data0, data0 = 0) then (((f = p); (factor d data1 f, data1 = p4:ps5, p4 = p, ps5 = ps))) else (factor n ps f)), arg1 = n, arg3 = f)).
+factor arg1 arg2 arg3 :- ((arg1 = n0, n0 = n, arg2 = p1:ps2, p1 = p, ps2 = ps, arg3 = f, if (timesInt p3 p4 pp, p3 = p, p4 = p, (>) pp n) then (f = n5, n5 = n) else (if (divMod n p d data0, data0 = 0) then (((f = p6, p6 = p); (factor d data1 f, data1 = p7:ps8, p7 = p, ps8 = ps))) else (factor n ps f)))).
 constraints:
-d[0,3,2,0,0]
-data0[0,3,2,0]
-p2[0,3]
-p3[0,3]
-pp[0,3]
-~(>)[0,3,0]
-~d[0,3,2,0,1,0]
-~divMod[0,3,2,0,0]
-~factor[0,3,2,0,1,0,1]
-~factor[0,3,2,0,2]
-~n[0,3,0,3]
-~n[0,3,1,0]
-~n[0,3,2]
-~n[0,3,2,0,0,0]
-~n[0,3,2,0,2]
-~p[0,3,2]
-~p[0,3,2,0]
-~p[0,3,2,0,0,0]
-~p[0,3,2,0,1,0]
-~ps[0,3,2]
-~ps[0,3,2,0,1,0]
-~timesInt[0,3,0]
-~(arg1[0,4] & n[0,4])
-~(arg2[0,0] & p0[0,0])
+d[0,6,2,0,0]
+data0[0,6,2,0]
+p3[0,6]
+p4[0,6]
+pp[0,6]
+~(>)[0,6,0]
+~d[0,6,2,0,1,0]
+~divMod[0,6,2,0,0]
+~factor[0,6,2,0,1,0,1]
+~factor[0,6,2,0,2]
+~n[0,6,0,3]
+~n[0,6,1,1]
+~n[0,6,2]
+~n[0,6,2,0,0,0]
+~n[0,6,2,0,2]
+~p[0,6,2]
+~p[0,6,2,0]
+~p[0,6,2,0,0,0]
+~p[0,6,2,0,1,0]
+~ps[0,6,2]
+~ps[0,6,2,0,1,0]
+~timesInt[0,6,0]
+~(arg1[0,0] & n0[0,0])
+~(arg2[0,2] & p1[0,2])
 ~(arg3[0,5] & f[0,5])
-~(data0[0,3,2,0,0,0] & data0[0,3,2,0,0,1])
-~(data1[0,3,2,0,1,0,1,0] & data1[0,3,2,0,1,0,1,1])
-~(data1[0,3,2,0,1,0,1,1] & p4[0,3,2,0,1,0,1,1])
-~(f[0,3] & f[0,5])
-~(f[0,3,1,0] & n[0,3,1,0])
-~(f[0,3,2,0,1,0,0,0] & p[0,3,2,0,1,0,0,0])
-~(n[0,3] & n[0,4])
-~(p[0,1] & p[0,3])
-~(p[0,3,0,1] & p[0,3,0,2])
-~(p0[0,0] & p0[0,1])
-~(p0[0,1] & p[0,1])
-~(p2[0,3,0,0] & p2[0,3,0,1])
-~(p2[0,3,0,1] & p[0,3,0,1])
-~(p3[0,3,0,0] & p3[0,3,0,2])
-~(p3[0,3,0,2] & p[0,3,0,2])
-~(p4[0,3,2,0,1,0,1,1] & p4[0,3,2,0,1,0,1,2])
-~(p4[0,3,2,0,1,0,1,2] & p[0,3,2,0,1,0,1,2])
-~(pp[0,3,0,0] & pp[0,3,0,3])
-~(ps[0,2] & ps[0,3])
-~(ps1[0,0] & ps1[0,2])
-~(ps1[0,2] & ps[0,2])
-~(ps5[0,3,2,0,1,0,1,1] & ps5[0,3,2,0,1,0,1,3])
-~(ps5[0,3,2,0,1,0,1,3] & ps[0,3,2,0,1,0,1,3])
-~(p[0,3,0,1] | p[0,3,0,2])
-(~pp[0,3,0,3] & ~n[0,3,0,3])
-(data0[0,3,2,0,0,0] | data0[0,3,2,0,0,1])
-(data1[0,3,2,0,1,0,1,0] | data1[0,3,2,0,1,0,1,1])
-(f[0,3] | f[0,5])
-(n[0,3] | n[0,4])
-(p[0,1] | p[0,3])
-(p0[0,0] | p0[0,1])
-(p2[0,3,0,0] | p2[0,3,0,1])
-(p3[0,3,0,0] | p3[0,3,0,2])
-(p4[0,3,2,0,1,0,1,1] | p4[0,3,2,0,1,0,1,2])
-(pp[0,3,0,0] | pp[0,3,0,3])
-(ps[0,2] | ps[0,3])
-(ps1[0,0] | ps1[0,2])
-(ps5[0,3,2,0,1,0,1,1] | ps5[0,3,2,0,1,0,1,3])
-((p2[0,3,0,0] & (~p3[0,3,0,0] & ~pp[0,3,0,0])) | ((~p2[0,3,0,0] & (p3[0,3,0,0] & ~pp[0,3,0,0])) | ((~p2[0,3,0,0] & (~p3[0,3,0,0] & pp[0,3,0,0])) | (~p2[0,3,0,0] & (~p3[0,3,0,0] & ~pp[0,3,0,0])))))
-((~n[0,3,2,0,0,0] & (~p[0,3,2,0,0,0] & (d[0,3,2,0,0,0] & data0[0,3,2,0,0,0]))) | ((~n[0,3,2,0,0,0] & (~p[0,3,2,0,0,0] & (d[0,3,2,0,0,0] & ~data0[0,3,2,0,0,0]))) | ((~n[0,3,2,0,0,0] & (~p[0,3,2,0,0,0] & (~d[0,3,2,0,0,0] & data0[0,3,2,0,0,0]))) | (~n[0,3,2,0,0,0] & (~p[0,3,2,0,0,0] & (~d[0,3,2,0,0,0] & ~data0[0,3,2,0,0,0]))))))
-((>)[0] <-> (>)[0,3])
-((>)[0,3] <-> (>)[0,3,0])
+~(data0[0,6,2,0,0,0] & data0[0,6,2,0,0,1])
+~(data1[0,6,2,0,1,0,1,0] & data1[0,6,2,0,1,0,1,1])
+~(data1[0,6,2,0,1,0,1,1] & p7[0,6,2,0,1,0,1,1])
+~(f[0,5] & f[0,6])
+~(f[0,6,1,0] & n5[0,6,1,0])
+~(f[0,6,2,0,1,0,0,0] & p6[0,6,2,0,1,0,0,0])
+~(n[0,1] & n[0,6])
+~(n0[0,0] & n0[0,1])
+~(n0[0,1] & n[0,1])
+~(n5[0,6,1,0] & n5[0,6,1,1])
+~(n5[0,6,1,1] & n[0,6,1,1])
+~(p[0,3] & p[0,6])
+~(p[0,6,0,1] & p[0,6,0,2])
+~(p1[0,2] & p1[0,3])
+~(p1[0,3] & p[0,3])
+~(p3[0,6,0,0] & p3[0,6,0,1])
+~(p3[0,6,0,1] & p[0,6,0,1])
+~(p4[0,6,0,0] & p4[0,6,0,2])
+~(p4[0,6,0,2] & p[0,6,0,2])
+~(p6[0,6,2,0,1,0,0,0] & p6[0,6,2,0,1,0,0,1])
+~(p6[0,6,2,0,1,0,0,1] & p[0,6,2,0,1,0,0,1])
+~(p7[0,6,2,0,1,0,1,1] & p7[0,6,2,0,1,0,1,2])
+~(p7[0,6,2,0,1,0,1,2] & p[0,6,2,0,1,0,1,2])
+~(pp[0,6,0,0] & pp[0,6,0,3])
+~(ps[0,4] & ps[0,6])
+~(ps2[0,2] & ps2[0,4])
+~(ps2[0,4] & ps[0,4])
+~(ps8[0,6,2,0,1,0,1,1] & ps8[0,6,2,0,1,0,1,3])
+~(ps8[0,6,2,0,1,0,1,3] & ps[0,6,2,0,1,0,1,3])
+~(p[0,6,0,1] | p[0,6,0,2])
+(~pp[0,6,0,3] & ~n[0,6,0,3])
+(data0[0,6,2,0,0,0] | data0[0,6,2,0,0,1])
+(data1[0,6,2,0,1,0,1,0] | data1[0,6,2,0,1,0,1,1])
+(f[0,5] | f[0,6])
+(n[0,1] | n[0,6])
+(n0[0,0] | n0[0,1])
+(n5[0,6,1,0] | n5[0,6,1,1])
+(p[0,3] | p[0,6])
+(p1[0,2] | p1[0,3])
+(p3[0,6,0,0] | p3[0,6,0,1])
+(p4[0,6,0,0] | p4[0,6,0,2])
+(p6[0,6,2,0,1,0,0,0] | p6[0,6,2,0,1,0,0,1])
+(p7[0,6,2,0,1,0,1,1] | p7[0,6,2,0,1,0,1,2])
+(pp[0,6,0,0] | pp[0,6,0,3])
+(ps[0,4] | ps[0,6])
+(ps2[0,2] | ps2[0,4])
+(ps8[0,6,2,0,1,0,1,1] | ps8[0,6,2,0,1,0,1,3])
+((p3[0,6,0,0] & (~p4[0,6,0,0] & ~pp[0,6,0,0])) | ((~p3[0,6,0,0] & (p4[0,6,0,0] & ~pp[0,6,0,0])) | ((~p3[0,6,0,0] & (~p4[0,6,0,0] & pp[0,6,0,0])) | (~p3[0,6,0,0] & (~p4[0,6,0,0] & ~pp[0,6,0,0])))))
+((~n[0,6,2,0,0,0] & (~p[0,6,2,0,0,0] & (d[0,6,2,0,0,0] & data0[0,6,2,0,0,0]))) | ((~n[0,6,2,0,0,0] & (~p[0,6,2,0,0,0] & (d[0,6,2,0,0,0] & ~data0[0,6,2,0,0,0]))) | ((~n[0,6,2,0,0,0] & (~p[0,6,2,0,0,0] & (~d[0,6,2,0,0,0] & data0[0,6,2,0,0,0]))) | (~n[0,6,2,0,0,0] & (~p[0,6,2,0,0,0] & (~d[0,6,2,0,0,0] & ~data0[0,6,2,0,0,0]))))))
+((>)[0] <-> (>)[0,6])
+((>)[0,6] <-> (>)[0,6,0])
 (arg1[] <-> arg1[0])
-(arg1[0] <-> arg1[0,4])
+(arg1[0] <-> arg1[0,0])
 (arg2[] <-> arg2[0])
-(arg2[0] <-> arg2[0,0])
+(arg2[0] <-> arg2[0,2])
 (arg3[] <-> arg3[0])
 (arg3[0] <-> arg3[0,5])
-(d[0,3,2,0,0] <-> d[0,3,2,0,0,0])
-(d[0,3,2,0,1,0] <-> d[0,3,2,0,1,0,1])
-(d[0,3,2,0,1,0,1] <-> d[0,3,2,0,1,0,1,0])
-(d[0,3,2,0,1,0,1,0] <-> arg1[])
-(data0[0] <-> data0[0,3])
-(data0[0,3] <-> data0[0,3,2])
-(data0[0,3,2] <-> data0[0,3,2,0])
-(data1[0,3,2,0,1,0,1,0] <-> arg2[])
-(divMod[0] <-> divMod[0,3])
-(divMod[0,3] <-> divMod[0,3,2])
-(divMod[0,3,2] <-> divMod[0,3,2,0])
-(divMod[0,3,2,0] <-> divMod[0,3,2,0,0])
-(f[0,3] <-> (f[0,3,1] | f[0,3,2]))
-(f[0,3,1] <-> f[0,3,1,0])
-(f[0,3,1] <-> f[0,3,2])
-(f[0,3,2] <-> f[0,3,2,0])
-(f[0,3,2,0] <-> (f[0,3,2,0,1] | f[0,3,2,0,2]))
-(f[0,3,2,0,1] <-> f[0,3,2,0,1,0])
-(f[0,3,2,0,1] <-> f[0,3,2,0,2])
-(f[0,3,2,0,1,0] <-> f[0,3,2,0,1,0,0])
-(f[0,3,2,0,1,0] <-> f[0,3,2,0,1,0,1])
-(f[0,3,2,0,1,0,0] <-> f[0,3,2,0,1,0,0,0])
-(f[0,3,2,0,1,0,1] <-> f[0,3,2,0,1,0,1,0])
-(f[0,3,2,0,1,0,1,0] <-> arg3[])
-(f[0,3,2,0,2] <-> f[0,3,2,0,2,0])
-(f[0,3,2,0,2,0] <-> arg3[])
-(factor[0] <-> factor[0,3])
-(factor[0,3] <-> factor[0,3,2])
-(factor[0,3,2] <-> factor[0,3,2,0])
-(factor[0,3,2,0] <-> (factor[0,3,2,0,1] | factor[0,3,2,0,2]))
-(factor[0,3,2,0,1] <-> factor[0,3,2,0,1,0])
-(n[0,3] <-> n[0,3,2])
-(n[0,3,2] <-> n[0,3,2,0])
-(n[0,3,2,0] <-> n[0,3,2,0,2])
-(n[0,3,2,0,2] <-> n[0,3,2,0,2,0])
-(n[0,3,2,0,2,0] <-> arg1[])
-(p[0,3] <-> p[0,3,2])
-(p[0,3,2] <-> p[0,3,2,0])
-(p[0,3,2,0,1,0] <-> p[0,3,2,0,1,0,0])
-(p[0,3,2,0,1,0] <-> p[0,3,2,0,1,0,1])
-(p[0,3,2,0,1,0,0] <-> p[0,3,2,0,1,0,0,0])
-(p[0,3,2,0,1,0,1] <-> p[0,3,2,0,1,0,1,2])
-(p0[0,0] <-> ps1[0,0])
-(p2[0] <-> p2[0,3])
-(p3[0] <-> p3[0,3])
-(p4[0,3,2,0,1,0,1,1] <-> ps5[0,3,2,0,1,0,1,1])
-(pp[0] <-> pp[0,3])
-(ps[0,3] <-> ps[0,3,2])
-(ps[0,3,2] <-> ps[0,3,2,0])
-(ps[0,3,2,0] <-> (ps[0,3,2,0,1] | ps[0,3,2,0,2]))
-(ps[0,3,2,0,1] <-> ps[0,3,2,0,1,0])
-(ps[0,3,2,0,1] <-> ps[0,3,2,0,2])
-(ps[0,3,2,0,1,0] <-> ps[0,3,2,0,1,0,1])
-(ps[0,3,2,0,1,0,1] <-> ps[0,3,2,0,1,0,1,3])
-(ps[0,3,2,0,2] <-> ps[0,3,2,0,2,0])
-(ps[0,3,2,0,2,0] <-> arg2[])
-(timesInt[0] <-> timesInt[0,3])
-(timesInt[0,3] <-> timesInt[0,3,0])
+(d[0,6,2,0,0] <-> d[0,6,2,0,0,0])
+(d[0,6,2,0,1,0] <-> d[0,6,2,0,1,0,1])
+(d[0,6,2,0,1,0,1] <-> d[0,6,2,0,1,0,1,0])
+(d[0,6,2,0,1,0,1,0] <-> arg1[])
+(data0[0] <-> data0[0,6])
+(data0[0,6] <-> data0[0,6,2])
+(data0[0,6,2] <-> data0[0,6,2,0])
+(data1[0,6,2,0,1,0,1,0] <-> arg2[])
+(divMod[0] <-> divMod[0,6])
+(divMod[0,6] <-> divMod[0,6,2])
+(divMod[0,6,2] <-> divMod[0,6,2,0])
+(divMod[0,6,2,0] <-> divMod[0,6,2,0,0])
+(f[0,6] <-> (f[0,6,1] | f[0,6,2]))
+(f[0,6,1] <-> f[0,6,1,0])
+(f[0,6,1] <-> f[0,6,2])
+(f[0,6,2] <-> f[0,6,2,0])
+(f[0,6,2,0] <-> (f[0,6,2,0,1] | f[0,6,2,0,2]))
+(f[0,6,2,0,1] <-> f[0,6,2,0,1,0])
+(f[0,6,2,0,1] <-> f[0,6,2,0,2])
+(f[0,6,2,0,1,0] <-> f[0,6,2,0,1,0,0])
+(f[0,6,2,0,1,0] <-> f[0,6,2,0,1,0,1])
+(f[0,6,2,0,1,0,0] <-> f[0,6,2,0,1,0,0,0])
+(f[0,6,2,0,1,0,1] <-> f[0,6,2,0,1,0,1,0])
+(f[0,6,2,0,1,0,1,0] <-> arg3[])
+(f[0,6,2,0,2] <-> f[0,6,2,0,2,0])
+(f[0,6,2,0,2,0] <-> arg3[])
+(factor[0] <-> factor[0,6])
+(factor[0,6] <-> factor[0,6,2])
+(factor[0,6,2] <-> factor[0,6,2,0])
+(factor[0,6,2,0] <-> (factor[0,6,2,0,1] | factor[0,6,2,0,2]))
+(factor[0,6,2,0,1] <-> factor[0,6,2,0,1,0])
+(n[0,6] <-> n[0,6,2])
+(n[0,6,2] <-> n[0,6,2,0])
+(n[0,6,2,0] <-> n[0,6,2,0,2])
+(n[0,6,2,0,2] <-> n[0,6,2,0,2,0])
+(n[0,6,2,0,2,0] <-> arg1[])
+(p[0,6] <-> p[0,6,2])
+(p[0,6,2] <-> p[0,6,2,0])
+(p[0,6,2,0,1,0] <-> p[0,6,2,0,1,0,0])
+(p[0,6,2,0,1,0] <-> p[0,6,2,0,1,0,1])
+(p[0,6,2,0,1,0,0] <-> p[0,6,2,0,1,0,0,1])
+(p[0,6,2,0,1,0,1] <-> p[0,6,2,0,1,0,1,2])
+(p1[0,2] <-> ps2[0,2])
+(p3[0] <-> p3[0,6])
+(p4[0] <-> p4[0,6])
+(p7[0,6,2,0,1,0,1,1] <-> ps8[0,6,2,0,1,0,1,1])
+(pp[0] <-> pp[0,6])
+(ps[0,6] <-> ps[0,6,2])
+(ps[0,6,2] <-> ps[0,6,2,0])
+(ps[0,6,2,0] <-> (ps[0,6,2,0,1] | ps[0,6,2,0,2]))
+(ps[0,6,2,0,1] <-> ps[0,6,2,0,1,0])
+(ps[0,6,2,0,1] <-> ps[0,6,2,0,2])
+(ps[0,6,2,0,1,0] <-> ps[0,6,2,0,1,0,1])
+(ps[0,6,2,0,1,0,1] <-> ps[0,6,2,0,1,0,1,3])
+(ps[0,6,2,0,2] <-> ps[0,6,2,0,2,0])
+(ps[0,6,2,0,2,0] <-> arg2[])
+(timesInt[0] <-> timesInt[0,6])
+(timesInt[0,6] <-> timesInt[0,6,0])
 1
 -}
 
 factor = rget $ (procedure @'[ 'In, 'In, 'In ] factorIII) :& (procedure @'[ 'In, 'In, 'Out ] factorIIO) :& RNil
   where
     factorIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,1] data1[0,3,2,0,1,0,1,1] f[0,5] n[0,4] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3]
+      -- solution: d[0,6,2,0,0] d[0,6,2,0,0,0] data0[0] data0[0,6] data0[0,6,2] data0[0,6,2,0] data0[0,6,2,0,0,1] data1[0,6,2,0,1,0,1,1] f[0,5] n[0,1] n0[0,0] n5[0,6,1,0] p[0,3] p1[0,2] p3[0] p3[0,6] p3[0,6,0,1] p4[0] p4[0,6] p4[0,6,0,2] p6[0,6,2,0,1,0,0,0] p7[0,6,2,0,1,0,1,2] pp[0] pp[0,6] pp[0,6,0,0] ps[0,4] ps2[0,2] ps8[0,6,2,0,1,0,1,3]
       -- cost: 7
       () <- (do
-        n <- pure arg1
+        n0 <- pure arg1
+        (p1:ps2) <- pure arg2
         f <- pure arg3
-        (p0:ps1) <- pure arg2
-        p <- pure p0
-        ps <- pure ps1
+        n <- pure n0
+        p <- pure p1
+        ps <- pure ps2
         () <- Logic.ifte ((do
-          p2 <- pure p
           p3 <- pure p
-          (OneTuple (pp)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt p2 p3
+          p4 <- pure p
+          (OneTuple (pp)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt p3 p4
           guard $ (>) pp n
           pure ()
          )) (\() -> (do
-          guard $ f == n
+          n5 <- pure f
+          guard $ n5 == n
           pure ()
          )) ((do
           () <- Logic.ifte ((do
@@ -1348,12 +1397,13 @@ factor = rget $ (procedure @'[ 'In, 'In, 'In ] factorIII) :& (procedure @'[ 'In,
             pure (d)
            )) (\(d) -> (do
             () <- (do
-              guard $ f == p
+              p6 <- pure f
+              guard $ p6 == p
               pure ()
              ) <|> (do
-              p4 <- pure p
-              ps5 <- pure ps
-              data1 <- pure (p4:ps5)
+              p7 <- pure p
+              ps8 <- pure ps
+              data1 <- pure (p7:ps8)
               () <- factorIII d data1 f
               pure ()
              )
@@ -1369,21 +1419,23 @@ factor = rget $ (procedure @'[ 'In, 'In, 'In ] factorIII) :& (procedure @'[ 'In,
       pure ()
     
     factorIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,5] d[0,3,2,0,0] d[0,3,2,0,0,0] data0[0] data0[0,3] data0[0,3,2] data0[0,3,2,0] data0[0,3,2,0,0,1] data1[0,3,2,0,1,0,1,1] f[0,3] f[0,3,1] f[0,3,1,0] f[0,3,2] f[0,3,2,0] f[0,3,2,0,1] f[0,3,2,0,1,0] f[0,3,2,0,1,0,0] f[0,3,2,0,1,0,0,0] f[0,3,2,0,1,0,1] f[0,3,2,0,1,0,1,0] f[0,3,2,0,2] f[0,3,2,0,2,0] n[0,4] p[0,1] p0[0,0] p2[0] p2[0,3] p2[0,3,0,1] p3[0] p3[0,3] p3[0,3,0,2] p4[0,3,2,0,1,0,1,2] pp[0] pp[0,3] pp[0,3,0,0] ps[0,2] ps1[0,0] ps5[0,3,2,0,1,0,1,3]
+      -- solution: arg3[] arg3[0] arg3[0,5] d[0,6,2,0,0] d[0,6,2,0,0,0] data0[0] data0[0,6] data0[0,6,2] data0[0,6,2,0] data0[0,6,2,0,0,1] data1[0,6,2,0,1,0,1,1] f[0,6] f[0,6,1] f[0,6,1,0] f[0,6,2] f[0,6,2,0] f[0,6,2,0,1] f[0,6,2,0,1,0] f[0,6,2,0,1,0,0] f[0,6,2,0,1,0,0,0] f[0,6,2,0,1,0,1] f[0,6,2,0,1,0,1,0] f[0,6,2,0,2] f[0,6,2,0,2,0] n[0,1] n0[0,0] n5[0,6,1,1] p[0,3] p1[0,2] p3[0] p3[0,6] p3[0,6,0,1] p4[0] p4[0,6] p4[0,6,0,2] p6[0,6,2,0,1,0,0,1] p7[0,6,2,0,1,0,1,2] pp[0] pp[0,6] pp[0,6,0,0] ps[0,4] ps2[0,2] ps8[0,6,2,0,1,0,1,3]
       -- cost: 9
       (arg3) <- (do
-        n <- pure arg1
-        (p0:ps1) <- pure arg2
-        p <- pure p0
-        ps <- pure ps1
+        n0 <- pure arg1
+        (p1:ps2) <- pure arg2
+        n <- pure n0
+        p <- pure p1
+        ps <- pure ps2
         (f) <- Logic.ifte ((do
-          p2 <- pure p
           p3 <- pure p
-          (OneTuple (pp)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt p2 p3
+          p4 <- pure p
+          (OneTuple (pp)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt p3 p4
           guard $ (>) pp n
           pure ()
          )) (\() -> (do
-          f <- pure n
+          n5 <- pure n
+          f <- pure n5
           pure (f)
          )) ((do
           (f) <- Logic.ifte ((do
@@ -1392,12 +1444,13 @@ factor = rget $ (procedure @'[ 'In, 'In, 'In ] factorIII) :& (procedure @'[ 'In,
             pure (d)
            )) (\(d) -> (do
             (f) <- (do
-              f <- pure p
+              p6 <- pure p
+              f <- pure p6
               pure (f)
              ) <|> (do
-              p4 <- pure p
-              ps5 <- pure ps
-              data1 <- pure (p4:ps5)
+              p7 <- pure p
+              ps8 <- pure ps
+              data1 <- pure (p7:ps8)
               (OneTuple (f)) <- factorIIO d data1
               pure (f)
              )
@@ -1414,64 +1467,64 @@ factor = rget $ (procedure @'[ 'In, 'In, 'In ] factorIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg3))
     
 {- prime/1
-prime arg1 :- ((arg1 = 2); (oddNat p, (>) p data0, data0 = 2, observeAll pred1 primes, (pred1 curry1 :- (prime curry1)), if (factor p primes d, (/=) p d) then (empty) else (), arg1 = p)).
+prime arg1 :- ((arg1 = 2); (arg1 = p, oddNat p, (>) p data0, data0 = 2, observeAll pred1 primes, (pred1 curry1 :- (prime curry1)), if (factor p primes d, (/=) p d) then (empty) else ())).
 constraints:
-d[1,5]
-~(/=)[1,5,0]
+d[1,6]
+~(/=)[1,6,0]
 ~(>)[1]
 ~curry1[1]
-~empty[1,5,1]
-~factor[1,5,0]
+~empty[1,6,1]
+~factor[1,6,0]
 ~observeAll[1]
 ~oddNat[1]
-~p[1,5]
-~pred1[1,3]
-~prime[1,4,0]
-~primes[1,5]
-~primes[1,5,0,0]
-~(arg1[1,6] & p[1,6])
-~(d[1,5,0,0] & d[1,5,0,1])
-~(data0[1,1] & data0[1,2])
+~p[1,6]
+~pred1[1,4]
+~prime[1,5,0]
+~primes[1,6]
+~primes[1,6,0,0]
+~(arg1[1,0] & p[1,0])
+~(d[1,6,0,0] & d[1,6,0,1])
+~(data0[1,2] & data0[1,3])
 ~(p[1,0] & p[1,1])
-~(p[1,0] & p[1,5])
+~(p[1,0] & p[1,2])
 ~(p[1,0] & p[1,6])
-~(p[1,1] & p[1,5])
+~(p[1,1] & p[1,2])
 ~(p[1,1] & p[1,6])
-~(p[1,5] & p[1,6])
-~(p[1,5,0,0] & p[1,5,0,1])
-~(primes[1,3] & primes[1,5])
-~(p[1,5,0,0] | p[1,5,0,1])
-(~p[1,1] & ~data0[1,1])
-(~p[1,5,0,1] & ~d[1,5,0,1])
-(~pred1[1,3] & (pred1(1) & primes[1,3]))
-(d[1,5,0,0] | d[1,5,0,1])
-(data0[1,1] | data0[1,2])
-(p[1,0] | ~p[1,0])
-(p[1,0] | (p[1,1] | (p[1,5] | p[1,6])))
-(primes[1,3] | primes[1,5])
-((~p[1,5,0,0] & (~primes[1,5,0,0] & d[1,5,0,0])) | (~p[1,5,0,0] & (~primes[1,5,0,0] & ~d[1,5,0,0])))
-((/=)[1] <-> (/=)[1,5])
-((/=)[1,5] <-> (/=)[1,5,0])
+~(p[1,2] & p[1,6])
+~(p[1,6,0,0] & p[1,6,0,1])
+~(primes[1,4] & primes[1,6])
+~(p[1,6,0,0] | p[1,6,0,1])
+(~p[1,2] & ~data0[1,2])
+(~p[1,6,0,1] & ~d[1,6,0,1])
+(~pred1[1,4] & (pred1(1) & primes[1,4]))
+(d[1,6,0,0] | d[1,6,0,1])
+(data0[1,2] | data0[1,3])
+(p[1,0] | (p[1,1] | (p[1,2] | p[1,6])))
+(p[1,1] | ~p[1,1])
+(primes[1,4] | primes[1,6])
+((~p[1,6,0,0] & (~primes[1,6,0,0] & d[1,6,0,0])) | (~p[1,6,0,0] & (~primes[1,6,0,0] & ~d[1,6,0,0])))
+((/=)[1] <-> (/=)[1,6])
+((/=)[1,6] <-> (/=)[1,6,0])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
-(arg1[1] <-> arg1[1,6])
-(curry1[1,4,0] <-> curry1[1,4,0,0])
-(curry1[1,4,0,0] <-> arg1[])
-(d[1] <-> d[1,5])
-(empty[1] <-> empty[1,5])
-(empty[1,5] <-> empty[1,5,1])
-(factor[1] <-> factor[1,5])
-(factor[1,5] <-> factor[1,5,0])
-(prime[1] <-> prime[1,4])
-(pred1(1) <-> curry1[1,4,0])
+(arg1[1] <-> arg1[1,0])
+(curry1[1,5,0] <-> curry1[1,5,0,0])
+(curry1[1,5,0,0] <-> arg1[])
+(d[1] <-> d[1,6])
+(empty[1] <-> empty[1,6])
+(empty[1,6] <-> empty[1,6,1])
+(factor[1] <-> factor[1,6])
+(factor[1,6] <-> factor[1,6,0])
+(prime[1] <-> prime[1,5])
+(pred1(1) <-> curry1[1,5,0])
 1
 -}
 
 prime = rget $ (procedure @'[ 'Out ] primeO) :& RNil
   where
     primeO = choose . Logic.observeAll $ do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,6] curry1[1,4,0] curry1[1,4,0,0] d[1] d[1,5] d[1,5,0,0] data0[1,2] p[1,0] primes[1,3] pred1(1)
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] curry1[1,5,0] curry1[1,5,0,0] d[1] d[1,6] d[1,6,0,0] data0[1,3] p[1,1] primes[1,4] pred1(1)
       -- cost: 11
       (arg1) <- (do
         arg1 <- pure 2
@@ -1689,9 +1742,9 @@ euler4 = rget $ (procedure @'[ 'In ] euler4I) :& (procedure @'[ 'Out ] euler4O) 
       -- cost: 8
       () <- (do
         data0 <- pure 10
-        data3 <- pure 10
         data1 <- pure 99
         data2 <- pure [data0..data1]
+        data3 <- pure 10
         data4 <- pure 99
         data5 <- pure [data3..data4]
         (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] elem data5
@@ -1710,9 +1763,9 @@ euler4 = rget $ (procedure @'[ 'In ] euler4I) :& (procedure @'[ 'Out ] euler4O) 
       -- cost: 9
       (n) <- (do
         data0 <- pure 10
-        data3 <- pure 10
         data1 <- pure 99
         data2 <- pure [data0..data1]
+        data3 <- pure 10
         data4 <- pure 99
         data5 <- pure [data3..data4]
         (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] elem data2

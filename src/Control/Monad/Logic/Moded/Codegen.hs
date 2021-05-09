@@ -6,8 +6,8 @@ module Control.Monad.Logic.Moded.Codegen
 
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
+  , Func(..)
   , Goal(..)
-  , Name
   , Pragma(..)
   , Prog(..)
   , Rule(..)
@@ -26,6 +26,7 @@ import Control.Monad.Logic.Moded.Schedule
   , varMode
   )
 import qualified Control.Monad.Logic.Moded.Solver as Sat
+import Data.Foldable (Foldable(toList))
 import Data.List (sortOn)
 import qualified Data.Map as Map
 import Data.Maybe (listToMaybe)
@@ -58,21 +59,19 @@ cgTuple [] = "()"
 cgTuple [x] = "(OneTuple (" <> x <> "))"
 cgTuple xs = "(" <> T.intercalate "," xs <> ")"
 
-cgFunc :: Name -> [ModedVar] -> Text
-cgFunc ":" vs = "(" <> T.intercalate ":" (map mv vs) <> ")"
-cgFunc ".." [u, v] = "[" <> mv u <> ".." <> mv v <> "]"
-cgFunc name [] = T.pack name
-cgFunc name vs = "(" <> T.unwords (T.pack name : map mv vs) <> ")"
+cgFunc :: Func ModedVar -> Text
+cgFunc (Func ":" vs) = "(" <> T.intercalate ":" (map cgFunc vs) <> ")"
+cgFunc (Func ".." [u, v]) = "[" <> cgFunc u <> ".." <> cgFunc v <> "]"
+cgFunc (Func name []) = T.pack name
+cgFunc (Func name vs) = "(" <> T.unwords (T.pack name : map cgFunc vs) <> ")"
+cgFunc (FVar v) = mv v
 
 cgAtom :: Path -> Rule ModedVar ModedVar -> Text
 cgAtom p r =
   case a of
-    Unif (MV u Out) v -> T.pack u <> " <- pure " <> mv v
-    Unif u (MV v Out) -> T.pack v <> " <- pure " <> mv u
-    Unif u v -> "guard $ " <> mv u <> " == " <> mv v
-    Func name vs@(MV _ Out:_) u -> cgFunc name vs <> " <- pure " <> mv u
-    Func name vs (MV u Out) -> T.pack u <> " <- pure " <> cgFunc name vs
-    Func name vs u -> "guard $ " <> mv u <> " == " <> cgFunc name vs
+    Unif u f | (MV _ Out:_) <- toList f -> cgFunc f <> " <- pure " <> mv u
+    Unif (MV u Out) f -> T.pack u <> " <- pure " <> cgFunc f
+    Unif u f -> "guard $ " <> mv u <> " == " <> cgFunc f
     Pred (MV name _) vs
       | head name == '('
       , last name == ')' ->
