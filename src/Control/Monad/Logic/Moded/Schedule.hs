@@ -168,7 +168,12 @@ compileRule :: [Pragma] -> CompiledProgram -> Rule Var Var -> CompiledProgram
 compileRule pragmas cp r
   | Pragma ["inline", ruleName r] `elem` pragmas =
     cp <> mempty {macros = [(ruleName r, (ruleArgs r, ruleBody r, mempty))]}
-  | otherwise = cp <> mempty {predicates = [(ruleName rule, obj)]}
+  | otherwise =
+    trace
+      ("generated " ++
+       show (length [() | Right _ <- eithers]) ++
+       " procedures and " ++ show (length $ errors obj) ++ " errors") $
+    cp <> mempty {predicates = [(ruleName rule, obj)]}
   where
     rule =
       evalState

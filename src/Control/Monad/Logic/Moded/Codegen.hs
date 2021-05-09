@@ -253,7 +253,7 @@ compile moduleName (Prog pragmas rules) =
             defs =
               T.unlines $ do
                 (ms, procs) <- Map.assocs (procedures c)
-                let (def:_) = do
+                let (def:_defs') = do
                       procedure <- sortOn (cost . ruleBody . modedRule) procs
                       pure . T.unlines $
                         let (hd:tl) = T.lines $ cgProcedure pragmas ms procedure

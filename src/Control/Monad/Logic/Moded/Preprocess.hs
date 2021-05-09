@@ -10,6 +10,7 @@ module Control.Monad.Logic.Moded.Preprocess
   , prunePreds
   ) where
 
+import Control.Monad (forM)
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Goal(..)
@@ -20,7 +21,7 @@ import Control.Monad.Logic.Moded.AST
   )
 import Control.Monad.Logic.Moded.Mode (ModeString)
 import Control.Monad.Logic.Moded.Path (Path, nonlocals)
-import Control.Monad.State
+import Control.Monad.State (MonadState(..), State, evalState, runState)
 import Data.Foldable (toList)
 import Data.List (group, groupBy, nub, sort)
 import Data.Map (Map)
