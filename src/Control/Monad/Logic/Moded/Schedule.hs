@@ -122,7 +122,7 @@ mode r@(Rule name vars body) soln =
   where
     annotate p (V v)
       | t `Set.member` soln || v == "_" = MV v Out
-      | Sat.Neg t `Set.member` soln || null p =
+      | Sat.Neg t `Set.member` soln =
         MV v $
         case predMode (V v) soln of
           [] -> In

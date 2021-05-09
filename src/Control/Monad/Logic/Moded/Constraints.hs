@@ -158,7 +158,6 @@ cAtom :: Modes -> Path -> Rule Var Var -> Constraints
 cAtom m p r =
   case let Atom a = extract p (ruleBody r)
         in a of
-    Unif _ (Func _ []) -> Set.empty
     Unif u f ->
       case toList f of
         [] -> Set.empty
@@ -193,8 +192,6 @@ cPred m p r name vars
                   In -> Sat.Neg t'
                   Out -> t'
                   PredMode _ -> error "nested modestring"
-  | head name == '('
-  , last name == ')' = Set.singleton . cAnd $ Sat.Neg . term p <$> vars
   | equiv <- Set.elems . equivClassOf $ V name
   , (`elem` ruleArgs r) `any` equiv =
     Set.fromList $ do
