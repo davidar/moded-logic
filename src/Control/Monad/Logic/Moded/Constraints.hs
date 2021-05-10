@@ -2,11 +2,11 @@
 
 module Control.Monad.Logic.Moded.Constraints
   ( Constraints
-  , CAtom(..)
   , Mode(..)
   , ModeString(..)
+  , Solution
   , constraints
-  , solveConstraints
+  , inferModes
   , solveConstraintsMode
   ) where
 
@@ -34,6 +34,7 @@ import Data.Equivalence.Monad (EquivM, MonadEquiv(..), runEquivM)
 import Data.Foldable (Foldable(toList))
 import Data.List (nub, sort)
 import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
 import Data.Map (Map)
 import qualified Data.Set as Set
 import Data.Set (Set)
@@ -49,6 +50,8 @@ data CAtom
   deriving (Eq, Ord)
 
 type Modes = Map Name [ModeString]
+
+type Solution = Map (Var, Path) Mode
 
 instance Show CAtom where
   show (Produce v p) = show v ++ show p
@@ -167,6 +170,23 @@ cAtom m p r =
     Pred (V name) vars ->
       Sat.Neg (term p (V name)) `Set.insert` cPred m p r name vars
 
+cModeString :: Path -> [Var] -> ModeString -> [Constraint]
+cModeString p vars (ModeString modes) = do
+  (v, mode) <- zip vars modes
+  let t = term p v
+  case mode of
+    In -> pure $ Sat.Neg t
+    Out -> pure t
+    PredMode ms ->
+      Sat.Neg t : do
+        (i, mode') <- zip [1 ..] ms
+        let t' = Sat.Var $ ProduceArg v i
+        pure $
+          case mode' of
+            In -> Sat.Neg t'
+            Out -> t'
+            PredMode _ -> error "nested modestring"
+
 cPred :: Modes -> Path -> Rule Var Var -> Name -> [Var] -> Constraints
 cPred m p r name vars
   | Rule rname rvars _ <- r
@@ -176,23 +196,8 @@ cPred m p r name vars
       (u, v) <- zip vars rvars
       pure $ term p u `Sat.Iff` term [] v
   | Just modeset <- Map.lookup name m =
-    Set.singleton . cOr . nub . sort $ do
-      ModeString modes <- modeset
-      pure . cAnd $ do
-        (v, mode) <- zip vars modes
-        let t = term p v
-        case mode of
-          In -> pure $ Sat.Neg t
-          Out -> pure t
-          PredMode ms ->
-            Sat.Neg t : do
-              (i, mode') <- zip [1 ..] ms
-              let t' = Sat.Var $ ProduceArg v i
-              pure $
-                case mode' of
-                  In -> Sat.Neg t'
-                  Out -> t'
-                  PredMode _ -> error "nested modestring"
+    Set.singleton . cOr . nub . sort $
+      cAnd . cModeString p vars <$> modeset
   | equiv <- Set.elems . equivClassOf $ V name
   , (`elem` ruleArgs r) `any` equiv =
     Set.fromList $ do
@@ -230,22 +235,44 @@ constraints m rule = Set.map f cs
           show rule ++ "\n" ++ show c ++ " always fails with " ++ show env
         e -> e
 
-solveConstraints :: Modes -> Rule Var Var -> [Constraints]
-solveConstraints m rule = Set.fromList <$> solutions
+convertSolution :: [Constraint] -> Solution
+convertSolution soln = Map.fromList $ do
+  c <- soln
+  pure $ case c of
+    Sat.Var (Produce v p) ->
+      ((v, p), Out)
+    Sat.Neg (Sat.Var (Produce v p)) ->
+      case predMode v of
+        [] -> ((v, p), In)
+        ms -> ((v, p), PredMode ms)
+    Sat.Var (ProduceArg v _) -> ((v, []), PredMode $ predMode v)
+    Sat.Neg (Sat.Var (ProduceArg v _)) -> ((v, []), PredMode $ predMode v)
+    _ -> undefined
   where
-    Sat.Solutions solutions =
-      Sat.solveProp . cAnd . Set.elems $ constraints m rule
+    predMode name = go 1
+      where
+        go i | Sat.Neg t `elem` soln = In : go (i + 1)
+             | t `elem` soln = Out : go (i + 1)
+             | otherwise = []
+          where t = Sat.Var $ ProduceArg name i
 
-solveConstraintsMode :: Modes -> Rule Var Var -> ModeString -> [Constraints]
-solveConstraintsMode m rule ms = Set.fromList <$> solutions
+extractModeString :: Rule Var Var -> Solution -> ModeString
+extractModeString rule soln = ModeString $ f <$> ruleArgs rule
   where
-    extra =
-      Set.fromList $ do
-        (v, mode) <- zip (ruleArgs rule) (unModeString ms)
-        pure $
-          case mode of
-            In -> Sat.Neg $ term [] v
-            Out -> term [] v
-            _ -> undefined
+    f (V "_") = Out
+    f v = fromMaybe undefined $ Map.lookup (v, []) soln
+
+inferModes :: Modes -> Rule Var Var -> [ModeString]
+inferModes m rule = go []
+  where
+    go mss =
+      let extra = Set.fromList $ cOr . map Sat.Neg . cModeString [] (ruleArgs rule) <$> mss
+      in case Sat.solveProp . cAnd . Set.elems $ extra `Set.union` constraints m rule of
+        Sat.Solutions [] -> mss
+        Sat.Solutions (soln:_) -> go (extractModeString rule (convertSolution soln) : mss)
+
+solveConstraintsMode :: Modes -> Rule Var Var -> ModeString -> [Solution]
+solveConstraintsMode m rule ms = convertSolution <$> solutions
+  where
     Sat.Solutions solutions =
-      Sat.solveProp . cAnd . Set.elems $ extra `Set.union` constraints m rule
+      Sat.solveProp . cAnd $ cModeString [] (ruleArgs rule) ms ++ Set.elems (constraints m rule)

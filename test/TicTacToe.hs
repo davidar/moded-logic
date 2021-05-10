@@ -902,13 +902,13 @@ cluster = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'In ] clusterIIIII
       pure ()
     
     clusterIIIIIIO = \board m loc dir1 dir2 n -> do
-      -- solution: end[] end[0] end[0,0] n'[0,2] n1[0,0] n2[0,1]
+      -- solution: end[] end[0] end[0,0] n'[0,3] n1[0,2] n2[0,1]
       -- cost: 9
       (end) <- (do
-        (n1,end) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocation board dir1 m loc
+        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
         (n2,_) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocation board dir2 m loc
-        (OneTuple (n')) <- runProcedure @'[ 'In, 'In, 'Out ] plus n1 n2
-        () <- runProcedure @'[ 'In, 'In ] succ n' n
+        (OneTuple (n1)) <- runProcedure @'[ 'Out, 'In, 'In ] plus n2 n'
+        (OneTuple (end)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'In, 'Out ] extendLocation board dir1 m loc n1
         pure (end)
        )
       pure (OneTuple (end))

@@ -25,7 +25,6 @@ import Control.Monad.Logic.Moded.Schedule
   , stripMode
   , varMode
   )
-import qualified Control.Monad.Logic.Moded.Solver as Sat
 import Data.Foldable (Foldable(toList))
 import Data.List (sortOn)
 import qualified Data.Map as Map
@@ -71,15 +70,15 @@ cgAtom p r =
   case a of
     Unif u f
       | (MV _ Out:_) <- toList f -> cgFunc f <> " <- pure " <> mv u
-    Unif (MV u Out) f -> T.pack u <> " <- pure " <> cgFunc f
+    Unif (MV (V u) Out) f -> T.pack u <> " <- pure " <> cgFunc f
     Unif u f -> "guard $ " <> mv u <> " == " <> cgFunc f
-    Pred (MV name _) vs
+    Pred (MV (V name) _) vs
       | head name == '('
       , last name == ')' ->
-        "guard $ " <> T.unwords (T.pack <$> name : [v | MV v m <- vs, m /= Out])
-    Pred (MV name _) vs ->
-      cgTuple [T.pack v | MV v Out <- vs] <>
-      " <- " <> name' <> " " <> T.unwords [T.pack v | MV v m <- vs, m /= Out]
+        "guard $ " <> T.unwords (T.pack <$> name : [v | MV (V v) m <- vs, m /= Out])
+    Pred (MV (V name) _) vs ->
+      cgTuple [T.pack v | MV (V v) Out <- vs] <>
+      " <- " <> name' <> " " <> T.unwords [T.pack v | MV (V v) m <- vs, m /= Out]
       where name' =
               case varMode <$> vs of
                 [] -> T.pack name
@@ -109,7 +108,7 @@ cgGoal p r =
               pure $
                 case extract p' $ ruleBody r of
                   Atom _ -> cgAtom p' r
-                  Anon (MV name _) vs _ ->
+                  Anon (MV (V name) _) vs _ ->
                     let tname = T.pack name
                         field = callMode . ModeString $ varMode <$> vs
                         lam = cgGoal p' r
@@ -121,16 +120,16 @@ cgGoal p r =
                     "(" <>
                     T.intercalate
                       ","
-                      [ T.pack v
-                      | V v <- Set.elems $ nonlocals' p' r
+                      [ T.pack (show v)
+                      | v <- Set.elems $ nonlocals' p' r
                       , MV v Out `elem` g
                       ] <>
                     ") <- " <> cgGoal p' r
           ret =
             T.intercalate
               ","
-              [ T.pack v
-              | V v <- Set.elems $ nonlocals' p r
+              [ T.pack (show v)
+              | v <- Set.elems $ nonlocals' p r
               , MV v Out `elem` Conj conj
               ]
        in [text|
@@ -148,8 +147,8 @@ cgGoal p r =
       where cret =
               T.intercalate
                 ","
-                [ T.pack v
-                | V v <- Set.elems $ nonlocals' (p ++ [0]) r
+                [ T.pack (show v)
+                | v <- Set.elems $ nonlocals' (p ++ [0]) r
                 , MV v Out `elem` c
                 ]
     Anon _ vars body ->
@@ -158,12 +157,12 @@ cgGoal p r =
           rets =
             T.intercalate
               ","
-              [ T.pack v
-              | V v <- Set.elems $ nonlocals' p' r
+              [ T.pack (show v)
+              | v <- Set.elems $ nonlocals' p' r
               , MV v Out `elem` body
               ]
-          ins = [T.pack v | MV v m <- vars, m /= Out]
-          out = cgTuple [T.pack v | MV v Out <- vars]
+          ins = [T.pack (show v) | MV v m <- vars, m /= Out]
+          out = cgTuple [T.pack (show v) | MV v Out <- vars]
           args
             | null ins = "do"
             | otherwise = "\\" <> T.unwords ins <> " -> do"
@@ -182,15 +181,15 @@ cgProcedure pragmas ms procedure =
       rets =
         T.intercalate
           ","
-          [T.pack v | V v <- Set.elems $ nonlocals' [] r, MV v Out `elem` body]
+          [T.pack (show v) | v <- Set.elems $ nonlocals' [] r, MV v Out `elem` body]
       pragmaType = listToMaybe [ts | Pragma ("type":f:ts) <- pragmas, f == name]
-      ins = [T.pack v | MV v m <- vars, m /= Out]
+      ins = [T.pack (show v) | MV v m <- vars, m /= Out]
       out =
         case pragmaType of
-          Nothing -> cgTuple [T.pack v | MV v Out <- vars]
+          Nothing -> cgTuple [T.pack (show v) | MV v Out <- vars]
           Just ts ->
             cgTuple
-              [T.pack v <> " :: " <> T.pack t | (MV v Out, t) <- zip vars ts]
+              [T.pack (show v) <> " :: " <> T.pack t | (MV v Out, t) <- zip vars ts]
       decorate
         | Pragma ["memo", name] `elem` pragmas =
           case length ins of
@@ -260,9 +259,9 @@ compile moduleName (Prog pragmas rules) =
                             meta =
                               "  -- solution: " <>
                               T.unwords
-                                [ T.pack (show v)
-                                | Sat.Var v <-
-                                    Set.elems (modeSolution procedure)
+                                [ T.pack (show v ++ show p)
+                                | ((v, p), Out) <-
+                                    Map.assocs (modeSolution procedure)
                                 ]
                             meta2 =
                               "  -- cost: " <>
