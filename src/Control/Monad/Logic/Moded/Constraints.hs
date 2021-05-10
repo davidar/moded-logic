@@ -7,6 +7,7 @@ module Control.Monad.Logic.Moded.Constraints
   , ModeString(..)
   , constraints
   , solveConstraints
+  , solveConstraintsMode
   ) where
 
 import Control.Monad.Logic.Moded.AST
@@ -230,7 +231,21 @@ constraints m rule = Set.map f cs
         e -> e
 
 solveConstraints :: Modes -> Rule Var Var -> [Constraints]
-solveConstraints m rule =
-  let cs = constraints m rule
-      Sat.Solutions solutions = Sat.solveProp . cAnd $ Set.elems cs
-   in Set.fromList <$> solutions
+solveConstraints m rule = Set.fromList <$> solutions
+  where
+    Sat.Solutions solutions =
+      Sat.solveProp . cAnd . Set.elems $ constraints m rule
+
+solveConstraintsMode :: Modes -> Rule Var Var -> ModeString -> [Constraints]
+solveConstraintsMode m rule ms = Set.fromList <$> solutions
+  where
+    extra =
+      Set.fromList $ do
+        (v, mode) <- zip (ruleArgs rule) (unModeString ms)
+        pure $
+          case mode of
+            In -> Sat.Neg $ term [] v
+            Out -> term [] v
+            _ -> undefined
+    Sat.Solutions solutions =
+      Sat.solveProp . cAnd . Set.elems $ extra `Set.union` constraints m rule

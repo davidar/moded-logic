@@ -30,6 +30,7 @@ import Control.Monad.Logic.Moded.Constraints
   , ModeString(..)
   , constraints
   , solveConstraints
+  , solveConstraintsMode
   )
 import Control.Monad.Logic.Moded.Path (nonlocals)
 import Control.Monad.Logic.Moded.Prelude (modesPrelude)
@@ -188,20 +189,31 @@ compileRule pragmas cp r
             "In" -> In
             "Out" -> Out
             _ -> undefined
-    eithers = do
-      soln <-
-        trace ("inferring modes for rule " ++ show rule) $
-        solveConstraints m rule
-      case mode rule soln of
-        Left e -> pure $ Left (traceId e)
-        Right mr ->
-          trace (show ms ++ " (cost " ++ show (cost $ ruleBody mr) ++ ")") $ do
-            guard $ null userModes || ms `elem` userModes
-            pure $ Right (ms, Procedure {modeSolution = soln, modedRule = mr})
-          where ms =
-                  ModeString $ do
-                    MV _ mv <- ruleArgs mr
-                    pure mv
+    eithers
+      | not (null userModes) =
+        trace ("inferring modes for rule " ++ show rule) $ do
+          ms <- userModes
+          soln <- trace ("mode " ++ show ms) $ solveConstraintsMode m rule ms
+          pure $
+            case mode rule soln of
+              Left e -> trace e $ Left e
+              Right mr ->
+                trace ("cost " ++ show (cost $ ruleBody mr)) $
+                Right (ms, Procedure {modeSolution = soln, modedRule = mr})
+      | otherwise = do
+        soln <-
+          trace ("inferring modes for rule " ++ show rule) $
+          solveConstraints m rule
+        case mode rule soln of
+          Left e -> trace e . pure $ Left e
+          Right mr ->
+            trace (show ms ++ " (cost " ++ show (cost $ ruleBody mr) ++ ")") $ do
+              guard $ null userModes || ms `elem` userModes
+              pure $ Right (ms, Procedure {modeSolution = soln, modedRule = mr})
+            where ms =
+                    ModeString $ do
+                      MV _ mv <- ruleArgs mr
+                      pure mv
     obj =
       CompiledPredicate
         { unmodedRule = rule

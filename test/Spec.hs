@@ -490,6 +490,7 @@ direction NE SW
 direction E W
 direction SE NW
 
+#mode move In In Out
 move N  (Loc x y) (Loc x  y') :- succ y y'
 move NE (Loc x y) (Loc x' y') :- succ x x', succ y y'
 move E  (Loc x y) (Loc x' y)  :- succ x x'
@@ -503,16 +504,16 @@ location (Loc x y) :-
   boardSize n
   x >= 0, y >= 0, x < n, y < n
 
-loop n loc loc' rn rloc :-
+loop board dir m n loc loc' rn rloc :-
   if location loc'
      elem (Entry loc' m) board
   then succ n n'
        move dir loc' loc''
-       loop n' loc' loc'' rn rloc
+       loop board dir m n' loc' loc'' rn rloc
   else rn = n
        rloc = loc
 
-extendLocation board dir m loc = loop 0 loc loc' :- move dir loc loc'
+extendLocation board dir m loc = loop board dir m 0 loc loc' :- move dir loc loc'
 
 cluster board m loc dir1 dir2 n end :-
   extendLocation board dir1 m loc n1 end
@@ -741,3 +742,5 @@ main = do
               ,[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]
               ,[F 0 2,B 0 1,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]]
         observeAllT (actions <$> call @'[In, Out] Cannibals.solve start) `shouldReturn` expect
+    describe "TicTacToe" $ do
+      it "compile" $ compileTest "TicTacToe" programTicTacToe
