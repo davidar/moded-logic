@@ -34,8 +34,8 @@ import Data.Equivalence.Monad (EquivM, MonadEquiv(..), runEquivM)
 import Data.Foldable (Foldable(toList))
 import Data.List (nub, sort)
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe)
 import Data.Map (Map)
+import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
 import Data.Set (Set)
 
@@ -196,8 +196,7 @@ cPred m p r name vars
       (u, v) <- zip vars rvars
       pure $ term p u `Sat.Iff` term [] v
   | Just modeset <- Map.lookup name m =
-    Set.singleton . cOr . nub . sort $
-      cAnd . cModeString p vars <$> modeset
+    Set.singleton . cOr . nub . sort $ cAnd . cModeString p vars <$> modeset
   | equiv <- Set.elems . equivClassOf $ V name
   , (`elem` ruleArgs r) `any` equiv =
     Set.fromList $ do
@@ -236,25 +235,28 @@ constraints m rule = Set.map f cs
         e -> e
 
 convertSolution :: [Constraint] -> Solution
-convertSolution soln = Map.fromList $ do
-  c <- soln
-  pure $ case c of
-    Sat.Var (Produce v p) ->
-      ((v, p), Out)
-    Sat.Neg (Sat.Var (Produce v p)) ->
-      case predMode v of
-        [] -> ((v, p), In)
-        ms -> ((v, p), PredMode ms)
-    Sat.Var (ProduceArg v _) -> ((v, []), PredMode $ predMode v)
-    Sat.Neg (Sat.Var (ProduceArg v _)) -> ((v, []), PredMode $ predMode v)
-    _ -> undefined
+convertSolution soln =
+  Map.fromList $ do
+    c <- soln
+    pure $
+      case c of
+        Sat.Var (Produce v p) -> ((v, p), Out)
+        Sat.Neg (Sat.Var (Produce v p)) ->
+          case predMode v of
+            [] -> ((v, p), In)
+            ms -> ((v, p), PredMode ms)
+        Sat.Var (ProduceArg v _) -> ((v, []), PredMode $ predMode v)
+        Sat.Neg (Sat.Var (ProduceArg v _)) -> ((v, []), PredMode $ predMode v)
+        _ -> undefined
   where
     predMode name = go 1
       where
-        go i | Sat.Neg t `elem` soln = In : go (i + 1)
-             | t `elem` soln = Out : go (i + 1)
-             | otherwise = []
-          where t = Sat.Var $ ProduceArg name i
+        go i
+          | Sat.Neg t `elem` soln = In : go (i + 1)
+          | t `elem` soln = Out : go (i + 1)
+          | otherwise = []
+          where
+            t = Sat.Var $ ProduceArg name i
 
 extractModeString :: Rule Var Var -> Solution -> ModeString
 extractModeString rule soln = ModeString $ f <$> ruleArgs rule
@@ -266,13 +268,18 @@ inferModes :: Modes -> Rule Var Var -> [ModeString]
 inferModes m rule = go []
   where
     go mss =
-      let extra = Set.fromList $ cOr . map Sat.Neg . cModeString [] (ruleArgs rule) <$> mss
-      in case Sat.solveProp . cAnd . Set.elems $ extra `Set.union` constraints m rule of
-        Sat.Solutions [] -> mss
-        Sat.Solutions (soln:_) -> go (extractModeString rule (convertSolution soln) : mss)
+      let extra =
+            Set.fromList $
+            cOr . map Sat.Neg . cModeString [] (ruleArgs rule) <$> mss
+       in case Sat.solveProp . cAnd . Set.elems $
+               extra `Set.union` constraints m rule of
+            Sat.Solutions [] -> mss
+            Sat.Solutions (soln:_) ->
+              go (extractModeString rule (convertSolution soln) : mss)
 
 solveConstraintsMode :: Modes -> Rule Var Var -> ModeString -> [Solution]
 solveConstraintsMode m rule ms = convertSolution <$> solutions
   where
     Sat.Solutions solutions =
-      Sat.solveProp . cAnd $ cModeString [] (ruleArgs rule) ms ++ Set.elems (constraints m rule)
+      Sat.solveProp . cAnd $
+      cModeString [] (ruleArgs rule) ms ++ Set.elems (constraints m rule)

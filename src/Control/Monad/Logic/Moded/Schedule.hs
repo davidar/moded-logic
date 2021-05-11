@@ -49,7 +49,7 @@ import Data.Set (Set)
 import Debug.Trace
 
 data ModedVar =
-  MV 
+  MV
     { stripMode :: Var
     , varMode :: Mode
     }
@@ -119,14 +119,15 @@ mode r@(Rule name vars body) soln =
     Right body' -> Right $ Rule name (annotate [] <$> vars) body'
   where
     annotate _ (V "_") = MV (V "_") Out
-    annotate p v = case Map.lookup (v, p) soln of
-      Just m -> MV v m
-      Nothing ->
-        error $
-        show r ++
-        "\n" ++
-        show (v, p) ++
-        " not in " ++ show soln ++ " (perhaps this variable is unused?)"
+    annotate p v =
+      case Map.lookup (v, p) soln of
+        Just m -> MV v m
+        Nothing ->
+          error $
+          show r ++
+          "\n" ++
+          show (v, p) ++
+          " not in " ++ show soln ++ " (perhaps this variable is unused?)"
     walk p (Disj disj) =
       Disj <$> sequence [walk (p ++ [d]) g | (d, g) <- zip [0 ..] disj]
     walk p (Conj conj) = do
@@ -144,8 +145,7 @@ mode r@(Rule name vars body) soln =
           vs' = zipWith MV vs ms
       g' <- walk (p ++ [0]) g
       pure $ Anon (MV n Out) vs' g'
-    walk p (Atom (Pred n vs)) =
-      pure . Atom $ Pred (MV n In) (annotate p <$> vs)
+    walk p (Atom (Pred n vs)) = pure . Atom $ Pred (MV n In) (annotate p <$> vs)
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
 compileRule :: [Pragma] -> CompiledProgram -> Rule Var Var -> CompiledProgram
@@ -173,17 +173,22 @@ compileRule pragmas cp r
             "In" -> In
             "Out" -> Out
             _ -> undefined
-    modes = if null userModes then inferModes m rule else userModes
+    modes =
+      if null userModes
+        then inferModes m rule
+        else userModes
     eithers =
-        trace ("inferring modes for rule " ++ show rule) $ do
-          ms <- modes
-          soln <- trace ("mode " ++ show ms) take maxCandidates $ solveConstraintsMode m rule ms
-          pure $
-            case mode rule soln of
-              Left e -> trace e $ Left e
-              Right mr ->
-                trace ("cost " ++ show (cost $ ruleBody mr)) $
-                Right (ms, Procedure {modeSolution = soln, modedRule = mr})
+      trace ("inferring modes for rule " ++ show rule) $ do
+        ms <- modes
+        soln <-
+          trace ("mode " ++ show ms) take maxCandidates $
+          solveConstraintsMode m rule ms
+        pure $
+          case mode rule soln of
+            Left e -> trace e $ Left e
+            Right mr ->
+              trace ("cost " ++ show (cost $ ruleBody mr)) $
+              Right (ms, Procedure {modeSolution = soln, modedRule = mr})
     obj =
       CompiledPredicate
         { unmodedRule = rule

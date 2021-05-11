@@ -75,10 +75,12 @@ cgAtom p r =
     Pred (MV (V name) _) vs
       | head name == '('
       , last name == ')' ->
-        "guard $ " <> T.unwords (T.pack <$> name : [v | MV (V v) m <- vs, m /= Out])
+        "guard $ " <>
+        T.unwords (T.pack <$> name : [v | MV (V v) m <- vs, m /= Out])
     Pred (MV (V name) _) vs ->
       cgTuple [T.pack v | MV (V v) Out <- vs] <>
-      " <- " <> name' <> " " <> T.unwords [T.pack v | MV (V v) m <- vs, m /= Out]
+      " <- " <>
+      name' <> " " <> T.unwords [T.pack v | MV (V v) m <- vs, m /= Out]
       where name' =
               case varMode <$> vs of
                 [] -> T.pack name
@@ -181,7 +183,10 @@ cgProcedure pragmas ms procedure =
       rets =
         T.intercalate
           ","
-          [T.pack (show v) | v <- Set.elems $ nonlocals' [] r, MV v Out `elem` body]
+          [ T.pack (show v)
+          | v <- Set.elems $ nonlocals' [] r
+          , MV v Out `elem` body
+          ]
       pragmaType = listToMaybe [ts | Pragma ("type":f:ts) <- pragmas, f == name]
       ins = [T.pack (show v) | MV v m <- vars, m /= Out]
       out =
@@ -189,7 +194,9 @@ cgProcedure pragmas ms procedure =
           Nothing -> cgTuple [T.pack (show v) | MV v Out <- vars]
           Just ts ->
             cgTuple
-              [T.pack (show v) <> " :: " <> T.pack t | (MV v Out, t) <- zip vars ts]
+              [ T.pack (show v) <> " :: " <> T.pack t
+              | (MV v Out, t) <- zip vars ts
+              ]
       decorate
         | Pragma ["memo", name] `elem` pragmas =
           case length ins of
