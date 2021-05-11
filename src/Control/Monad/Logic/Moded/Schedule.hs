@@ -101,6 +101,9 @@ instance Ord DepNode where
       EQ -> (g, i) `compare` (g', j)
       r -> r
 
+maxCandidates :: Int
+maxCandidates = 64
+
 cost :: Goal ModedVar -> Int
 cost (Atom Unif {}) = 0
 cost g@(Atom Pred {}) = 1 + length [v | MV v Out <- toList g]
@@ -174,7 +177,7 @@ compileRule pragmas cp r
     eithers =
         trace ("inferring modes for rule " ++ show rule) $ do
           ms <- modes
-          soln <- trace ("mode " ++ show ms) $ solveConstraintsMode m rule ms
+          soln <- trace ("mode " ++ show ms) take maxCandidates $ solveConstraintsMode m rule ms
           pure $
             case mode rule soln of
               Left e -> trace e $ Left e

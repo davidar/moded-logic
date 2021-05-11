@@ -426,8 +426,74 @@ constraints:
 1
 -}
 
-move = rget $ (procedure @'[ 'In, 'In, 'Out ] moveIIO) :& RNil
+move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In, 'Out ] moveIIO) :& (procedure @'[ 'In, 'Out, 'In ] moveIOI) :& (procedure @'[ 'Out, 'In, 'In ] moveOII) :& (procedure @'[ 'Out, 'In, 'Out ] moveOIO) :& (procedure @'[ 'Out, 'Out, 'In ] moveOOI) :& RNil
   where
+    moveIII = \arg1 arg2 arg3 -> Logic.once $ do
+      -- solution: x[0,2] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,2] x'[2,3] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,1] x1[0,3] x4[4,1] x5[4,3] y[0,1] y[1,1] y[2,2] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,3] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y2[2,1] y3[2,3] y6[6,1] y7[6,3]
+      -- cost: 12
+      () <- (do
+        guard $ arg1 == N
+        (Loc x0 y) <- pure arg2
+        (Loc x1 y') <- pure arg3
+        x <- pure x0
+        guard $ x1 == x
+        () <- runProcedure @'[ 'In, 'In ] succ y y'
+        pure ()
+       ) <|> (do
+        guard $ arg1 == NE
+        (Loc x y) <- pure arg2
+        (Loc x' y') <- pure arg3
+        () <- runProcedure @'[ 'In, 'In ] succ x x'
+        () <- runProcedure @'[ 'In, 'In ] succ y y'
+        pure ()
+       ) <|> (do
+        guard $ arg1 == E
+        (Loc x y2) <- pure arg2
+        (Loc x' y3) <- pure arg3
+        y <- pure y2
+        guard $ y3 == y
+        () <- runProcedure @'[ 'In, 'In ] succ x x'
+        pure ()
+       ) <|> (do
+        guard $ arg1 == SE
+        (Loc x y) <- pure arg2
+        (Loc x' y') <- pure arg3
+        () <- runProcedure @'[ 'In, 'In ] succ x x'
+        () <- runProcedure @'[ 'In, 'In ] succ y' y
+        pure ()
+       ) <|> (do
+        guard $ arg1 == S
+        (Loc x4 y) <- pure arg2
+        (Loc x5 y') <- pure arg3
+        x <- pure x4
+        guard $ x5 == x
+        () <- runProcedure @'[ 'In, 'In ] succ y' y
+        pure ()
+       ) <|> (do
+        guard $ arg1 == SW
+        (Loc x y) <- pure arg2
+        (Loc x' y') <- pure arg3
+        () <- runProcedure @'[ 'In, 'In ] succ x' x
+        () <- runProcedure @'[ 'In, 'In ] succ y' y
+        pure ()
+       ) <|> (do
+        guard $ arg1 == W
+        (Loc x y6) <- pure arg2
+        (Loc x' y7) <- pure arg3
+        y <- pure y6
+        guard $ y7 == y
+        () <- runProcedure @'[ 'In, 'In ] succ x' x
+        pure ()
+       ) <|> (do
+        guard $ arg1 == NW
+        (Loc x y) <- pure arg2
+        (Loc x' y') <- pure arg3
+        () <- runProcedure @'[ 'In, 'In ] succ x' x
+        () <- runProcedure @'[ 'In, 'In ] succ y y'
+        pure ()
+       )
+      pure ()
+    
     moveIIO = \arg1 arg2 -> do
       -- solution: arg3[] arg3[0] arg3[0,3] arg3[1] arg3[1,2] arg3[2] arg3[2,3] arg3[3] arg3[3,2] arg3[4] arg3[4,3] arg3[5] arg3[5,2] arg3[6] arg3[6,3] arg3[7] arg3[7,2] x[0,2] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,3] x'[2,5] x'[3,3] x'[5,3] x'[6,5] x'[7,3] x0[0,1] x1[0,4] x4[4,1] x5[4,4] y[0,1] y[1,1] y[2,2] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,5] y'[1,4] y'[3,4] y'[4,5] y'[5,4] y'[7,4] y2[2,1] y3[2,4] y6[6,1] y7[6,4]
       -- cost: 24
@@ -493,6 +559,270 @@ move = rget $ (procedure @'[ 'In, 'In, 'Out ] moveIIO) :& RNil
         pure (arg3)
        )
       pure (OneTuple (arg3))
+    
+    moveIOI = \arg1 arg3 -> do
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,1] arg2[3] arg2[3,1] arg2[4] arg2[4,1] arg2[5] arg2[5,1] arg2[6] arg2[6,1] arg2[7] arg2[7,1] x[0,4] x[1,3] x[2,5] x[3,3] x[4,4] x[5,3] x[6,5] x[7,3] x'[1,2] x'[2,3] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,2] x1[0,3] x4[4,2] x5[4,3] y[0,5] y[1,4] y[2,4] y[3,4] y[4,5] y[5,4] y[6,4] y[7,4] y'[0,3] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y2[2,2] y3[2,3] y6[6,2] y7[6,3]
+      -- cost: 24
+      (arg2) <- (do
+        guard $ arg1 == N
+        (Loc x1 y') <- pure arg3
+        x <- pure x1
+        x0 <- pure x
+        (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] succ y'
+        arg2 <- pure (Loc x0 y)
+        pure (arg2)
+       ) <|> (do
+        guard $ arg1 == NE
+        (Loc x' y') <- pure arg3
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ x'
+        (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] succ y'
+        arg2 <- pure (Loc x y)
+        pure (arg2)
+       ) <|> (do
+        guard $ arg1 == E
+        (Loc x' y3) <- pure arg3
+        y <- pure y3
+        y2 <- pure y
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ x'
+        arg2 <- pure (Loc x y2)
+        pure (arg2)
+       ) <|> (do
+        guard $ arg1 == SE
+        (Loc x' y') <- pure arg3
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ x'
+        (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ y'
+        arg2 <- pure (Loc x y)
+        pure (arg2)
+       ) <|> (do
+        guard $ arg1 == S
+        (Loc x5 y') <- pure arg3
+        x <- pure x5
+        x4 <- pure x
+        (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ y'
+        arg2 <- pure (Loc x4 y)
+        pure (arg2)
+       ) <|> (do
+        guard $ arg1 == SW
+        (Loc x' y') <- pure arg3
+        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] succ x'
+        (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ y'
+        arg2 <- pure (Loc x y)
+        pure (arg2)
+       ) <|> (do
+        guard $ arg1 == W
+        (Loc x' y7) <- pure arg3
+        y <- pure y7
+        y6 <- pure y
+        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] succ x'
+        arg2 <- pure (Loc x y6)
+        pure (arg2)
+       ) <|> (do
+        guard $ arg1 == NW
+        (Loc x' y') <- pure arg3
+        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] succ x'
+        (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] succ y'
+        arg2 <- pure (Loc x y)
+        pure (arg2)
+       )
+      pure (OneTuple (arg2))
+    
+    moveOII = \arg2 arg3 -> do
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] x[0,2] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,2] x'[2,3] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,1] x1[0,3] x4[4,1] x5[4,3] y[0,1] y[1,1] y[2,2] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,3] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y2[2,1] y3[2,3] y6[6,1] y7[6,3]
+      -- cost: 12
+      (arg1) <- (do
+        arg1 <- pure N
+        (Loc x0 y) <- pure arg2
+        (Loc x1 y') <- pure arg3
+        x <- pure x0
+        guard $ x1 == x
+        () <- runProcedure @'[ 'In, 'In ] succ y y'
+        pure (arg1)
+       ) <|> (do
+        arg1 <- pure NE
+        (Loc x y) <- pure arg2
+        (Loc x' y') <- pure arg3
+        () <- runProcedure @'[ 'In, 'In ] succ x x'
+        () <- runProcedure @'[ 'In, 'In ] succ y y'
+        pure (arg1)
+       ) <|> (do
+        arg1 <- pure E
+        (Loc x y2) <- pure arg2
+        (Loc x' y3) <- pure arg3
+        y <- pure y2
+        guard $ y3 == y
+        () <- runProcedure @'[ 'In, 'In ] succ x x'
+        pure (arg1)
+       ) <|> (do
+        arg1 <- pure SE
+        (Loc x y) <- pure arg2
+        (Loc x' y') <- pure arg3
+        () <- runProcedure @'[ 'In, 'In ] succ x x'
+        () <- runProcedure @'[ 'In, 'In ] succ y' y
+        pure (arg1)
+       ) <|> (do
+        arg1 <- pure S
+        (Loc x4 y) <- pure arg2
+        (Loc x5 y') <- pure arg3
+        x <- pure x4
+        guard $ x5 == x
+        () <- runProcedure @'[ 'In, 'In ] succ y' y
+        pure (arg1)
+       ) <|> (do
+        arg1 <- pure SW
+        (Loc x y) <- pure arg2
+        (Loc x' y') <- pure arg3
+        () <- runProcedure @'[ 'In, 'In ] succ x' x
+        () <- runProcedure @'[ 'In, 'In ] succ y' y
+        pure (arg1)
+       ) <|> (do
+        arg1 <- pure W
+        (Loc x y6) <- pure arg2
+        (Loc x' y7) <- pure arg3
+        y <- pure y6
+        guard $ y7 == y
+        () <- runProcedure @'[ 'In, 'In ] succ x' x
+        pure (arg1)
+       ) <|> (do
+        arg1 <- pure NW
+        (Loc x y) <- pure arg2
+        (Loc x' y') <- pure arg3
+        () <- runProcedure @'[ 'In, 'In ] succ x' x
+        () <- runProcedure @'[ 'In, 'In ] succ y y'
+        pure (arg1)
+       )
+      pure (OneTuple (arg1))
+    
+    moveOIO = \arg2 -> do
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] arg3[] arg3[0] arg3[0,3] arg3[1] arg3[1,2] arg3[2] arg3[2,3] arg3[3] arg3[3,2] arg3[4] arg3[4,3] arg3[5] arg3[5,2] arg3[6] arg3[6,3] arg3[7] arg3[7,2] x[0,2] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,3] x'[2,5] x'[3,3] x'[5,3] x'[6,5] x'[7,3] x0[0,1] x1[0,4] x4[4,1] x5[4,4] y[0,1] y[1,1] y[2,2] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,5] y'[1,4] y'[3,4] y'[4,5] y'[5,4] y'[7,4] y2[2,1] y3[2,4] y6[6,1] y7[6,4]
+      -- cost: 24
+      (arg1,arg3) <- (do
+        arg1 <- pure N
+        (Loc x0 y) <- pure arg2
+        x <- pure x0
+        x1 <- pure x
+        (OneTuple (y')) <- runProcedure @'[ 'In, 'Out ] succ y
+        arg3 <- pure (Loc x1 y')
+        pure (arg1,arg3)
+       ) <|> (do
+        arg1 <- pure NE
+        (Loc x y) <- pure arg2
+        (OneTuple (x')) <- runProcedure @'[ 'In, 'Out ] succ x
+        (OneTuple (y')) <- runProcedure @'[ 'In, 'Out ] succ y
+        arg3 <- pure (Loc x' y')
+        pure (arg1,arg3)
+       ) <|> (do
+        arg1 <- pure E
+        (Loc x y2) <- pure arg2
+        y <- pure y2
+        y3 <- pure y
+        (OneTuple (x')) <- runProcedure @'[ 'In, 'Out ] succ x
+        arg3 <- pure (Loc x' y3)
+        pure (arg1,arg3)
+       ) <|> (do
+        arg1 <- pure SE
+        (Loc x y) <- pure arg2
+        (OneTuple (x')) <- runProcedure @'[ 'In, 'Out ] succ x
+        (OneTuple (y')) <- runProcedure @'[ 'Out, 'In ] succ y
+        arg3 <- pure (Loc x' y')
+        pure (arg1,arg3)
+       ) <|> (do
+        arg1 <- pure S
+        (Loc x4 y) <- pure arg2
+        x <- pure x4
+        x5 <- pure x
+        (OneTuple (y')) <- runProcedure @'[ 'Out, 'In ] succ y
+        arg3 <- pure (Loc x5 y')
+        pure (arg1,arg3)
+       ) <|> (do
+        arg1 <- pure SW
+        (Loc x y) <- pure arg2
+        (OneTuple (x')) <- runProcedure @'[ 'Out, 'In ] succ x
+        (OneTuple (y')) <- runProcedure @'[ 'Out, 'In ] succ y
+        arg3 <- pure (Loc x' y')
+        pure (arg1,arg3)
+       ) <|> (do
+        arg1 <- pure W
+        (Loc x y6) <- pure arg2
+        y <- pure y6
+        y7 <- pure y
+        (OneTuple (x')) <- runProcedure @'[ 'Out, 'In ] succ x
+        arg3 <- pure (Loc x' y7)
+        pure (arg1,arg3)
+       ) <|> (do
+        arg1 <- pure NW
+        (Loc x y) <- pure arg2
+        (OneTuple (x')) <- runProcedure @'[ 'Out, 'In ] succ x
+        (OneTuple (y')) <- runProcedure @'[ 'In, 'Out ] succ y
+        arg3 <- pure (Loc x' y')
+        pure (arg1,arg3)
+       )
+      pure (arg1,arg3)
+    
+    moveOOI = \arg3 -> do
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,1] arg2[3] arg2[3,1] arg2[4] arg2[4,1] arg2[5] arg2[5,1] arg2[6] arg2[6,1] arg2[7] arg2[7,1] x[0,4] x[1,3] x[2,5] x[3,3] x[4,4] x[5,3] x[6,5] x[7,3] x'[1,2] x'[2,3] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,2] x1[0,3] x4[4,2] x5[4,3] y[0,5] y[1,4] y[2,4] y[3,4] y[4,5] y[5,4] y[6,4] y[7,4] y'[0,3] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y2[2,2] y3[2,3] y6[6,2] y7[6,3]
+      -- cost: 24
+      (arg1,arg2) <- (do
+        arg1 <- pure N
+        (Loc x1 y') <- pure arg3
+        x <- pure x1
+        x0 <- pure x
+        (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] succ y'
+        arg2 <- pure (Loc x0 y)
+        pure (arg1,arg2)
+       ) <|> (do
+        arg1 <- pure NE
+        (Loc x' y') <- pure arg3
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ x'
+        (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] succ y'
+        arg2 <- pure (Loc x y)
+        pure (arg1,arg2)
+       ) <|> (do
+        arg1 <- pure E
+        (Loc x' y3) <- pure arg3
+        y <- pure y3
+        y2 <- pure y
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ x'
+        arg2 <- pure (Loc x y2)
+        pure (arg1,arg2)
+       ) <|> (do
+        arg1 <- pure SE
+        (Loc x' y') <- pure arg3
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ x'
+        (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ y'
+        arg2 <- pure (Loc x y)
+        pure (arg1,arg2)
+       ) <|> (do
+        arg1 <- pure S
+        (Loc x5 y') <- pure arg3
+        x <- pure x5
+        x4 <- pure x
+        (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ y'
+        arg2 <- pure (Loc x4 y)
+        pure (arg1,arg2)
+       ) <|> (do
+        arg1 <- pure SW
+        (Loc x' y') <- pure arg3
+        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] succ x'
+        (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ y'
+        arg2 <- pure (Loc x y)
+        pure (arg1,arg2)
+       ) <|> (do
+        arg1 <- pure W
+        (Loc x' y7) <- pure arg3
+        y <- pure y7
+        y6 <- pure y
+        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] succ x'
+        arg2 <- pure (Loc x y6)
+        pure (arg1,arg2)
+       ) <|> (do
+        arg1 <- pure NW
+        (Loc x' y') <- pure arg3
+        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] succ x'
+        (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] succ y'
+        arg2 <- pure (Loc x y)
+        pure (arg1,arg2)
+       )
+      pure (arg1,arg2)
     
 {- location/1
 location arg1 :- ((arg1 = Loc x y, boardSize n, (>=) x data0, data0 = 0, (>=) y data1, data1 = 0, (<) x n, (<) y n)).
@@ -576,11 +906,11 @@ data0[0,0]
 ~(rn[0,0,2,0] & n[0,0,2,0])
 ~(loc'[0,0,0,0] | loc'[0,0,0,2])
 ~(loc'[0,0,1,1] | loc'[0,0,1,2])
-(~dir[0,0,1,1] & (~loc'[0,0,1,1] & loc''[0,0,1,1]))
 (data0[0,0,0,1] | data0[0,0,0,2])
 (loc''[0,0,1,1] | loc''[0,0,1,2])
 (n'[0,0,1,0] | n'[0,0,1,2])
 ((data0[0,0,0,1] & ~board[0,0,0,1]) | (~data0[0,0,0,1] & ~board[0,0,0,1]))
+((dir[0,0,1,1] & (loc'[0,0,1,1] & ~loc''[0,0,1,1])) | ((dir[0,0,1,1] & (~loc'[0,0,1,1] & loc''[0,0,1,1])) | ((dir[0,0,1,1] & (~loc'[0,0,1,1] & ~loc''[0,0,1,1])) | ((~dir[0,0,1,1] & (loc'[0,0,1,1] & ~loc''[0,0,1,1])) | ((~dir[0,0,1,1] & (~loc'[0,0,1,1] & loc''[0,0,1,1])) | (~dir[0,0,1,1] & (~loc'[0,0,1,1] & ~loc''[0,0,1,1])))))))
 ((n[0,0,1,0] & ~n'[0,0,1,0]) | ((~n[0,0,1,0] & n'[0,0,1,0]) | (~n[0,0,1,0] & ~n'[0,0,1,0])))
 (board[] <-> board[0])
 (board[0] <-> board[0,0])
@@ -786,9 +1116,9 @@ constraints:
 ~(dir[0,0] & dir[0,2])
 ~(loc[0,0] & loc[0,2])
 ~(loc'[0,0] & loc'[0,2])
-(~dir[0,2] & (~loc[0,2] & loc'[0,2]))
 (data0[0,0] | data0[0,1])
 (loc'[0,0] | loc'[0,2])
+((dir[0,2] & (loc[0,2] & ~loc'[0,2])) | ((dir[0,2] & (~loc[0,2] & loc'[0,2])) | ((dir[0,2] & (~loc[0,2] & ~loc'[0,2])) | ((~dir[0,2] & (loc[0,2] & ~loc'[0,2])) | ((~dir[0,2] & (~loc[0,2] & loc'[0,2])) | (~dir[0,2] & (~loc[0,2] & ~loc'[0,2])))))))
 ((~board[0,0] & (~dir[0,0] & (~m[0,0] & (data0[0,0] & (~loc[0,0] & (~loc'[0,0] & (~carg7[0,0] & carg8[0,0]))))))) | ((~board[0,0] & (~dir[0,0] & (~m[0,0] & (data0[0,0] & (~loc[0,0] & (~loc'[0,0] & (~carg7[0,0] & ~carg8[0,0]))))))) | ((~board[0,0] & (~dir[0,0] & (~m[0,0] & (~data0[0,0] & (~loc[0,0] & (~loc'[0,0] & (carg7[0,0] & carg8[0,0]))))))) | ((~board[0,0] & (~dir[0,0] & (~m[0,0] & (~data0[0,0] & (~loc[0,0] & (~loc'[0,0] & (carg7[0,0] & ~carg8[0,0]))))))) | ((~board[0,0] & (~dir[0,0] & (~m[0,0] & (~data0[0,0] & (~loc[0,0] & (~loc'[0,0] & (~carg7[0,0] & carg8[0,0]))))))) | (~board[0,0] & (~dir[0,0] & (~m[0,0] & (~data0[0,0] & (~loc[0,0] & (~loc'[0,0] & (~carg7[0,0] & ~carg8[0,0]))))))))))))
 (board[] <-> board[0])
 (board[0] <-> board[0,0])
@@ -805,7 +1135,7 @@ constraints:
 1
 -}
 
-extendLocation = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In ] extendLocationIIIIII) :& (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'Out ] extendLocationIIIIIO) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out, 'In ] extendLocationIIIIOI) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocationIIIIOO) :& RNil
+extendLocation = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In ] extendLocationIIIIII) :& (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'Out ] extendLocationIIIIIO) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out, 'In ] extendLocationIIIIOI) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocationIIIIOO) :& (procedure @'[ 'In, 'Out, 'In, 'In, 'In, 'In ] extendLocationIOIIII) :& (procedure @'[ 'In, 'Out, 'In, 'In, 'In, 'Out ] extendLocationIOIIIO) :& (procedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'In ] extendLocationIOIIOI) :& (procedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocationIOIIOO) :& RNil
   where
     extendLocationIIIIII = \board dir m loc carg7 carg8 -> Logic.once $ do
       -- solution: data0[0,1] loc'[0,2]
@@ -851,6 +1181,50 @@ extendLocation = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In ] extendLoca
        )
       pure (carg7,carg8)
     
+    extendLocationIOIIII = \board m loc carg7 carg8 -> do
+      -- solution: data0[0,1] dir[] dir[0] dir[0,2] loc'[0,2]
+      -- cost: 4
+      (dir) <- (do
+        data0 <- pure 0
+        (dir,loc') <- runProcedure @'[ 'Out, 'In, 'Out ] move loc
+        () <- runProcedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'In, 'In ] loop board dir m data0 loc loc' carg7 carg8
+        pure (dir)
+       )
+      pure (OneTuple (dir))
+    
+    extendLocationIOIIIO = \board m loc carg7 -> do
+      -- solution: carg8[] carg8[0] carg8[0,0] data0[0,1] dir[] dir[0] dir[0,2] loc'[0,2]
+      -- cost: 5
+      (carg8,dir) <- (do
+        data0 <- pure 0
+        (dir,loc') <- runProcedure @'[ 'Out, 'In, 'Out ] move loc
+        (OneTuple (carg8)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'In, 'Out ] loop board dir m data0 loc loc' carg7
+        pure (carg8,dir)
+       )
+      pure (dir,carg8)
+    
+    extendLocationIOIIOI = \board m loc carg8 -> do
+      -- solution: carg7[] carg7[0] carg7[0,0] data0[0,1] dir[] dir[0] dir[0,2] loc'[0,2]
+      -- cost: 5
+      (carg7,dir) <- (do
+        data0 <- pure 0
+        (dir,loc') <- runProcedure @'[ 'Out, 'In, 'Out ] move loc
+        (OneTuple (carg7)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'Out, 'In ] loop board dir m data0 loc loc' carg8
+        pure (carg7,dir)
+       )
+      pure (dir,carg7)
+    
+    extendLocationIOIIOO = \board m loc -> do
+      -- solution: carg7[] carg7[0] carg7[0,0] carg8[] carg8[0] carg8[0,0] data0[0,1] dir[] dir[0] dir[0,2] loc'[0,2]
+      -- cost: 6
+      (carg7,carg8,dir) <- (do
+        data0 <- pure 0
+        (dir,loc') <- runProcedure @'[ 'Out, 'In, 'Out ] move loc
+        (carg7,carg8) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'Out, 'Out ] loop board dir m data0 loc loc'
+        pure (carg7,carg8,dir)
+       )
+      pure (dir,carg7,carg8)
+    
 {- cluster/7
 cluster board m loc dir1 dir2 n end :- ((extendLocation board dir1 m loc n1 end, extendLocation board dir2 m loc n2 _, plus n1 n2 n', succ n' n)).
 constraints:
@@ -868,8 +1242,8 @@ constraints:
 (n2[0,1] | n2[0,2])
 ((n'[0,3] & ~n[0,3]) | ((~n'[0,3] & n[0,3]) | (~n'[0,3] & ~n[0,3])))
 ((n1[0,2] & (~n2[0,2] & ~n'[0,2])) | ((~n1[0,2] & (n2[0,2] & ~n'[0,2])) | ((~n1[0,2] & (~n2[0,2] & n'[0,2])) | (~n1[0,2] & (~n2[0,2] & ~n'[0,2])))))
-((~board[0,0] & (~dir1[0,0] & (~m[0,0] & (~loc[0,0] & (n1[0,0] & end[0,0]))))) | ((~board[0,0] & (~dir1[0,0] & (~m[0,0] & (~loc[0,0] & (n1[0,0] & ~end[0,0]))))) | ((~board[0,0] & (~dir1[0,0] & (~m[0,0] & (~loc[0,0] & (~n1[0,0] & end[0,0]))))) | (~board[0,0] & (~dir1[0,0] & (~m[0,0] & (~loc[0,0] & (~n1[0,0] & ~end[0,0]))))))))
-((~board[0,1] & (~dir2[0,1] & (~m[0,1] & (~loc[0,1] & n2[0,1])))) | (~board[0,1] & (~dir2[0,1] & (~m[0,1] & (~loc[0,1] & ~n2[0,1])))))
+((~board[0,0] & (dir1[0,0] & (~m[0,0] & (~loc[0,0] & (n1[0,0] & end[0,0]))))) | ((~board[0,0] & (dir1[0,0] & (~m[0,0] & (~loc[0,0] & (n1[0,0] & ~end[0,0]))))) | ((~board[0,0] & (dir1[0,0] & (~m[0,0] & (~loc[0,0] & (~n1[0,0] & end[0,0]))))) | ((~board[0,0] & (dir1[0,0] & (~m[0,0] & (~loc[0,0] & (~n1[0,0] & ~end[0,0]))))) | ((~board[0,0] & (~dir1[0,0] & (~m[0,0] & (~loc[0,0] & (n1[0,0] & end[0,0]))))) | ((~board[0,0] & (~dir1[0,0] & (~m[0,0] & (~loc[0,0] & (n1[0,0] & ~end[0,0]))))) | ((~board[0,0] & (~dir1[0,0] & (~m[0,0] & (~loc[0,0] & (~n1[0,0] & end[0,0]))))) | (~board[0,0] & (~dir1[0,0] & (~m[0,0] & (~loc[0,0] & (~n1[0,0] & ~end[0,0]))))))))))))
+((~board[0,1] & (dir2[0,1] & (~m[0,1] & (~loc[0,1] & n2[0,1])))) | ((~board[0,1] & (dir2[0,1] & (~m[0,1] & (~loc[0,1] & ~n2[0,1])))) | ((~board[0,1] & (~dir2[0,1] & (~m[0,1] & (~loc[0,1] & n2[0,1])))) | (~board[0,1] & (~dir2[0,1] & (~m[0,1] & (~loc[0,1] & ~n2[0,1])))))))
 (board[] <-> board[0])
 (board[0] <-> (board[0,0] | board[0,1]))
 (dir1[] <-> dir1[0])
@@ -887,7 +1261,7 @@ constraints:
 1
 -}
 
-cluster = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'In ] clusterIIIIIII) :& (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'Out ] clusterIIIIIIO) :& (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'Out, 'In ] clusterIIIIIOI) :& (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'Out, 'Out ] clusterIIIIIOO) :& RNil
+cluster = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'In ] clusterIIIIIII) :& (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'Out ] clusterIIIIIIO) :& (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'Out, 'In ] clusterIIIIIOI) :& (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'Out, 'Out ] clusterIIIIIOO) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out, 'In, 'In ] clusterIIIIOII) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out, 'In, 'Out ] clusterIIIIOIO) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out, 'In ] clusterIIIIOOI) :& (procedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out, 'Out ] clusterIIIIOOO) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'In, 'In, 'In ] clusterIIIOIII) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'In, 'In, 'Out ] clusterIIIOIIO) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'In, 'Out, 'In ] clusterIIIOIOI) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'In, 'Out, 'Out ] clusterIIIOIOO) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'Out, 'In, 'In ] clusterIIIOOII) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'Out, 'In, 'Out ] clusterIIIOOIO) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'Out, 'Out, 'In ] clusterIIIOOOI) :& (procedure @'[ 'In, 'In, 'In, 'Out, 'Out, 'Out, 'Out ] clusterIIIOOOO) :& RNil
   where
     clusterIIIIIII = \board m loc dir1 dir2 n end -> Logic.once $ do
       -- solution: n'[0,3] n1[0,2] n2[0,1]
@@ -936,4 +1310,148 @@ cluster = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'In ] clusterIIIII
         pure (end,n)
        )
       pure (n,end)
+    
+    clusterIIIIOII = \board m loc dir1 n end -> do
+      -- solution: dir2[] dir2[0] dir2[0,1] n'[0,3] n1[0,2] n2[0,1]
+      -- cost: 9
+      (dir2) <- (do
+        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        (dir2,n2,_) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n1)) <- runProcedure @'[ 'Out, 'In, 'In ] plus n2 n'
+        () <- runProcedure @'[ 'In, 'In, 'In, 'In, 'In, 'In ] extendLocation board dir1 m loc n1 end
+        pure (dir2)
+       )
+      pure (OneTuple (dir2))
+    
+    clusterIIIIOIO = \board m loc dir1 n -> do
+      -- solution: dir2[] dir2[0] dir2[0,1] end[] end[0] end[0,0] n'[0,3] n1[0,2] n2[0,1]
+      -- cost: 10
+      (dir2,end) <- (do
+        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        (dir2,n2,_) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n1)) <- runProcedure @'[ 'Out, 'In, 'In ] plus n2 n'
+        (OneTuple (end)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'In, 'Out ] extendLocation board dir1 m loc n1
+        pure (dir2,end)
+       )
+      pure (dir2,end)
+    
+    clusterIIIIOOI = \board m loc dir1 end -> do
+      -- solution: dir2[] dir2[0] dir2[0,1] n[] n[0] n[0,3] n'[0,2] n1[0,0] n2[0,1]
+      -- cost: 10
+      (dir2,n) <- (do
+        (OneTuple (n1)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out, 'In ] extendLocation board dir1 m loc end
+        (dir2,n2,_) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n')) <- runProcedure @'[ 'In, 'In, 'Out ] plus n1 n2
+        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] succ n'
+        pure (dir2,n)
+       )
+      pure (dir2,n)
+    
+    clusterIIIIOOO = \board m loc dir1 -> do
+      -- solution: dir2[] dir2[0] dir2[0,1] end[] end[0] end[0,0] n[] n[0] n[0,3] n'[0,2] n1[0,0] n2[0,1]
+      -- cost: 11
+      (dir2,end,n) <- (do
+        (n1,end) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocation board dir1 m loc
+        (dir2,n2,_) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n')) <- runProcedure @'[ 'In, 'In, 'Out ] plus n1 n2
+        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] succ n'
+        pure (dir2,end,n)
+       )
+      pure (dir2,n,end)
+    
+    clusterIIIOIII = \board m loc dir2 n end -> do
+      -- solution: dir1[] dir1[0] dir1[0,0] n'[0,3] n1[0,2] n2[0,1]
+      -- cost: 9
+      (dir1) <- (do
+        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        (n2,_) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocation board dir2 m loc
+        (OneTuple (n1)) <- runProcedure @'[ 'Out, 'In, 'In ] plus n2 n'
+        (OneTuple (dir1)) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'In, 'In ] extendLocation board m loc n1 end
+        pure (dir1)
+       )
+      pure (OneTuple (dir1))
+    
+    clusterIIIOIIO = \board m loc dir2 n -> do
+      -- solution: dir1[] dir1[0] dir1[0,0] end[] end[0] end[0,0] n'[0,3] n1[0,2] n2[0,1]
+      -- cost: 10
+      (dir1,end) <- (do
+        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        (n2,_) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocation board dir2 m loc
+        (OneTuple (n1)) <- runProcedure @'[ 'Out, 'In, 'In ] plus n2 n'
+        (dir1,end) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'In, 'Out ] extendLocation board m loc n1
+        pure (dir1,end)
+       )
+      pure (dir1,end)
+    
+    clusterIIIOIOI = \board m loc dir2 end -> do
+      -- solution: dir1[] dir1[0] dir1[0,0] n[] n[0] n[0,3] n'[0,2] n1[0,0] n2[0,1]
+      -- cost: 10
+      (dir1,n) <- (do
+        (dir1,n1) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'In ] extendLocation board m loc end
+        (n2,_) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocation board dir2 m loc
+        (OneTuple (n')) <- runProcedure @'[ 'In, 'In, 'Out ] plus n1 n2
+        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] succ n'
+        pure (dir1,n)
+       )
+      pure (dir1,n)
+    
+    clusterIIIOIOO = \board m loc dir2 -> do
+      -- solution: dir1[] dir1[0] dir1[0,0] end[] end[0] end[0,0] n[] n[0] n[0,3] n'[0,2] n1[0,0] n2[0,1]
+      -- cost: 11
+      (dir1,end,n) <- (do
+        (n2,_) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out, 'Out ] extendLocation board dir2 m loc
+        (dir1,n1,end) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n')) <- runProcedure @'[ 'In, 'In, 'Out ] plus n1 n2
+        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] succ n'
+        pure (dir1,end,n)
+       )
+      pure (dir1,n,end)
+    
+    clusterIIIOOII = \board m loc n end -> do
+      -- solution: dir1[] dir1[0] dir1[0,0] dir2[] dir2[0] dir2[0,1] n'[0,3] n1[0,2] n2[0,1]
+      -- cost: 10
+      (dir1,dir2) <- (do
+        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        (dir2,n2,_) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n1)) <- runProcedure @'[ 'Out, 'In, 'In ] plus n2 n'
+        (OneTuple (dir1)) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'In, 'In ] extendLocation board m loc n1 end
+        pure (dir1,dir2)
+       )
+      pure (dir1,dir2)
+    
+    clusterIIIOOIO = \board m loc n -> do
+      -- solution: dir1[] dir1[0] dir1[0,0] dir2[] dir2[0] dir2[0,1] end[] end[0] end[0,0] n'[0,3] n1[0,2] n2[0,1]
+      -- cost: 11
+      (dir1,dir2,end) <- (do
+        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        (dir2,n2,_) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n1)) <- runProcedure @'[ 'Out, 'In, 'In ] plus n2 n'
+        (dir1,end) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'In, 'Out ] extendLocation board m loc n1
+        pure (dir1,dir2,end)
+       )
+      pure (dir1,dir2,end)
+    
+    clusterIIIOOOI = \board m loc end -> do
+      -- solution: dir1[] dir1[0] dir1[0,0] dir2[] dir2[0] dir2[0,1] n[] n[0] n[0,3] n'[0,2] n1[0,0] n2[0,1]
+      -- cost: 11
+      (dir1,dir2,n) <- (do
+        (dir1,n1) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'In ] extendLocation board m loc end
+        (dir2,n2,_) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n')) <- runProcedure @'[ 'In, 'In, 'Out ] plus n1 n2
+        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] succ n'
+        pure (dir1,dir2,n)
+       )
+      pure (dir1,dir2,n)
+    
+    clusterIIIOOOO = \board m loc -> do
+      -- solution: dir1[] dir1[0] dir1[0,0] dir2[] dir2[0] dir2[0,1] end[] end[0] end[0,0] n[] n[0] n[0,3] n'[0,2] n1[0,0] n2[0,1]
+      -- cost: 12
+      (dir1,dir2,end,n) <- (do
+        (dir1,n1,end) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (dir2,n2,_) <- runProcedure @'[ 'In, 'Out, 'In, 'In, 'Out, 'Out ] extendLocation board m loc
+        (OneTuple (n')) <- runProcedure @'[ 'In, 'In, 'Out ] plus n1 n2
+        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] succ n'
+        pure (dir1,dir2,end,n)
+       )
+      pure (dir1,dir2,n,end)
     

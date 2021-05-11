@@ -490,7 +490,6 @@ direction NE SW
 direction E W
 direction SE NW
 
-#mode move In In Out
 move N  (Loc x y) (Loc x  y') :- succ y y'
 move NE (Loc x y) (Loc x' y') :- succ x x', succ y y'
 move E  (Loc x y) (Loc x' y)  :- succ x x'
