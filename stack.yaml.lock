@@ -12,16 +12,16 @@ packages:
   original:
     hackage: picosat-0.1.6
 - completed:
-    name: logict
-    version: 0.7.1.0
-    git: https://github.com/davidar/logict.git
+    name: streamt
+    version: 0.4.0.2
+    git: https://github.com/davidar/streamt.git
     pantry-tree:
-      size: 744
-      sha256: 00a4da610f6804daa2a688135f96e65e87edae28e2318bf93770e7317a556e3a
-    commit: 98aa8da4f84bacde51916058fa1353284ffa0adc
+      size: 606
+      sha256: 3222ceacdc2615909c5944579d681cb4ddcf2854a3cf0f61f7059a6620727bb2
+    commit: c2e15eca39c158927b89843d97177e389c843a81
   original:
-    git: https://github.com/davidar/logict.git
-    commit: 98aa8da4f84bacde51916058fa1353284ffa0adc
+    git: https://github.com/davidar/streamt.git
+    commit: c2e15eca39c158927b89843d97177e389c843a81
 snapshots:
 - completed:
     size: 565720

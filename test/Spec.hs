@@ -17,7 +17,7 @@ import Control.Exception (IOException, catch)
 import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, observeAllT)
-import qualified Control.Monad.Logic.Fair as FairLogic
+import qualified Control.Monad.Stream as Stream
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Mode (Mode(..))
@@ -664,7 +664,7 @@ main = do
       it "elem" $ do
         observeAll (call @'[In, In] Kiselyov.elem 2 [1,2,3]) `shouldBe` guard True
       it "pythag" $ do
-        FairLogic.observeMany 7 (call @'[Out, Out, Out] Kiselyov.pythag) `shouldBe`
+        Stream.observeMany 7 (call @'[Out, Out, Out] Kiselyov.pythag) `shouldBe`
           [(3,4,5),(6,8,10),(5,12,13),(9,12,15),(8,15,17),(12,16,20),(7,24,25)]
       it "ptriang" $ do
         observeAll (call @'[Out] Kiselyov.ptriang) `shouldBe`
@@ -672,9 +672,9 @@ main = do
       it "stepN" $ do
         observeAll (call @'[In, Out] Kiselyov.stepN 99) `shouldBe` [0..99]
       it "oddsTest" $ do
-        FairLogic.observe (call @'[Out] Kiselyov.oddsTest) `shouldBe` 10
+        Stream.observe (call @'[Out] Kiselyov.oddsTest) `shouldBe` 10
       it "oddsPlusTest" $ do
-        FairLogic.observe (call @'[Out] Kiselyov.oddsPlusTest) `shouldBe` 2
+        Stream.observe (call @'[Out] Kiselyov.oddsPlusTest) `shouldBe` 2
       it "oddsPrime" $ do
         let expect = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
         observeMany 10 (call @'[Out] Kiselyov.oddsPrime) `shouldBe` expect

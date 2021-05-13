@@ -41,8 +41,8 @@ packages:
 #
 extra-deps:
 - picosat-0.1.6
-- git: https://github.com/davidar/logict.git
-  commit: 98aa8da4f84bacde51916058fa1353284ffa0adc
+- git: https://github.com/davidar/streamt.git
+  commit: c2e15eca39c158927b89843d97177e389c843a81
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
