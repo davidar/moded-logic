@@ -16,8 +16,7 @@ import Control.Applicative (Alternative(..))
 import Control.Exception (IOException, catch)
 import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Logic (observe, observeMany, observeManyT, observeAll, observeAllT)
-import qualified Control.Monad.Stream as Stream
+import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Mode (Mode(..))
@@ -25,6 +24,8 @@ import Control.Monad.Logic.Moded.Parse (logic, rule)
 import qualified Control.Monad.Logic.Moded.Prelude as MPrelude
 import Control.Monad.Logic.Moded.Preprocess (combineDefs, superhomogeneous, simp)
 import Control.Monad.Logic.Moded.Procedure (call)
+import qualified Control.Monad.Stream as Stream
+import Control.Monad.Stream (observe, observeMany, observeManyT, observeAll, observeAllT)
 import qualified Data.List as List
 import Data.Maybe (isJust)
 import qualified Data.Text as T
@@ -654,11 +655,11 @@ main = do
       it "queens1" $ do
         observeAll (call @'[In, Out] Queens.queens1 [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
       it "queens2" $ do
-        observeAll (call @'[In, Out] Queens.queens2 [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
+        List.sort (observeAll (call @'[In, Out] Queens.queens2 [1 .. 4])) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
       forM_ [1 .. 6] $ \n ->
         it ("n=" ++ show n) $
-        observeAll (call @'[In, Out] Queens.queens1 [1 .. n]) `shouldBe`
-        observeAll (call @'[In, Out] Queens.queens2 [1 .. n])
+        List.sort (observeAll (call @'[In, Out] Queens.queens1 [1 .. n])) `shouldBe`
+        List.sort (observeAll (call @'[In, Out] Queens.queens2 [1 .. n]))
     describe "Kiselyov" $ do
       it "compile" $ compileTest "Kiselyov" programKiselyov
       it "elem" $ do
@@ -670,7 +671,7 @@ main = do
         observeAll (call @'[Out] Kiselyov.ptriang) `shouldBe`
           [3,6,8,10,11,13,15,16,18,20,21,23,26,27,28]
       it "stepN" $ do
-        observeAll (call @'[In, Out] Kiselyov.stepN 99) `shouldBe` [0..99]
+        Logic.observeAll (call @'[In, Out] Kiselyov.stepN 99) `shouldBe` [0..99]
       it "oddsTest" $ do
         Stream.observe (call @'[Out] Kiselyov.oddsTest) `shouldBe` 10
       it "oddsPlusTest" $ do
@@ -715,14 +716,14 @@ main = do
       it "1" $ do
         observeAll (call @'[Out] Euler.euler1') `shouldBe` [233168]
       it "2" $ do
-        [observeAll (call @'[In, Out] Euler.fib i) | i <- [0 .. 12 :: Integer]] `shouldBe`
+        [Logic.observeAll (call @'[In, Out] Euler.fib i) | i <- [0 .. 12 :: Integer]] `shouldBe`
           map pure [0,1,1,2,3,5,8,13,21,34,55,89,144]
-        observeAll (call @'[In, Out] Euler.fib (100 :: Integer)) `shouldBe` [354224848179261915075]
-        observeAll (call @'[Out] Euler.euler2) `shouldBe` [1089154]
+        Logic.observeAll (call @'[In, Out] Euler.fib (100 :: Integer)) `shouldBe` [354224848179261915075]
+        Logic.observeAll (call @'[Out] Euler.euler2) `shouldBe` [1089154]
       it "3" $ do
-        observeMany 25 (call @'[Out] Euler.prime) `shouldBe` prime25
-        observeMany 25 (call @'[Out] Euler.primeSlow) `shouldBe` prime25
-        observeAll (call @'[In, Out] Euler.euler3 600851475143) `shouldBe` [6857]
+        Logic.observeMany 25 (call @'[Out] Euler.prime) `shouldBe` prime25
+        Logic.observeMany 25 (call @'[Out] Euler.primeSlow) `shouldBe` prime25
+        Logic.observeAll (call @'[In, Out] Euler.euler3 600851475143) `shouldBe` [6857]
       it "4" $ do
         observeAll (call @'[In, Out] Euler.reverse "hello") `shouldBe` ["olleh"]
         -- observeAll (call @'[Out, In] Euler.reverse "hello") `shouldBe` ["olleh"]
@@ -736,10 +737,10 @@ main = do
             start = Cannibals.Search s [s] []
             actions (Cannibals.Search _ _ a) = a
             expect =
-              [[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 0 1,F 0 2]
-              ,[F 0 2,B 0 1,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 0 1,F 0 2]
-              ,[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]
-              ,[F 0 2,B 0 1,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]]
-        observeAllT (actions <$> call @'[In, Out] Cannibals.solve start) `shouldReturn` expect
+              [[F 0 2,B 0 1,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 0 1,F 0 2]
+              ,[F 0 2,B 0 1,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]
+              ,[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 0 1,F 0 2]
+              ,[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]]
+        (List.sort <$> observeAllT (actions <$> call @'[In, Out] Cannibals.solve start)) `shouldReturn` expect
     describe "TicTacToe" $ do
       it "compile" $ compileTest "TicTacToe" programTicTacToe

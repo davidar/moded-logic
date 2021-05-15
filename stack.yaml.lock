@@ -13,15 +13,15 @@ packages:
     hackage: picosat-0.1.6
 - completed:
     name: streamt
-    version: 0.4.0.2
+    version: 0.5.0.0
     git: https://github.com/davidar/streamt.git
     pantry-tree:
-      size: 606
-      sha256: 3222ceacdc2615909c5944579d681cb4ddcf2854a3cf0f61f7059a6620727bb2
-    commit: c2e15eca39c158927b89843d97177e389c843a81
+      size: 717
+      sha256: c7b314d5b15b65e3cdb7da51e14f89ea94383819f231518c3f70328d570ef11f
+    commit: f9d1767645160e593d1003b2bec8feae98f1ac11
   original:
     git: https://github.com/davidar/streamt.git
-    commit: c2e15eca39c158927b89843d97177e389c843a81
+    commit: f9d1767645160e593d1003b2bec8feae98f1ac11
 snapshots:
 - completed:
     size: 565720
