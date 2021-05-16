@@ -141,11 +141,12 @@ pDisj x = Conj <$> pConj x `sepBy` symbol ","
 pConj :: Val -> Parser (Goal Val)
 pConj x = do 
   v <- parenValue'
-  pure $ case v of
-    Cons {} -> Atom $ Unif x (FVar v)
-    Curry p vs -> Atom $ Pred (Var $ V p) (vs ++ [x])
-    Var {} -> Atom $ Pred v [x]
-    Lambda {} -> undefined
+  case v of
+    Cons {} -> pure . Atom $ Unif x (FVar v)
+    Curry p vs -> pure . Atom $ Pred (Var $ V p) (vs ++ [x])
+    Var {} -> pure . Atom $ Pred v [x]
+    Lambda [arg] body -> pure $ Conj [Atom $ Unif x (FVar arg), body]
+    Lambda {} -> fail "lambda takes too many arguments"
 
 value :: Parser Val
 value =

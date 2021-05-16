@@ -1877,50 +1877,59 @@ euler4' = rget $ (procedure @'[ 'In ] euler4'I) :& (procedure @'[ 'Out ] euler4'
       pure (OneTuple (carg3))
     
 {- euler5/1
-euler5 n :- ((nat n, (>) n data0, data0 = 0, all pred1 data4, data2 = 1, data3 = 5, data4 = .. data2 data3, (pred1 curry1 :- (divisor n curry1)))).
+euler5 fresh1 :- ((nat fresh1, (>) fresh2 data0, data0 = 0, fresh1 = fresh2, all pred1 data4, data2 = 1, data3 = 5, data4 = .. data2 data3, (pred1 curry1 :- (divisor n curry1)), fresh1 = n)).
 constraints:
+n[0,9]
 ~(>)[0]
 ~all[0]
 ~curry1[0]
-~divisor[0,7,0]
+~divisor[0,8,0]
 ~nat[0]
-~pred1[0,3]
+~pred1[0,4]
 ~(data0[0,1] & data0[0,2])
-~(data2[0,4] & data2[0,6])
-~(data3[0,5] & data3[0,6])
-~(data4[0,3] & data4[0,6])
-~(data4[0,6] & data2[0,6])
-~(n[0,0] & n[0,1])
-(~n[0,1] & ~data0[0,1])
-(~n[0,7,0,0] & ~curry1[0,7,0,0])
+~(data2[0,5] & data2[0,7])
+~(data3[0,6] & data3[0,7])
+~(data4[0,4] & data4[0,7])
+~(data4[0,7] & data2[0,7])
+~(fresh1[0,0] & fresh1[0,3])
+~(fresh1[0,0] & fresh1[0,9])
+~(fresh1[0,3] & fresh1[0,9])
+~(fresh1[0,3] & fresh2[0,3])
+~(fresh1[0,9] & n[0,9])
+~(fresh2[0,1] & fresh2[0,3])
+(~fresh2[0,1] & ~data0[0,1])
+(~n[0,8,0,0] & ~curry1[0,8,0,0])
 (data0[0,1] | data0[0,2])
-(data2[0,4] | data2[0,6])
-(data3[0,5] | data3[0,6])
-(data4[0,3] | data4[0,6])
-(n[0,0] | ~n[0,0])
-((~pred1[0,3] & (pred1(1) & data4[0,3])) | (~pred1[0,3] & (~pred1(1) & ~data4[0,3])))
-(curry1[0,7,0] <-> curry1[0,7,0,0])
-(data2[0,6] <-> data3[0,6])
-(divisor[0] <-> divisor[0,7])
-(n[] <-> n[0])
-(n[0] <-> (n[0,0] | n[0,1]))
-(n[0,7,0] <-> n[0,7,0,0])
-(pred1(1) <-> curry1[0,7,0])
+(data2[0,5] | data2[0,7])
+(data3[0,6] | data3[0,7])
+(data4[0,4] | data4[0,7])
+(fresh1[0,0] | ~fresh1[0,0])
+(fresh2[0,1] | fresh2[0,3])
+((~pred1[0,4] & (pred1(1) & data4[0,4])) | (~pred1[0,4] & (~pred1(1) & ~data4[0,4])))
+(curry1[0,8,0] <-> curry1[0,8,0,0])
+(data2[0,7] <-> data3[0,7])
+(divisor[0] <-> divisor[0,8])
+(fresh1[] <-> fresh1[0])
+(fresh1[0] <-> (fresh1[0,0] | (fresh1[0,3] | fresh1[0,9])))
+(n[0,8,0] <-> n[0,8,0,0])
+(pred1(1) <-> curry1[0,8,0])
 1
 -}
 
 euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) :& RNil
   where
-    euler5I = \n -> Logic.once $ do
-      -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6]
+    euler5I = \fresh1 -> Logic.once $ do
+      -- solution: data0[0,2] data2[0,5] data3[0,6] data4[0,7] fresh2[0,3] n[0,9]
       -- cost: 4
       () <- (do
         data0 <- pure 0
         data2 <- pure 1
         data3 <- pure 5
         data4 <- pure [data2..data3]
-        guard $ (>) n data0
-        () <- runProcedure @'[ 'In ] nat n
+        fresh2 <- pure fresh1
+        n <- pure fresh1
+        guard $ (>) fresh2 data0
+        () <- runProcedure @'[ 'In ] nat fresh1
         let pred1 = procedure @'[ 'In ] $
               \curry1 -> do
                 () <- (do
@@ -1934,15 +1943,17 @@ euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) 
       pure ()
     
     euler5O = do
-      -- solution: data0[0,2] data2[0,4] data3[0,5] data4[0,6] n[] n[0] n[0,0]
+      -- solution: data0[0,2] data2[0,5] data3[0,6] data4[0,7] fresh1[] fresh1[0] fresh1[0,0] fresh2[0,3] n[0,9]
       -- cost: 5
-      (n) <- (do
+      (fresh1) <- (do
         data0 <- pure 0
         data2 <- pure 1
         data3 <- pure 5
         data4 <- pure [data2..data3]
-        (OneTuple (n)) <- runProcedure @'[ 'Out ] nat 
-        guard $ (>) n data0
+        (OneTuple (fresh1)) <- runProcedure @'[ 'Out ] nat 
+        fresh2 <- pure fresh1
+        guard $ (>) fresh2 data0
+        n <- pure fresh1
         let pred1 = procedure @'[ 'In ] $
               \curry1 -> do
                 () <- (do
@@ -1951,7 +1962,7 @@ euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) 
                  )
                 pure ()
         () <- runProcedure @'[ 'PredMode '[ 'In ], 'In ] all pred1 data4
-        pure (n)
+        pure (fresh1)
        )
-      pure (OneTuple (n))
+      pure (OneTuple (fresh1))
     

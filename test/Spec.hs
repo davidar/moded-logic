@@ -408,7 +408,7 @@ euler4 = {timesInt <$> elem' [10..99] <*> elem' [10..99], read <$> palindrome}
 
 euler4' = maximum <$> observeAll euler4
 
-euler5 n :- nat n, n > 0, all (divisor n) [1..5]
+euler5 = {nat, (> 0), (\n :- all (divisor n) [1..5])}
 |]
 
 -- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs
