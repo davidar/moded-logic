@@ -356,6 +356,9 @@ reverse s r :- reverseDL s [] r
 all _ []
 all p (h:t) :- p h, all p t
 
+all' _ [] _
+all' p (h:t) r :- p h r, all' p t r
+
 multiple y x :- mod x y 0
 divisor x y :- mod x y 0
 
@@ -408,7 +411,7 @@ euler4 = {timesInt <$> elem' [10..99] <*> elem' [10..99], read <$> palindrome}
 
 euler4' = maximum <$> observeAll euler4
 
-euler5 = {nat, (> 0), (\n :- all (divisor n) [1..5])}
+euler5 = {nat, (> 0), all' multiple [1..5]}
 |]
 
 -- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs
