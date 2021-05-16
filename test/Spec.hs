@@ -371,7 +371,7 @@ apply2 f p q z :- p x, q y, f x y z
 read s x :- show x s
 
 #nub euler1
-euler1 = { elem' [0..999], (| multiple {3; 5} |) }
+euler1 = (| (elem' [0..999]), multiple (| 3 | 5 |) |)
 
 euler1' = sum <$> observeAll euler1
 
@@ -383,7 +383,7 @@ fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
 
 fib' = (| fib nat |)
 
-euler2 = sum <$> takeWhile (< 1000000) <$> observeAll {fib', even}
+euler2 = sum <$> takeWhile (< 1000000) <$> observeAll (| fib', even |)
 
 nontrivialDivisor n d :- succ n' n, elem d [2..n'], divisor n d
 
@@ -407,11 +407,11 @@ euler3 n = maximum <$> observeAll (primeFactor n)
 
 palindrome s :- reverse s s
 
-euler4 = { (| timesInt (elem' [10..99]) (elem' [10..99]) |), (| read palindrome |) }
+euler4 = (| timesInt (elem' [10..99]) (elem' [10..99]), read palindrome |)
 
 euler4' = maximum <$> observeAll euler4
 
-euler5 = {nat, (> 0), all' multiple [1..5]}
+euler5 = (| nat, (> 0), (all' multiple [1..5]) |)
 |]
 
 -- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs

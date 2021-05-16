@@ -112,13 +112,6 @@ parenValue' =
         let n = length args
             apply = "apply" ++ if n == 1 then "" else show n
         pure $ Curry apply (lhs : args)) <|>
-  (do symbol "(|" -- idiom brackets
-      lhs <- value
-      args <- some value
-      symbol "|)"
-      let n = length args
-          apply = "apply" ++ if n == 1 then "" else show n
-      pure $ Curry apply (lhs : args)) <|>
   parenValue
 
 parenValue :: Parser Val
@@ -147,7 +140,12 @@ pDisj x = Conj <$> pConj x `sepBy` symbol ","
 
 pConj :: Val -> Parser (Goal Val)
 pConj x = do 
-  v <- parenValue'
+  lhs <- value
+  args <- many value
+  let n = length args
+      v | n == 0 = lhs
+        | n == 1 = Curry "apply" (lhs : args)
+        | otherwise = Curry ("apply" ++ show n) (lhs : args)
   case v of
     Cons {} -> pure . Atom $ Unif x (FVar v)
     Curry p vs -> pure . Atom $ Pred (Var $ V p) (vs ++ [x])
@@ -157,6 +155,11 @@ pConj x = do
 
 value :: Parser Val
 value =
+  (do symbol "(|" -- idiom brackets
+      x <- Var . V <$> fresh
+      body <- Disj <$> pDisj x `sepBy` try (symbol "|" <* notFollowedBy (symbol ")"))
+      symbol "|)"
+      pure $ Lambda [x] body) <|>
   parens parenValue' <|>
   try
     (do symbol "["
@@ -173,11 +176,6 @@ value =
         if null elems
           then nil
           else Cons ":" $ elems ++ [nil]) <|>
-  (do symbol "{"
-      x <- Var . V <$> fresh
-      body <- Disj <$> pDisj x `sepBy` symbol ";"
-      symbol "}"
-      pure $ Lambda [x] body) <|>
   (do s <- stringLiteral
       pure $ Cons ("\"" ++ s ++ "\"") []) <|>
   try

@@ -1130,30 +1130,30 @@ fib = rget $ (procedure @'[ 'In, 'Out ] fibIO) :& RNil
       pure (OneTuple (arg2))
     
 {- fib'/1
-fib' carg3 :- ((nat x_0, fib x_0 carg3)).
+fib' fresh1 :- ((nat x_0, fib x_0 fresh1)).
 constraints:
 ~fib[0]
 ~nat[0]
 ~(x_0[0,0] & x_0[0,1])
-(~x_0[0,1] & carg3[0,1])
+(~x_0[0,1] & fresh1[0,1])
 (x_0[0,0] | x_0[0,1])
 (x_0[0,0] | ~x_0[0,0])
-(carg3[] <-> carg3[0])
-(carg3[0] <-> carg3[0,1])
+(fresh1[] <-> fresh1[0])
+(fresh1[0] <-> fresh1[0,1])
 1
 -}
 
 fib' = rget $ (procedure @'[ 'Out ] fib'O) :& RNil
   where
     fib'O = do
-      -- solution: carg3[] carg3[0] carg3[0,1] x_0[0,0]
+      -- solution: fresh1[] fresh1[0] fresh1[0,1] x_0[0,0]
       -- cost: 4
-      (carg3) <- (do
+      (fresh1) <- (do
         (OneTuple (x_0)) <- runProcedure @'[ 'Out ] nat 
-        (OneTuple (carg3)) <- runProcedure @'[ 'In, 'Out ] fib x_0
-        pure (carg3)
+        (OneTuple (fresh1)) <- runProcedure @'[ 'In, 'Out ] fib x_0
+        pure (fresh1)
        )
-      pure (OneTuple (carg3))
+      pure (OneTuple (fresh1))
     
 {- euler2/1
 euler2 carg3 :- ((observeAll pred4_1_4 x_3, (pred4_1_4 fresh2_1_4 :- ((fib' fresh2_1_4, even fresh2_1_4))), takeWhile pred2_1_5 x_3 x_0, (pred2_1_5 fresh1_1_5 :- ((<) fresh1_1_5 data1_1_5, data1_1_5 = 1000000)), sum x_0 carg3)).
