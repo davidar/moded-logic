@@ -362,6 +362,11 @@ divisor x y :- mod x y 0
 #inline apply
 apply f p y :- p x, f x y
 
+#inline apply2
+apply2 f p q z :- p x, q y, f x y z
+
+read s x :- show x s
+
 #nub euler1
 euler1 = {elem' [0..999], multiple <$> {3; 5}}
 
@@ -397,9 +402,9 @@ primeFactor n = factor n <$> observeAll prime
 
 euler3 n = maximum <$> observeAll (primeFactor n)
 
-euler4 n :-
-  elem x [10..99], elem y [10..99], timesInt x y n
-  show n s, reverse s s
+palindrome s :- reverse s s
+
+euler4 = {timesInt <$> elem' [10..99] <*> elem' [10..99], read <$> palindrome}
 
 euler4' = maximum <$> observeAll euler4
 

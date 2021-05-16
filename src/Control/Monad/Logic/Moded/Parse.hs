@@ -108,8 +108,10 @@ parenValue' =
   try
     (do lhs <- parenValue
         symbol "<$>" -- Control.Categorical.Functor
-        rhs <- parenValue'
-        pure $ Curry "apply" [lhs, rhs]) <|>
+        args <- parenValue' `sepBy` symbol "<*>"
+        let n = length args
+            apply = "apply" ++ if n == 1 then "" else show n
+        pure $ Curry apply (lhs : args)) <|>
   parenValue
 
 parenValue :: Parser Val

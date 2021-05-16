@@ -782,6 +782,47 @@ divisor = rget $ (procedure @'[ 'In, 'In ] divisorII) :& RNil
        )
       pure ()
     
+{- read/2
+read s x :- ((show x s)).
+constraints:
+~show[0]
+((x[0,0] & ~s[0,0]) | ((~x[0,0] & s[0,0]) | (~x[0,0] & ~s[0,0])))
+(s[] <-> s[0])
+(s[0] <-> s[0,0])
+(x[] <-> x[0])
+(x[0] <-> x[0,0])
+1
+-}
+
+read = rget $ (procedure @'[ 'In, 'In ] readII) :& (procedure @'[ 'In, 'Out ] readIO) :& (procedure @'[ 'Out, 'In ] readOI) :& RNil
+  where
+    readII = \s x -> Logic.once $ do
+      -- solution: 
+      -- cost: 1
+      () <- (do
+        () <- runProcedure @'[ 'In, 'In ] show x s
+        pure ()
+       )
+      pure ()
+    
+    readIO = \s -> do
+      -- solution: x[] x[0] x[0,0]
+      -- cost: 2
+      (x) <- (do
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] show s
+        pure (x)
+       )
+      pure (OneTuple (x))
+    
+    readOI = \x -> do
+      -- solution: s[] s[0] s[0,0]
+      -- cost: 2
+      (s) <- (do
+        (OneTuple (s)) <- runProcedure @'[ 'In, 'Out ] show x
+        pure (s)
+       )
+      pure (OneTuple (s))
+    
 {- euler1/1
 euler1 fresh1 :- ((multiple x_0 fresh1, ((x_0 = 3); (x_0 = 5)), elem' data2 fresh1, data0 = 0, data1 = 999, data2 = .. data0 data1)).
 constraints:
@@ -1668,110 +1709,116 @@ euler3 = rget $ (procedure @'[ 'In, 'In ] euler3II) :& (procedure @'[ 'In, 'Out 
        )
       pure (OneTuple (carg3))
     
-{- euler4/1
-euler4 n :- ((elem x data2, data0 = 10, data1 = 99, data2 = .. data0 data1, elem y data5, data3 = 10, data4 = 99, data5 = .. data3 data4, timesInt x y n, show n s, reverse s0 s1, s0 = s, s1 = s)).
+{- palindrome/1
+palindrome s :- ((reverse s0 s1, s0 = s, s1 = s)).
 constraints:
-~elem[0]
 ~reverse[0]
-~show[0]
-~timesInt[0]
-~(data0[0,1] & data0[0,3])
-~(data1[0,2] & data1[0,3])
-~(data2[0,0] & data2[0,3])
-~(data2[0,3] & data0[0,3])
-~(data3[0,5] & data3[0,7])
-~(data4[0,6] & data4[0,7])
-~(data5[0,4] & data5[0,7])
-~(data5[0,7] & data3[0,7])
-~(n[0,8] & n[0,9])
-~(s[0,9] & s[0,11])
-~(s[0,9] & s[0,12])
-~(s[0,11] & s[0,12])
-~(s0[0,10] & s0[0,11])
-~(s0[0,11] & s[0,11])
-~(s1[0,10] & s1[0,12])
-~(s1[0,12] & s[0,12])
-~(x[0,0] & x[0,8])
-~(y[0,4] & y[0,8])
-(data0[0,1] | data0[0,3])
-(data1[0,2] | data1[0,3])
-(data2[0,0] | data2[0,3])
-(data3[0,5] | data3[0,7])
-(data4[0,6] | data4[0,7])
-(data5[0,4] | data5[0,7])
-(s[0,9] | (s[0,11] | s[0,12]))
-(s0[0,10] | s0[0,11])
-(s1[0,10] | s1[0,12])
-(x[0,0] | x[0,8])
-(y[0,4] | y[0,8])
-((n[0,9] & ~s[0,9]) | ((~n[0,9] & s[0,9]) | (~n[0,9] & ~s[0,9])))
-((s0[0,10] & ~s1[0,10]) | ((~s0[0,10] & s1[0,10]) | (~s0[0,10] & ~s1[0,10])))
-((x[0,0] & ~data2[0,0]) | (~x[0,0] & ~data2[0,0]))
-((x[0,8] & (~y[0,8] & ~n[0,8])) | ((~x[0,8] & (y[0,8] & ~n[0,8])) | ((~x[0,8] & (~y[0,8] & n[0,8])) | (~x[0,8] & (~y[0,8] & ~n[0,8])))))
-((y[0,4] & ~data5[0,4]) | (~y[0,4] & ~data5[0,4]))
-(data0[0,3] <-> data1[0,3])
-(data3[0,7] <-> data4[0,7])
-(n[] <-> n[0])
-(n[0] <-> (n[0,8] | n[0,9]))
+~(s[0,1] & s[0,2])
+~(s0[0,0] & s0[0,1])
+~(s0[0,1] & s[0,1])
+~(s1[0,0] & s1[0,2])
+~(s1[0,2] & s[0,2])
+(s0[0,0] | s0[0,1])
+(s1[0,0] | s1[0,2])
+((s0[0,0] & ~s1[0,0]) | ((~s0[0,0] & s1[0,0]) | (~s0[0,0] & ~s1[0,0])))
+(s[] <-> s[0])
+(s[0] <-> (s[0,1] | s[0,2]))
 1
 -}
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::O s1::I -> [11] s0::I = s::O -> [12] s1::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
---mode ordering failure, cyclic dependency: [10] reverse::I s0::I s1::O -> [12] s1::I = s::O -> [11] s0::O = s::I
-euler4 = rget $ (procedure @'[ 'In ] euler4I) :& (procedure @'[ 'Out ] euler4O) :& RNil
+--mode ordering failure, cyclic dependency: [0] reverse::I s0::O s1::I -> [1] s0::I = s::O -> [2] s1::O = s::I
+--mode ordering failure, cyclic dependency: [0] reverse::I s0::I s1::O -> [2] s1::I = s::O -> [1] s0::O = s::I
+palindrome = rget $ (procedure @'[ 'In ] palindromeI) :& RNil
   where
-    euler4I = \n -> Logic.once $ do
-      -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,7] s[0,9] s0[0,11] s1[0,12] x[0,0] y[0,8]
-      -- cost: 8
+    palindromeI = \s -> Logic.once $ do
+      -- solution: s0[0,1] s1[0,2]
+      -- cost: 1
       () <- (do
-        data0 <- pure 10
-        data1 <- pure 99
-        data2 <- pure [data0..data1]
-        data3 <- pure 10
-        data4 <- pure 99
-        data5 <- pure [data3..data4]
-        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] elem data2
-        (OneTuple (s)) <- runProcedure @'[ 'In, 'Out ] show n
         s0 <- pure s
         s1 <- pure s
         () <- runProcedure @'[ 'In, 'In ] reverse s0 s1
-        (OneTuple (y)) <- runProcedure @'[ 'In, 'Out, 'In ] timesInt x n
-        () <- runProcedure @'[ 'In, 'In ] elem y data5
+        pure ()
+       )
+      pure ()
+    
+{- euler4/1
+euler4 fresh1 :- ((elem' data3_2 x_0, data1_2 = 10, data2_2 = 99, data3_2 = .. data1_2 data2_2, elem' data7_3 y_0, data5_3 = 10, data6_3 = 99, data7_3 = .. data5_3 data6_3, timesInt x_0 y_0 fresh1, palindrome x_1, read x_1 fresh1)).
+constraints:
+~elem'[0]
+~palindrome[0]
+~read[0]
+~timesInt[0]
+~x_1[0,9]
+~(data1_2[0,1] & data1_2[0,3])
+~(data2_2[0,2] & data2_2[0,3])
+~(data3_2[0,0] & data3_2[0,3])
+~(data3_2[0,3] & data1_2[0,3])
+~(data5_3[0,5] & data5_3[0,7])
+~(data6_3[0,6] & data6_3[0,7])
+~(data7_3[0,4] & data7_3[0,7])
+~(data7_3[0,7] & data5_3[0,7])
+~(fresh1[0,8] & fresh1[0,10])
+~(x_0[0,0] & x_0[0,8])
+~(x_1[0,9] & x_1[0,10])
+~(y_0[0,4] & y_0[0,8])
+(data1_2[0,1] | data1_2[0,3])
+(data2_2[0,2] | data2_2[0,3])
+(data3_2[0,0] | data3_2[0,3])
+(data5_3[0,5] | data5_3[0,7])
+(data6_3[0,6] | data6_3[0,7])
+(data7_3[0,4] | data7_3[0,7])
+(x_0[0,0] | x_0[0,8])
+(x_1[0,9] | x_1[0,10])
+(y_0[0,4] | y_0[0,8])
+((x_0[0,8] & (~y_0[0,8] & ~fresh1[0,8])) | ((~x_0[0,8] & (y_0[0,8] & ~fresh1[0,8])) | ((~x_0[0,8] & (~y_0[0,8] & fresh1[0,8])) | (~x_0[0,8] & (~y_0[0,8] & ~fresh1[0,8])))))
+((x_1[0,10] & ~fresh1[0,10]) | ((~x_1[0,10] & fresh1[0,10]) | (~x_1[0,10] & ~fresh1[0,10])))
+((~data3_2[0,0] & x_0[0,0]) | (~data3_2[0,0] & ~x_0[0,0]))
+((~data7_3[0,4] & y_0[0,4]) | (~data7_3[0,4] & ~y_0[0,4]))
+(data1_2[0,3] <-> data2_2[0,3])
+(data5_3[0,7] <-> data6_3[0,7])
+(fresh1[] <-> fresh1[0])
+(fresh1[0] <-> (fresh1[0,8] | fresh1[0,10]))
+1
+-}
+
+euler4 = rget $ (procedure @'[ 'In ] euler4I) :& (procedure @'[ 'Out ] euler4O) :& RNil
+  where
+    euler4I = \fresh1 -> Logic.once $ do
+      -- solution: data1_2[0,1] data2_2[0,2] data3_2[0,3] data5_3[0,5] data6_3[0,6] data7_3[0,7] x_0[0,8] x_1[0,10] y_0[0,4]
+      -- cost: 8
+      () <- (do
+        data1_2 <- pure 10
+        data2_2 <- pure 99
+        data3_2 <- pure [data1_2..data2_2]
+        data5_3 <- pure 10
+        data6_3 <- pure 99
+        data7_3 <- pure [data5_3..data6_3]
+        (OneTuple (y_0)) <- runProcedure @'[ 'In, 'Out ] elem' data7_3
+        (OneTuple (x_1)) <- runProcedure @'[ 'Out, 'In ] read fresh1
+        () <- runProcedure @'[ 'In ] palindrome x_1
+        (OneTuple (x_0)) <- runProcedure @'[ 'Out, 'In, 'In ] timesInt y_0 fresh1
+        () <- runProcedure @'[ 'In, 'In ] elem' data3_2 x_0
         pure ()
        )
       pure ()
     
     euler4O = do
-      -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,7] n[] n[0] n[0,8] s[0,9] s0[0,11] s1[0,12] x[0,0] y[0,4]
+      -- solution: data1_2[0,1] data2_2[0,2] data3_2[0,3] data5_3[0,5] data6_3[0,6] data7_3[0,7] fresh1[] fresh1[0] fresh1[0,8] x_0[0,0] x_1[0,10] y_0[0,4]
       -- cost: 9
-      (n) <- (do
-        data0 <- pure 10
-        data1 <- pure 99
-        data2 <- pure [data0..data1]
-        data3 <- pure 10
-        data4 <- pure 99
-        data5 <- pure [data3..data4]
-        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] elem data2
-        (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] elem data5
-        (OneTuple (n)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt x y
-        (OneTuple (s)) <- runProcedure @'[ 'In, 'Out ] show n
-        s0 <- pure s
-        s1 <- pure s
-        () <- runProcedure @'[ 'In, 'In ] reverse s0 s1
-        pure (n)
+      (fresh1) <- (do
+        data1_2 <- pure 10
+        data2_2 <- pure 99
+        data3_2 <- pure [data1_2..data2_2]
+        data5_3 <- pure 10
+        data6_3 <- pure 99
+        data7_3 <- pure [data5_3..data6_3]
+        (OneTuple (x_0)) <- runProcedure @'[ 'In, 'Out ] elem' data3_2
+        (OneTuple (y_0)) <- runProcedure @'[ 'In, 'Out ] elem' data7_3
+        (OneTuple (fresh1)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt x_0 y_0
+        (OneTuple (x_1)) <- runProcedure @'[ 'Out, 'In ] read fresh1
+        () <- runProcedure @'[ 'In ] palindrome x_1
+        pure (fresh1)
        )
-      pure (OneTuple (n))
+      pure (OneTuple (fresh1))
     
 {- euler4'/1
 euler4' carg3 :- ((observeAll pred1_1 x_0, (pred1_1 x_0 :- (euler4 x_0)), maximum x_0 carg3)).
