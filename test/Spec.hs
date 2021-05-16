@@ -24,6 +24,7 @@ import Control.Monad.Logic.Moded.Parse (logic, rule)
 import qualified Control.Monad.Logic.Moded.Prelude as MPrelude
 import Control.Monad.Logic.Moded.Preprocess (combineDefs, superhomogeneous, simp)
 import Control.Monad.Logic.Moded.Procedure (call)
+import Control.Monad.State (evalStateT)
 import qualified Control.Monad.Stream as Stream
 import Control.Monad.Stream (observe, observeMany, observeManyT, observeAll, observeAllT)
 import qualified Data.List as List
@@ -338,6 +339,7 @@ even x :- mod x 2 0
 
 elem x (x:_)
 elem x (_:xs) :- elem x xs
+elem' xs x :- elem x xs
 
 span _ [] [] []
 span p (x:xs) ys zs :-
@@ -354,13 +356,14 @@ reverse s r :- reverseDL s [] r
 all _ []
 all p (h:t) :- p h, all p t
 
-multiple x y :- mod x y 0
+multiple y x :- mod x y 0
+divisor x y :- mod x y 0
 
 #inline apply
 apply f p y :- p x, f x y
 
 #nub euler1
-euler1 x :- elem x [0..999], multiple x y, (y = 3; y = 5)
+euler1 = {elem' [0..999], multiple <$> {3; 5}}
 
 euler1' = sum <$> observeAll euler1
 
@@ -374,7 +377,7 @@ fib' = fib <$> nat
 
 euler2 = sum <$> takeWhile (\x :- x < 1000000) <$> observeAll (\x :- fib' x, even x)
 
-nontrivialDivisor n d :- succ n' n, elem d [2..n'], multiple n d
+nontrivialDivisor n d :- succ n' n, elem d [2..n'], divisor n d
 
 primeSlow n :- nat n, n > 1, not (nontrivialDivisor n _)
 
@@ -400,7 +403,7 @@ euler4 n :-
 
 euler4' = maximum <$> observeAll euler4
 
-euler5 n :- nat n, n > 0, all (multiple n) [1..5]
+euler5 n :- nat n, n > 0, all (divisor n) [1..5]
 |]
 
 -- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs
@@ -557,7 +560,7 @@ main = do
   hspec $ do
     describe "Parse" $ do
       it "apply" $ do
-        let Right r0 = parse rule "" "result n :- apply sum (observeAll p) n"
+        let Right r0 = parse (evalStateT rule 0) "" "result n :- apply sum (observeAll p) n"
             [r1] = combineDefs [r0]
             r2 = superhomogeneous [("sum",2), ("observeAll",2), ("p",1)] r1
             r3 = simp r2

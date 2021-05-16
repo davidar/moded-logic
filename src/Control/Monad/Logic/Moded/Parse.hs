@@ -26,6 +26,7 @@ import Control.Monad.Logic.Moded.Preprocess
 
 import Control.Monad (forM, void)
 import Control.Monad.Logic.Moded.Prelude (modesPrelude)
+import Control.Monad.State (MonadState(..), StateT, evalStateT)
 import Data.Char (isSpace, isUpper)
 import Data.List (groupBy)
 import qualified Data.Map as Map
@@ -38,7 +39,13 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-type Parser = Parsec Void Text
+type Parser = StateT Int (Parsec Void Text)
+
+fresh :: Parser String
+fresh = do
+  c <- get
+  put (c+1)
+  pure $ "fresh" ++ show (c+1)
 
 lineComment :: Parser ()
 lineComment = L.skipLineComment "--"
@@ -119,6 +126,18 @@ parenValue =
         pure $ Cons ":" (v : vs)) <|>
   value
 
+pDisj :: Val -> Parser (Goal Val)
+pDisj x = Conj <$> pConj x `sepBy` symbol ","
+
+pConj :: Val -> Parser (Goal Val)
+pConj x = do 
+  v <- parenValue'
+  pure $ case v of
+    Cons {} -> Atom $ Unif x (FVar v)
+    Curry p vs -> Atom $ Pred (Var $ V p) (vs ++ [x])
+    Var {} -> Atom $ Pred v [x]
+    Lambda {} -> undefined
+
 value :: Parser Val
 value =
   parens parenValue <|>
@@ -137,6 +156,11 @@ value =
         if null elems
           then nil
           else Cons ":" $ elems ++ [nil]) <|>
+  (do symbol "{"
+      x <- Var . V <$> fresh
+      body <- Disj <$> pDisj x `sepBy` symbol ";"
+      symbol "}"
+      pure $ Lambda [x] body) <|>
   (do s <- stringLiteral
       pure $ Cons ("\"" ++ s ++ "\"") []) <|>
   try
@@ -232,6 +256,7 @@ data ParseResult
   | PPragma Pragma
   | PDef String [Val] Val (Goal Val)
   | PNil
+  deriving (Show)
 
 definition :: Parser ParseResult
 definition = do
@@ -254,8 +279,10 @@ parseProg fn lp = do
         T.strip . T.unlines <$>
         groupBy (\_ b -> T.null b || isSpace (T.head b)) (T.lines lp)
   prs <-
-    forM (zip [1 :: Int ..] inputs) $ \(i, line) ->
-      parse (spaceConsumer *> parseLine <* eof) (fn ++ ":" ++ show i) line
+    forM (zip [1 :: Int ..] inputs) $ \(i, line) -> do
+      let parser = spaceConsumer *> parseLine <* eof
+          p = evalStateT parser 0
+      parse p (fn ++ ":" ++ show i) line
   let pragmas = [pr | PPragma pr <- prs]
       arities rs =
         [(ruleName r, length (ruleArgs r)) | r <- rs] ++
@@ -271,7 +298,11 @@ parseProg fn lp = do
             extra = [Var . V $ "carg" ++ show i | i <- [length vs + 1 .. arity]]
             g = Atom $ Pred (Var $ V v) (vs ++ extra)
          in rs ++ [Rule name (vars ++ extra) (Conj [g, ctxt])]
-      extractRule rs _ = rs
+      extractRule rs (PDef name vars (Lambda vs g) ctxt) =
+        rs ++ [Rule name (vars ++ vs) (Conj [g, ctxt])]
+      extractRule rs PPragma {} = rs
+      extractRule rs PNil {} = rs
+      extractRule _ p = error (show p)
       p' = foldl extractRule [] prs
   pure . Prog pragmas $
     simp . distinctVars . superhomogeneous (arities p') <$> combineDefs p'

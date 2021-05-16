@@ -199,6 +199,38 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
        )
       pure (OneTuple (arg1))
     
+{- elem'/2
+elem' xs x :- ((elem x xs)).
+constraints:
+~elem[0]
+((x[0,0] & ~xs[0,0]) | (~x[0,0] & ~xs[0,0]))
+(x[] <-> x[0])
+(x[0] <-> x[0,0])
+(xs[] <-> xs[0])
+(xs[0] <-> xs[0,0])
+1
+-}
+
+elem' = rget $ (procedure @'[ 'In, 'In ] elem'II) :& (procedure @'[ 'In, 'Out ] elem'IO) :& RNil
+  where
+    elem'II = \xs x -> Logic.once $ do
+      -- solution: 
+      -- cost: 1
+      () <- (do
+        () <- runProcedure @'[ 'In, 'In ] elem x xs
+        pure ()
+       )
+      pure ()
+    
+    elem'IO = \xs -> do
+      -- solution: x[] x[0] x[0,0]
+      -- cost: 2
+      (x) <- (do
+        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] elem xs
+        pure (x)
+       )
+      pure (OneTuple (x))
+    
 {- span/4
 span arg1 arg2 arg3 arg4 :- ((arg2 = [], arg3 = [], arg4 = []); (arg2 = x0:xs1, x0 = x, xs1 = xs, if (p x) then (span p xs yt zs, ys = x2:yt, x2 = x) else (ys = [], zs = x3:xs4, x3 = x, xs4 = xs), arg1 = p, arg3 = ys, arg4 = zs)).
 constraints:
@@ -699,7 +731,7 @@ all = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In ] allP1II) :& (procedure @'[
       pure (OneTuple (arg2))
     
 {- multiple/2
-multiple x y :- ((mod x y data0, data0 = 0)).
+multiple y x :- ((mod x y data0, data0 = 0)).
 constraints:
 ~mod[0]
 ~(data0[0,0] & data0[0,1])
@@ -714,7 +746,33 @@ constraints:
 
 multiple = rget $ (procedure @'[ 'In, 'In ] multipleII) :& RNil
   where
-    multipleII = \x y -> Logic.once $ do
+    multipleII = \y x -> Logic.once $ do
+      -- solution: data0[0,1]
+      -- cost: 1
+      () <- (do
+        data0 <- pure 0
+        () <- runProcedure @'[ 'In, 'In, 'In ] mod x y data0
+        pure ()
+       )
+      pure ()
+    
+{- divisor/2
+divisor x y :- ((mod x y data0, data0 = 0)).
+constraints:
+~mod[0]
+~(data0[0,0] & data0[0,1])
+(data0[0,0] | data0[0,1])
+((~x[0,0] & (~y[0,0] & data0[0,0])) | (~x[0,0] & (~y[0,0] & ~data0[0,0])))
+(x[] <-> x[0])
+(x[0] <-> x[0,0])
+(y[] <-> y[0])
+(y[0] <-> y[0,0])
+1
+-}
+
+divisor = rget $ (procedure @'[ 'In, 'In ] divisorII) :& RNil
+  where
+    divisorII = \x y -> Logic.once $ do
       -- solution: data0[0,1]
       -- cost: 1
       () <- (do
@@ -725,73 +783,73 @@ multiple = rget $ (procedure @'[ 'In, 'In ] multipleII) :& RNil
       pure ()
     
 {- euler1/1
-euler1 x :- ((elem x data2, data0 = 0, data1 = 999, data2 = .. data0 data1, multiple x y, ((y = 3); (y = 5)))).
+euler1 fresh1 :- ((multiple x_0 fresh1, ((x_0 = 3); (x_0 = 5)), elem' data2 fresh1, data0 = 0, data1 = 999, data2 = .. data0 data1)).
 constraints:
-~elem[0]
+~elem'[0]
 ~multiple[0]
-~(data0[0,1] & data0[0,3])
-~(data1[0,2] & data1[0,3])
-~(data2[0,0] & data2[0,3])
-~(data2[0,3] & data0[0,3])
-~(x[0,0] & x[0,4])
-~(y[0,4] & y[0,5])
-(~x[0,4] & ~y[0,4])
-(data0[0,1] | data0[0,3])
-(data1[0,2] | data1[0,3])
-(data2[0,0] | data2[0,3])
-(y[0,4] | y[0,5])
-((x[0,0] & ~data2[0,0]) | (~x[0,0] & ~data2[0,0]))
-(data0[0,3] <-> data1[0,3])
-(x[] <-> x[0])
-(x[0] <-> (x[0,0] | x[0,4]))
-(y[0,5] <-> y[0,5,0])
-(y[0,5] <-> y[0,5,1])
-(y[0,5,0] <-> y[0,5,0,0])
-(y[0,5,1] <-> y[0,5,1,0])
+~(data0[0,3] & data0[0,5])
+~(data1[0,4] & data1[0,5])
+~(data2[0,2] & data2[0,5])
+~(data2[0,5] & data0[0,5])
+~(fresh1[0,0] & fresh1[0,2])
+~(x_0[0,0] & x_0[0,1])
+(~x_0[0,0] & ~fresh1[0,0])
+(data0[0,3] | data0[0,5])
+(data1[0,4] | data1[0,5])
+(data2[0,2] | data2[0,5])
+(x_0[0,0] | x_0[0,1])
+((~data2[0,2] & fresh1[0,2]) | (~data2[0,2] & ~fresh1[0,2]))
+(data0[0,5] <-> data1[0,5])
+(fresh1[] <-> fresh1[0])
+(fresh1[0] <-> (fresh1[0,0] | fresh1[0,2]))
+(x_0[0,1] <-> x_0[0,1,0])
+(x_0[0,1] <-> x_0[0,1,1])
+(x_0[0,1,0] <-> x_0[0,1,0,0])
+(x_0[0,1,1] <-> x_0[0,1,1,0])
 1
 -}
 
 euler1 = rget $ (procedure @'[ 'In ] euler1I) :& (procedure @'[ 'Out ] euler1O) :& RNil
   where
-    euler1I = \x -> choose . nub . Logic.observeAll $ do
-      -- solution: data0[0,1] data1[0,2] data2[0,3] y[0,5] y[0,5,0] y[0,5,0,0] y[0,5,1] y[0,5,1,0]
+    euler1I = \fresh1 -> choose . nub . Logic.observeAll $ do
+      -- solution: data0[0,3] data1[0,4] data2[0,5] x_0[0,1] x_0[0,1,0] x_0[0,1,0,0] x_0[0,1,1] x_0[0,1,1,0]
       -- cost: 2
       () <- (do
         data0 <- pure 0
         data1 <- pure 999
         data2 <- pure [data0..data1]
-        (y) <- (do
-          y <- pure 3
-          pure (y)
+        (x_0) <- (do
+          x_0 <- pure 3
+          pure (x_0)
          ) <|> (do
-          y <- pure 5
-          pure (y)
+          x_0 <- pure 5
+          pure (x_0)
          )
-        () <- runProcedure @'[ 'In, 'In ] elem x data2
-        () <- runProcedure @'[ 'In, 'In ] multiple x y
+        () <- runProcedure @'[ 'In, 'In ] elem' data2 fresh1
+        () <- runProcedure @'[ 'In, 'In ] multiple x_0 fresh1
         pure ()
        )
       pure ()
     
     euler1O = choose . nub . Logic.observeAll $ do
-      -- solution: data0[0,1] data1[0,2] data2[0,3] x[] x[0] x[0,0] y[0,5] y[0,5,0] y[0,5,0,0] y[0,5,1] y[0,5,1,0]
+      -- solution: data0[0,3] data1[0,4] data2[0,5] fresh1[] fresh1[0] fresh1[0,2] x_0[0,1] x_0[0,1,0] x_0[0,1,0,0] x_0[0,1,1] x_0[0,1,1,0]
       -- cost: 3
-      (x) <- (do
+      (fresh1) <- (do
         data0 <- pure 0
         data1 <- pure 999
         data2 <- pure [data0..data1]
-        (y) <- (do
-          y <- pure 3
-          pure (y)
+        (x_0) <- (do
+          x_0 <- pure 3
+          pure (x_0)
          ) <|> (do
-          y <- pure 5
-          pure (y)
+          x_0 <- pure 5
+          pure (x_0)
          )
-        (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] elem data2
-        () <- runProcedure @'[ 'In, 'In ] multiple x y
-        pure (x)
+        (OneTuple (fresh1)) <- runProcedure @'[ 'In, 'Out ] elem' data2
+        () <- runProcedure @'[ 'In, 'In ] multiple x_0 fresh1
+        pure (fresh1)
        )
-      pure (OneTuple (x))
+      pure (OneTuple (fresh1))
     
 {- euler1'/1
 euler1' carg3 :- ((observeAll pred1_1 x_0, (pred1_1 x_0 :- (euler1 x_0)), sum x_0 carg3)).
@@ -1047,10 +1105,10 @@ euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) 
       pure (OneTuple (carg3))
     
 {- nontrivialDivisor/2
-nontrivialDivisor n d :- ((succ n' n, elem d data1, data0 = 2, data1 = .. data0 n', multiple n d)).
+nontrivialDivisor n d :- ((succ n' n, elem d data1, data0 = 2, data1 = .. data0 n', divisor n d)).
 constraints:
+~divisor[0]
 ~elem[0]
-~multiple[0]
 ~succ[0]
 ~(d[0,1] & d[0,4])
 ~(data0[0,2] & data0[0,3])
@@ -1079,7 +1137,7 @@ nontrivialDivisor = rget $ (procedure @'[ 'In, 'In ] nontrivialDivisorII) :& (pr
       -- cost: 4
       () <- (do
         data0 <- pure 2
-        () <- runProcedure @'[ 'In, 'In ] multiple n d
+        () <- runProcedure @'[ 'In, 'In ] divisor n d
         (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
         data1 <- pure [data0..n']
         () <- runProcedure @'[ 'In, 'In ] elem d data1
@@ -1095,7 +1153,7 @@ nontrivialDivisor = rget $ (procedure @'[ 'In, 'In ] nontrivialDivisorII) :& (pr
         (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
         data1 <- pure [data0..n']
         (OneTuple (d)) <- runProcedure @'[ 'Out, 'In ] elem data1
-        () <- runProcedure @'[ 'In, 'In ] multiple n d
+        () <- runProcedure @'[ 'In, 'In ] divisor n d
         pure (d)
        )
       pure (OneTuple (d))
@@ -1770,12 +1828,12 @@ euler4' = rget $ (procedure @'[ 'In ] euler4'I) :& (procedure @'[ 'Out ] euler4'
       pure (OneTuple (carg3))
     
 {- euler5/1
-euler5 n :- ((nat n, (>) n data0, data0 = 0, all pred1 data4, data2 = 1, data3 = 5, data4 = .. data2 data3, (pred1 curry1 :- (multiple n curry1)))).
+euler5 n :- ((nat n, (>) n data0, data0 = 0, all pred1 data4, data2 = 1, data3 = 5, data4 = .. data2 data3, (pred1 curry1 :- (divisor n curry1)))).
 constraints:
 ~(>)[0]
 ~all[0]
 ~curry1[0]
-~multiple[0,7,0]
+~divisor[0,7,0]
 ~nat[0]
 ~pred1[0,3]
 ~(data0[0,1] & data0[0,2])
@@ -1794,7 +1852,7 @@ constraints:
 ((~pred1[0,3] & (pred1(1) & data4[0,3])) | (~pred1[0,3] & (~pred1(1) & ~data4[0,3])))
 (curry1[0,7,0] <-> curry1[0,7,0,0])
 (data2[0,6] <-> data3[0,6])
-(multiple[0] <-> multiple[0,7])
+(divisor[0] <-> divisor[0,7])
 (n[] <-> n[0])
 (n[0] <-> (n[0,0] | n[0,1]))
 (n[0,7,0] <-> n[0,7,0,0])
@@ -1817,7 +1875,7 @@ euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) 
         let pred1 = procedure @'[ 'In ] $
               \curry1 -> do
                 () <- (do
-                  () <- runProcedure @'[ 'In, 'In ] multiple n curry1
+                  () <- runProcedure @'[ 'In, 'In ] divisor n curry1
                   pure ()
                  )
                 pure ()
@@ -1839,7 +1897,7 @@ euler5 = rget $ (procedure @'[ 'In ] euler5I) :& (procedure @'[ 'Out ] euler5O) 
         let pred1 = procedure @'[ 'In ] $
               \curry1 -> do
                 () <- (do
-                  () <- runProcedure @'[ 'In, 'In ] multiple n curry1
+                  () <- runProcedure @'[ 'In, 'In ] divisor n curry1
                   pure ()
                  )
                 pure ()
