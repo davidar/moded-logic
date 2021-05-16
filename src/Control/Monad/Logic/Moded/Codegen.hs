@@ -21,12 +21,8 @@ import Control.Monad.Logic.Moded.Schedule
   , ModedVar(..)
   , Procedure(..)
   , compileRule
-  , cost
-  , stripMode
-  , varMode
   )
 import Data.Foldable (Foldable(toList))
-import Data.List (sortOn)
 import qualified Data.Map as Map
 import Data.Maybe (listToMaybe)
 import qualified Data.Set as Set
@@ -260,7 +256,7 @@ compile moduleName (Prog pragmas rules) =
               T.unlines $ do
                 (ms, procs) <- Map.assocs (procedures c)
                 let (def:_defs') = do
-                      procedure <- sortOn (cost . ruleBody . modedRule) procs
+                      procedure <- procs
                       pure . T.unlines $
                         let (hd:tl) = T.lines $ cgProcedure pragmas ms procedure
                             meta =
@@ -272,8 +268,7 @@ compile moduleName (Prog pragmas rules) =
                                 ]
                             meta2 =
                               "  -- cost: " <>
-                              T.pack
-                                (show . cost . ruleBody $ modedRule procedure)
+                              T.pack (show $ procedureCost procedure)
                          in hd : meta : meta2 : tl
                 pure def -- : (T.unlines . map commentLine . T.lines <$> defs')
             commentLine l

@@ -39,9 +39,9 @@ import Control.Monad.Logic.Moded.Preprocess
   , simp
   )
 import Control.Monad.State (evalState)
+import Data.Either (partitionEithers)
 import Data.Foldable (Foldable(toList))
-import Data.List (intercalate)
-import Data.List.Extra (groupSort)
+import Data.List (intercalate, sortOn)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
@@ -59,6 +59,7 @@ data Procedure =
   Procedure
     { modeSolution :: Solution
     , modedRule :: Rule ModedVar ModedVar
+    , procedureCost :: Int
     }
 
 data CompiledPredicate =
@@ -155,7 +156,7 @@ compileRule pragmas cp r
   | otherwise =
     trace
       ("generated " ++
-       show (length [() | Right _ <- eithers]) ++
+       show (sum $ length <$> Map.elems (procedures obj)) ++
        " procedures and " ++ show (length $ errors obj) ++ " errors") $
     cp <> mempty {predicates = [(ruleName rule, obj)]}
   where
@@ -175,26 +176,37 @@ compileRule pragmas cp r
             _ -> undefined
     modes =
       if null userModes
-        then inferModes m rule
+        then traceShowId $
+             inferModes
+               m
+               (trace ("inferring modes for rule " ++ show rule) rule)
         else userModes
-    eithers =
-      trace ("inferring modes for rule " ++ show rule) $ do
-        ms <- modes
-        soln <-
-          trace ("mode " ++ show ms) take maxCandidates $
-          solveConstraintsMode m rule ms
-        pure $
-          case mode rule soln of
-            Left e -> trace e $ Left e
-            Right mr ->
-              trace ("cost " ++ show (cost $ ruleBody mr)) $
-              Right (ms, Procedure {modeSolution = soln, modedRule = mr})
+    candidates ms = do
+      soln <- take maxCandidates $ solveConstraintsMode m rule ms
+      pure $ do
+        mr <- mode rule soln
+        pure
+          Procedure
+            { modeSolution = soln
+            , modedRule = mr
+            , procedureCost = cost $ ruleBody mr
+            }
+    pairs =
+      [ (errs, (ms, sortOn procedureCost procs))
+      | ms <- modes
+      , let (errs, procs) = partitionEithers (candidates ms)
+      ]
     obj =
       CompiledPredicate
         { unmodedRule = rule
         , modeConstraints = constraints m rule
-        , procedures = Map.fromList $ groupSort [kv | Right kv <- eithers]
-        , errors = [e | Left e <- eithers]
+        , procedures =
+            Map.fromList $ do
+              (k, v) <- snd <$> pairs
+              if null v
+                then trace ("no candidates for mode " ++ show k) []
+                else pure (k, v)
+        , errors = fst =<< pairs
         }
     m =
       flip Map.union (Map.map (map ModeString) modesPrelude) . Map.fromList $ do
