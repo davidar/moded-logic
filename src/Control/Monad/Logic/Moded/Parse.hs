@@ -112,6 +112,13 @@ parenValue' =
         let n = length args
             apply = "apply" ++ if n == 1 then "" else show n
         pure $ Curry apply (lhs : args)) <|>
+  (do symbol "(|" -- idiom brackets
+      lhs <- value
+      args <- some value
+      symbol "|)"
+      let n = length args
+          apply = "apply" ++ if n == 1 then "" else show n
+      pure $ Curry apply (lhs : args)) <|>
   parenValue
 
 parenValue :: Parser Val
@@ -150,7 +157,7 @@ pConj x = do
 
 value :: Parser Val
 value =
-  parens parenValue <|>
+  parens parenValue' <|>
   try
     (do symbol "["
         u <- value

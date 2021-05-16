@@ -371,7 +371,7 @@ apply2 f p q z :- p x, q y, f x y z
 read s x :- show x s
 
 #nub euler1
-euler1 = {elem' [0..999], multiple <$> {3; 5}}
+euler1 = { elem' [0..999], (| multiple {3; 5} |) }
 
 euler1' = sum <$> observeAll euler1
 
@@ -381,7 +381,7 @@ fib 0 0
 fib 1 1
 fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
 
-fib' = fib <$> nat
+fib' = (| fib nat |)
 
 euler2 = sum <$> takeWhile (< 1000000) <$> observeAll {fib', even}
 
@@ -407,7 +407,7 @@ euler3 n = maximum <$> observeAll (primeFactor n)
 
 palindrome s :- reverse s s
 
-euler4 = {timesInt <$> elem' [10..99] <*> elem' [10..99], read <$> palindrome}
+euler4 = { (| timesInt (elem' [10..99]) (elem' [10..99]) |), (| read palindrome |) }
 
 euler4' = maximum <$> observeAll euler4
 
