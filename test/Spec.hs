@@ -375,7 +375,7 @@ fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
 
 fib' = fib <$> nat
 
-euler2 = sum <$> takeWhile (\x :- x < 1000000) <$> observeAll (\x :- fib' x, even x)
+euler2 = sum <$> takeWhile (< 1000000) <$> observeAll {fib', even}
 
 nontrivialDivisor n d :- succ n' n, elem d [2..n'], divisor n d
 

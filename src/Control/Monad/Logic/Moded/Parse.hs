@@ -90,7 +90,10 @@ identifier = (lexeme . try) (p >>= check)
         else return x
 
 operator :: Parser String
-operator = lexeme $ some (oneOf ("!#$%&*+./<=>?@\\^|-~:" :: [Char]))
+operator = lexeme . try $ (some (oneOf ("!#$%&*+./<=>?@\\^|-~:" :: [Char])) >>= check)
+  where
+    check "\\" = fail "lambda cannot be an operator"
+    check x = return x
 
 variable :: Parser Val
 variable = (symbol "_" >> pure (Var (V "_"))) <|> (Var . V <$> identifier)
@@ -124,6 +127,10 @@ parenValue =
         symbol ":"
         vs <- value `sepBy1` symbol ":"
         pure $ Cons ":" (v : vs)) <|>
+  (do op <- operator
+      rhs <- value
+      lhs <- Var . V <$> fresh
+      pure . Lambda [lhs] . Atom $ Pred (Var . V $ "(" ++ op ++ ")") [lhs, rhs]) <|>
   value
 
 pDisj :: Val -> Parser (Goal Val)

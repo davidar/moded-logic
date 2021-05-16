@@ -1011,25 +1011,26 @@ fib' = rget $ (procedure @'[ 'Out ] fib'O) :& RNil
       pure (OneTuple (carg3))
     
 {- euler2/1
-euler2 carg3 :- ((observeAll pred4_1_4 x_3, (pred4_1_4 x_1 :- (fib' x_1, even x_1)), takeWhile pred2_1_5 x_3 x_0, (pred2_1_5 x_1 :- ((<) x_1 data1_1_5, data1_1_5 = 1000000)), sum x_0 carg3)).
+euler2 carg3 :- ((observeAll pred4_1_4 x_3, (pred4_1_4 fresh2_1_4 :- ((fib' fresh2_1_4, even fresh2_1_4))), takeWhile pred2_1_5 x_3 x_0, (pred2_1_5 fresh1_1_5 :- ((<) fresh1_1_5 data1_1_5, data1_1_5 = 1000000)), sum x_0 carg3)).
 constraints:
-x_1[0,1,0,0]
+fresh2_1_4[0,1,0,0,0]
 ~(<)[0,3,0]
-~even[0,1,0]
-~fib'[0,1,0]
+~even[0,1,0,0]
+~fib'[0,1,0,0]
+~fresh1_1_5[0]
+~fresh2_1_4[0]
+~fresh2_1_4[0,1,0,0,1]
 ~observeAll[0]
 ~pred2_1_5[0,2]
 ~pred4_1_4[0,0]
 ~sum[0]
 ~takeWhile[0]
-~x_1[0]
-~x_1[0,1,0,1]
 ~(data1_1_5[0,3,0,0] & data1_1_5[0,3,0,1])
+~(fresh2_1_4[0,1,0,0,0] & fresh2_1_4[0,1,0,0,1])
 ~(x_0[0,2] & x_0[0,4])
-~(x_1[0,1,0,0] & x_1[0,1,0,1])
 ~(x_3[0,0] & x_3[0,2])
+(~fresh1_1_5[0,3,0,0] & ~data1_1_5[0,3,0,0])
 (~pred4_1_4[0,0] & (pred4_1_4(1) & x_3[0,0]))
-(~x_1[0,3,0,0] & ~data1_1_5[0,3,0,0])
 (data1_1_5[0,3,0,0] | data1_1_5[0,3,0,1])
 (x_0[0,2] | x_0[0,4])
 (x_3[0,0] | x_3[0,2])
@@ -1041,35 +1042,36 @@ x_1[0,1,0,0]
 (data1_1_5[0] <-> data1_1_5[0,3])
 (even[0] <-> even[0,1])
 (fib'[0] <-> fib'[0,1])
-(x_1[0,1,0] <-> (x_1[0,1,0,0] | x_1[0,1,0,1]))
-(x_1[0,3,0] <-> x_1[0,3,0,0])
-(pred2_1_5(1) <-> x_1[0,3,0])
-(pred4_1_4(1) <-> x_1[0,1,0])
+(fresh1_1_5[0,3,0] <-> fresh1_1_5[0,3,0,0])
+(fresh2_1_4[0,1,0] <-> fresh2_1_4[0,1,0,0])
+(fresh2_1_4[0,1,0,0] <-> (fresh2_1_4[0,1,0,0,0] | fresh2_1_4[0,1,0,0,1]))
+(pred2_1_5(1) <-> fresh1_1_5[0,3,0])
+(pred4_1_4(1) <-> fresh2_1_4[0,1,0])
 1
 -}
 
 euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) :& RNil
   where
     euler2I = \carg3 -> Logic.once $ do
-      -- solution: data1_1_5[0,3,0,1] x_0[0,2] x_1[0,1,0] x_1[0,1,0,0] x_3[0,0]
+      -- solution: data1_1_5[0,3,0,1] fresh2_1_4[0,1,0] fresh2_1_4[0,1,0,0] fresh2_1_4[0,1,0,0,0] x_0[0,2] x_3[0,0]
       -- cost: 9
       () <- (do
-        let pred4_1_4 = procedure @'[ 'Out ] $
-              do
-                (x_1) <- (do
-                  (OneTuple (x_1)) <- runProcedure @'[ 'Out ] fib' 
-                  () <- runProcedure @'[ 'In ] even x_1
-                  pure (x_1)
-                 )
-                pure (OneTuple (x_1))
         let pred2_1_5 = procedure @'[ 'In ] $
-              \x_1 -> do
+              \fresh1_1_5 -> do
                 () <- (do
                   data1_1_5 <- pure 1000000
-                  guard $ (<) x_1 data1_1_5
+                  guard $ (<) fresh1_1_5 data1_1_5
                   pure ()
                  )
                 pure ()
+        let pred4_1_4 = procedure @'[ 'Out ] $
+              do
+                (fresh2_1_4) <- (do
+                  (OneTuple (fresh2_1_4)) <- runProcedure @'[ 'Out ] fib' 
+                  () <- runProcedure @'[ 'In ] even fresh2_1_4
+                  pure (fresh2_1_4)
+                 )
+                pure (OneTuple (fresh2_1_4))
         (OneTuple (x_3)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred4_1_4
         (OneTuple (x_0)) <- runProcedure @'[ 'PredMode '[ 'In ], 'In, 'Out ] takeWhile pred2_1_5 x_3
         () <- runProcedure @'[ 'In, 'In ] sum x_0 carg3
@@ -1078,25 +1080,25 @@ euler2 = rget $ (procedure @'[ 'In ] euler2I) :& (procedure @'[ 'Out ] euler2O) 
       pure ()
     
     euler2O = do
-      -- solution: carg3[] carg3[0] carg3[0,4] data1_1_5[0,3,0,1] x_0[0,2] x_1[0,1,0] x_1[0,1,0,0] x_3[0,0]
+      -- solution: carg3[] carg3[0] carg3[0,4] data1_1_5[0,3,0,1] fresh2_1_4[0,1,0] fresh2_1_4[0,1,0,0] fresh2_1_4[0,1,0,0,0] x_0[0,2] x_3[0,0]
       -- cost: 10
       (carg3) <- (do
-        let pred4_1_4 = procedure @'[ 'Out ] $
-              do
-                (x_1) <- (do
-                  (OneTuple (x_1)) <- runProcedure @'[ 'Out ] fib' 
-                  () <- runProcedure @'[ 'In ] even x_1
-                  pure (x_1)
-                 )
-                pure (OneTuple (x_1))
         let pred2_1_5 = procedure @'[ 'In ] $
-              \x_1 -> do
+              \fresh1_1_5 -> do
                 () <- (do
                   data1_1_5 <- pure 1000000
-                  guard $ (<) x_1 data1_1_5
+                  guard $ (<) fresh1_1_5 data1_1_5
                   pure ()
                  )
                 pure ()
+        let pred4_1_4 = procedure @'[ 'Out ] $
+              do
+                (fresh2_1_4) <- (do
+                  (OneTuple (fresh2_1_4)) <- runProcedure @'[ 'Out ] fib' 
+                  () <- runProcedure @'[ 'In ] even fresh2_1_4
+                  pure (fresh2_1_4)
+                 )
+                pure (OneTuple (fresh2_1_4))
         (OneTuple (x_3)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'Out ] observeAll pred4_1_4
         (OneTuple (x_0)) <- runProcedure @'[ 'PredMode '[ 'In ], 'In, 'Out ] takeWhile pred2_1_5 x_3
         (OneTuple (carg3)) <- runProcedure @'[ 'In, 'Out ] sum x_0
