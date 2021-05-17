@@ -617,6 +617,52 @@ length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out 
        )
       pure (OneTuple (arg2))
     
+{- id/2
+id arg1 arg2 :- ((arg1 = x, arg2 = x)).
+constraints:
+~(arg1[0,0] & x[0,0])
+~(arg2[0,1] & x[0,1])
+~(x[0,0] & x[0,1])
+(x[0,0] | x[0,1])
+(arg1[] <-> arg1[0])
+(arg1[0] <-> arg1[0,0])
+(arg2[] <-> arg2[0])
+(arg2[0] <-> arg2[0,1])
+1
+-}
+
+id = rget $ (procedure @'[ 'In, 'In ] idII) :& (procedure @'[ 'In, 'Out ] idIO) :& (procedure @'[ 'Out, 'In ] idOI) :& RNil
+  where
+    idII = \arg1 arg2 -> Logic.once $ do
+      -- solution: x[0,0]
+      -- cost: 0
+      () <- (do
+        x <- pure arg1
+        guard $ arg2 == x
+        pure ()
+       )
+      pure ()
+    
+    idIO = \arg1 -> do
+      -- solution: arg2[] arg2[0] arg2[0,1] x[0,0]
+      -- cost: 0
+      (arg2) <- (do
+        x <- pure arg1
+        arg2 <- pure x
+        pure (arg2)
+       )
+      pure (OneTuple (arg2))
+    
+    idOI = \arg2 -> do
+      -- solution: arg1[] arg1[0] arg1[0,0] x[0,1]
+      -- cost: 0
+      (arg1) <- (do
+        x <- pure arg2
+        arg1 <- pure x
+        pure (arg1)
+       )
+      pure (OneTuple (arg1))
+    
 {- pythag/3
 pythag i j k :- ((nat i, (>) i data0, data0 = 0, nat j, (>) j data1, data1 = 0, nat k, (>) k data2, data2 = 0, (<) i j, timesInt i0 i1 ii, i0 = i, i1 = i, timesInt j2 j3 jj, j2 = j, j3 = j, timesInt k4 k5 kk, k4 = k, k5 = k, plus ii jj kk)).
 constraints:
@@ -1317,38 +1363,42 @@ even = rget $ (procedure @'[ 'In ] evenI) :& RNil
       pure ()
     
 {- oddsTest/1
-oddsTest x :- ((even x, ((odds x); (test x)))).
+oddsTest fresh1 :- ((fresh1 = fresh2, ((odds fresh2); (test fresh2)), even fresh1)).
 constraints:
 ~even[0]
+~fresh1[0,2]
 ~odds[0,1,0]
 ~test[0,1,1]
-~x[0,0]
-~(x[0,0] & x[0,1])
-(x[0,1,0,0] | ~x[0,1,0,0])
-(x[0,1,1,0] | ~x[0,1,1,0])
+~(fresh1[0,0] & fresh1[0,2])
+~(fresh1[0,0] & fresh2[0,0])
+~(fresh2[0,0] & fresh2[0,1])
+(fresh2[0,0] | fresh2[0,1])
+(fresh2[0,1,0,0] | ~fresh2[0,1,0,0])
+(fresh2[0,1,1,0] | ~fresh2[0,1,1,0])
+(fresh1[] <-> fresh1[0])
+(fresh1[0] <-> (fresh1[0,0] | fresh1[0,2]))
+(fresh2[0,1] <-> fresh2[0,1,0])
+(fresh2[0,1] <-> fresh2[0,1,1])
+(fresh2[0,1,0] <-> fresh2[0,1,0,0])
+(fresh2[0,1,1] <-> fresh2[0,1,1,0])
 (odds[0] <-> odds[0,1])
 (test[0] <-> test[0,1])
-(x[] <-> x[0])
-(x[0] <-> (x[0,0] | x[0,1]))
-(x[0,1] <-> x[0,1,0])
-(x[0,1] <-> x[0,1,1])
-(x[0,1,0] <-> x[0,1,0,0])
-(x[0,1,1] <-> x[0,1,1,0])
 1
 -}
 
 oddsTest = rget $ (procedure @'[ 'In ] oddsTestI) :& (procedure @'[ 'Out ] oddsTestO) :& RNil
   where
-    oddsTestI = \x -> Logic.once $ do
-      -- solution: 
+    oddsTestI = \fresh1 -> Logic.once $ do
+      -- solution: fresh2[0,0]
       -- cost: 3
       () <- (do
-        () <- runProcedure @'[ 'In ] even x
+        fresh2 <- pure fresh1
+        () <- runProcedure @'[ 'In ] even fresh1
         () <- (do
-          () <- runProcedure @'[ 'In ] odds x
+          () <- runProcedure @'[ 'In ] odds fresh2
           pure ()
          ) <|> (do
-          () <- runProcedure @'[ 'In ] test x
+          () <- runProcedure @'[ 'In ] test fresh2
           pure ()
          )
         pure ()
@@ -1356,20 +1406,21 @@ oddsTest = rget $ (procedure @'[ 'In ] oddsTestI) :& (procedure @'[ 'Out ] oddsT
       pure ()
     
     oddsTestO = do
-      -- solution: x[] x[0] x[0,1] x[0,1,0] x[0,1,0,0] x[0,1,1] x[0,1,1,0]
+      -- solution: fresh1[] fresh1[0] fresh1[0,0] fresh2[0,1] fresh2[0,1,0] fresh2[0,1,0,0] fresh2[0,1,1] fresh2[0,1,1,0]
       -- cost: 5
-      (x) <- (do
-        (x) <- (do
-          (OneTuple (x)) <- runProcedure @'[ 'Out ] odds 
-          pure (x)
+      (fresh1) <- (do
+        (fresh2) <- (do
+          (OneTuple (fresh2)) <- runProcedure @'[ 'Out ] odds 
+          pure (fresh2)
          ) <|> (do
-          (OneTuple (x)) <- runProcedure @'[ 'Out ] test 
-          pure (x)
+          (OneTuple (fresh2)) <- runProcedure @'[ 'Out ] test 
+          pure (fresh2)
          )
-        () <- runProcedure @'[ 'In ] even x
-        pure (x)
+        fresh1 <- pure fresh2
+        () <- runProcedure @'[ 'In ] even fresh1
+        pure (fresh1)
        )
-      pure (OneTuple (x))
+      pure (OneTuple (fresh1))
     
 {- oddsPlus/2
 oddsPlus n x :- ((odds a, plus a n x)).
@@ -1420,59 +1471,59 @@ oddsPlus = rget $ (procedure @'[ 'In, 'In ] oddsPlusII) :& (procedure @'[ 'In, '
       pure (OneTuple (n))
     
 {- oddsPlusTest/1
-oddsPlusTest x :- ((oddsPlus n x, even x, ((n = 0); (n = 1)))).
+oddsPlusTest fresh1 :- ((oddsPlus x_0 fresh1, ((x_0 = 0); (x_0 = 1)), even fresh1)).
 constraints:
 ~even[0]
+~fresh1[0,2]
 ~oddsPlus[0]
-~x[0,1]
-~(n[0,0] & n[0,2])
-~(x[0,0] & x[0,1])
-(n[0,0] | n[0,2])
-((n[0,0] & ~x[0,0]) | ((~n[0,0] & x[0,0]) | (~n[0,0] & ~x[0,0])))
-(n[0,2] <-> n[0,2,0])
-(n[0,2] <-> n[0,2,1])
-(n[0,2,0] <-> n[0,2,0,0])
-(n[0,2,1] <-> n[0,2,1,0])
-(x[] <-> x[0])
-(x[0] <-> (x[0,0] | x[0,1]))
+~(fresh1[0,0] & fresh1[0,2])
+~(x_0[0,0] & x_0[0,1])
+(x_0[0,0] | x_0[0,1])
+((x_0[0,0] & ~fresh1[0,0]) | ((~x_0[0,0] & fresh1[0,0]) | (~x_0[0,0] & ~fresh1[0,0])))
+(fresh1[] <-> fresh1[0])
+(fresh1[0] <-> (fresh1[0,0] | fresh1[0,2]))
+(x_0[0,1] <-> x_0[0,1,0])
+(x_0[0,1] <-> x_0[0,1,1])
+(x_0[0,1,0] <-> x_0[0,1,0,0])
+(x_0[0,1,1] <-> x_0[0,1,1,0])
 1
 -}
 
 oddsPlusTest = rget $ (procedure @'[ 'In ] oddsPlusTestI) :& (procedure @'[ 'Out ] oddsPlusTestO) :& RNil
   where
-    oddsPlusTestI = \x -> Logic.once $ do
-      -- solution: n[0,2] n[0,2,0] n[0,2,0,0] n[0,2,1] n[0,2,1,0]
+    oddsPlusTestI = \fresh1 -> Logic.once $ do
+      -- solution: x_0[0,1] x_0[0,1,0] x_0[0,1,0,0] x_0[0,1,1] x_0[0,1,1,0]
       -- cost: 2
       () <- (do
-        (n) <- (do
-          n <- pure 0
-          pure (n)
+        (x_0) <- (do
+          x_0 <- pure 0
+          pure (x_0)
          ) <|> (do
-          n <- pure 1
-          pure (n)
+          x_0 <- pure 1
+          pure (x_0)
          )
-        () <- runProcedure @'[ 'In ] even x
-        () <- runProcedure @'[ 'In, 'In ] oddsPlus n x
+        () <- runProcedure @'[ 'In ] even fresh1
+        () <- runProcedure @'[ 'In, 'In ] oddsPlus x_0 fresh1
         pure ()
        )
       pure ()
     
     oddsPlusTestO = do
-      -- solution: n[0,2] n[0,2,0] n[0,2,0,0] n[0,2,1] n[0,2,1,0] x[] x[0] x[0,0]
+      -- solution: fresh1[] fresh1[0] fresh1[0,0] x_0[0,1] x_0[0,1,0] x_0[0,1,0,0] x_0[0,1,1] x_0[0,1,1,0]
       -- cost: 3
-      (x) <- (do
-        (n) <- (do
-          n <- pure 0
-          pure (n)
+      (fresh1) <- (do
+        (x_0) <- (do
+          x_0 <- pure 0
+          pure (x_0)
          ) <|> (do
-          n <- pure 1
-          pure (n)
+          x_0 <- pure 1
+          pure (x_0)
          )
-        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] oddsPlus n
-        () <- runProcedure @'[ 'In ] even x
-        pure (x)
+        (OneTuple (fresh1)) <- runProcedure @'[ 'In, 'Out ] oddsPlus x_0
+        () <- runProcedure @'[ 'In ] even fresh1
+        pure (fresh1)
        )
-      pure (OneTuple (x))
+      pure (OneTuple (fresh1))
     
 {- oddsPrime/1
 oddsPrime n :- ((odds n, (>) n data0, data0 = 1, succ n' n, if (elem d data2, data1 = 1, data2 = .. data1 n', (>) d data3, data3 = 1, mod n d data4, data4 = 0) then (empty) else ())).
@@ -1782,63 +1833,289 @@ bogosort = rget $ (procedure @'[ 'In, 'In ] bogosortII) :& (procedure @'[ 'In, '
        )
       pure (OneTuple (l))
     
+{- equal/3
+equal p q fresh1 :- ((p fresh1, q fresh1)).
+constraints:
+~p[0]
+~q[0]
+~(fresh1[0,0] & fresh1[0,1])
+(fresh1[] <-> fresh1[0])
+(fresh1[0] <-> (fresh1[0,0] | fresh1[0,1]))
+(fresh1[0,0] <-> p(1))
+(fresh1[0,1] <-> q(1))
+(p[] <-> p[0])
+(q[] <-> q[0])
+1
+-}
+
+equal = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'In ] equalP1IP1II) :& (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'Out ], 'Out ] equalP1IP1OO) :& (procedure @'[ 'PredMode '[ 'Out ], 'PredMode '[ 'In ], 'Out ] equalP1OP1IO) :& RNil
+  where
+    equalP1IP1II = \p q fresh1 -> Logic.once $ do
+      -- solution: 
+      -- cost: 2
+      () <- (do
+        () <- runProcedure p fresh1
+        () <- runProcedure q fresh1
+        pure ()
+       )
+      pure ()
+    
+    equalP1IP1OO = \p q -> do
+      -- solution: fresh1[] fresh1[0] fresh1[0,1]
+      -- cost: 3
+      (fresh1) <- (do
+        (OneTuple (fresh1)) <- runProcedure q 
+        () <- runProcedure p fresh1
+        pure (fresh1)
+       )
+      pure (OneTuple (fresh1))
+    
+    equalP1OP1IO = \p q -> do
+      -- solution: fresh1[] fresh1[0] fresh1[0,0]
+      -- cost: 3
+      (fresh1) <- (do
+        (OneTuple (fresh1)) <- runProcedure p 
+        () <- runProcedure q fresh1
+        pure (fresh1)
+       )
+      pure (OneTuple (fresh1))
+    
+{- tcomp/4
+tcomp i j k carg3 :- ((equal pred0 pred1 carg3, (pred0 fresh1 :- ((i fresh1); (j fresh1); (k fresh1))), (pred1 fresh2 :- ((fresh2 = 0); (fresh2 = 1))))).
+constraints:
+~equal[0]
+~fresh1[0]
+~fresh2[0]
+~i[0]
+~i[0,1,0]
+~i[0,1,0,0]
+~j[0]
+~j[0,1,0]
+~j[0,1,0,1]
+~k[0]
+~k[0,1,0]
+~k[0,1,0,2]
+~pred0[0,0]
+~pred1[0,0]
+((~pred0[0,0] & (pred0(1) & (~pred1[0,0] & (~pred1(1) & carg3[0,0])))) | ((~pred0[0,0] & (~pred0(1) & (~pred1[0,0] & (pred1(1) & carg3[0,0])))) | (~pred0[0,0] & (~pred0(1) & (~pred1[0,0] & (~pred1(1) & ~carg3[0,0]))))))
+(carg3[] <-> carg3[0])
+(carg3[0] <-> carg3[0,0])
+(fresh1[0,1,0] <-> fresh1[0,1,0,0])
+(fresh1[0,1,0] <-> fresh1[0,1,0,1])
+(fresh1[0,1,0] <-> fresh1[0,1,0,2])
+(fresh1[0,1,0,0] <-> fresh1[0,1,0,0,0])
+(fresh1[0,1,0,0,0] <-> i(1))
+(fresh1[0,1,0,1] <-> fresh1[0,1,0,1,0])
+(fresh1[0,1,0,1,0] <-> j(1))
+(fresh1[0,1,0,2] <-> fresh1[0,1,0,2,0])
+(fresh1[0,1,0,2,0] <-> k(1))
+(fresh2[0,2,0] <-> fresh2[0,2,0,0])
+(fresh2[0,2,0] <-> fresh2[0,2,0,1])
+(fresh2[0,2,0,0] <-> fresh2[0,2,0,0,0])
+(fresh2[0,2,0,1] <-> fresh2[0,2,0,1,0])
+(i[] <-> i[0])
+(i[0,1,0] <-> i[0,1,0,0])
+(j[] <-> j[0])
+(j[0,1,0] <-> j[0,1,0,1])
+(k[] <-> k[0])
+(k[0,1,0] <-> k[0,1,0,2])
+(pred0(1) <-> fresh1[0,1,0])
+(pred1(1) <-> fresh2[0,2,0])
+1
+-}
+
+tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'In ] tcompP1IP1IP1II) :& (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'Out ] tcompP1IP1IP1IO) :& (procedure @'[ 'PredMode '[ 'Out ], 'PredMode '[ 'Out ], 'PredMode '[ 'Out ], 'Out ] tcompP1OP1OP1OO) :& RNil
+  where
+    tcompP1IP1IP1II = \i j k carg3 -> Logic.once $ do
+      -- solution: 
+      -- cost: 4
+      () <- (do
+        let pred1 = procedure @'[ 'In ] $
+              \fresh2 -> do
+                () <- (do
+                  guard $ fresh2 == 0
+                  pure ()
+                 ) <|> (do
+                  guard $ fresh2 == 1
+                  pure ()
+                 )
+                pure ()
+        let pred0 = procedure @'[ 'In ] $
+              \fresh1 -> do
+                () <- (do
+                  () <- runProcedure i fresh1
+                  pure ()
+                 ) <|> (do
+                  () <- runProcedure j fresh1
+                  pure ()
+                 ) <|> (do
+                  () <- runProcedure k fresh1
+                  pure ()
+                 )
+                pure ()
+        () <- runProcedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'In ] equal pred0 pred1 carg3
+        pure ()
+       )
+      pure ()
+    
+    tcompP1IP1IP1IO = \i j k -> do
+      -- solution: carg3[] carg3[0] carg3[0,0] fresh2[0,2,0] fresh2[0,2,0,0] fresh2[0,2,0,0,0] fresh2[0,2,0,1] fresh2[0,2,0,1,0]
+      -- cost: 5
+      (carg3) <- (do
+        let pred1 = procedure @'[ 'Out ] $
+              do
+                (fresh2) <- (do
+                  fresh2 <- pure 0
+                  pure (fresh2)
+                 ) <|> (do
+                  fresh2 <- pure 1
+                  pure (fresh2)
+                 )
+                pure (OneTuple (fresh2))
+        let pred0 = procedure @'[ 'In ] $
+              \fresh1 -> do
+                () <- (do
+                  () <- runProcedure i fresh1
+                  pure ()
+                 ) <|> (do
+                  () <- runProcedure j fresh1
+                  pure ()
+                 ) <|> (do
+                  () <- runProcedure k fresh1
+                  pure ()
+                 )
+                pure ()
+        (OneTuple (carg3)) <- runProcedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'Out ], 'Out ] equal pred0 pred1
+        pure (carg3)
+       )
+      pure (OneTuple (carg3))
+    
+    tcompP1OP1OP1OO = \i j k -> do
+      -- solution: carg3[] carg3[0] carg3[0,0] fresh1[0,1,0] fresh1[0,1,0,0] fresh1[0,1,0,0,0] fresh1[0,1,0,1] fresh1[0,1,0,1,0] fresh1[0,1,0,2] fresh1[0,1,0,2,0]
+      -- cost: 8
+      (carg3) <- (do
+        let pred1 = procedure @'[ 'In ] $
+              \fresh2 -> do
+                () <- (do
+                  guard $ fresh2 == 0
+                  pure ()
+                 ) <|> (do
+                  guard $ fresh2 == 1
+                  pure ()
+                 )
+                pure ()
+        let pred0 = procedure @'[ 'Out ] $
+              do
+                (fresh1) <- (do
+                  (OneTuple (fresh1)) <- runProcedure i 
+                  pure (fresh1)
+                 ) <|> (do
+                  (OneTuple (fresh1)) <- runProcedure j 
+                  pure (fresh1)
+                 ) <|> (do
+                  (OneTuple (fresh1)) <- runProcedure k 
+                  pure (fresh1)
+                 )
+                pure (OneTuple (fresh1))
+        (OneTuple (carg3)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'PredMode '[ 'In ], 'Out ] equal pred0 pred1
+        pure (carg3)
+       )
+      pure (OneTuple (carg3))
+    
 {- tcomp_ex1/1
-tcomp_ex1 r :- ((if (((i = 2); (i = 1); (i = 3)), ((j = 0); (j = 1)), i = j) then (r = Just i) else (r = Nothing))).
+tcomp_ex1 r :- ((if (tcomp pred1 pred3 pred5 i, (pred1 curry1 :- (id data0 curry1, data0 = 2)), (pred3 curry1 :- (id data2 curry1, data2 = 1)), (pred5 curry1 :- (id data4 curry1, data4 = 3))) then (r = Just i) else (r = Nothing))).
 constraints:
 i[0,0,0]
-j[0,0]
+pred1[0,0]
+pred3[0,0]
+pred5[0,0]
+~curry1[0,0,0]
 ~i[0,0,1,0]
-~(i[0,0,0,0] & i[0,0,0,2])
-~(i[0,0,0,2] & j[0,0,0,2])
-~(j[0,0,0,1] & j[0,0,0,2])
+~id[0,0,0]
+~id[0,0,0,1,0]
+~id[0,0,0,2,0]
+~id[0,0,0,3,0]
+~pred1[0,0,0,0]
+~pred3[0,0,0,0]
+~pred5[0,0,0,0]
+~tcomp[0,0,0]
+~(data0[0,0,0,1,0,0] & data0[0,0,0,1,0,1])
+~(data2[0,0,0,2,0,0] & data2[0,0,0,2,0,1])
+~(data4[0,0,0,3,0,0] & data4[0,0,0,3,0,1])
 ~(r[0,0,1,0] & i[0,0,1,0])
-(j[0,0,0,1] | j[0,0,0,2])
-(i[0,0,0] <-> (i[0,0,0,0] | i[0,0,0,2]))
-(i[0,0,0,0] <-> i[0,0,0,0,0])
-(i[0,0,0,0] <-> i[0,0,0,0,1])
-(i[0,0,0,0] <-> i[0,0,0,0,2])
-(i[0,0,0,0,0] <-> i[0,0,0,0,0,0])
-(i[0,0,0,0,1] <-> i[0,0,0,0,1,0])
-(i[0,0,0,0,2] <-> i[0,0,0,0,2,0])
-(j[0] <-> j[0,0])
-(j[0,0,0,1] <-> j[0,0,0,1,0])
-(j[0,0,0,1] <-> j[0,0,0,1,1])
-(j[0,0,0,1,0] <-> j[0,0,0,1,0,0])
-(j[0,0,0,1,1] <-> j[0,0,0,1,1,0])
+(data0[0,0,0,1,0,0] | data0[0,0,0,1,0,1])
+(data2[0,0,0,2,0,0] | data2[0,0,0,2,0,1])
+(data4[0,0,0,3,0,0] | data4[0,0,0,3,0,1])
+((data0[0,0,0,1,0,0] & ~curry1[0,0,0,1,0,0]) | ((~data0[0,0,0,1,0,0] & curry1[0,0,0,1,0,0]) | (~data0[0,0,0,1,0,0] & ~curry1[0,0,0,1,0,0])))
+((data2[0,0,0,2,0,0] & ~curry1[0,0,0,2,0,0]) | ((~data2[0,0,0,2,0,0] & curry1[0,0,0,2,0,0]) | (~data2[0,0,0,2,0,0] & ~curry1[0,0,0,2,0,0])))
+((data4[0,0,0,3,0,0] & ~curry1[0,0,0,3,0,0]) | ((~data4[0,0,0,3,0,0] & curry1[0,0,0,3,0,0]) | (~data4[0,0,0,3,0,0] & ~curry1[0,0,0,3,0,0])))
+((~pred1[0,0,0,0] & (pred1(1) & (~pred3[0,0,0,0] & (pred3(1) & (~pred5[0,0,0,0] & (pred5(1) & i[0,0,0,0])))))) | ((~pred1[0,0,0,0] & (~pred1(1) & (~pred3[0,0,0,0] & (~pred3(1) & (~pred5[0,0,0,0] & (~pred5(1) & i[0,0,0,0])))))) | (~pred1[0,0,0,0] & (~pred1(1) & (~pred3[0,0,0,0] & (~pred3(1) & (~pred5[0,0,0,0] & (~pred5(1) & ~i[0,0,0,0]))))))))
+(curry1[0] <-> curry1[0,0])
+(curry1[0,0] <-> curry1[0,0,0])
+(curry1[0,0,0,1,0] <-> curry1[0,0,0,1,0,0])
+(curry1[0,0,0,2,0] <-> curry1[0,0,0,2,0,0])
+(curry1[0,0,0,3,0] <-> curry1[0,0,0,3,0,0])
+(data0[0] <-> data0[0,0])
+(data0[0,0] <-> data0[0,0,0])
+(data0[0,0,0] <-> data0[0,0,0,1])
+(data2[0] <-> data2[0,0])
+(data2[0,0] <-> data2[0,0,0])
+(data2[0,0,0] <-> data2[0,0,0,2])
+(data4[0] <-> data4[0,0])
+(data4[0,0] <-> data4[0,0,0])
+(data4[0,0,0] <-> data4[0,0,0,3])
+(i[0,0,0] <-> i[0,0,0,0])
+(id[0] <-> id[0,0])
+(id[0,0] <-> id[0,0,0])
+(pred1[0] <-> pred1[0,0])
+(pred3[0] <-> pred3[0,0])
+(pred5[0] <-> pred5[0,0])
 (r[] <-> r[0])
 (r[0] <-> r[0,0])
 (r[0,0] <-> (r[0,0,1] | r[0,0,2]))
 (r[0,0,1] <-> r[0,0,1,0])
 (r[0,0,1] <-> r[0,0,2])
 (r[0,0,2] <-> r[0,0,2,0])
+(tcomp[0] <-> tcomp[0,0])
+(tcomp[0,0] <-> tcomp[0,0,0])
+(pred1(1) <-> curry1[0,0,0,1,0])
+(pred3(1) <-> curry1[0,0,0,2,0])
+(pred5(1) <-> curry1[0,0,0,3,0])
 1
 -}
 
 tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tcomp_ex1O) :& RNil
   where
     tcomp_ex1I = \r -> Logic.once $ do
-      -- solution: i[0,0,0] i[0,0,0,2] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0]
-      -- cost: 0
+      -- solution: data0[0,0,0,1,0,1] data2[0,0,0,2,0,1] data4[0,0,0,3,0,1] i[0,0,0] i[0,0,0,0] pred1[0] pred1[0,0] pred3[0] pred3[0,0] pred5[0] pred5[0,0]
+      -- cost: 5
       () <- (do
         () <- Logic.ifte ((do
-          (j) <- (do
-            j <- pure 0
-            pure (j)
-           ) <|> (do
-            j <- pure 1
-            pure (j)
-           )
-          i <- pure j
-          () <- (do
-            guard $ i == 2
-            pure ()
-           ) <|> (do
-            guard $ i == 1
-            pure ()
-           ) <|> (do
-            guard $ i == 3
-            pure ()
-           )
+          let pred1 = procedure @'[ 'In ] $
+                \curry1 -> do
+                  () <- (do
+                    data0 <- pure 2
+                    () <- runProcedure @'[ 'In, 'In ] id data0 curry1
+                    pure ()
+                   )
+                  pure ()
+          let pred3 = procedure @'[ 'In ] $
+                \curry1 -> do
+                  () <- (do
+                    data2 <- pure 1
+                    () <- runProcedure @'[ 'In, 'In ] id data2 curry1
+                    pure ()
+                   )
+                  pure ()
+          let pred5 = procedure @'[ 'In ] $
+                \curry1 -> do
+                  () <- (do
+                    data4 <- pure 3
+                    () <- runProcedure @'[ 'In, 'In ] id data4 curry1
+                    pure ()
+                   )
+                  pure ()
+          (OneTuple (i)) <- runProcedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'Out ] tcomp pred1 pred3 pred5
           pure (i)
          )) (\(i) -> (do
           guard $ r == (Just i)
@@ -1852,28 +2129,35 @@ tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tco
       pure ()
     
     tcomp_ex1O = do
-      -- solution: i[0,0,0] i[0,0,0,2] j[0] j[0,0] j[0,0,0,1] j[0,0,0,1,0] j[0,0,0,1,0,0] j[0,0,0,1,1] j[0,0,0,1,1,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0]
-      -- cost: 0
+      -- solution: data0[0,0,0,1,0,1] data2[0,0,0,2,0,1] data4[0,0,0,3,0,1] i[0,0,0] i[0,0,0,0] pred1[0] pred1[0,0] pred3[0] pred3[0,0] pred5[0] pred5[0,0] r[] r[0] r[0,0] r[0,0,1] r[0,0,1,0] r[0,0,2] r[0,0,2,0]
+      -- cost: 5
       (r) <- (do
         (r) <- Logic.ifte ((do
-          (j) <- (do
-            j <- pure 0
-            pure (j)
-           ) <|> (do
-            j <- pure 1
-            pure (j)
-           )
-          i <- pure j
-          () <- (do
-            guard $ i == 2
-            pure ()
-           ) <|> (do
-            guard $ i == 1
-            pure ()
-           ) <|> (do
-            guard $ i == 3
-            pure ()
-           )
+          let pred1 = procedure @'[ 'In ] $
+                \curry1 -> do
+                  () <- (do
+                    data0 <- pure 2
+                    () <- runProcedure @'[ 'In, 'In ] id data0 curry1
+                    pure ()
+                   )
+                  pure ()
+          let pred3 = procedure @'[ 'In ] $
+                \curry1 -> do
+                  () <- (do
+                    data2 <- pure 1
+                    () <- runProcedure @'[ 'In, 'In ] id data2 curry1
+                    pure ()
+                   )
+                  pure ()
+          let pred5 = procedure @'[ 'In ] $
+                \curry1 -> do
+                  () <- (do
+                    data4 <- pure 3
+                    () <- runProcedure @'[ 'In, 'In ] id data4 curry1
+                    pure ()
+                   )
+                  pure ()
+          (OneTuple (i)) <- runProcedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'Out ] tcomp pred1 pred3 pred5
           pure (i)
          )) (\(i) -> (do
           r <- pure (Just i)

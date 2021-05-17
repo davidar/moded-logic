@@ -153,13 +153,17 @@ pConj x = do
     Lambda [arg] body -> pure $ Conj [Atom $ Unif x (FVar arg), body]
     Lambda {} -> fail "lambda takes too many arguments"
 
+idiomBrackets :: Parser Val
+idiomBrackets = do
+  symbol "(|"
+  x <- Var . V <$> fresh
+  body <- Disj <$> pDisj x `sepBy` try (symbol "|" <* notFollowedBy (symbol ")"))
+  symbol "|)"
+  pure $ Lambda [x] body
+
 value :: Parser Val
 value =
-  (do symbol "(|" -- idiom brackets
-      x <- Var . V <$> fresh
-      body <- Disj <$> pDisj x `sepBy` try (symbol "|" <* notFollowedBy (symbol ")"))
-      symbol "|)"
-      pure $ Lambda [x] body) <|>
+  idiomBrackets <|>
   parens parenValue' <|>
   try
     (do symbol "["
@@ -199,16 +203,21 @@ unify = do
   rhs <- parenValue
   pure $ Unif lhs (FVar rhs)
 
-predicate :: Parser (Atom Val)
+predicate :: Parser (Goal Val)
 predicate =
   try
     (do lhs <- variable
         op <- operator
         rhs <- value
-        pure $ Pred (Var . V $ "(" ++ op ++ ")") [lhs, rhs]) <|>
-  (do name <- identifier
-      vs <- many value
-      pure $ Pred (Var $ V name) vs)
+        pure . Atom $ Pred (Var . V $ "(" ++ op ++ ")") [lhs, rhs]) <|>
+  try
+    (do name <- identifier
+        vs <- many value
+        pure . Atom $ Pred (Var $ V name) vs) <|>
+  try
+    (do Lambda args body <- idiomBrackets
+        vs <- many value
+        pure $ Conj (zipWith (\a v -> Atom $ Unif a (FVar v)) args vs ++ [body]))
 
 softcut :: Parser (Goal Val)
 softcut = do
@@ -243,7 +252,7 @@ lambda = do
 
 goal :: Parser (Goal Val)
 goal =
-  (Atom <$> (try unify <|> predicate)) <|> softcut <|> neg <|> try disj <|>
+  (Atom <$> try unify) <|> predicate <|> softcut <|> neg <|> try disj <|>
   lambda
 
 conj :: Parser (Goal Val)

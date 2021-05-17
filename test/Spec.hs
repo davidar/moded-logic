@@ -248,6 +248,11 @@ prefix (h:t) (h:t') :- prefix t t'
 length [] 0
 length (_:t) n' :- length t n, succ n n'
 
+#inline apply
+apply f p y :- p x, f x y
+
+id x x
+
 -- http://okmij.org/ftp/Computation/monads.html#fair-bt-stream
 pythag i j k :-
   nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j
@@ -277,11 +282,11 @@ odds n :- odds m, plus 2 m n
 
 even n :- mod n 2 0
 
-oddsTest x :- (odds x; test x), even x
+oddsTest = (| (| odds | test |), even |)
 
 oddsPlus n x :- odds a, plus a n x
 
-oddsPlusTest x :- (n = 0; n = 1), oddsPlus n x, even x
+oddsPlusTest = (| oddsPlus (| 0 | 1 |), even |)
 
 oddsPrime n :-
   odds n, n > 1, succ n' n
@@ -296,8 +301,12 @@ oddsPrimeIO n :-
 bogosort l p :- permute l p, sorted p
 
 -- http://okmij.org/ftp/continuations/generators.html#logicT
+equal p q = (| p, q |)
+
+tcomp i j k = equal (| i | j | k |) (| 0 | 1 |)
+
 tcomp_ex1 r :-
-  if (i = 2; i = 1; i = 3), (j = 0; j = 1), i = j
+  if tcomp (id 2) (id 1) (id 3) i
   then r = Just i else r = Nothing
 
 findI pat str i :-
@@ -370,6 +379,8 @@ apply2 f p q z :- p x, q y, f x y z
 
 read s x :- show x s
 
+id x x
+
 #nub euler1
 euler1 = (| (elem' [0..999]), multiple (| 3 | 5 |) |)
 
@@ -390,8 +401,8 @@ nontrivialDivisor n d :- succ n' n, elem d [2..n'], divisor n d
 primeSlow n :- nat n, n > 1, not (nontrivialDivisor n _)
 
 factor n (p:ps) f :-
-  if timesInt p p pp, pp > n then f = n
-  else if divMod n p d 0 then (f = p; factor d (p:ps) f)
+  if timesInt p p pp, pp > n then id n f
+  else if divMod n p d 0 then (| (id p) | (factor d (p:ps)) |) f
   else factor n ps f
 
 #memo prime
@@ -445,8 +456,8 @@ action (B 1 1)
 
 check (State m1 c1 _ m2 c2 _) :-
   m1 >= 0, m2 >= 0, c1 >= 0, c2 >= 0
-  (m1 = 0; c1 <= m1)
-  (m2 = 0; c2 <= m2)
+  (| 0 | (>= c1) |) m1
+  (| 0 | (>= c2) |) m2
 
 move (State m1 c1 b1 m2 c2 b2) (F mm cm) s :-
   b1 > 0
