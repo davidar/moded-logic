@@ -58,6 +58,8 @@ delete x (h:t) (h:r) :- delete x t r
 perm [] []
 perm xs (h:t) :- delete h xs ys, perm ys t
 
+last xs x :- append _ [x] xs
+
 id x x
 |]
 
@@ -630,6 +632,9 @@ main = do
           List.sort (List.permutations [1 .. 5])
         observeAll (call @'[In, In] Append.perm [1, 5, 3, 2, 4] [4, 2, 5, 1, 3]) `shouldBe` guard True
         observeAll (call @'[In, In] Append.perm [1, 5, 3, 2, 4] [4, 2, 5, 5, 3]) `shouldBe` guard False
+      it "last" $ do
+        observeAll (call @'[In, Out] Append.last [1 .. 5]) `shouldBe` [5]
+        observeAll (call @'[In, Out] Append.last []) `shouldBe` (empty :: [()])
       it "id" $ do
         observeAll (call @[In, Out] Append.id 7) `shouldBe` [7]
         observeAll (call @[In, In] Append.id 7 7) `shouldBe` guard True

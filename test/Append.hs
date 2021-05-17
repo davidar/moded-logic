@@ -782,6 +782,48 @@ perm = rget $ (procedure @'[ 'In, 'In ] permII) :& (procedure @'[ 'In, 'Out ] pe
        )
       pure (OneTuple (arg1))
     
+{- last/2
+last xs x :- ((append _ data1 xs, data0 = [], data1 = x:data0)).
+constraints:
+~append[0]
+~(data0[0,1] & data0[0,2])
+~(data1[0,0] & data1[0,2])
+~(data1[0,2] & x[0,2])
+(data0[0,1] | data0[0,2])
+(data1[0,0] | data1[0,2])
+((data1[0,0] & ~xs[0,0]) | (~data1[0,0] & ~xs[0,0]))
+(x[] <-> x[0])
+(x[0] <-> x[0,2])
+(x[0,2] <-> data0[0,2])
+(xs[] <-> xs[0])
+(xs[0] <-> xs[0,0])
+1
+-}
+
+last = rget $ (procedure @'[ 'In, 'In ] lastII) :& (procedure @'[ 'In, 'Out ] lastIO) :& RNil
+  where
+    lastII = \xs x -> Logic.once $ do
+      -- solution: data0[0,1] data1[0,2]
+      -- cost: 2
+      () <- (do
+        data0 <- pure []
+        data1 <- pure (x:data0)
+        (OneTuple (_)) <- runProcedure @'[ 'Out, 'In, 'In ] append data1 xs
+        pure ()
+       )
+      pure ()
+    
+    lastIO = \xs -> do
+      -- solution: data0[0,2] data1[0,0] x[] x[0] x[0,2]
+      -- cost: 3
+      (x) <- (do
+        (_,data1) <- runProcedure @'[ 'Out, 'Out, 'In ] append xs
+        (x:data0) <- pure data1
+        guard $ data0 == []
+        pure (x)
+       )
+      pure (OneTuple (x))
+    
 {- id/2
 id arg1 arg2 :- ((arg1 = x, arg2 = x)).
 constraints:
