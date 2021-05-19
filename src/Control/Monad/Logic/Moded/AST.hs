@@ -1,5 +1,4 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable,
-  DeriveLift, LambdaCase #-}
+{-# LANGUAGE DeriveTraversable #-}
 
 module Control.Monad.Logic.Moded.AST
   ( Prog(..)
@@ -14,23 +13,22 @@ module Control.Monad.Logic.Moded.AST
   ) where
 
 import Data.List (intercalate)
-import Language.Haskell.TH.Syntax (Lift)
 
 type Name = String
 
 newtype Var =
   V Name
-  deriving (Eq, Ord, Lift)
+  deriving (Eq, Ord)
 
 data Func v
   = Func Name [Func v]
   | FVar v
-  deriving (Eq, Ord, Functor, Foldable, Traversable, Lift)
+  deriving (Eq, Ord, Functor, Foldable, Traversable)
 
 data Atom v
   = Unif v (Func v)
   | Pred v [v]
-  deriving (Eq, Ord, Functor, Foldable, Traversable, Lift)
+  deriving (Eq, Ord, Functor, Foldable, Traversable)
 
 data Goal v
   = Atom (Atom v)
@@ -38,7 +36,7 @@ data Goal v
   | Disj [Goal v]
   | Ifte (Goal v) (Goal v) (Goal v)
   | Anon v [v] (Goal v)
-  deriving (Eq, Ord, Functor, Foldable, Traversable, Lift)
+  deriving (Eq, Ord, Functor, Foldable, Traversable)
 
 data Rule u v =
   Rule
@@ -46,15 +44,14 @@ data Rule u v =
     , ruleArgs :: [u]
     , ruleBody :: Goal v
     }
-  deriving (Eq, Ord, Lift)
+  deriving (Eq)
 
 newtype Pragma =
   Pragma [Name]
-  deriving (Eq, Ord, Lift)
+  deriving (Eq)
 
 data Prog u v =
   Prog [Pragma] [Rule u v]
-  deriving (Eq, Ord, Lift)
 
 instance Show Var where
   show (V v) = v

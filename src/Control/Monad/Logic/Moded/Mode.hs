@@ -10,9 +10,7 @@ data Mode
   deriving (Eq, Ord)
 
 newtype ModeString =
-  ModeString
-    { unModeString :: [Mode]
-    }
+  ModeString [Mode]
   deriving (Eq, Ord)
 
 instance Show Mode where
