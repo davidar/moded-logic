@@ -9,4 +9,12 @@ jobs:
       - uses: haskell/actions/setup@v1
         with:
           enable-stack: true
-      - run: stack test
+      - name: Tests
+        env:
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        run: |
+          set -ex
+          stack test --coverage --haddock --no-haddock-deps
+          stack hpc report --all
+          curl -L https://github.com/rubik/stack-hpc-coveralls/releases/download/v0.0.6.1/shc-linux-x64-8.8.4.tar.bz2 | tar xj shc
+          ./shc --repo-token="$COVERALLS_TOKEN" --partial-coverage --fetch-coverage combined custom
