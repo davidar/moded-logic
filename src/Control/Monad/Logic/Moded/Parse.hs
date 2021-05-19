@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-do-bind #-}
 
 module Control.Monad.Logic.Moded.Parse
-  ( logic
-  , parseProg
+  ( parseProg
   , rule
   ) where
 
@@ -33,7 +32,6 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Void (Void)
-import Language.Haskell.TH.Quote (QuasiQuoter(..))
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -330,19 +328,3 @@ parseProg fn lp = do
       p' = foldl extractRule [] prs
   pure . Prog pragmas $
     simp . distinctVars . superhomogeneous (arities p') <$> combineDefs p'
-
-logic :: QuasiQuoter
-logic =
-  QuasiQuoter
-    { quoteExp =
-        \s ->
-          case parseProg "<quasi-quotation>" (T.pack s) of
-            Left e -> fail (errorBundlePretty e)
-            Right p -> [|p|]
-    , quotePat = notHandled "patterns"
-    , quoteType = notHandled "types"
-    , quoteDec = notHandled "declarations"
-    }
-  where
-    notHandled things =
-      error $ things ++ " are not handled by the logic quasiquoter"

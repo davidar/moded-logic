@@ -17,10 +17,9 @@ import Control.Exception (IOException, catch)
 import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.AST (Prog, Var)
 import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Mode (Mode(..))
-import Control.Monad.Logic.Moded.Parse (logic, rule)
+import Control.Monad.Logic.Moded.Parse (parseProg, rule)
 import qualified Control.Monad.Logic.Moded.Prelude as MPrelude
 import Control.Monad.Logic.Moded.Preprocess (combineDefs, superhomogeneous, simp)
 import Control.Monad.Logic.Moded.Procedure (call)
@@ -30,14 +29,16 @@ import Control.Monad.Stream (observe, observeMany, observeManyT, observeAll, obs
 import qualified Data.List as List
 import Data.Maybe (isJust)
 import qualified Data.Text as T
+import Data.Text (Text)
 import qualified Data.Text.IO as TIO
+import NeatInterpolation (text)
 import System.Environment (lookupEnv)
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn, shouldSatisfy)
-import Text.Megaparsec (parse)
+import Text.Megaparsec (errorBundlePretty, parse)
 
-programAppend :: Prog Var Var
-programAppend = [logic|
+programAppend :: Text
+programAppend = [text|
 append [] b b
 append (h:t) b (h:tb) :- append t b tb
 
@@ -63,8 +64,8 @@ last xs x :- append _ [x] xs
 id x x
 |]
 
-programHigherOrder :: Prog Var Var
-programHigherOrder = [logic|
+programHigherOrder :: Text
+programHigherOrder = [text|
 even n :- mod n 2 0
 
 map _ [] []
@@ -100,8 +101,8 @@ composeTest a z :- compose (times 2) (plus 1) a z
 inlineTest y :- (p x :- x = y), p 7
 |]
 
-programPrimes :: Prog Var Var
-programPrimes = [logic|
+programPrimes :: Text
+programPrimes = [text|
 integers low high result :-
   if low <= high
   then succ low m, integers m high rest, result = (low:rest)
@@ -119,8 +120,8 @@ sift (p:js) (p:ps) :- remove p js new, sift new ps
 primes limit ps :- integers 2 limit js, sift js ps
 |]
 
-programSort :: Prog Var Var
-programSort = [logic|
+programSort :: Text
+programSort = [text|
 partition [] _ [] []
 partition (h:t) p lo hi :-
   if h <= p
@@ -136,8 +137,8 @@ qsort (x:xs) r r0 :-
 sort list sorted :- qsort list sorted []
 |]
 
-programQueens :: Prog Var Var
-programQueens = [logic|
+programQueens :: Text
+programQueens = [text|
 qdelete h (h:t) t
 qdelete x (h:t) (h:r) :- qdelete x t r
 qperm [] []
@@ -167,8 +168,8 @@ cqueens xs history (q:m) :-
 queens2 dat out :- cqueens dat [] out
 |]
 
-programCrypt :: Prog Var Var
-programCrypt = [logic|
+programCrypt :: Text
+programCrypt = [text|
 sumDigits [] [] carry cs :-
   if carry = 0 then cs = [] else cs = [carry]
 sumDigits [] (b:bs) carry (c:cs) :-
@@ -223,8 +224,8 @@ crypt [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] :-
   zeros z
 |]
 
-programKiselyov :: Prog Var Var
-programKiselyov = [logic|
+programKiselyov :: Text
+programKiselyov = [text|
 nat 0
 nat n' :- nat n, succ n n'
 
@@ -316,8 +317,8 @@ findI pat str i :-
   length t m, length str n, plus i m n
 |]
 
-programDCG :: Prog Var Var
-programDCG = [logic|
+programDCG :: Text
+programDCG = [text|
 append [] b b
 append (h:t) b (h:tb) :- append t b tb
 
@@ -337,8 +338,8 @@ vp (VP v n) = append v . append " " . np n :- verb v
 sentence (S n v) = np n . append " " . vp v
 |]
 
-programEuler :: Prog Var Var
-programEuler = [logic|
+programEuler :: Text
+programEuler = [text|
 #type nat Integer
 nat 0
 nat n' :- nat n, succ n n'
@@ -428,8 +429,8 @@ euler5 = (| nat, (> 0), (all' multiple [1..5]) |)
 |]
 
 -- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs
-programCannibals :: Prog Var Var
-programCannibals = [logic|
+programCannibals :: Text
+programCannibals = [text|
 elem x (x:_)
 elem x (_:xs) :- elem x xs
 
@@ -497,8 +498,8 @@ solve (Search current seen actions) r :-
 |]
 
 -- https://github.com/Kakadu/LogicT-demos/blob/master/TicTacToe.hs
-programTicTacToe :: Prog Var Var
-programTicTacToe = [logic|
+programTicTacToe :: Text
+programTicTacToe = [text|
 elem x (x:_)
 elem x (_:xs) :- elem x xs
 
@@ -550,8 +551,10 @@ prime25 =
   [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41
   , 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97 ]
 
-compileTest :: String -> Prog Var Var -> IO ()
-compileTest name program = do
+compileTest :: String -> Text -> IO ()
+compileTest name src = do
+  let program = either (error . errorBundlePretty) id $ parseProg "" src
+  print program
   let code = compile (T.pack name) program
       file = "test/" ++ name ++ ".hs"
   code `shouldSatisfy` (not . T.null)
@@ -565,19 +568,6 @@ compileTest name program = do
 
 main :: IO ()
 main = do
-  putStrLn . unlines $ show <$>
-    [ programAppend
-    , programHigherOrder
-    , programPrimes
-    , programSort
-    , programQueens
-    , programCrypt
-    , programKiselyov
-    , programDCG
-    , programEuler
-    , programCannibals
-    , programTicTacToe
-    ]
   hspec $ do
     describe "Parse" $ do
       it "apply" $ do
