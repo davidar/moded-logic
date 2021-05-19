@@ -1,6 +1,7 @@
 # moded-logic
 
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/davidar/moded-logic)
+[![Coverage Status](https://coveralls.io/repos/github/davidar/moded-logic/badge.svg?branch=master)](https://coveralls.io/github/davidar/moded-logic?branch=master)
 
 A Haskell implementation of [Constraint-Based Mode Analysis of Mercury](https://lara.epfl.ch/w/_media/cc09:modeanalysisoverton.pdf), targeting [the Logic monad](https://hackage.haskell.org/package/logict).
 
