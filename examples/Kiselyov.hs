@@ -26,7 +26,7 @@ prefix (h:t) (h:t') :- prefix t t'
 length [] 0
 length (_:t) n' :- length t n, succ n n'
 
-#inline apply
+{-# INLINE apply #-}
 apply f p y :- p x, f x y
 
 id x x
@@ -40,13 +40,13 @@ pythag i j k :-
 -- http://okmij.org/ftp/Haskell/set-monad.html
 triang n r :- succ n n', timesInt n n' nn', div nn' 2 r
 
-#nub ptriang
+{-# NUB ptriang #-}
 ptriang k :-
   elem k [1..30], elem i [1..k], elem j [1..i]
   triang i ti, triang j tj, triang k tk
   plus ti tj tk
 
-#nub stepN
+{-# NUB stepN #-}
 stepN 0 0
 stepN n' r :- n' > 0, succ n n', stepN n i, succ i i', elem r [i,i']
 

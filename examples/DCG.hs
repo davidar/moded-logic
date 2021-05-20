@@ -4,7 +4,7 @@ module DCG where
 append [] b b
 append (h:t) b (h:tb) :- append t b tb
 
-#inline compose
+{-# INLINE compose #-}
 compose f g a z :- g a b, f b z
 
 data Tree = S Tree Tree | NP String String | VP String Tree

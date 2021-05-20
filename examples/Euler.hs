@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
 module Euler where
 
-#type nat Integer
+{-# TYPE nat Integer #-}
 nat 0
 nat n' :- nat n, succ n n'
 
@@ -35,23 +35,23 @@ all' p (h:t) r :- p h r, all' p t r
 multiple y x :- mod x y 0
 divisor x y :- mod x y 0
 
-#inline apply
+{-# INLINE apply #-}
 apply f p y :- p x, f x y
 
-#inline apply2
+{-# INLINE apply2 #-}
 apply2 f p q z :- p x, q y, f x y z
 
 read s x :- show x s
 
 id x x
 
-#nub euler1
+{-# NUB euler1 #-}
 euler1 = (| (elem' [0..999]), multiple (| 3 | 5 |) |)
 
 euler1' = sum <$> observeAll euler1
 
-#memo fib
-#mode fib In Out
+{-# MEMO fib #-}
+{-# MODE fib In Out #-}
 fib 0 0
 fib 1 1
 fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
@@ -69,7 +69,7 @@ factor n (p:ps) f :-
   else if divMod n p d 0 then (| (id p) | (factor d (p:ps)) |) f
   else factor n ps f
 
-#memo prime
+{-# MEMO prime #-}
 prime 2
 prime p :-
   oddNat p, p > 2

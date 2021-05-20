@@ -72,3 +72,5 @@ tests:
     - -Wall
     dependencies:
     - moded-logic
+    build-tools:
+    - horn-preprocessor

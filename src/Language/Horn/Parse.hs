@@ -18,7 +18,7 @@ import Control.Monad.Logic.Moded.AST
   )
 import Control.Monad.Logic.Moded.Optimise (simp)
 import Control.Monad.State (MonadState(..), StateT, evalStateT)
-import Data.Char (isSpace, isUpper)
+import Data.Char (isSpace, isUpper, toLower)
 import Data.Functor (($>), void)
 import Data.List (groupBy)
 import qualified Data.Map as Map
@@ -49,7 +49,10 @@ lineComment :: Parser ()
 lineComment = L.skipLineComment "--"
 
 blockComment :: Parser ()
-blockComment = L.skipBlockComment "{-" "-}"
+blockComment = do
+  try $ string "{-" *> notFollowedBy (string "#")
+  manyTill anySingle $ string "-}"
+  pure ()
 
 spaceConsumer :: Parser ()
 spaceConsumer = L.space (void $ oneOf [' ', '\t']) lineComment blockComment
@@ -272,13 +275,16 @@ rule = do
   pure $ Rule name vars body
 
 pragma :: Parser Pragma
-pragma = do
-  prefix <-
-    rword "data" $> ["data"] <|> rword "module" $> ["module"] <|>
-    symbol "#" $> []
-  ws <-
-    some (identifier <|> operator <|> lexeme (some (oneOf ("()[]," :: [Char]))))
-  pure . Pragma $ prefix ++ ws
+pragma =
+  (do prefix <- rword "data" $> ["data"] <|> rword "module" $> ["module"]
+      ws <- some content
+      pure . Pragma $ prefix ++ ws) <|>
+  (do symbol "{-#"
+      (w:ws) <- someTill content $ symbol "#-}"
+      pure . Pragma $ map toLower w : ws)
+  where
+    content =
+      identifier <|> operator <|> lexeme (some (oneOf ("()[]," :: [Char])))
 
 data ParseResult
   = PRule (Rule Val Val)

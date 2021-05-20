@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2125c5bef6ab836bb5e96d22030c0afe4f90ff41cb2a111b0282dbbaf70078c5
+-- hash: 2fe43ba8e2ceb32d9520517a5f49c7fd7bd42f0dad8303992edbbf682db80cd4
 
 name:           moded-logic
 version:        0.1.0.0
@@ -116,6 +116,8 @@ test-suite moded-logic-test
       examples
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-tools:
+      horn-preprocessor
   build-depends:
       MemoTrie
     , OneTuple
