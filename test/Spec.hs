@@ -27,534 +27,24 @@ import Control.Monad.Stream (observe, observeMany, observeManyT, observeAll, obs
 import qualified Data.List as List
 import Data.Maybe (isJust)
 import qualified Data.Text as T
-import Data.Text (Text)
 import qualified Data.Text.IO as TIO
 import Language.Horn.Codegen (compile)
 import Language.Horn.Parse (parseProg, rule)
 import qualified Language.Horn.Prelude as HornPrelude
 import Language.Horn.Preprocess (combineDefs, superhomogeneous)
-import NeatInterpolation (text)
 import System.Environment (lookupEnv)
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn, shouldSatisfy)
 import Text.Megaparsec (errorBundlePretty, parse)
-
-programAppend :: Text
-programAppend = [text|
-append [] b b
-append (h:t) b (h:tb) :- append t b tb
-
-append3 a b c abc :-
-  append a b ab, append ab c abc
-
-reverse [] []
-reverse (h:t) l :- reverse t r, append r [h] l
-
-palindrome a :- reverse a a
-duplicate a b :- append a a b
-classify xs r :- if palindrome xs then r = Just []
-            else if duplicate h xs then r = Just h
-            else r = Nothing
-
-delete h (h:t) t
-delete x (h:t) (h:r) :- delete x t r
-perm [] []
-perm xs (h:t) :- delete h xs ys, perm ys t
-
-last xs x :- append _ [x] xs
-
-id x x
-|]
-
-programHigherOrder :: Text
-programHigherOrder = [text|
-even n :- mod n 2 0
-
-map _ [] []
-map p (x:xs) (y:ys) :- p x y, map p xs ys
-
-succs xs ys :- map succ xs ys
-
-filter _ [] []
-filter p (h:t) ts :-
-  if p h
-  then filter p t t', ts = (h:t')
-  else filter p t ts
-
-evens xs ys :- filter even xs ys
-
-foldl _ [] a a
-foldl p (h:t) a a'' :- p h a a', foldl p t a' a''
-
-sum xs z r :- foldl plus xs z r
-split xs z r :- foldl (\x a a' :- a = (x:a')) xs z r
-splitr xs z r :- foldl (\x a a' :- a' = (x:a)) xs z r
-
-closure p x y :- p x y
-closure p x y :- p x z, closure p z y
-
-smaller 1 2
-smaller 2 3
-smallerTransitive x y :- closure smaller x y
-
-compose f g a z :- g a b, f b z
-composeTest a z :- compose (times 2) (plus 1) a z
-
-inlineTest y :- (p x :- x = y), p 7
-|]
-
-programPrimes :: Text
-programPrimes = [text|
-integers low high result :-
-  if low <= high
-  then succ low m, integers m high rest, result = (low:rest)
-  else result = []
-
-remove _ [] []
-remove p (j:js) result :-
-  mod j p m
-  remove p js njs
-  if m = 0 then result = njs else result = (j:njs)
-
-sift [] []
-sift (p:js) (p:ps) :- remove p js new, sift new ps
-
-primes limit ps :- integers 2 limit js, sift js ps
-|]
-
-programSort :: Text
-programSort = [text|
-partition [] _ [] []
-partition (h:t) p lo hi :-
-  if h <= p
-  then partition t p lo1 hi, lo = (h:lo1)
-  else partition t p lo hi1, hi = (h:hi1)
-
-qsort [] r r
-qsort (x:xs) r r0 :-
-  partition xs x ys zs
-  qsort zs r1 r0
-  qsort ys r (x:r1)
-
-sort list sorted :- qsort list sorted []
-|]
-
-programQueens :: Text
-programQueens = [text|
-qdelete h (h:t) t
-qdelete x (h:t) (h:r) :- qdelete x t r
-qperm [] []
-qperm xs (h:t) :- qdelete h xs ys, qperm ys t
-
-nodiag _ _ []
-nodiag b d (h:t) :-
-  plus hmb b h
-  plus bmh h b
-  succ d d1
-  if d = hmb then empty
-  else if d = bmh then empty
-  else nodiag b d1 t
-
-safe []
-safe (h:t) :- nodiag h 1 t, safe t
-
-queens1 dat out :- qperm dat out, safe out
-
-cqueens [] _ []
-cqueens xs history (q:m) :-
-  xs = (_:_)
-  qdelete q xs r
-  nodiag q 1 history
-  cqueens r (q:history) m
-
-queens2 dat out :- cqueens dat [] out
-|]
-
-programCrypt :: Text
-programCrypt = [text|
-sumDigits [] [] carry cs :-
-  if carry = 0 then cs = [] else cs = [carry]
-sumDigits [] (b:bs) carry (c:cs) :-
-  if carry = 0 then c = b, cs = bs else
-  plus b carry x
-  divMod x 10 carry' c
-  sumDigits [] bs carry' cs
-sumDigits (a:as) [] carry (c:cs) :-
-  if carry = 0 then c = a, cs = as else
-  plus a carry x
-  divMod x 10 carry' c
-  sumDigits [] as carry' cs
-sumDigits (a:as) (b:bs) carry (c:cs) :-
-  sum [a, b, carry] x
-  divMod x 10 carry' c
-  sumDigits as bs carry' cs
-
-mulDigits (a:as) d carry (b:bs) :-
-  timesInt a d ad
-  plus ad carry x
-  divMod x 10 carry' b
-  mulDigits as d carry' bs
-mulDigits [] _ carry [c,c'] :-
-  divMod carry 10 c' c
-
-zeros []
-zeros (z:zs) :- z = 0, zeros zs
-
-oddDigit 1
-oddDigit 3
-oddDigit 5
-oddDigit 7
-oddDigit 9
-
-evenDigit 0
-evenDigit 2
-evenDigit 4
-evenDigit 6
-evenDigit 8
-
-crypt [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p] :-
-  oddDigit a, evenDigit b, evenDigit c
-  evenDigit d, d > 0, evenDigit e
-  mulDigits [c,b,a] e 0 (i:h:g:f:x)
-  evenDigit f, f > 0, oddDigit g, evenDigit h, evenDigit i
-  zeros x
-  mulDigits [c,b,a] d 0 (l:k:j:y)
-  evenDigit j, j > 0, oddDigit k, evenDigit l
-  zeros y
-  sumDigits [i,h,g,f] [0,l,k,j] 0 (p:o:n:m:z)
-  oddDigit m, oddDigit n, evenDigit o, evenDigit p
-  zeros z
-|]
-
-programKiselyov :: Text
-programKiselyov = [text|
-nat 0
-nat n' :- nat n, succ n n'
-
-elem x (x:_)
-elem x (_:xs) :- elem x xs
-
-insert e l (e:l)
-insert e (h:t) (h:t') :- insert e t t'
-
-permute [] []
-permute (h:t) r :- permute t t', insert h t' r
-
-sorted []
-sorted [_]
-sorted (a:b:r) :- a <= b, sorted (b:r)
-
-suffix l l
-suffix (_:t) r :- suffix t r
-
-prefix _ []
-prefix (h:t) (h:t') :- prefix t t'
-
-length [] 0
-length (_:t) n' :- length t n, succ n n'
-
-#inline apply
-apply f p y :- p x, f x y
-
-id x x
-
--- http://okmij.org/ftp/Computation/monads.html#fair-bt-stream
-pythag i j k :-
-  nat i, i > 0, nat j, j > 0, nat k, k > 0, i < j
-  timesInt i i ii, timesInt j j jj, timesInt k k kk
-  plus ii jj kk
-
--- http://okmij.org/ftp/Haskell/set-monad.html
-triang n r :- succ n n', timesInt n n' nn', div nn' 2 r
-
-#nub ptriang
-ptriang k :-
-  elem k [1..30], elem i [1..k], elem j [1..i]
-  triang i ti, triang j tj, triang k tk
-  plus ti tj tk
-
-#nub stepN
-stepN 0 0
-stepN n' r :- n' > 0, succ n n', stepN n i, succ i i', elem r [i,i']
-
--- http://okmij.org/ftp/papers/LogicT.pdf
-test 10
-test 20
-test 30
-
-odds 1
-odds n :- odds m, plus 2 m n
-
-even n :- mod n 2 0
-
-oddsTest = (| (| odds | test |), even |)
-
-oddsPlus n x :- odds a, plus a n x
-
-oddsPlusTest = (| oddsPlus (| 0 | 1 |), even |)
-
-oddsPrime n :-
-  odds n, n > 1, succ n' n
-  not (elem d [1..n'], d > 1, mod n d 0)
-
-nontrivialDivisor n d :- succ n' n, elem d [2..n'], mod n d 0
-
-oddsPrimeIO n :-
-  odds n, n > 1
-  not (nontrivialDivisor n d, print d)
-
-bogosort l p :- permute l p, sorted p
-
--- http://okmij.org/ftp/continuations/generators.html#logicT
-equal p q = (| p, q |)
-
-tcomp i j k = equal (| i | j | k |) (| 0 | 1 |)
-
-tcomp_ex1 r :-
-  if tcomp (id 2) (id 1) (id 3) i
-  then r = Just i else r = Nothing
-
-findI pat str i :-
-  suffix str t, prefix t pat
-  length t m, length str n, plus i m n
-|]
-
-programDCG :: Text
-programDCG = [text|
-append [] b b
-append (h:t) b (h:tb) :- append t b tb
-
-#inline compose
-compose f g a z :- g a b, f b z
-
-#data Tree = S Tree Tree | NP String String | VP String Tree
-
-det "the"
-det "a"
-noun "cat"
-noun "bat"
-verb "eats"
-
-np (NP d n) = append d . append " " . append n :- det d, noun n
-vp (VP v n) = append v . append " " . np n :- verb v
-sentence (S n v) = np n . append " " . vp v
-|]
-
-programEuler :: Text
-programEuler = [text|
-#type nat Integer
-nat 0
-nat n' :- nat n, succ n n'
-
-oddNat 1
-oddNat n' :- oddNat n, plus n 2 n'
-
-even x :- mod x 2 0
-
-elem x (x:_)
-elem x (_:xs) :- elem x xs
-elem' xs x :- elem x xs
-
-span _ [] [] []
-span p (x:xs) ys zs :-
-  if p x
-  then span p xs yt zs, ys = (x:yt)
-  else ys = [], zs = (x:xs)
-
-takeWhile p xs ys :- span p xs ys _
-
-reverseDL [] xs xs
-reverseDL (h:t) rest r :- reverseDL t (h:rest) r
-reverse s r :- reverseDL s [] r
-
-all _ []
-all p (h:t) :- p h, all p t
-
-all' _ [] _
-all' p (h:t) r :- p h r, all' p t r
-
-multiple y x :- mod x y 0
-divisor x y :- mod x y 0
-
-#inline apply
-apply f p y :- p x, f x y
-
-#inline apply2
-apply2 f p q z :- p x, q y, f x y z
-
-read s x :- show x s
-
-id x x
-
-#nub euler1
-euler1 = (| (elem' [0..999]), multiple (| 3 | 5 |) |)
-
-euler1' = sum <$> observeAll euler1
-
-#memo fib
-#mode fib In Out
-fib 0 0
-fib 1 1
-fib k fk :- k > 1, succ i j, succ j k, fib i fi, fib j fj, plus fi fj fk
-
-fib' = (| fib nat |)
-
-euler2 = sum <$> takeWhile (< 1000000) <$> observeAll (| fib', even |)
-
-nontrivialDivisor n d :- succ n' n, elem d [2..n'], divisor n d
-
-primeSlow n :- nat n, n > 1, not (nontrivialDivisor n _)
-
-factor n (p:ps) f :-
-  if timesInt p p pp, pp > n then id n f
-  else if divMod n p d 0 then (| (id p) | (factor d (p:ps)) |) f
-  else factor n ps f
-
-#memo prime
-prime 2
-prime p :-
-  oddNat p, p > 2
-  observeAll prime primes
-  not (factor p primes d, p /= d)
-
-primeFactor n = factor n <$> observeAll prime
-
-euler3 n = maximum <$> observeAll (primeFactor n)
-
-palindrome s :- reverse s s
-
-euler4 = (| timesInt (elem' [10..99]) (elem' [10..99]), read palindrome |)
-
-euler4' = maximum <$> observeAll euler4
-
-euler5 = (| nat, (> 0), (all' multiple [1..5]) |)
-|]
-
--- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs
-programCannibals :: Text
-programCannibals = [text|
-elem x (x:_)
-elem x (_:xs) :- elem x xs
-
-append [] b b
-append (h:t) b (h:tb) :- append t b tb
-
-#inline compose
-compose f g a z :- g a b, f b z
-
-#data State = State Int Int Int Int Int Int
-#data Action = F Int Int | B Int Int
-#data Search = Search State [State] [Action]
-
-final (State 0 0 _ _ _ _)
-
-action (F 1 0)
-action (F 0 1)
-action (F 2 0)
-action (F 0 2)
-action (F 1 1)
-action (B 1 0)
-action (B 0 1)
-action (B 2 0)
-action (B 0 2)
-action (B 1 1)
-
-check (State m1 c1 _ m2 c2 _) :-
-  m1 >= 0, m2 >= 0, c1 >= 0, c2 >= 0
-  (| 0 | (>= c1) |) m1
-  (| 0 | (>= c2) |) m2
-
-move (State m1 c1 b1 m2 c2 b2) (F mm cm) s :-
-  b1 > 0
-  plus mm m1' m1
-  plus cm c1' c1
-  succ b1' b1
-  plus mm m2 m2'
-  plus cm c2 c2'
-  succ b2 b2'
-  s = State m1' c1' b1' m2' c2' b2'
-  check s
-move (State m1 c1 b1 m2 c2 b2) (B mm cm) s :-
-  b2 > 0
-  plus mm m1 m1'
-  plus cm c1 c1'
-  succ b1 b1'
-  plus mm m2' m2
-  plus cm c2' c2
-  succ b2' b2
-  s = State m1' c1' b1' m2' c2' b2'
-  check s
-
-appendShow x = append s :- show x s
-
-showMove c a s = append "Tentative move: " . appendShow c . append " -" . appendShow a . append "-> " . appendShow s
-
-solve (Search current seen actions) r :-
-  action a
-  move current a s
-  not (elem s seen)
-  showMove current a s [] msg
-  putStrLn msg
-  news = Search s (s:seen) (a:actions)
-  if final s then r = news else solve news r
-|]
-
--- https://github.com/Kakadu/LogicT-demos/blob/master/TicTacToe.hs
-programTicTacToe :: Text
-programTicTacToe = [text|
-elem x (x:_)
-elem x (_:xs) :- elem x xs
-
-boardSize 3
-marksForWin 3
-
-#data Mark = X | O
-#data Location = Loc Int Int
-#data Entry = Entry Location Mark
-#data Direction = N | NE | E | SE | S | SW | W | NW
-
-direction N S
-direction NE SW
-direction E W
-direction SE NW
-
-move N  (Loc x y) (Loc x  y') :- succ y y'
-move NE (Loc x y) (Loc x' y') :- succ x x', succ y y'
-move E  (Loc x y) (Loc x' y)  :- succ x x'
-move SE (Loc x y) (Loc x' y') :- succ x x', succ y' y
-move S  (Loc x y) (Loc x  y') :- succ y' y
-move SW (Loc x y) (Loc x' y') :- succ x' x, succ y' y
-move W  (Loc x y) (Loc x' y)  :- succ x' x
-move NW (Loc x y) (Loc x' y') :- succ x' x, succ y y'
-
-location (Loc x y) :-
-  boardSize n
-  x >= 0, y >= 0, x < n, y < n
-
-loop board dir m n loc loc' rn rloc :-
-  if location loc'
-     elem (Entry loc' m) board
-  then succ n n'
-       move dir loc' loc''
-       loop board dir m n' loc' loc'' rn rloc
-  else rn = n
-       rloc = loc
-
-extendLocation board dir m loc = loop board dir m 0 loc loc' :- move dir loc loc'
-
-cluster board m loc dir1 dir2 n end :-
-  extendLocation board dir1 m loc n1 end
-  extendLocation board dir2 m loc n2 _
-  plus n1 n2 n', succ n' n
-|]
 
 prime25 :: [Integer]
 prime25 =
   [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41
   , 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97 ]
 
-compileTest :: String -> Text -> IO ()
-compileTest name src = do
+compileTest :: String -> IO ()
+compileTest name = do
+  src <- TIO.readFile $ "examples/" ++ name ++ ".hn"
   let program = either (error . errorBundlePretty) id $ parseProg "" src
   print program
   let code = compile (T.pack name) program
@@ -582,7 +72,7 @@ main = do
         show r2 `shouldBe` "result n :- ((((apply pred0 pred2 n, (pred0 curry1 curry2 :- sum curry1 curry2), (pred2 curry1 :- (observeAll pred1 curry1, (pred1 curry1 :- p curry1)))))))."
         show r3 `shouldBe` "result n :- ((apply pred0 pred2 n, (pred0 curry1 curry2 :- sum curry1 curry2), (pred2 curry1 :- (observeAll pred1 curry1, (pred1 curry1 :- p curry1)))))."
     describe "Append" $ do
-      it "compile" $ compileTest "Append" programAppend
+      it "compile" $ compileTest "Append"
       it "append" $ do
         observeAll (call @'[In, In, Out] Append.append [1 .. 3] [4 .. 6]) `shouldBe` [[1 .. 6]]
         observeAll (call @'[In, In, In] Append.append [1 .. 3] [4 .. 6] [1 .. 6]) `shouldBe` guard True
@@ -632,7 +122,7 @@ main = do
         observeAll (call @[In, In] Append.id 7 7) `shouldBe` guard True
         observeAll (call @[In, In] Append.id 7 8) `shouldBe` guard False
     describe "HigherOrder" $ do
-      it "compile" $ compileTest "HigherOrder" programHigherOrder
+      it "compile" $ compileTest "HigherOrder"
       it "map" $ do
         observeAll (call @'[PredMode '[In, Out], In, Out] HigherOrder.map HornPrelude.succ [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (call @'[PredMode '[Out, In], Out, In] HigherOrder.map HornPrelude.succ [1 .. 10]) `shouldBe` [[0 .. 9]]
@@ -656,13 +146,13 @@ main = do
       it "inline" $ do
         observeAll (call @'[Out] HigherOrder.inlineTest) `shouldBe` [7]
     describe "Primes" $ do
-      it "compile" $ compileTest "Primes" programPrimes
+      it "compile" $ compileTest "Primes"
       it "primes" $ do
         observeAll (call @'[In, Out] Primes.primes 100) `shouldBe` [prime25]
         observeAll (call @'[In, In] Primes.primes 100 prime25) `shouldBe` guard True
         observeAll (call @'[In, In] Primes.primes 100 [2 .. 99]) `shouldBe` guard False
     describe "Sort" $ do
-      it "compile" $ compileTest "Sort" programSort
+      it "compile" $ compileTest "Sort"
       it "sort" $ do
         let xs = [27,74,17,33,94,18,46,83,65,2,32,53,28,85,99,47,28,82,6,11,55,29,39,81,
                   90,37,10,0,66,51,7,21,85,27,31,63,75,4,95,99,11,28,61,74,18,92,40,53,59,8]
@@ -670,7 +160,7 @@ main = do
         observeAll (call @'[In, In] Sort.sort xs (List.sort xs)) `shouldBe` guard True
         observeAll (call @'[In, In] Sort.sort xs xs) `shouldBe` guard False
     describe "Queens" $ do
-      it "compile" $ compileTest "Queens" programQueens
+      it "compile" $ compileTest "Queens"
       it "queens1" $ do
         observeAll (call @'[In, Out] Queens.queens1 [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
       it "queens2" $ do
@@ -680,7 +170,7 @@ main = do
         List.sort (observeAll (call @'[In, Out] Queens.queens1 [1 .. n])) `shouldBe`
         List.sort (observeAll (call @'[In, Out] Queens.queens2 [1 .. n]))
     describe "Crypt" $ do
-      it "compile" $ compileTest "Crypt" programCrypt
+      it "compile" $ compileTest "Crypt"
       it "crypt" $ do
         observeAll (call @'[Out] Crypt.crypt) `shouldBe` pure
           [   3,4,8 --    OEE
@@ -694,7 +184,7 @@ main = do
         348 * 28 `shouldBe` 2784 + 6960
         2784 + 6960 `shouldBe` 9744
     describe "Kiselyov" $ do
-      it "compile" $ compileTest "Kiselyov" programKiselyov
+      it "compile" $ compileTest "Kiselyov"
       it "elem" $ do
         observeAll (call @'[In, In] Kiselyov.elem 2 [1,2,3]) `shouldBe` guard True
       it "pythag" $ do
@@ -734,7 +224,7 @@ main = do
             twosen = liftIO . print =<< call @'[In, In, Out] Kiselyov.findI "or" =<< sentence1 <|> sentence2
         observeAllT twosen `shouldReturn` replicate 4 ()
     describe "DCG" $ do
-      it "compile" $ compileTest "DCG" programDCG
+      it "compile" $ compileTest "DCG"
       it "sentence" $ do
         let dets = ["a", "the"]
             nouns = ["bat", "cat"]
@@ -745,7 +235,7 @@ main = do
         observeAll (call @'[Out, In, In] DCG.sentence [] sent) `shouldBe` [tree]
         observeAll (call @'[In, In, Out] DCG.sentence tree []) `shouldBe` [sent]
     describe "Euler" $ do
-      it "compile" $ compileTest "Euler" programEuler
+      it "compile" $ compileTest "Euler"
       it "1" $ do
         observeAll (call @'[Out] Euler.euler1') `shouldBe` [233168]
       it "2" $ do
@@ -764,7 +254,7 @@ main = do
       it "5" $ do
         observe (call @'[Out] Euler.euler5) `shouldBe` 60
     describe "Cannibals" $ do
-      it "compile" $ compileTest "Cannibals" programCannibals
+      it "compile" $ compileTest "Cannibals"
       it "solve" $ do
         let s = Cannibals.State 3 3 1 0 0 0
             start = Cannibals.Search s [s] []
@@ -776,4 +266,4 @@ main = do
               ,[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]]
         (List.sort <$> observeAllT (actions <$> call @'[In, Out] Cannibals.solve start)) `shouldReturn` expect
     describe "TicTacToe" $ do
-      it "compile" $ compileTest "TicTacToe" programTicTacToe
+      it "compile" $ compileTest "TicTacToe"
