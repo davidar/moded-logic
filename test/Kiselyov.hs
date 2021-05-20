@@ -2,7 +2,7 @@
 module Kiselyov where
 
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.Prelude
+import Language.Horn.Prelude
 
 {- nat/1
 nat arg1 :- ((arg1 = 0); (nat n, succ n n', arg1 = n')).

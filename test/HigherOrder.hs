@@ -2,7 +2,7 @@
 module HigherOrder where
 
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.Prelude
+import Language.Horn.Prelude
 
 {- even/1
 even n :- ((mod n data0 data1, data0 = 2, data1 = 0)).

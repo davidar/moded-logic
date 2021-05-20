@@ -1,11 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-do-bind #-}
 
-module Control.Monad.Logic.Moded.Parse
+module Language.Horn.Parse
   ( parseProg
   , rule
   ) where
 
+import Control.Monad (forM, void)
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Func(..)
@@ -15,16 +16,7 @@ import Control.Monad.Logic.Moded.AST
   , Rule(..)
   , Var(..)
   )
-import Control.Monad.Logic.Moded.Preprocess
-  ( Val(..)
-  , combineDefs
-  , distinctVars
-  , simp
-  , superhomogeneous
-  )
-
-import Control.Monad (forM, void)
-import Control.Monad.Logic.Moded.Prelude (modesPrelude)
+import Control.Monad.Logic.Moded.Optimise (simp)
 import Control.Monad.State (MonadState(..), StateT, evalStateT)
 import Data.Char (isSpace, isUpper)
 import Data.List (groupBy)
@@ -32,6 +24,13 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Void (Void)
+import Language.Horn.Prelude (modesPrelude)
+import Language.Horn.Preprocess
+  ( Val(..)
+  , combineDefs
+  , distinctVars
+  , superhomogeneous
+  )
 
 import Text.Megaparsec
 import Text.Megaparsec.Char

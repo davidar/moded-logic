@@ -18,11 +18,8 @@ import Control.Exception (IOException, catch)
 import Control.Monad (forM_, guard, when)
 import Control.Monad.IO.Class (liftIO)
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.Codegen (compile)
 import Control.Monad.Logic.Moded.Mode (Mode(..))
-import Control.Monad.Logic.Moded.Parse (parseProg, rule)
-import qualified Control.Monad.Logic.Moded.Prelude as MPrelude
-import Control.Monad.Logic.Moded.Preprocess (combineDefs, superhomogeneous, simp)
+import Control.Monad.Logic.Moded.Optimise (simp)
 import Control.Monad.Logic.Moded.Procedure (call)
 import Control.Monad.State (evalStateT)
 import qualified Control.Monad.Stream as Stream
@@ -32,6 +29,10 @@ import Data.Maybe (isJust)
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Data.Text.IO as TIO
+import Language.Horn.Codegen (compile)
+import Language.Horn.Parse (parseProg, rule)
+import qualified Language.Horn.Prelude as HornPrelude
+import Language.Horn.Preprocess (combineDefs, superhomogeneous)
 import NeatInterpolation (text)
 import System.Environment (lookupEnv)
 import Test.Hspec (describe, hspec, it)
@@ -633,8 +634,8 @@ main = do
     describe "HigherOrder" $ do
       it "compile" $ compileTest "HigherOrder" programHigherOrder
       it "map" $ do
-        observeAll (call @'[PredMode '[In, Out], In, Out] HigherOrder.map MPrelude.succ [0 .. 9]) `shouldBe` [[1 .. 10]]
-        observeAll (call @'[PredMode '[Out, In], Out, In] HigherOrder.map MPrelude.succ [1 .. 10]) `shouldBe` [[0 .. 9]]
+        observeAll (call @'[PredMode '[In, Out], In, Out] HigherOrder.map HornPrelude.succ [0 .. 9]) `shouldBe` [[1 .. 10]]
+        observeAll (call @'[PredMode '[Out, In], Out, In] HigherOrder.map HornPrelude.succ [1 .. 10]) `shouldBe` [[0 .. 9]]
         observeAll (call @'[In, Out] HigherOrder.succs [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (call @'[Out, In] HigherOrder.succs [1 .. 10]) `shouldBe` [[0 .. 9]]
       it "filter" $ do

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f86b14aa9b3b6fc7724b678d89d425390157d554ef63dd34fc61919d4949941f
+-- hash: c7d20572522c6bd9fab06a3fb4a24fe6aba60146be27200588b68e43befae88b
 
 name:           moded-logic
 version:        0.1.0.0
@@ -28,16 +28,17 @@ source-repository head
 library
   exposed-modules:
       Control.Monad.Logic.Moded.AST
-      Control.Monad.Logic.Moded.Codegen
       Control.Monad.Logic.Moded.Constraints
       Control.Monad.Logic.Moded.Mode
-      Control.Monad.Logic.Moded.Parse
+      Control.Monad.Logic.Moded.Optimise
       Control.Monad.Logic.Moded.Path
-      Control.Monad.Logic.Moded.Prelude
-      Control.Monad.Logic.Moded.Preprocess
       Control.Monad.Logic.Moded.Procedure
       Control.Monad.Logic.Moded.Schedule
       Control.Monad.Logic.Moded.Solver
+      Language.Horn.Codegen
+      Language.Horn.Parse
+      Language.Horn.Prelude
+      Language.Horn.Preprocess
   other-modules:
       Paths_moded_logic
   hs-source-dirs:

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
 
-module Control.Monad.Logic.Moded.Codegen
+module Language.Horn.Codegen
   ( compile
   ) where
 
@@ -29,6 +29,7 @@ import qualified Data.Set as Set
 import Data.Set (Set)
 import qualified Data.Text as T
 import Data.Text (Text)
+import Language.Horn.Prelude (modesPrelude)
 import NeatInterpolation (text)
 
 nonlocals' :: Path -> Rule ModedVar ModedVar -> Set Var
@@ -223,7 +224,7 @@ compile moduleName (Prog pragmas rules) =
     module $moduleName where
 
     import qualified Control.Monad.Logic as Logic
-    import Control.Monad.Logic.Moded.Prelude
+    import Language.Horn.Prelude
 
     $code
   |]
@@ -234,7 +235,12 @@ compile moduleName (Prog pragmas rules) =
       | Pragma d <- pragmas
       , head d == "data"
       ] ++ do
-        (name, c) <- predicates $ foldl (compileRule pragmas) mempty rules
+        (name, c) <-
+          predicates $
+          foldl
+            (compileRule (Map.map (map ModeString) modesPrelude) pragmas)
+            mempty
+            rules
         let arity = length . ruleArgs $ unmodedRule c
             doc =
               T.unlines $

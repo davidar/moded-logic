@@ -2,7 +2,7 @@
 module Primes where
 
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.Prelude
+import Language.Horn.Prelude
 
 {- integers/3
 integers low high result :- ((if ((<=) low high) then (succ low m, integers m high rest, result = low:rest) else (result = []))).

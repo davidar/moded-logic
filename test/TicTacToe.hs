@@ -2,7 +2,7 @@
 module TicTacToe where
 
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.Prelude
+import Language.Horn.Prelude
 
 data Mark = X | O deriving (Eq, Ord, Read, Show)
 data Location = Loc Int Int deriving (Eq, Ord, Read, Show)

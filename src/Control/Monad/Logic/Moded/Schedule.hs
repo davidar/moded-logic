@@ -30,14 +30,8 @@ import Control.Monad.Logic.Moded.Constraints
   , inferModes
   , solveConstraintsMode
   )
+import Control.Monad.Logic.Moded.Optimise (Macro, inlinePreds, prunePreds, simp)
 import Control.Monad.Logic.Moded.Path (nonlocals)
-import Control.Monad.Logic.Moded.Prelude (modesPrelude)
-import Control.Monad.Logic.Moded.Preprocess
-  ( Macro
-  , inlinePreds
-  , prunePreds
-  , simp
-  )
 import Control.Monad.State (evalState)
 import Data.Either (partitionEithers)
 import Data.Foldable (Foldable(toList))
@@ -149,8 +143,13 @@ mode r@(Rule name vars body) soln =
     walk p (Atom (Pred n vs)) = pure . Atom $ Pred (MV n In) (annotate p <$> vs)
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
-compileRule :: [Pragma] -> CompiledProgram -> Rule Var Var -> CompiledProgram
-compileRule pragmas cp r
+compileRule ::
+     Map Name [ModeString]
+  -> [Pragma]
+  -> CompiledProgram
+  -> Rule Var Var
+  -> CompiledProgram
+compileRule envModes pragmas cp r
   | Pragma ["inline", ruleName r] `elem` pragmas =
     cp <> mempty {macros = [(ruleName r, (ruleArgs r, ruleBody r, mempty))]}
   | otherwise =
@@ -209,7 +208,7 @@ compileRule pragmas cp r
         , errors = fst =<< pairs
         }
     m =
-      flip Map.union (Map.map (map ModeString) modesPrelude) . Map.fromList $ do
+      flip Map.union envModes . Map.fromList $ do
         (name', c) <- predicates cp
         pure (name', Map.keys (procedures c))
     fixpt f x = do

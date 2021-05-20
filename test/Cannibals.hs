@@ -2,7 +2,7 @@
 module Cannibals where
 
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.Prelude
+import Language.Horn.Prelude
 
 data State = State Int Int Int Int Int Int deriving (Eq, Ord, Read, Show)
 data Action = F Int Int | B Int Int deriving (Eq, Ord, Read, Show)

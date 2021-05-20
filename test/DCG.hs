@@ -2,7 +2,7 @@
 module DCG where
 
 import qualified Control.Monad.Logic as Logic
-import Control.Monad.Logic.Moded.Prelude
+import Language.Horn.Prelude
 
 data Tree = S Tree Tree | NP String String | VP String Tree deriving (Eq, Ord, Read, Show)
 {- append/3
