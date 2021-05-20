@@ -1,11 +1,10 @@
 module Main where
 
-import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Language.Horn.Codegen (compile)
 import Language.Horn.Parse (parseProg)
 import System.Environment (getArgs)
-import Text.Megaparsec (errorBundlePretty, parse)
+import Text.Megaparsec (errorBundlePretty)
 
 main :: IO ()
 main = do
@@ -19,8 +18,7 @@ main = do
 runConvert :: FilePath -> FilePath -> FilePath -> IO ()
 runConvert original input output = do
   src <- TIO.readFile input
-  let program = either (error . errorBundlePretty) id $ parseProg original src
-      code = compile program
+  program <- either (fail . errorBundlePretty) pure $ parseProg original src
   if output == "-"
-    then TIO.putStrLn code
-    else TIO.writeFile output code
+    then TIO.putStrLn $ compile program
+    else TIO.writeFile output $ compile program
