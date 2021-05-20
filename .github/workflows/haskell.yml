@@ -9,6 +9,7 @@ jobs:
       - uses: haskell/actions/setup@v1
         with:
           enable-stack: true
+      - run: stack build
       - name: Tests
         env:
           COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
