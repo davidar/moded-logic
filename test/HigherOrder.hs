@@ -214,38 +214,35 @@ succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] 
       pure (OneTuple (xs))
     
 {- filter/3
-filter arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = h0:t, h0 = h, if (p h) then (filter p t t', ts = h1:t', h1 = h) else (filter p t ts), arg1 = p, arg3 = ts)).
+filter arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = h:t, if (p h) then (filter p t t', ts = h0:t', h0 = h) else (filter p t ts), arg1 = p, arg3 = ts)).
 constraints:
 ~arg1[]
-~filter[1,2,1]
-~filter[1,2,2]
-~h[1,2]
-~h[1,2,0,0]
-~h[1,2,1,2]
-~p[1,2,1,0]
-~p[1,2,2]
-~(arg1[1,3] & p[1,3])
-~(arg2[1,0] & h0[1,0])
-~(arg3[1,4] & ts[1,4])
-~(h[1,1] & h[1,2])
-~(h0[1,0] & h0[1,1])
-~(h0[1,1] & h[1,1])
-~(h1[1,2,1,1] & h1[1,2,1,2])
-~(h1[1,2,1,2] & h[1,2,1,2])
-~(p[1,2] & p[1,3])
-~(t[1,0] & t[1,2])
-~(t'[1,2,1,0] & t'[1,2,1,1])
-~(ts[1,2] & ts[1,4])
-~(ts[1,2,1,1] & h1[1,2,1,1])
-(h[1,1] | h[1,2])
-(h0[1,0] | h0[1,1])
-(h1[1,2,1,1] | h1[1,2,1,2])
-(p[1,2] | p[1,3])
-(t[1,0] | t[1,2])
-(t'[1,2,1,0] | t'[1,2,1,1])
-(ts[1,2] | ts[1,4])
+~filter[1,1,1]
+~filter[1,1,2]
+~h[1,1]
+~h[1,1,0,0]
+~h[1,1,1,2]
+~p[1,1,1,0]
+~p[1,1,2]
+~(arg1[1,2] & p[1,2])
+~(arg2[1,0] & h[1,0])
+~(arg3[1,3] & ts[1,3])
+~(h[1,0] & h[1,1])
+~(h0[1,1,1,1] & h0[1,1,1,2])
+~(h0[1,1,1,2] & h[1,1,1,2])
+~(p[1,1] & p[1,2])
+~(t[1,0] & t[1,1])
+~(t'[1,1,1,0] & t'[1,1,1,1])
+~(ts[1,1] & ts[1,3])
+~(ts[1,1,1,1] & h0[1,1,1,1])
+(h[1,0] | h[1,1])
+(h0[1,1,1,1] | h0[1,1,1,2])
+(p[1,1] | p[1,2])
+(t[1,0] | t[1,1])
+(t'[1,1,1,0] | t'[1,1,1,1])
+(ts[1,1] | ts[1,3])
 (arg1[] <-> arg1[1])
-(arg1[1] <-> arg1[1,3])
+(arg1[1] <-> arg1[1,2])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,0])
@@ -253,36 +250,36 @@ constraints:
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
 (arg3[0] <-> arg3[0,1])
-(arg3[1] <-> arg3[1,4])
-(filter[1] <-> filter[1,2])
-(filter[1,2] <-> (filter[1,2,1] | filter[1,2,2]))
-(h[1,2,0,0] <-> arg1(1))
-(h[1,2,0,0] <-> p(1))
-(h0[1,0] <-> t[1,0])
-(h1[1,2,1,1] <-> t'[1,2,1,1])
-(p[1,2] <-> p[1,2,2])
-(p[1,2,1,0] <-> arg1[])
-(p[1,2,2] <-> p[1,2,2,0])
-(p[1,2,2,0] <-> arg1[])
-(t[1,2] <-> (t[1,2,1] | t[1,2,2]))
-(t[1,2,1] <-> t[1,2,1,0])
-(t[1,2,1] <-> t[1,2,2])
-(t[1,2,1,0] <-> arg2[])
-(t[1,2,2] <-> t[1,2,2,0])
-(t[1,2,2,0] <-> arg2[])
-(t'[1,2,1,0] <-> arg3[])
-(ts[1,2] <-> (ts[1,2,1] | ts[1,2,2]))
-(ts[1,2,1] <-> ts[1,2,1,1])
-(ts[1,2,1] <-> ts[1,2,2])
-(ts[1,2,2] <-> ts[1,2,2,0])
-(ts[1,2,2,0] <-> arg3[])
+(arg3[1] <-> arg3[1,3])
+(filter[1] <-> filter[1,1])
+(filter[1,1] <-> (filter[1,1,1] | filter[1,1,2]))
+(h[1,0] <-> t[1,0])
+(h[1,1,0,0] <-> arg1(1))
+(h[1,1,0,0] <-> p(1))
+(h0[1,1,1,1] <-> t'[1,1,1,1])
+(p[1,1] <-> p[1,1,2])
+(p[1,1,1,0] <-> arg1[])
+(p[1,1,2] <-> p[1,1,2,0])
+(p[1,1,2,0] <-> arg1[])
+(t[1,1] <-> (t[1,1,1] | t[1,1,2]))
+(t[1,1,1] <-> t[1,1,1,0])
+(t[1,1,1] <-> t[1,1,2])
+(t[1,1,1,0] <-> arg2[])
+(t[1,1,2] <-> t[1,1,2,0])
+(t[1,1,2,0] <-> arg2[])
+(t'[1,1,1,0] <-> arg3[])
+(ts[1,1] <-> (ts[1,1,1] | ts[1,1,2]))
+(ts[1,1,1] <-> ts[1,1,1,1])
+(ts[1,1,1] <-> ts[1,1,2])
+(ts[1,1,2] <-> ts[1,1,2,0])
+(ts[1,1,2,0] <-> arg3[])
 1
 -}
 
 filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (procedure @'[ 'PredMode '[ 'In ], 'In, 'Out ] filterP1IIO) :& RNil
   where
     filterP1III = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: h[1,1] h0[1,0] h1[1,2,1,1] p[1,3] t[1,0] t'[1,2,1,1] ts[1,4]
+      -- solution: h[1,0] h0[1,1,1,1] p[1,2] t[1,0] t'[1,1,1,1] ts[1,3]
       -- cost: 3
       () <- (do
         guard $ arg2 == []
@@ -290,15 +287,14 @@ filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (p
         pure ()
        ) <|> (do
         p <- pure arg1
-        (h0:t) <- pure arg2
+        (h:t) <- pure arg2
         ts <- pure arg3
-        h <- pure h0
         () <- Logic.ifte ((do
           () <- runProcedure @'[ 'In ] p h
           pure ()
          )) (\() -> (do
-          (h1:t') <- pure ts
-          guard $ h1 == h
+          (h0:t') <- pure ts
+          guard $ h0 == h
           () <- filterP1III p t t'
           pure ()
          )) ((do
@@ -310,7 +306,7 @@ filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (p
       pure ()
     
     filterP1IIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,4] h[1,1] h0[1,0] h1[1,2,1,2] p[1,3] t[1,0] t'[1,2,1,0] ts[1,2] ts[1,2,1] ts[1,2,1,1] ts[1,2,2] ts[1,2,2,0]
+      -- solution: arg3[] arg3[0] arg3[0,1] arg3[1] arg3[1,3] h[1,0] h0[1,1,1,2] p[1,2] t[1,0] t'[1,1,1,0] ts[1,1] ts[1,1,1] ts[1,1,1,1] ts[1,1,2] ts[1,1,2,0]
       -- cost: 5
       (arg3) <- (do
         guard $ arg2 == []
@@ -318,15 +314,14 @@ filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (p
         pure (arg3)
        ) <|> (do
         p <- pure arg1
-        (h0:t) <- pure arg2
-        h <- pure h0
+        (h:t) <- pure arg2
         (ts) <- Logic.ifte ((do
           () <- runProcedure @'[ 'In ] p h
           pure ()
          )) (\() -> (do
-          h1 <- pure h
+          h0 <- pure h
           (OneTuple (t')) <- filterP1IIO p t
-          ts <- pure (h1:t')
+          ts <- pure (h0:t')
           pure (ts)
          )) ((do
           (OneTuple (ts)) <- filterP1IIO p t

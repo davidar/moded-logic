@@ -22,7 +22,14 @@ import Control.Monad.Logic.Moded.AST
   )
 import Control.Monad.Logic.Moded.Mode (ModeString)
 import Control.Monad.Logic.Moded.Path (Path, nonlocals)
-import Control.Monad.State (MonadState(..), State, evalState, runState)
+import Control.Monad.State
+  ( MonadState(..)
+  , State
+  , evalState
+  , gets
+  , modify
+  , runState
+  )
 import Data.Foldable (toList)
 import Data.List (group, groupBy, nub, sort)
 import Data.Map (Map)
@@ -146,19 +153,19 @@ superhomogeneous arities r =
           else Conj $ Atom a' : body
 
 distinctVars :: Rule Var Var -> Rule Var Var
-distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) 0}
+distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) Map.empty}
   where
     vars (Atom (Unif _ f)) = toList f
     vars (Atom _) = []
     vars g = subgoals g >>= vars
-    tFunc :: [Var] -> Func Var -> State Int (Func Var, [Atom Var])
+    tFunc :: [Var] -> Func Var -> State (Map Var Int) (Func Var, [Atom Var])
     tFunc fdups (Func name vs) = do
       (vs', bodies) <- unzip <$> tFunc fdups `mapM` vs
       return (Func name vs', concat bodies)
     tFunc fdups (FVar v) = do
       (v', body) <- tVar fdups v
       return (FVar v', body)
-    tGoal :: [Var] -> Goal Var -> State Int (Goal Var)
+    tGoal :: [Var] -> Goal Var -> State (Map Var Int) (Goal Var)
     tGoal fdups (Disj gs) = Disj <$> tGoal fdups `mapM` gs
     tGoal fdups (Conj gs) = Conj <$> tGoal fdups' `mapM` gs
       where
@@ -180,16 +187,21 @@ distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) 0}
       let pdups = [head l | l <- group (sort vs), length l > 1]
       (vs', body) <- tVars pdups vs
       return . Conj $ Atom <$> Pred name vs' : concat body
-    tVars :: [Var] -> [Var] -> State Int ([Var], [[Atom Var]])
+    tVars :: [Var] -> [Var] -> State (Map Var Int) ([Var], [[Atom Var]])
     tVars dups vs = fmap unzip . forM vs $ tVar dups
-    tVar :: [Var] -> Var -> State Int (Var, [Atom Var])
+    tVar :: [Var] -> Var -> State (Map Var Int) (Var, [Atom Var])
     tVar dups v =
       if v `elem` dups && show v /= "_"
         then do
-          count <- get
-          put $ count + 1
-          let v' = V (show v ++ show count)
-          return (v', [Unif v' (FVar v)])
+          count <- gets $ Map.lookup v
+          case count of
+            Nothing -> do
+              modify $ Map.insert v 0
+              return (v, [])
+            Just c -> do
+              modify $ Map.insert v (c + 1)
+              let v' = V (show v ++ show c)
+              return (v', [Unif v' (FVar v)])
         else return (v, [])
 
 simplify :: Goal Var -> Goal Var

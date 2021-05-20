@@ -9,27 +9,24 @@ data Location = Loc Int Int deriving (Eq, Ord, Read, Show)
 data Entry = Entry Location Mark deriving (Eq, Ord, Read, Show)
 data Direction = N | NE | E | SE | S | SW | W | NW deriving (Eq, Ord, Read, Show)
 {- elem/2
-elem arg1 arg2 :- ((arg2 = x0:_, x0 = x, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
+elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
 constraints:
-x0[0,0]
+x[0,0]
 xs[1,0]
 ~arg2[1,0]
 ~elem[1]
-~(arg1[0,2] & x[0,2])
+~(arg1[0,1] & x[0,1])
 ~(arg1[1,2] & x[1,2])
-~(arg2[0,0] & x0[0,0])
-~(x[0,1] & x[0,2])
+~(arg2[0,0] & x[0,0])
+~(x[0,0] & x[0,1])
 ~(x[1,1] & x[1,2])
-~(x0[0,0] & x0[0,1])
-~(x0[0,1] & x[0,1])
 ~(xs[1,0] & xs[1,1])
-(x[0,1] | x[0,2])
+(x[0,0] | x[0,1])
 (x[1,1] | x[1,2])
-(x0[0,0] | x0[0,1])
 (xs[1,0] | xs[1,1])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
-(arg1[0] <-> arg1[0,2])
+(arg1[0] <-> arg1[0,1])
 (arg1[1] <-> arg1[1,2])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
@@ -43,11 +40,10 @@ xs[1,0]
 elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] elemOI) :& RNil
   where
     elemII = \arg1 arg2 -> Logic.once $ do
-      -- solution: x[0,1] x[1,2] x0[0,0] xs[1,0]
+      -- solution: x[0,0] x[1,2] xs[1,0]
       -- cost: 1
       () <- (do
-        (x0:_) <- pure arg2
-        x <- pure x0
+        (x:_) <- pure arg2
         guard $ arg1 == x
         pure ()
        ) <|> (do
@@ -59,11 +55,10 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure ()
     
     elemOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,2] arg1[1] arg1[1,2] x[0,1] x[1,1] x0[0,0] xs[1,0]
+      -- solution: arg1[] arg1[0] arg1[0,1] arg1[1] arg1[1,2] x[0,0] x[1,1] xs[1,0]
       -- cost: 2
       (arg1) <- (do
-        (x0:_) <- pure arg2
-        x <- pure x0
+        (x:_) <- pure arg2
         arg1 <- pure x
         pure (arg1)
        ) <|> (do
@@ -241,7 +236,7 @@ direction = rget $ (procedure @'[ 'In, 'In ] directionII) :& (procedure @'[ 'In,
       pure (arg1,arg2)
     
 {- move/3
-move arg1 arg2 arg3 :- ((arg1 = N, arg2 = Loc x0 y, x0 = x, arg3 = Loc x1 y', x1 = x, succ y y'); (arg1 = NE, arg2 = Loc x y, arg3 = Loc x' y', succ x x', succ y y'); (arg1 = E, arg2 = Loc x y2, y2 = y, arg3 = Loc x' y3, y3 = y, succ x x'); (arg1 = SE, arg2 = Loc x y, arg3 = Loc x' y', succ x x', succ y' y); (arg1 = S, arg2 = Loc x4 y, x4 = x, arg3 = Loc x5 y', x5 = x, succ y' y); (arg1 = SW, arg2 = Loc x y, arg3 = Loc x' y', succ x' x, succ y' y); (arg1 = W, arg2 = Loc x y6, y6 = y, arg3 = Loc x' y7, y7 = y, succ x' x); (arg1 = NW, arg2 = Loc x y, arg3 = Loc x' y', succ x' x, succ y y')).
+move arg1 arg2 arg3 :- ((arg1 = N, arg2 = Loc x y, arg3 = Loc x0 y', x0 = x, succ y y'); (arg1 = NE, arg2 = Loc x y, arg3 = Loc x' y', succ x x', succ y y'); (arg1 = E, arg2 = Loc x y, arg3 = Loc x' y0, y0 = y, succ x x'); (arg1 = SE, arg2 = Loc x y, arg3 = Loc x' y', succ x x', succ y' y); (arg1 = S, arg2 = Loc x1 y, x1 = x, arg3 = Loc x2 y', x2 = x, succ y' y); (arg1 = SW, arg2 = Loc x y, arg3 = Loc x' y', succ x' x, succ y' y); (arg1 = W, arg2 = Loc x y1, y1 = y, arg3 = Loc x' y2, y2 = y, succ x' x); (arg1 = NW, arg2 = Loc x y, arg3 = Loc x' y', succ x' x, succ y y')).
 constraints:
 ~succ[0]
 ~succ[1]
@@ -251,109 +246,103 @@ constraints:
 ~succ[5]
 ~succ[6]
 ~succ[7]
-~(arg2[0,1] & x0[0,1])
+~(arg2[0,1] & x[0,1])
 ~(arg2[1,1] & x[1,1])
 ~(arg2[2,1] & x[2,1])
 ~(arg2[3,1] & x[3,1])
-~(arg2[4,1] & x4[4,1])
+~(arg2[4,1] & x1[4,1])
 ~(arg2[5,1] & x[5,1])
 ~(arg2[6,1] & x[6,1])
 ~(arg2[7,1] & x[7,1])
-~(arg3[0,3] & x1[0,3])
+~(arg3[0,2] & x0[0,2])
 ~(arg3[1,2] & x'[1,2])
-~(arg3[2,3] & x'[2,3])
+~(arg3[2,2] & x'[2,2])
 ~(arg3[3,2] & x'[3,2])
-~(arg3[4,3] & x5[4,3])
+~(arg3[4,3] & x2[4,3])
 ~(arg3[5,2] & x'[5,2])
 ~(arg3[6,3] & x'[6,3])
 ~(arg3[7,2] & x'[7,2])
-~(x[0,2] & x[0,4])
+~(x[0,1] & x[0,3])
 ~(x[1,1] & x[1,3])
-~(x[2,1] & x[2,5])
+~(x[2,1] & x[2,4])
 ~(x[3,1] & x[3,3])
 ~(x[4,2] & x[4,4])
 ~(x[5,1] & x[5,3])
 ~(x[6,1] & x[6,5])
 ~(x[7,1] & x[7,3])
 ~(x'[1,2] & x'[1,3])
-~(x'[2,3] & x'[2,5])
+~(x'[2,2] & x'[2,4])
 ~(x'[3,2] & x'[3,3])
 ~(x'[5,2] & x'[5,3])
 ~(x'[6,3] & x'[6,5])
 ~(x'[7,2] & x'[7,3])
-~(x0[0,1] & x0[0,2])
-~(x0[0,2] & x[0,2])
-~(x1[0,3] & x1[0,4])
-~(x1[0,4] & x[0,4])
-~(x4[4,1] & x4[4,2])
-~(x4[4,2] & x[4,2])
-~(x5[4,3] & x5[4,4])
-~(x5[4,4] & x[4,4])
-~(y[0,1] & y[0,5])
+~(x0[0,2] & x0[0,3])
+~(x0[0,3] & x[0,3])
+~(x1[4,1] & x1[4,2])
+~(x1[4,2] & x[4,2])
+~(x2[4,3] & x2[4,4])
+~(x2[4,4] & x[4,4])
+~(y[0,1] & y[0,4])
 ~(y[1,1] & y[1,4])
-~(y[2,2] & y[2,4])
+~(y[2,1] & y[2,3])
 ~(y[3,1] & y[3,4])
 ~(y[4,1] & y[4,5])
 ~(y[5,1] & y[5,4])
 ~(y[6,2] & y[6,4])
 ~(y[7,1] & y[7,4])
-~(y'[0,3] & y'[0,5])
+~(y'[0,2] & y'[0,4])
 ~(y'[1,2] & y'[1,4])
 ~(y'[3,2] & y'[3,4])
 ~(y'[4,3] & y'[4,5])
 ~(y'[5,2] & y'[5,4])
 ~(y'[7,2] & y'[7,4])
-~(y2[2,1] & y2[2,2])
-~(y2[2,2] & y[2,2])
-~(y3[2,3] & y3[2,4])
-~(y3[2,4] & y[2,4])
-~(y6[6,1] & y6[6,2])
-~(y6[6,2] & y[6,2])
-~(y7[6,3] & y7[6,4])
-~(y7[6,4] & y[6,4])
-(x[0,2] | x[0,4])
+~(y0[2,2] & y0[2,3])
+~(y0[2,3] & y[2,3])
+~(y1[6,1] & y1[6,2])
+~(y1[6,2] & y[6,2])
+~(y2[6,3] & y2[6,4])
+~(y2[6,4] & y[6,4])
+(x[0,1] | x[0,3])
 (x[1,1] | x[1,3])
-(x[2,1] | x[2,5])
+(x[2,1] | x[2,4])
 (x[3,1] | x[3,3])
 (x[4,2] | x[4,4])
 (x[5,1] | x[5,3])
 (x[6,1] | x[6,5])
 (x[7,1] | x[7,3])
 (x'[1,2] | x'[1,3])
-(x'[2,3] | x'[2,5])
+(x'[2,2] | x'[2,4])
 (x'[3,2] | x'[3,3])
 (x'[5,2] | x'[5,3])
 (x'[6,3] | x'[6,5])
 (x'[7,2] | x'[7,3])
-(x0[0,1] | x0[0,2])
-(x1[0,3] | x1[0,4])
-(x4[4,1] | x4[4,2])
-(x5[4,3] | x5[4,4])
-(y[0,1] | y[0,5])
+(x0[0,2] | x0[0,3])
+(x1[4,1] | x1[4,2])
+(x2[4,3] | x2[4,4])
+(y[0,1] | y[0,4])
 (y[1,1] | y[1,4])
-(y[2,2] | y[2,4])
+(y[2,1] | y[2,3])
 (y[3,1] | y[3,4])
 (y[4,1] | y[4,5])
 (y[5,1] | y[5,4])
 (y[6,2] | y[6,4])
 (y[7,1] | y[7,4])
-(y'[0,3] | y'[0,5])
+(y'[0,2] | y'[0,4])
 (y'[1,2] | y'[1,4])
 (y'[3,2] | y'[3,4])
 (y'[4,3] | y'[4,5])
 (y'[5,2] | y'[5,4])
 (y'[7,2] | y'[7,4])
-(y2[2,1] | y2[2,2])
-(y3[2,3] | y3[2,4])
-(y6[6,1] | y6[6,2])
-(y7[6,3] | y7[6,4])
+(y0[2,2] | y0[2,3])
+(y1[6,1] | y1[6,2])
+(y2[6,3] | y2[6,4])
 ((x[1,3] & ~x'[1,3]) | ((~x[1,3] & x'[1,3]) | (~x[1,3] & ~x'[1,3])))
-((x[2,5] & ~x'[2,5]) | ((~x[2,5] & x'[2,5]) | (~x[2,5] & ~x'[2,5])))
+((x[2,4] & ~x'[2,4]) | ((~x[2,4] & x'[2,4]) | (~x[2,4] & ~x'[2,4])))
 ((x[3,3] & ~x'[3,3]) | ((~x[3,3] & x'[3,3]) | (~x[3,3] & ~x'[3,3])))
 ((x'[5,3] & ~x[5,3]) | ((~x'[5,3] & x[5,3]) | (~x'[5,3] & ~x[5,3])))
 ((x'[6,5] & ~x[6,5]) | ((~x'[6,5] & x[6,5]) | (~x'[6,5] & ~x[6,5])))
 ((x'[7,3] & ~x[7,3]) | ((~x'[7,3] & x[7,3]) | (~x'[7,3] & ~x[7,3])))
-((y[0,5] & ~y'[0,5]) | ((~y[0,5] & y'[0,5]) | (~y[0,5] & ~y'[0,5])))
+((y[0,4] & ~y'[0,4]) | ((~y[0,4] & y'[0,4]) | (~y[0,4] & ~y'[0,4])))
 ((y[1,4] & ~y'[1,4]) | ((~y[1,4] & y'[1,4]) | (~y[1,4] & ~y'[1,4])))
 ((y[7,4] & ~y'[7,4]) | ((~y[7,4] & y'[7,4]) | (~y[7,4] & ~y'[7,4])))
 ((y'[3,4] & ~y[3,4]) | ((~y'[3,4] & y[3,4]) | (~y'[3,4] & ~y[3,4])))
@@ -399,44 +388,43 @@ constraints:
 (arg3[] <-> arg3[5])
 (arg3[] <-> arg3[6])
 (arg3[] <-> arg3[7])
-(arg3[0] <-> arg3[0,3])
+(arg3[0] <-> arg3[0,2])
 (arg3[1] <-> arg3[1,2])
-(arg3[2] <-> arg3[2,3])
+(arg3[2] <-> arg3[2,2])
 (arg3[3] <-> arg3[3,2])
 (arg3[4] <-> arg3[4,3])
 (arg3[5] <-> arg3[5,2])
 (arg3[6] <-> arg3[6,3])
 (arg3[7] <-> arg3[7,2])
+(x[0,1] <-> y[0,1])
 (x[1,1] <-> y[1,1])
-(x[2,1] <-> y2[2,1])
+(x[2,1] <-> y[2,1])
 (x[3,1] <-> y[3,1])
 (x[5,1] <-> y[5,1])
-(x[6,1] <-> y6[6,1])
+(x[6,1] <-> y1[6,1])
 (x[7,1] <-> y[7,1])
 (x'[1,2] <-> y'[1,2])
-(x'[2,3] <-> y3[2,3])
+(x'[2,2] <-> y0[2,2])
 (x'[3,2] <-> y'[3,2])
 (x'[5,2] <-> y'[5,2])
-(x'[6,3] <-> y7[6,3])
+(x'[6,3] <-> y2[6,3])
 (x'[7,2] <-> y'[7,2])
-(x0[0,1] <-> y[0,1])
-(x1[0,3] <-> y'[0,3])
-(x4[4,1] <-> y[4,1])
-(x5[4,3] <-> y'[4,3])
+(x0[0,2] <-> y'[0,2])
+(x1[4,1] <-> y[4,1])
+(x2[4,3] <-> y'[4,3])
 1
 -}
 
 move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In, 'Out ] moveIIO) :& (procedure @'[ 'In, 'Out, 'In ] moveIOI) :& (procedure @'[ 'Out, 'In, 'In ] moveOII) :& (procedure @'[ 'Out, 'In, 'Out ] moveOIO) :& (procedure @'[ 'Out, 'Out, 'In ] moveOOI) :& RNil
   where
     moveIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: x[0,2] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,2] x'[2,3] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,1] x1[0,3] x4[4,1] x5[4,3] y[0,1] y[1,1] y[2,2] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,3] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y2[2,1] y3[2,3] y6[6,1] y7[6,3]
+      -- solution: x[0,1] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,2] x'[2,2] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,2] x1[4,1] x2[4,3] y[0,1] y[1,1] y[2,1] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,2] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y0[2,2] y1[6,1] y2[6,3]
       -- cost: 12
       () <- (do
         guard $ arg1 == N
-        (Loc x0 y) <- pure arg2
-        (Loc x1 y') <- pure arg3
-        x <- pure x0
-        guard $ x1 == x
+        (Loc x y) <- pure arg2
+        (Loc x0 y') <- pure arg3
+        guard $ x0 == x
         () <- runProcedure @'[ 'In, 'In ] succ y y'
         pure ()
        ) <|> (do
@@ -448,10 +436,9 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure ()
        ) <|> (do
         guard $ arg1 == E
-        (Loc x y2) <- pure arg2
-        (Loc x' y3) <- pure arg3
-        y <- pure y2
-        guard $ y3 == y
+        (Loc x y) <- pure arg2
+        (Loc x' y0) <- pure arg3
+        guard $ y0 == y
         () <- runProcedure @'[ 'In, 'In ] succ x x'
         pure ()
        ) <|> (do
@@ -463,10 +450,10 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure ()
        ) <|> (do
         guard $ arg1 == S
-        (Loc x4 y) <- pure arg2
-        (Loc x5 y') <- pure arg3
-        x <- pure x4
-        guard $ x5 == x
+        (Loc x1 y) <- pure arg2
+        (Loc x2 y') <- pure arg3
+        x <- pure x1
+        guard $ x2 == x
         () <- runProcedure @'[ 'In, 'In ] succ y' y
         pure ()
        ) <|> (do
@@ -478,10 +465,10 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure ()
        ) <|> (do
         guard $ arg1 == W
-        (Loc x y6) <- pure arg2
-        (Loc x' y7) <- pure arg3
-        y <- pure y6
-        guard $ y7 == y
+        (Loc x y1) <- pure arg2
+        (Loc x' y2) <- pure arg3
+        y <- pure y1
+        guard $ y2 == y
         () <- runProcedure @'[ 'In, 'In ] succ x' x
         pure ()
        ) <|> (do
@@ -495,15 +482,14 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure ()
     
     moveIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,3] arg3[1] arg3[1,2] arg3[2] arg3[2,3] arg3[3] arg3[3,2] arg3[4] arg3[4,3] arg3[5] arg3[5,2] arg3[6] arg3[6,3] arg3[7] arg3[7,2] x[0,2] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,3] x'[2,5] x'[3,3] x'[5,3] x'[6,5] x'[7,3] x0[0,1] x1[0,4] x4[4,1] x5[4,4] y[0,1] y[1,1] y[2,2] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,5] y'[1,4] y'[3,4] y'[4,5] y'[5,4] y'[7,4] y2[2,1] y3[2,4] y6[6,1] y7[6,4]
+      -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,2] arg3[2] arg3[2,2] arg3[3] arg3[3,2] arg3[4] arg3[4,3] arg3[5] arg3[5,2] arg3[6] arg3[6,3] arg3[7] arg3[7,2] x[0,1] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,3] x'[2,4] x'[3,3] x'[5,3] x'[6,5] x'[7,3] x0[0,3] x1[4,1] x2[4,4] y[0,1] y[1,1] y[2,1] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,4] y'[1,4] y'[3,4] y'[4,5] y'[5,4] y'[7,4] y0[2,3] y1[6,1] y2[6,4]
       -- cost: 24
       (arg3) <- (do
         guard $ arg1 == N
-        (Loc x0 y) <- pure arg2
-        x <- pure x0
-        x1 <- pure x
+        (Loc x y) <- pure arg2
+        x0 <- pure x
         (OneTuple (y')) <- runProcedure @'[ 'In, 'Out ] succ y
-        arg3 <- pure (Loc x1 y')
+        arg3 <- pure (Loc x0 y')
         pure (arg3)
        ) <|> (do
         guard $ arg1 == NE
@@ -514,11 +500,10 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg3)
        ) <|> (do
         guard $ arg1 == E
-        (Loc x y2) <- pure arg2
-        y <- pure y2
-        y3 <- pure y
+        (Loc x y) <- pure arg2
+        y0 <- pure y
         (OneTuple (x')) <- runProcedure @'[ 'In, 'Out ] succ x
-        arg3 <- pure (Loc x' y3)
+        arg3 <- pure (Loc x' y0)
         pure (arg3)
        ) <|> (do
         guard $ arg1 == SE
@@ -529,11 +514,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg3)
        ) <|> (do
         guard $ arg1 == S
-        (Loc x4 y) <- pure arg2
-        x <- pure x4
-        x5 <- pure x
+        (Loc x1 y) <- pure arg2
+        x <- pure x1
+        x2 <- pure x
         (OneTuple (y')) <- runProcedure @'[ 'Out, 'In ] succ y
-        arg3 <- pure (Loc x5 y')
+        arg3 <- pure (Loc x2 y')
         pure (arg3)
        ) <|> (do
         guard $ arg1 == SW
@@ -544,11 +529,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg3)
        ) <|> (do
         guard $ arg1 == W
-        (Loc x y6) <- pure arg2
-        y <- pure y6
-        y7 <- pure y
+        (Loc x y1) <- pure arg2
+        y <- pure y1
+        y2 <- pure y
         (OneTuple (x')) <- runProcedure @'[ 'Out, 'In ] succ x
-        arg3 <- pure (Loc x' y7)
+        arg3 <- pure (Loc x' y2)
         pure (arg3)
        ) <|> (do
         guard $ arg1 == NW
@@ -561,15 +546,14 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (OneTuple (arg3))
     
     moveIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,1] arg2[3] arg2[3,1] arg2[4] arg2[4,1] arg2[5] arg2[5,1] arg2[6] arg2[6,1] arg2[7] arg2[7,1] x[0,4] x[1,3] x[2,5] x[3,3] x[4,4] x[5,3] x[6,5] x[7,3] x'[1,2] x'[2,3] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,2] x1[0,3] x4[4,2] x5[4,3] y[0,5] y[1,4] y[2,4] y[3,4] y[4,5] y[5,4] y[6,4] y[7,4] y'[0,3] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y2[2,2] y3[2,3] y6[6,2] y7[6,3]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,1] arg2[3] arg2[3,1] arg2[4] arg2[4,1] arg2[5] arg2[5,1] arg2[6] arg2[6,1] arg2[7] arg2[7,1] x[0,3] x[1,3] x[2,4] x[3,3] x[4,4] x[5,3] x[6,5] x[7,3] x'[1,2] x'[2,2] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,2] x1[4,2] x2[4,3] y[0,4] y[1,4] y[2,3] y[3,4] y[4,5] y[5,4] y[6,4] y[7,4] y'[0,2] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y0[2,2] y1[6,2] y2[6,3]
       -- cost: 24
       (arg2) <- (do
         guard $ arg1 == N
-        (Loc x1 y') <- pure arg3
-        x <- pure x1
-        x0 <- pure x
+        (Loc x0 y') <- pure arg3
+        x <- pure x0
         (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] succ y'
-        arg2 <- pure (Loc x0 y)
+        arg2 <- pure (Loc x y)
         pure (arg2)
        ) <|> (do
         guard $ arg1 == NE
@@ -580,11 +564,10 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg2)
        ) <|> (do
         guard $ arg1 == E
-        (Loc x' y3) <- pure arg3
-        y <- pure y3
-        y2 <- pure y
+        (Loc x' y0) <- pure arg3
+        y <- pure y0
         (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ x'
-        arg2 <- pure (Loc x y2)
+        arg2 <- pure (Loc x y)
         pure (arg2)
        ) <|> (do
         guard $ arg1 == SE
@@ -595,11 +578,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg2)
        ) <|> (do
         guard $ arg1 == S
-        (Loc x5 y') <- pure arg3
-        x <- pure x5
-        x4 <- pure x
+        (Loc x2 y') <- pure arg3
+        x <- pure x2
+        x1 <- pure x
         (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ y'
-        arg2 <- pure (Loc x4 y)
+        arg2 <- pure (Loc x1 y)
         pure (arg2)
        ) <|> (do
         guard $ arg1 == SW
@@ -610,11 +593,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg2)
        ) <|> (do
         guard $ arg1 == W
-        (Loc x' y7) <- pure arg3
-        y <- pure y7
-        y6 <- pure y
+        (Loc x' y2) <- pure arg3
+        y <- pure y2
+        y1 <- pure y
         (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] succ x'
-        arg2 <- pure (Loc x y6)
+        arg2 <- pure (Loc x y1)
         pure (arg2)
        ) <|> (do
         guard $ arg1 == NW
@@ -627,14 +610,13 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (OneTuple (arg2))
     
     moveOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] x[0,2] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,2] x'[2,3] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,1] x1[0,3] x4[4,1] x5[4,3] y[0,1] y[1,1] y[2,2] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,3] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y2[2,1] y3[2,3] y6[6,1] y7[6,3]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] x[0,1] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,2] x'[2,2] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,2] x1[4,1] x2[4,3] y[0,1] y[1,1] y[2,1] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,2] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y0[2,2] y1[6,1] y2[6,3]
       -- cost: 12
       (arg1) <- (do
         arg1 <- pure N
-        (Loc x0 y) <- pure arg2
-        (Loc x1 y') <- pure arg3
-        x <- pure x0
-        guard $ x1 == x
+        (Loc x y) <- pure arg2
+        (Loc x0 y') <- pure arg3
+        guard $ x0 == x
         () <- runProcedure @'[ 'In, 'In ] succ y y'
         pure (arg1)
        ) <|> (do
@@ -646,10 +628,9 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1)
        ) <|> (do
         arg1 <- pure E
-        (Loc x y2) <- pure arg2
-        (Loc x' y3) <- pure arg3
-        y <- pure y2
-        guard $ y3 == y
+        (Loc x y) <- pure arg2
+        (Loc x' y0) <- pure arg3
+        guard $ y0 == y
         () <- runProcedure @'[ 'In, 'In ] succ x x'
         pure (arg1)
        ) <|> (do
@@ -661,10 +642,10 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1)
        ) <|> (do
         arg1 <- pure S
-        (Loc x4 y) <- pure arg2
-        (Loc x5 y') <- pure arg3
-        x <- pure x4
-        guard $ x5 == x
+        (Loc x1 y) <- pure arg2
+        (Loc x2 y') <- pure arg3
+        x <- pure x1
+        guard $ x2 == x
         () <- runProcedure @'[ 'In, 'In ] succ y' y
         pure (arg1)
        ) <|> (do
@@ -676,10 +657,10 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1)
        ) <|> (do
         arg1 <- pure W
-        (Loc x y6) <- pure arg2
-        (Loc x' y7) <- pure arg3
-        y <- pure y6
-        guard $ y7 == y
+        (Loc x y1) <- pure arg2
+        (Loc x' y2) <- pure arg3
+        y <- pure y1
+        guard $ y2 == y
         () <- runProcedure @'[ 'In, 'In ] succ x' x
         pure (arg1)
        ) <|> (do
@@ -693,15 +674,14 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (OneTuple (arg1))
     
     moveOIO = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] arg3[] arg3[0] arg3[0,3] arg3[1] arg3[1,2] arg3[2] arg3[2,3] arg3[3] arg3[3,2] arg3[4] arg3[4,3] arg3[5] arg3[5,2] arg3[6] arg3[6,3] arg3[7] arg3[7,2] x[0,2] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,3] x'[2,5] x'[3,3] x'[5,3] x'[6,5] x'[7,3] x0[0,1] x1[0,4] x4[4,1] x5[4,4] y[0,1] y[1,1] y[2,2] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,5] y'[1,4] y'[3,4] y'[4,5] y'[5,4] y'[7,4] y2[2,1] y3[2,4] y6[6,1] y7[6,4]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,2] arg3[2] arg3[2,2] arg3[3] arg3[3,2] arg3[4] arg3[4,3] arg3[5] arg3[5,2] arg3[6] arg3[6,3] arg3[7] arg3[7,2] x[0,1] x[1,1] x[2,1] x[3,1] x[4,2] x[5,1] x[6,1] x[7,1] x'[1,3] x'[2,4] x'[3,3] x'[5,3] x'[6,5] x'[7,3] x0[0,3] x1[4,1] x2[4,4] y[0,1] y[1,1] y[2,1] y[3,1] y[4,1] y[5,1] y[6,2] y[7,1] y'[0,4] y'[1,4] y'[3,4] y'[4,5] y'[5,4] y'[7,4] y0[2,3] y1[6,1] y2[6,4]
       -- cost: 24
       (arg1,arg3) <- (do
         arg1 <- pure N
-        (Loc x0 y) <- pure arg2
-        x <- pure x0
-        x1 <- pure x
+        (Loc x y) <- pure arg2
+        x0 <- pure x
         (OneTuple (y')) <- runProcedure @'[ 'In, 'Out ] succ y
-        arg3 <- pure (Loc x1 y')
+        arg3 <- pure (Loc x0 y')
         pure (arg1,arg3)
        ) <|> (do
         arg1 <- pure NE
@@ -712,11 +692,10 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1,arg3)
        ) <|> (do
         arg1 <- pure E
-        (Loc x y2) <- pure arg2
-        y <- pure y2
-        y3 <- pure y
+        (Loc x y) <- pure arg2
+        y0 <- pure y
         (OneTuple (x')) <- runProcedure @'[ 'In, 'Out ] succ x
-        arg3 <- pure (Loc x' y3)
+        arg3 <- pure (Loc x' y0)
         pure (arg1,arg3)
        ) <|> (do
         arg1 <- pure SE
@@ -727,11 +706,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1,arg3)
        ) <|> (do
         arg1 <- pure S
-        (Loc x4 y) <- pure arg2
-        x <- pure x4
-        x5 <- pure x
+        (Loc x1 y) <- pure arg2
+        x <- pure x1
+        x2 <- pure x
         (OneTuple (y')) <- runProcedure @'[ 'Out, 'In ] succ y
-        arg3 <- pure (Loc x5 y')
+        arg3 <- pure (Loc x2 y')
         pure (arg1,arg3)
        ) <|> (do
         arg1 <- pure SW
@@ -742,11 +721,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1,arg3)
        ) <|> (do
         arg1 <- pure W
-        (Loc x y6) <- pure arg2
-        y <- pure y6
-        y7 <- pure y
+        (Loc x y1) <- pure arg2
+        y <- pure y1
+        y2 <- pure y
         (OneTuple (x')) <- runProcedure @'[ 'Out, 'In ] succ x
-        arg3 <- pure (Loc x' y7)
+        arg3 <- pure (Loc x' y2)
         pure (arg1,arg3)
        ) <|> (do
         arg1 <- pure NW
@@ -759,15 +738,14 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (arg1,arg3)
     
     moveOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,1] arg2[3] arg2[3,1] arg2[4] arg2[4,1] arg2[5] arg2[5,1] arg2[6] arg2[6,1] arg2[7] arg2[7,1] x[0,4] x[1,3] x[2,5] x[3,3] x[4,4] x[5,3] x[6,5] x[7,3] x'[1,2] x'[2,3] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,2] x1[0,3] x4[4,2] x5[4,3] y[0,5] y[1,4] y[2,4] y[3,4] y[4,5] y[5,4] y[6,4] y[7,4] y'[0,3] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y2[2,2] y3[2,3] y6[6,2] y7[6,3]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg1[2] arg1[2,0] arg1[3] arg1[3,0] arg1[4] arg1[4,0] arg1[5] arg1[5,0] arg1[6] arg1[6,0] arg1[7] arg1[7,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,1] arg2[2] arg2[2,1] arg2[3] arg2[3,1] arg2[4] arg2[4,1] arg2[5] arg2[5,1] arg2[6] arg2[6,1] arg2[7] arg2[7,1] x[0,3] x[1,3] x[2,4] x[3,3] x[4,4] x[5,3] x[6,5] x[7,3] x'[1,2] x'[2,2] x'[3,2] x'[5,2] x'[6,3] x'[7,2] x0[0,2] x1[4,2] x2[4,3] y[0,4] y[1,4] y[2,3] y[3,4] y[4,5] y[5,4] y[6,4] y[7,4] y'[0,2] y'[1,2] y'[3,2] y'[4,3] y'[5,2] y'[7,2] y0[2,2] y1[6,2] y2[6,3]
       -- cost: 24
       (arg1,arg2) <- (do
         arg1 <- pure N
-        (Loc x1 y') <- pure arg3
-        x <- pure x1
-        x0 <- pure x
+        (Loc x0 y') <- pure arg3
+        x <- pure x0
         (OneTuple (y)) <- runProcedure @'[ 'Out, 'In ] succ y'
-        arg2 <- pure (Loc x0 y)
+        arg2 <- pure (Loc x y)
         pure (arg1,arg2)
        ) <|> (do
         arg1 <- pure NE
@@ -778,11 +756,10 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1,arg2)
        ) <|> (do
         arg1 <- pure E
-        (Loc x' y3) <- pure arg3
-        y <- pure y3
-        y2 <- pure y
+        (Loc x' y0) <- pure arg3
+        y <- pure y0
         (OneTuple (x)) <- runProcedure @'[ 'Out, 'In ] succ x'
-        arg2 <- pure (Loc x y2)
+        arg2 <- pure (Loc x y)
         pure (arg1,arg2)
        ) <|> (do
         arg1 <- pure SE
@@ -793,11 +770,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1,arg2)
        ) <|> (do
         arg1 <- pure S
-        (Loc x5 y') <- pure arg3
-        x <- pure x5
-        x4 <- pure x
+        (Loc x2 y') <- pure arg3
+        x <- pure x2
+        x1 <- pure x
         (OneTuple (y)) <- runProcedure @'[ 'In, 'Out ] succ y'
-        arg2 <- pure (Loc x4 y)
+        arg2 <- pure (Loc x1 y)
         pure (arg1,arg2)
        ) <|> (do
         arg1 <- pure SW
@@ -808,11 +785,11 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
         pure (arg1,arg2)
        ) <|> (do
         arg1 <- pure W
-        (Loc x' y7) <- pure arg3
-        y <- pure y7
-        y6 <- pure y
+        (Loc x' y2) <- pure arg3
+        y <- pure y2
+        y1 <- pure y
         (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] succ x'
-        arg2 <- pure (Loc x y6)
+        arg2 <- pure (Loc x y1)
         pure (arg1,arg2)
        ) <|> (do
         arg1 <- pure NW

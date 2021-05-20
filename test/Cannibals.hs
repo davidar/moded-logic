@@ -8,27 +8,24 @@ data State = State Int Int Int Int Int Int deriving (Eq, Ord, Read, Show)
 data Action = F Int Int | B Int Int deriving (Eq, Ord, Read, Show)
 data Search = Search State [ State ] [ Action ] deriving (Eq, Ord, Read, Show)
 {- elem/2
-elem arg1 arg2 :- ((arg2 = x0:_, x0 = x, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
+elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
 constraints:
-x0[0,0]
+x[0,0]
 xs[1,0]
 ~arg2[1,0]
 ~elem[1]
-~(arg1[0,2] & x[0,2])
+~(arg1[0,1] & x[0,1])
 ~(arg1[1,2] & x[1,2])
-~(arg2[0,0] & x0[0,0])
-~(x[0,1] & x[0,2])
+~(arg2[0,0] & x[0,0])
+~(x[0,0] & x[0,1])
 ~(x[1,1] & x[1,2])
-~(x0[0,0] & x0[0,1])
-~(x0[0,1] & x[0,1])
 ~(xs[1,0] & xs[1,1])
-(x[0,1] | x[0,2])
+(x[0,0] | x[0,1])
 (x[1,1] | x[1,2])
-(x0[0,0] | x0[0,1])
 (xs[1,0] | xs[1,1])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
-(arg1[0] <-> arg1[0,2])
+(arg1[0] <-> arg1[0,1])
 (arg1[1] <-> arg1[1,2])
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
@@ -42,11 +39,10 @@ xs[1,0]
 elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] elemOI) :& RNil
   where
     elemII = \arg1 arg2 -> Logic.once $ do
-      -- solution: x[0,1] x[1,2] x0[0,0] xs[1,0]
+      -- solution: x[0,0] x[1,2] xs[1,0]
       -- cost: 1
       () <- (do
-        (x0:_) <- pure arg2
-        x <- pure x0
+        (x:_) <- pure arg2
         guard $ arg1 == x
         pure ()
        ) <|> (do
@@ -58,11 +54,10 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure ()
     
     elemOI = \arg2 -> do
-      -- solution: arg1[] arg1[0] arg1[0,2] arg1[1] arg1[1,2] x[0,1] x[1,1] x0[0,0] xs[1,0]
+      -- solution: arg1[] arg1[0] arg1[0,1] arg1[1] arg1[1,2] x[0,0] x[1,1] xs[1,0]
       -- cost: 2
       (arg1) <- (do
-        (x0:_) <- pure arg2
-        x <- pure x0
+        (x:_) <- pure arg2
         arg1 <- pure x
         pure (arg1)
        ) <|> (do
@@ -74,30 +69,27 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure (OneTuple (arg1))
     
 {- append/3
-append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h0:t, h0 = h, arg3 = h1:tb, h1 = h, append t b tb, arg2 = b)).
+append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h:t, arg3 = h0:tb, h0 = h, append t b tb, arg2 = b)).
 constraints:
 ~append[1]
-~(arg1[1,0] & h0[1,0])
+~(arg1[1,0] & h[1,0])
 ~(arg2[0,1] & b[0,1])
-~(arg2[1,5] & b[1,5])
+~(arg2[1,4] & b[1,4])
 ~(arg3[0,2] & b[0,2])
-~(arg3[1,2] & h1[1,2])
+~(arg3[1,1] & h0[1,1])
 ~(b[0,1] & b[0,2])
-~(b[1,4] & b[1,5])
-~(h[1,1] & h[1,3])
-~(h0[1,0] & h0[1,1])
-~(h0[1,1] & h[1,1])
-~(h1[1,2] & h1[1,3])
-~(h1[1,3] & h[1,3])
-~(t[1,0] & t[1,4])
-~(tb[1,2] & tb[1,4])
+~(b[1,3] & b[1,4])
+~(h[1,0] & h[1,2])
+~(h0[1,1] & h0[1,2])
+~(h0[1,2] & h[1,2])
+~(t[1,0] & t[1,3])
+~(tb[1,1] & tb[1,3])
 (b[0,1] | b[0,2])
-(b[1,4] | b[1,5])
-(h[1,1] | h[1,3])
-(h0[1,0] | h0[1,1])
-(h1[1,2] | h1[1,3])
-(t[1,0] | t[1,4])
-(tb[1,2] | tb[1,4])
+(b[1,3] | b[1,4])
+(h[1,0] | h[1,2])
+(h0[1,1] | h0[1,2])
+(t[1,0] | t[1,3])
+(tb[1,1] | tb[1,3])
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
 (arg1[0] <-> arg1[0,0])
@@ -105,23 +97,23 @@ constraints:
 (arg2[] <-> arg2[0])
 (arg2[] <-> arg2[1])
 (arg2[0] <-> arg2[0,1])
-(arg2[1] <-> arg2[1,5])
+(arg2[1] <-> arg2[1,4])
 (arg3[] <-> arg3[0])
 (arg3[] <-> arg3[1])
 (arg3[0] <-> arg3[0,2])
-(arg3[1] <-> arg3[1,2])
-(b[1,4] <-> arg2[])
-(h0[1,0] <-> t[1,0])
-(h1[1,2] <-> tb[1,2])
-(t[1,4] <-> arg1[])
-(tb[1,4] <-> arg3[])
+(arg3[1] <-> arg3[1,1])
+(b[1,3] <-> arg2[])
+(h[1,0] <-> t[1,0])
+(h0[1,1] <-> tb[1,1])
+(t[1,3] <-> arg1[])
+(tb[1,3] <-> arg3[])
 1
 -}
 
 append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In, 'In, 'Out ] appendIIO) :& (procedure @'[ 'In, 'Out, 'In ] appendIOI) :& (procedure @'[ 'Out, 'In, 'In ] appendOII) :& (procedure @'[ 'Out, 'Out, 'In ] appendOOI) :& RNil
   where
     appendIII = \arg1 arg2 arg3 -> Logic.once $ do
-      -- solution: b[0,1] b[1,5] h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2]
+      -- solution: b[0,1] b[1,4] h[1,0] h0[1,1] t[1,0] tb[1,1]
       -- cost: 1
       () <- (do
         guard $ arg1 == []
@@ -129,18 +121,17 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
         guard $ arg3 == b
         pure ()
        ) <|> (do
-        (h0:t) <- pure arg1
+        (h:t) <- pure arg1
         b <- pure arg2
-        (h1:tb) <- pure arg3
-        h <- pure h0
-        guard $ h1 == h
+        (h0:tb) <- pure arg3
+        guard $ h0 == h
         () <- appendIII t b tb
         pure ()
        )
       pure ()
     
     appendIIO = \arg1 arg2 -> do
-      -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,2] b[0,1] b[1,5] h[1,1] h0[1,0] h1[1,3] t[1,0] tb[1,4]
+      -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,1] b[0,1] b[1,4] h[1,0] h0[1,2] t[1,0] tb[1,3]
       -- cost: 2
       (arg3) <- (do
         guard $ arg1 == []
@@ -148,18 +139,17 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
         arg3 <- pure b
         pure (arg3)
        ) <|> (do
-        (h0:t) <- pure arg1
+        (h:t) <- pure arg1
         b <- pure arg2
-        h <- pure h0
-        h1 <- pure h
+        h0 <- pure h
         (OneTuple (tb)) <- appendIIO t b
-        arg3 <- pure (h1:tb)
+        arg3 <- pure (h0:tb)
         pure (arg3)
        )
       pure (OneTuple (arg3))
     
     appendIOI = \arg1 arg3 -> do
-      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,5] b[0,2] b[1,4] h[1,1] h0[1,0] h1[1,2] t[1,0] tb[1,2]
+      -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,4] b[0,2] b[1,3] h[1,0] h0[1,1] t[1,0] tb[1,1]
       -- cost: 2
       (arg2) <- (do
         guard $ arg1 == []
@@ -167,10 +157,9 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
         arg2 <- pure b
         pure (arg2)
        ) <|> (do
-        (h0:t) <- pure arg1
-        (h1:tb) <- pure arg3
-        h <- pure h0
-        guard $ h1 == h
+        (h:t) <- pure arg1
+        (h0:tb) <- pure arg3
+        guard $ h0 == h
         (OneTuple (b)) <- appendIOI t tb
         arg2 <- pure b
         pure (arg2)
@@ -178,7 +167,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (OneTuple (arg2))
     
     appendOII = \arg2 arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[0,1] b[1,5] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] b[0,1] b[1,4] h[1,2] h0[1,1] t[1,3] tb[1,1]
       -- cost: 2
       (arg1) <- (do
         arg1 <- pure []
@@ -187,17 +176,16 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
         pure (arg1)
        ) <|> (do
         b <- pure arg2
-        (h1:tb) <- pure arg3
-        h <- pure h1
-        h0 <- pure h
+        (h0:tb) <- pure arg3
+        h <- pure h0
         (OneTuple (t)) <- appendOII b tb
-        arg1 <- pure (h0:t)
+        arg1 <- pure (h:t)
         pure (arg1)
        )
       pure (OneTuple (arg1))
     
     appendOOI = \arg3 -> do
-      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,5] b[0,2] b[1,4] h[1,3] h0[1,1] h1[1,2] t[1,4] tb[1,2]
+      -- solution: arg1[] arg1[0] arg1[0,0] arg1[1] arg1[1,0] arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,4] b[0,2] b[1,3] h[1,2] h0[1,1] t[1,3] tb[1,1]
       -- cost: 3
       (arg1,arg2) <- (do
         arg1 <- pure []
@@ -205,11 +193,10 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
         arg2 <- pure b
         pure (arg1,arg2)
        ) <|> (do
-        (h1:tb) <- pure arg3
-        h <- pure h1
-        h0 <- pure h
+        (h0:tb) <- pure arg3
+        h <- pure h0
         (t,b) <- appendOOI tb
-        arg1 <- pure (h0:t)
+        arg1 <- pure (h:t)
         arg2 <- pure b
         pure (arg1,arg2)
        )
@@ -335,102 +322,94 @@ action = rget $ (procedure @'[ 'In ] actionI) :& (procedure @'[ 'Out ] actionO) 
       pure (OneTuple (arg1))
     
 {- check/1
-check arg1 :- ((arg1 = State m10 c1 _ m21 c2 _, m10 = m1, m21 = m2, (>=) m1 data0, data0 = 0, (>=) m2 data1, data1 = 0, (>=) c1 data2, data2 = 0, (>=) c2 data3, data3 = 0, fresh1 = m1, ((fresh1 = 0); ((>=) fresh2 c1, fresh1 = fresh2)), fresh3 = m2, ((fresh3 = 0); ((>=) fresh4 c2, fresh3 = fresh4)))).
+check arg1 :- ((arg1 = State m1 c1 _ m2 c2 _, (>=) m1 data0, data0 = 0, (>=) m2 data1, data1 = 0, (>=) c1 data2, data2 = 0, (>=) c2 data3, data3 = 0, fresh1 = m1, ((fresh1 = 0); ((>=) fresh2 c1, fresh1 = fresh2)), fresh3 = m2, ((fresh3 = 0); ((>=) fresh4 c2, fresh3 = fresh4)))).
 constraints:
-m10[0,0]
+m1[0,0]
+~(>=)[0,10]
+~(>=)[0,10,1]
 ~(>=)[0,12]
 ~(>=)[0,12,1]
-~(>=)[0,14]
-~(>=)[0,14,1]
-~c1[0,12]
-~c2[0,14]
-~((>=)[0,12] & (>=)[0,14])
-~(arg1[0,0] & m10[0,0])
-~(c1[0,0] & c1[0,7])
-~(c1[0,0] & c1[0,12])
-~(c1[0,7] & c1[0,12])
-~(c2[0,0] & c2[0,9])
-~(c2[0,0] & c2[0,14])
-~(c2[0,9] & c2[0,14])
-~(data0[0,3] & data0[0,4])
-~(data1[0,5] & data1[0,6])
-~(data2[0,7] & data2[0,8])
-~(data3[0,9] & data3[0,10])
-~(fresh1[0,11] & fresh1[0,12])
-~(fresh1[0,11] & m1[0,11])
-~(fresh1[0,12,1,1] & fresh2[0,12,1,1])
-~(fresh2[0,12,1,0] & fresh2[0,12,1,1])
-~(fresh3[0,13] & fresh3[0,14])
-~(fresh3[0,13] & m2[0,13])
-~(fresh3[0,14,1,1] & fresh4[0,14,1,1])
-~(fresh4[0,14,1,0] & fresh4[0,14,1,1])
-~(m1[0,1] & m1[0,3])
-~(m1[0,1] & m1[0,11])
-~(m1[0,3] & m1[0,11])
-~(m10[0,0] & m10[0,1])
-~(m10[0,1] & m1[0,1])
-~(m2[0,2] & m2[0,5])
-~(m2[0,2] & m2[0,13])
-~(m2[0,5] & m2[0,13])
-~(m21[0,0] & m21[0,2])
-~(m21[0,2] & m2[0,2])
-(~c1[0,7] & ~data2[0,7])
-(~c2[0,9] & ~data3[0,9])
-(~fresh2[0,12,1,0] & ~c1[0,12,1,0])
-(~fresh4[0,14,1,0] & ~c2[0,14,1,0])
-(~m1[0,3] & ~data0[0,3])
-(~m2[0,5] & ~data1[0,5])
-(c1[0,0] | (c1[0,7] | c1[0,12]))
-(c2[0,0] | (c2[0,9] | c2[0,14]))
-(data0[0,3] | data0[0,4])
-(data1[0,5] | data1[0,6])
-(data2[0,7] | data2[0,8])
-(data3[0,9] | data3[0,10])
-(fresh1[0,11] | fresh1[0,12])
-(fresh2[0,12,1,0] | fresh2[0,12,1,1])
-(fresh3[0,13] | fresh3[0,14])
-(fresh4[0,14,1,0] | fresh4[0,14,1,1])
-(m1[0,1] | (m1[0,3] | m1[0,11]))
-(m10[0,0] | m10[0,1])
-(m2[0,2] | (m2[0,5] | m2[0,13]))
-(m21[0,0] | m21[0,2])
-((>=)[0] <-> ((>=)[0,12] | (>=)[0,14]))
+~c1[0,10]
+~c2[0,12]
+~((>=)[0,10] & (>=)[0,12])
+~(arg1[0,0] & m1[0,0])
+~(c1[0,0] & c1[0,5])
+~(c1[0,0] & c1[0,10])
+~(c1[0,5] & c1[0,10])
+~(c2[0,0] & c2[0,7])
+~(c2[0,0] & c2[0,12])
+~(c2[0,7] & c2[0,12])
+~(data0[0,1] & data0[0,2])
+~(data1[0,3] & data1[0,4])
+~(data2[0,5] & data2[0,6])
+~(data3[0,7] & data3[0,8])
+~(fresh1[0,9] & fresh1[0,10])
+~(fresh1[0,9] & m1[0,9])
+~(fresh1[0,10,1,1] & fresh2[0,10,1,1])
+~(fresh2[0,10,1,0] & fresh2[0,10,1,1])
+~(fresh3[0,11] & fresh3[0,12])
+~(fresh3[0,11] & m2[0,11])
+~(fresh3[0,12,1,1] & fresh4[0,12,1,1])
+~(fresh4[0,12,1,0] & fresh4[0,12,1,1])
+~(m1[0,0] & m1[0,1])
+~(m1[0,0] & m1[0,9])
+~(m1[0,1] & m1[0,9])
+~(m2[0,0] & m2[0,3])
+~(m2[0,0] & m2[0,11])
+~(m2[0,3] & m2[0,11])
+(~c1[0,5] & ~data2[0,5])
+(~c2[0,7] & ~data3[0,7])
+(~fresh2[0,10,1,0] & ~c1[0,10,1,0])
+(~fresh4[0,12,1,0] & ~c2[0,12,1,0])
+(~m1[0,1] & ~data0[0,1])
+(~m2[0,3] & ~data1[0,3])
+(c1[0,0] | (c1[0,5] | c1[0,10]))
+(c2[0,0] | (c2[0,7] | c2[0,12]))
+(data0[0,1] | data0[0,2])
+(data1[0,3] | data1[0,4])
+(data2[0,5] | data2[0,6])
+(data3[0,7] | data3[0,8])
+(fresh1[0,9] | fresh1[0,10])
+(fresh2[0,10,1,0] | fresh2[0,10,1,1])
+(fresh3[0,11] | fresh3[0,12])
+(fresh4[0,12,1,0] | fresh4[0,12,1,1])
+(m1[0,0] | (m1[0,1] | m1[0,9]))
+(m2[0,0] | (m2[0,3] | m2[0,11]))
+((>=)[0] <-> ((>=)[0,10] | (>=)[0,12]))
+((>=)[0,10] <-> (>=)[0,10,1])
 ((>=)[0,12] <-> (>=)[0,12,1])
-((>=)[0,14] <-> (>=)[0,14,1])
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,0])
-(c1[0,12] <-> c1[0,12,1])
-(c1[0,12,1] <-> c1[0,12,1,0])
-(c2[0,14] <-> c2[0,14,1])
-(c2[0,14,1] <-> c2[0,14,1,0])
-(fresh1[0,12] <-> fresh1[0,12,0])
-(fresh1[0,12] <-> fresh1[0,12,1])
-(fresh1[0,12,0] <-> fresh1[0,12,0,0])
-(fresh1[0,12,1] <-> fresh1[0,12,1,1])
-(fresh3[0,14] <-> fresh3[0,14,0])
-(fresh3[0,14] <-> fresh3[0,14,1])
-(fresh3[0,14,0] <-> fresh3[0,14,0,0])
-(fresh3[0,14,1] <-> fresh3[0,14,1,1])
-(m10[0,0] <-> c1[0,0])
-(m10[0,0] <-> c2[0,0])
-(m10[0,0] <-> m21[0,0])
+(c1[0,10] <-> c1[0,10,1])
+(c1[0,10,1] <-> c1[0,10,1,0])
+(c2[0,12] <-> c2[0,12,1])
+(c2[0,12,1] <-> c2[0,12,1,0])
+(fresh1[0,10] <-> fresh1[0,10,0])
+(fresh1[0,10] <-> fresh1[0,10,1])
+(fresh1[0,10,0] <-> fresh1[0,10,0,0])
+(fresh1[0,10,1] <-> fresh1[0,10,1,1])
+(fresh3[0,12] <-> fresh3[0,12,0])
+(fresh3[0,12] <-> fresh3[0,12,1])
+(fresh3[0,12,0] <-> fresh3[0,12,0,0])
+(fresh3[0,12,1] <-> fresh3[0,12,1,1])
+(m1[0,0] <-> c1[0,0])
+(m1[0,0] <-> c2[0,0])
+(m1[0,0] <-> m2[0,0])
 1
 -}
 
 check = rget $ (procedure @'[ 'In ] checkI) :& RNil
   where
     checkI = \arg1 -> Logic.once $ do
-      -- solution: c1[0,0] c2[0,0] data0[0,4] data1[0,6] data2[0,8] data3[0,10] fresh1[0,11] fresh2[0,12,1,1] fresh3[0,13] fresh4[0,14,1,1] m1[0,1] m10[0,0] m2[0,2] m21[0,0]
+      -- solution: c1[0,0] c2[0,0] data0[0,2] data1[0,4] data2[0,6] data3[0,8] fresh1[0,9] fresh2[0,10,1,1] fresh3[0,11] fresh4[0,12,1,1] m1[0,0] m2[0,0]
       -- cost: 6
       () <- (do
-        (State m10 c1 _ m21 c2 _) <- pure arg1
+        (State m1 c1 _ m2 c2 _) <- pure arg1
         data0 <- pure 0
         data1 <- pure 0
         data2 <- pure 0
         data3 <- pure 0
-        m1 <- pure m10
         fresh1 <- pure m1
-        m2 <- pure m21
         fresh3 <- pure m2
         guard $ (>=) c1 data2
         guard $ (>=) c2 data3
@@ -1156,140 +1135,127 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
       pure (c,a,s,carg3)
     
 {- solve/2
-solve arg1 arg2 :- ((arg1 = Search current seen0 actions1, seen0 = seen, actions1 = actions, action a, move current a s, showMove current a s data0 msg, data0 = [], putStrLn msg, news = Search s2 s3:seen4 a:actions5, s2 = s, s3 = s, seen4 = seen, actions5 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r), arg2 = r)).
+solve arg1 arg2 :- ((arg1 = Search current seen actions, action a, move current a s, showMove current a s data0 msg, data0 = [], putStrLn msg, news = Search s s0:seen0 a:actions0, s0 = s, seen0 = seen, actions0 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r), arg2 = r)).
 constraints:
 ~action[0]
-~elem[0,13,0]
-~empty[0,13,1]
-~final[0,14,0]
+~elem[0,10,0]
+~empty[0,10,1]
+~final[0,11,0]
 ~move[0]
-~msg[0,7]
+~msg[0,5]
 ~putStrLn[0]
-~s[0,13]
-~s[0,13,0,0]
-~s[0,14]
-~s[0,14,0,0]
-~seen[0,13]
-~seen[0,13,0,0]
+~s[0,10]
+~s[0,10,0,0]
+~s[0,11]
+~s[0,11,0,0]
+~seen[0,10]
+~seen[0,10,0,0]
 ~showMove[0]
-~solve[0,14,2]
-~(a[0,3] & a[0,4])
-~(a[0,3] & a[0,5])
-~(a[0,3] & a[0,8])
-~(a[0,4] & a[0,5])
-~(a[0,4] & a[0,8])
-~(a[0,5] & a[0,8])
-~(actions[0,2] & actions[0,12])
-~(actions1[0,0] & actions1[0,2])
-~(actions1[0,2] & actions[0,2])
-~(actions5[0,8] & actions5[0,12])
-~(actions5[0,12] & actions[0,12])
+~solve[0,11,2]
+~(a[0,1] & a[0,2])
+~(a[0,1] & a[0,3])
+~(a[0,1] & a[0,6])
+~(a[0,2] & a[0,3])
+~(a[0,2] & a[0,6])
+~(a[0,3] & a[0,6])
+~(actions[0,0] & actions[0,9])
+~(actions0[0,6] & actions0[0,9])
+~(actions0[0,9] & actions[0,9])
 ~(arg1[0,0] & current[0,0])
-~(arg2[0,15] & r[0,15])
-~(current[0,0] & current[0,4])
-~(current[0,0] & current[0,5])
-~(current[0,4] & current[0,5])
-~(data0[0,5] & data0[0,6])
-~(msg[0,5] & msg[0,7])
-~(news[0,8] & news[0,14])
-~(news[0,8] & s2[0,8])
-~(r[0,14] & r[0,15])
-~(r[0,14,1,0] & news[0,14,1,0])
-~(s[0,4] & s[0,5])
-~(s[0,4] & s[0,9])
-~(s[0,4] & s[0,10])
-~(s[0,4] & s[0,13])
-~(s[0,4] & s[0,14])
-~(s[0,5] & s[0,9])
-~(s[0,5] & s[0,10])
-~(s[0,5] & s[0,13])
-~(s[0,5] & s[0,14])
-~(s[0,9] & s[0,10])
-~(s[0,9] & s[0,13])
-~(s[0,9] & s[0,14])
-~(s[0,10] & s[0,13])
-~(s[0,10] & s[0,14])
-~(s[0,13] & s[0,14])
-~(s2[0,8] & s2[0,9])
-~(s2[0,9] & s[0,9])
-~(s3[0,8] & s3[0,10])
-~(s3[0,10] & s[0,10])
-~(seen[0,1] & seen[0,11])
-~(seen[0,1] & seen[0,13])
-~(seen[0,11] & seen[0,13])
-~(seen0[0,0] & seen0[0,1])
-~(seen0[0,1] & seen[0,1])
-~(seen4[0,8] & seen4[0,11])
-~(seen4[0,11] & seen[0,11])
-(a[0,3] | ~a[0,3])
-(a[0,3] | (a[0,4] | (a[0,5] | a[0,8])))
-(actions[0,2] | actions[0,12])
-(actions1[0,0] | actions1[0,2])
-(actions5[0,8] | actions5[0,12])
-(current[0,0] | (current[0,4] | current[0,5]))
-(data0[0,5] | data0[0,6])
-(msg[0,5] | msg[0,7])
-(news[0,8] | news[0,14])
-(r[0,14] | r[0,15])
-(s[0,4] | (s[0,5] | (s[0,9] | (s[0,10] | (s[0,13] | s[0,14])))))
-(s2[0,8] | s2[0,9])
-(s3[0,8] | s3[0,10])
-(seen[0,1] | (seen[0,11] | seen[0,13]))
-(seen0[0,0] | seen0[0,1])
-(seen4[0,8] | seen4[0,11])
-((current[0,4] & (~a[0,4] & ~s[0,4])) | ((~current[0,4] & (a[0,4] & ~s[0,4])) | ((~current[0,4] & (~a[0,4] & s[0,4])) | (~current[0,4] & (~a[0,4] & ~s[0,4])))))
-((current[0,5] & (a[0,5] & (s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (a[0,5] & (s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (a[0,5] & (~s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (a[0,5] & (~s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (~a[0,5] & (s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (~a[0,5] & (s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (~a[0,5] & (~s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((current[0,5] & (~a[0,5] & (~s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (a[0,5] & (s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (a[0,5] & (s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (a[0,5] & (~s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (a[0,5] & (~s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (~a[0,5] & (s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (~a[0,5] & (s[0,5] & (~data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (~a[0,5] & (~s[0,5] & (data0[0,5] & ~msg[0,5])))) | ((~current[0,5] & (~a[0,5] & (~s[0,5] & (~data0[0,5] & msg[0,5])))) | (~current[0,5] & (~a[0,5] & (~s[0,5] & (~data0[0,5] & ~msg[0,5]))))))))))))))))))))
-((s[0,13,0,0] & ~seen[0,13,0,0]) | (~s[0,13,0,0] & ~seen[0,13,0,0]))
+~(arg2[0,12] & r[0,12])
+~(current[0,0] & current[0,2])
+~(current[0,0] & current[0,3])
+~(current[0,2] & current[0,3])
+~(data0[0,3] & data0[0,4])
+~(msg[0,3] & msg[0,5])
+~(news[0,6] & news[0,11])
+~(news[0,6] & s[0,6])
+~(r[0,11] & r[0,12])
+~(r[0,11,1,0] & news[0,11,1,0])
+~(s[0,2] & s[0,3])
+~(s[0,2] & s[0,6])
+~(s[0,2] & s[0,7])
+~(s[0,2] & s[0,10])
+~(s[0,2] & s[0,11])
+~(s[0,3] & s[0,6])
+~(s[0,3] & s[0,7])
+~(s[0,3] & s[0,10])
+~(s[0,3] & s[0,11])
+~(s[0,6] & s[0,7])
+~(s[0,6] & s[0,10])
+~(s[0,6] & s[0,11])
+~(s[0,7] & s[0,10])
+~(s[0,7] & s[0,11])
+~(s[0,10] & s[0,11])
+~(s0[0,6] & s0[0,7])
+~(s0[0,7] & s[0,7])
+~(seen[0,0] & seen[0,8])
+~(seen[0,0] & seen[0,10])
+~(seen[0,8] & seen[0,10])
+~(seen0[0,6] & seen0[0,8])
+~(seen0[0,8] & seen[0,8])
+(a[0,1] | ~a[0,1])
+(a[0,1] | (a[0,2] | (a[0,3] | a[0,6])))
+(actions[0,0] | actions[0,9])
+(actions0[0,6] | actions0[0,9])
+(current[0,0] | (current[0,2] | current[0,3]))
+(data0[0,3] | data0[0,4])
+(msg[0,3] | msg[0,5])
+(news[0,6] | news[0,11])
+(r[0,11] | r[0,12])
+(s[0,2] | (s[0,3] | (s[0,6] | (s[0,7] | (s[0,10] | s[0,11])))))
+(s0[0,6] | s0[0,7])
+(seen[0,0] | (seen[0,8] | seen[0,10]))
+(seen0[0,6] | seen0[0,8])
+((current[0,2] & (~a[0,2] & ~s[0,2])) | ((~current[0,2] & (a[0,2] & ~s[0,2])) | ((~current[0,2] & (~a[0,2] & s[0,2])) | (~current[0,2] & (~a[0,2] & ~s[0,2])))))
+((current[0,3] & (a[0,3] & (s[0,3] & (data0[0,3] & ~msg[0,3])))) | ((current[0,3] & (a[0,3] & (s[0,3] & (~data0[0,3] & ~msg[0,3])))) | ((current[0,3] & (a[0,3] & (~s[0,3] & (data0[0,3] & ~msg[0,3])))) | ((current[0,3] & (a[0,3] & (~s[0,3] & (~data0[0,3] & ~msg[0,3])))) | ((current[0,3] & (~a[0,3] & (s[0,3] & (data0[0,3] & ~msg[0,3])))) | ((current[0,3] & (~a[0,3] & (s[0,3] & (~data0[0,3] & ~msg[0,3])))) | ((current[0,3] & (~a[0,3] & (~s[0,3] & (data0[0,3] & ~msg[0,3])))) | ((current[0,3] & (~a[0,3] & (~s[0,3] & (~data0[0,3] & ~msg[0,3])))) | ((~current[0,3] & (a[0,3] & (s[0,3] & (data0[0,3] & ~msg[0,3])))) | ((~current[0,3] & (a[0,3] & (s[0,3] & (~data0[0,3] & ~msg[0,3])))) | ((~current[0,3] & (a[0,3] & (~s[0,3] & (data0[0,3] & ~msg[0,3])))) | ((~current[0,3] & (a[0,3] & (~s[0,3] & (~data0[0,3] & ~msg[0,3])))) | ((~current[0,3] & (~a[0,3] & (s[0,3] & (data0[0,3] & ~msg[0,3])))) | ((~current[0,3] & (~a[0,3] & (s[0,3] & (~data0[0,3] & ~msg[0,3])))) | ((~current[0,3] & (~a[0,3] & (~s[0,3] & (data0[0,3] & ~msg[0,3])))) | ((~current[0,3] & (~a[0,3] & (~s[0,3] & (~data0[0,3] & msg[0,3])))) | (~current[0,3] & (~a[0,3] & (~s[0,3] & (~data0[0,3] & ~msg[0,3]))))))))))))))))))))
+((s[0,10,0,0] & ~seen[0,10,0,0]) | (~s[0,10,0,0] & ~seen[0,10,0,0]))
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,0])
 (arg2[] <-> arg2[0])
-(arg2[0] <-> arg2[0,15])
-(current[0,0] <-> actions1[0,0])
-(current[0,0] <-> seen0[0,0])
-(elem[0] <-> elem[0,13])
-(elem[0,13] <-> elem[0,13,0])
-(empty[0] <-> empty[0,13])
-(empty[0,13] <-> empty[0,13,1])
-(final[0] <-> final[0,14])
-(final[0,14] <-> final[0,14,0])
-(news[0,14] <-> (news[0,14,1] | news[0,14,2]))
-(news[0,14,1] <-> news[0,14,1,0])
-(news[0,14,1] <-> news[0,14,2])
-(news[0,14,2] <-> news[0,14,2,0])
-(news[0,14,2,0] <-> arg1[])
-(r[0,14] <-> (r[0,14,1] | r[0,14,2]))
-(r[0,14,1] <-> r[0,14,1,0])
-(r[0,14,1] <-> r[0,14,2])
-(r[0,14,2] <-> r[0,14,2,0])
-(r[0,14,2,0] <-> arg2[])
-(s2[0,8] <-> a[0,8])
-(s2[0,8] <-> actions5[0,8])
-(s2[0,8] <-> s3[0,8])
-(s2[0,8] <-> seen4[0,8])
-(solve[0] <-> solve[0,14])
-(solve[0,14] <-> solve[0,14,2])
+(arg2[0] <-> arg2[0,12])
+(current[0,0] <-> actions[0,0])
+(current[0,0] <-> seen[0,0])
+(elem[0] <-> elem[0,10])
+(elem[0,10] <-> elem[0,10,0])
+(empty[0] <-> empty[0,10])
+(empty[0,10] <-> empty[0,10,1])
+(final[0] <-> final[0,11])
+(final[0,11] <-> final[0,11,0])
+(news[0,11] <-> (news[0,11,1] | news[0,11,2]))
+(news[0,11,1] <-> news[0,11,1,0])
+(news[0,11,1] <-> news[0,11,2])
+(news[0,11,2] <-> news[0,11,2,0])
+(news[0,11,2,0] <-> arg1[])
+(r[0,11] <-> (r[0,11,1] | r[0,11,2]))
+(r[0,11,1] <-> r[0,11,1,0])
+(r[0,11,1] <-> r[0,11,2])
+(r[0,11,2] <-> r[0,11,2,0])
+(r[0,11,2,0] <-> arg2[])
+(s[0,6] <-> a[0,6])
+(s[0,6] <-> actions0[0,6])
+(s[0,6] <-> s0[0,6])
+(s[0,6] <-> seen0[0,6])
+(solve[0] <-> solve[0,11])
+(solve[0,11] <-> solve[0,11,2])
 1
 -}
---mode ordering failure, cyclic dependency: [14] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [8] news::I = Search s2::O s3::O:seen4::O a::O:actions5::O -> [9] s2::I = s::O
---mode ordering failure, cyclic dependency: [14] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [8] news::I = Search s2::O s3::O:seen4::O a::O:actions5::O -> [10] s3::I = s::O
+--mode ordering failure, cyclic dependency: [11] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [6] news::I = Search s::O s0::O:seen0::O a::O:actions0::O
 solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] solveIO) :& RNil
   where
     solveII = \arg1 arg2 -> Logic.once $ do
-      -- solution: a[0,3] actions[0,2] actions1[0,0] actions5[0,12] current[0,0] data0[0,6] msg[0,5] news[0,8] r[0,15] s[0,4] s2[0,9] s3[0,10] seen[0,1] seen0[0,0] seen4[0,11]
+      -- solution: a[0,1] actions[0,0] actions0[0,9] current[0,0] data0[0,4] msg[0,3] news[0,6] r[0,12] s[0,2] s0[0,7] seen[0,0] seen0[0,8]
       -- cost: 11
       () <- (do
-        (Search current seen0 actions1) <- pure arg1
-        actions <- pure actions1
-        actions5 <- pure actions
+        (Search current seen actions) <- pure arg1
+        actions0 <- pure actions
         r <- pure arg2
         data0 <- pure []
-        seen <- pure seen0
-        seen4 <- pure seen
+        seen0 <- pure seen
         (OneTuple (a)) <- runProcedure @'[ 'Out ] action 
         (OneTuple (s)) <- runProcedure @'[ 'In, 'In, 'Out ] move current a
-        s2 <- pure s
-        s3 <- pure s
-        news <- pure (Search s2 (s3:seen4) (a:actions5))
+        s0 <- pure s
+        news <- pure (Search s (s0:seen0) (a:actions0))
         (OneTuple (msg)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out ] showMove current a s data0
         () <- runProcedure @'[ 'In ] putStrLn msg
         () <- Logic.ifte ((do
@@ -1317,20 +1283,17 @@ solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] 
       pure ()
     
     solveIO = \arg1 -> do
-      -- solution: a[0,3] actions[0,2] actions1[0,0] actions5[0,12] arg2[] arg2[0] arg2[0,15] current[0,0] data0[0,6] msg[0,5] news[0,8] r[0,14] r[0,14,1] r[0,14,1,0] r[0,14,2] r[0,14,2,0] s[0,4] s2[0,9] s3[0,10] seen[0,1] seen0[0,0] seen4[0,11]
+      -- solution: a[0,1] actions[0,0] actions0[0,9] arg2[] arg2[0] arg2[0,12] current[0,0] data0[0,4] msg[0,3] news[0,6] r[0,11] r[0,11,1] r[0,11,1,0] r[0,11,2] r[0,11,2,0] s[0,2] s0[0,7] seen[0,0] seen0[0,8]
       -- cost: 12
       (arg2) <- (do
-        (Search current seen0 actions1) <- pure arg1
-        actions <- pure actions1
-        actions5 <- pure actions
+        (Search current seen actions) <- pure arg1
+        actions0 <- pure actions
         data0 <- pure []
-        seen <- pure seen0
-        seen4 <- pure seen
+        seen0 <- pure seen
         (OneTuple (a)) <- runProcedure @'[ 'Out ] action 
         (OneTuple (s)) <- runProcedure @'[ 'In, 'In, 'Out ] move current a
-        s2 <- pure s
-        s3 <- pure s
-        news <- pure (Search s2 (s3:seen4) (a:actions5))
+        s0 <- pure s
+        news <- pure (Search s (s0:seen0) (a:actions0))
         (OneTuple (msg)) <- runProcedure @'[ 'In, 'In, 'In, 'In, 'Out ] showMove current a s data0
         () <- runProcedure @'[ 'In ] putStrLn msg
         () <- Logic.ifte ((do
