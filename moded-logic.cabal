@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4f0a9c2e133fe9aa227740751c94a08095b630febcf0e93f6d7384862377a2a9
+-- hash: f86b14aa9b3b6fc7724b678d89d425390157d554ef63dd34fc61919d4949941f
 
 name:           moded-logic
 version:        0.1.0.0
@@ -101,6 +101,7 @@ test-suite moded-logic-test
   other-modules:
       Append
       Cannibals
+      Crypt
       DCG
       Euler
       HigherOrder

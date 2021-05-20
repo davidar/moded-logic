@@ -4,6 +4,7 @@
 import qualified Append
 import qualified Cannibals
 import Cannibals (Action(..))
+import qualified Crypt
 import qualified DCG
 import qualified Euler
 import qualified HigherOrder
@@ -188,7 +189,7 @@ sumDigits (a:as) (b:bs) carry (c:cs) :-
   sumDigits as bs carry' cs
 
 mulDigits (a:as) d carry (b:bs) :-
-  times a d ad
+  timesInt a d ad
   plus ad carry x
   divMod x 10 carry' b
   mulDigits as d carry' bs
@@ -677,6 +678,20 @@ main = do
         it ("n=" ++ show n) $
         List.sort (observeAll (call @'[In, Out] Queens.queens1 [1 .. n])) `shouldBe`
         List.sort (observeAll (call @'[In, Out] Queens.queens2 [1 .. n]))
+    describe "Crypt" $ do
+      it "compile" $ compileTest "Crypt" programCrypt
+      it "crypt" $ do
+        observeAll (call @'[Out] Crypt.crypt) `shouldBe` pure
+          [   3,4,8 --    OEE
+          ,     2,8 --   * EE
+                    --   ----
+          , 2,7,8,4 --   EOEE
+          , 6,9,6   -- + EOE
+                    --   ----
+          , 9,7,4,4 --   OOEE
+          ]
+        348 * 28 `shouldBe` 2784 + 6960
+        2784 + 6960 `shouldBe` 9744
     describe "Kiselyov" $ do
       it "compile" $ compileTest "Kiselyov" programKiselyov
       it "elem" $ do
