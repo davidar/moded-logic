@@ -42,8 +42,8 @@ type Parser = StateT Int (Parsec Void Text)
 fresh :: Parser String
 fresh = do
   c <- get
-  put (c+1)
-  pure $ "fresh" ++ show (c+1)
+  put (c + 1)
+  pure $ "fresh" ++ show (c + 1)
 
 lineComment :: Parser ()
 lineComment = L.skipLineComment "--"
@@ -88,7 +88,8 @@ identifier = (lexeme . try) (p >>= check)
         else return x
 
 operator :: Parser String
-operator = lexeme . try $ (some (oneOf ("!#$%&*+./<=>?@\\^|-~:" :: [Char])) >>= check)
+operator =
+  lexeme . try $ (some (oneOf ("!#$%&*+./<=>?@\\^|-~:" :: [Char])) >>= check)
   where
     check "\\" = fail "lambda cannot be an operator"
     check x = return x
@@ -108,7 +109,11 @@ parenValue' =
         symbol "<$>" -- Control.Categorical.Functor
         args <- parenValue' `sepBy` symbol "<*>"
         let n = length args
-            apply = "apply" ++ if n == 1 then "" else show n
+            apply =
+              "apply" ++
+              if n == 1
+                then ""
+                else show n
         pure $ Curry apply (lhs : args)) <|>
   parenValue
 
@@ -137,11 +142,12 @@ pDisj :: Val -> Parser (Goal Val)
 pDisj x = Conj <$> pConj x `sepBy` symbol ","
 
 pConj :: Val -> Parser (Goal Val)
-pConj x = do 
+pConj x = do
   lhs <- value
   args <- many value
   let n = length args
-      v | n == 0 = lhs
+      v
+        | n == 0 = lhs
         | n == 1 = Curry "apply" (lhs : args)
         | otherwise = Curry ("apply" ++ show n) (lhs : args)
   case v of
@@ -155,14 +161,14 @@ idiomBrackets :: Parser Val
 idiomBrackets = do
   symbol "(|"
   x <- Var . V <$> fresh
-  body <- Disj <$> pDisj x `sepBy` try (symbol "|" <* notFollowedBy (symbol ")"))
+  body <-
+    Disj <$> pDisj x `sepBy` try (symbol "|" <* notFollowedBy (symbol ")"))
   symbol "|)"
   pure $ Lambda [x] body
 
 value :: Parser Val
 value =
-  idiomBrackets <|>
-  parens parenValue' <|>
+  idiomBrackets <|> parens parenValue' <|>
   try
     (do symbol "["
         u <- value
@@ -250,8 +256,7 @@ lambda = do
 
 goal :: Parser (Goal Val)
 goal =
-  (Atom <$> try unify) <|> predicate <|> softcut <|> neg <|> try disj <|>
-  lambda
+  (Atom <$> try unify) <|> predicate <|> softcut <|> neg <|> try disj <|> lambda
 
 conj :: Parser (Goal Val)
 conj =
