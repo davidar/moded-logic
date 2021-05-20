@@ -217,8 +217,8 @@ cgProcedure pragmas ms procedure =
           pure $out
     |]
 
-compile :: Text -> Prog Var Var -> Text
-compile moduleName (Prog pragmas rules) =
+compile :: Prog Var Var -> Text
+compile (Prog pragmas rules) =
   [text|
     {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
     module $moduleName where
@@ -229,6 +229,7 @@ compile moduleName (Prog pragmas rules) =
     $code
   |]
   where
+    [moduleName] = [T.pack s | Pragma ["module", s, "where"] <- pragmas]
     code =
       T.unlines $
       [ T.pack (unwords d) <> " deriving (Eq, Ord, Read, Show)"

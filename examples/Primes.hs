@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+#module Primes where
+
 integers low high result :-
   if low <= high
   then succ low m, integers m high rest, result = (low:rest)

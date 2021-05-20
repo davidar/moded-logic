@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+#module Euler where
+
 #type nat Integer
 nat 0
 nat n' :- nat n, succ n n'

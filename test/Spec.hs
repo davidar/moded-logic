@@ -44,11 +44,11 @@ prime25 =
 
 compileTest :: String -> IO ()
 compileTest name = do
-  src <- TIO.readFile $ "examples/" ++ name ++ ".hn"
+  src <- TIO.readFile $ "examples/" ++ name ++ ".hs"
   let program = either (error . errorBundlePretty) id $ parseProg "" src
   print program
-  let code = compile (T.pack name) program
-      file = "test/" ++ name ++ ".hs"
+  let code = compile program
+      file = "dump/" ++ name ++ ".hs"
   code `shouldSatisfy` (not . T.null)
   updateCode <- isJust <$> lookupEnv "UPDATE_CODE"
   when updateCode $ do

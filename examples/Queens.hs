@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+#module Queens where
+
 qdelete h (h:t) t
 qdelete x (h:t) (h:r) :- qdelete x t r
 qperm [] []

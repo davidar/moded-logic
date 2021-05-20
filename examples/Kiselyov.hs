@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+#module Kiselyov where
+
 nat 0
 nat n' :- nat n, succ n n'
 

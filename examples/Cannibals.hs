@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+#module Cannibals where
+
 elem x (x:_)
 elem x (_:xs) :- elem x xs
 

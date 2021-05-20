@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+#module Sort where
+
 partition [] _ [] []
 partition (h:t) p lo hi :-
   if h <= p

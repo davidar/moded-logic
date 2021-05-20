@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c7d20572522c6bd9fab06a3fb4a24fe6aba60146be27200588b68e43befae88b
+-- hash: 2125c5bef6ab836bb5e96d22030c0afe4f90ff41cb2a111b0282dbbaf70078c5
 
 name:           moded-logic
 version:        0.1.0.0
@@ -66,13 +66,13 @@ library
     , vinyl
   default-language: Haskell2010
 
-executable moded-logic-exe
+executable horn-preprocessor
   main-is: Main.hs
   other-modules:
       Paths_moded_logic
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   build-depends:
       MemoTrie
     , OneTuple
@@ -113,6 +113,7 @@ test-suite moded-logic-test
       TicTacToe
       Paths_moded_logic
   hs-source-dirs:
+      examples
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:

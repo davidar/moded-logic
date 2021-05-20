@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+#module Crypt where
+
 sumDigits [] [] carry cs :-
   if carry = 0 then cs = [] else cs = [carry]
 sumDigits [] (b:bs) carry (c:cs) :-

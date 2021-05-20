@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+#module DCG where
+
 append [] b b
 append (h:t) b (h:tb) :- append t b tb
 
