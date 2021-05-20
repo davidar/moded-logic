@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
-#module DCG where
+module DCG where
 
 append [] b b
 append (h:t) b (h:tb) :- append t b tb
@@ -7,7 +7,7 @@ append (h:t) b (h:tb) :- append t b tb
 #inline compose
 compose f g a z :- g a b, f b z
 
-#data Tree = S Tree Tree | NP String String | VP String Tree
+data Tree = S Tree Tree | NP String String | VP String Tree
 
 det "the"
 det "a"

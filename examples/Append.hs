@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
-#module Append where
+module Append where
 
 append [] b b
 append (h:t) b (h:tb) :- append t b tb

@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
-#module Cannibals where
+module Cannibals where
 
 elem x (x:_)
 elem x (_:xs) :- elem x xs
@@ -11,9 +11,9 @@ append (h:t) b (h:tb) :- append t b tb
 compose f g a z :- g a b, f b z
 
 -- https://github.com/Kakadu/LogicT-demos/blob/master/MCPT.hs
-#data State = State Int Int Int Int Int Int
-#data Action = F Int Int | B Int Int
-#data Search = Search State [State] [Action]
+data State = State Int Int Int Int Int Int
+data Action = F Int Int | B Int Int
+data Search = Search State [State] [Action]
 
 final (State 0 0 _ _ _ _)
 

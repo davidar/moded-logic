@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
-#module TicTacToe where
+module TicTacToe where
 
 elem x (x:_)
 elem x (_:xs) :- elem x xs
@@ -8,10 +8,10 @@ elem x (_:xs) :- elem x xs
 boardSize 3
 marksForWin 3
 
-#data Mark = X | O
-#data Location = Loc Int Int
-#data Entry = Entry Location Mark
-#data Direction = N | NE | E | SE | S | SW | W | NW
+data Mark = X | O
+data Location = Loc Int Int
+data Entry = Entry Location Mark
+data Direction = N | NE | E | SE | S | SW | W | NW
 
 direction N S
 direction NE SW

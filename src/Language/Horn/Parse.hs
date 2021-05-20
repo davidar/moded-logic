@@ -6,7 +6,7 @@ module Language.Horn.Parse
   , rule
   ) where
 
-import Control.Monad (forM, void)
+import Control.Monad (forM)
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Func(..)
@@ -19,6 +19,7 @@ import Control.Monad.Logic.Moded.AST
 import Control.Monad.Logic.Moded.Optimise (simp)
 import Control.Monad.State (MonadState(..), StateT, evalStateT)
 import Data.Char (isSpace, isUpper)
+import Data.Functor (($>), void)
 import Data.List (groupBy)
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -75,7 +76,7 @@ rword :: Text -> Parser ()
 rword w = string w *> notFollowedBy alphaNumChar *> spaceConsumer
 
 rws :: [String] -- list of reserved words
-rws = ["if", "then", "else", "not"]
+rws = ["if", "then", "else", "not", "module", "data"]
 
 identifier :: Parser String
 identifier = (lexeme . try) (p >>= check)
@@ -272,10 +273,12 @@ rule = do
 
 pragma :: Parser Pragma
 pragma = do
-  symbol "#"
+  prefix <-
+    rword "data" $> ["data"] <|> rword "module" $> ["module"] <|>
+    symbol "#" $> []
   ws <-
     some (identifier <|> operator <|> lexeme (some (oneOf ("()[]," :: [Char]))))
-  pure $ Pragma ws
+  pure . Pragma $ prefix ++ ws
 
 data ParseResult
   = PRule (Rule Val Val)

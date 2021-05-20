@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
-#module Primes where
+module Primes where
 
 integers low high result :-
   if low <= high

@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
-#module HigherOrder where
+module HigherOrder where
 
 even n :- mod n 2 0
 
