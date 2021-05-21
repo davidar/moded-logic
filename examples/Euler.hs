@@ -1,17 +1,22 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
 module Euler where
 
-nat :: Rel Integer
+nat :: Rel (Integer)
 nat 0
 nat n' :- nat n, succ n n'
 
+oddNat :: (Num a, Eq a) => Rel (a)
 oddNat 1
 oddNat n' :- oddNat n, plus n 2 n'
 
+even :: (Integral a) => Rel (a)
 even x :- mod x 2 0
 
+elem :: (Eq a) => Rel (a, [a])
 elem x (x:_)
 elem x (_:xs) :- elem x xs
+
+elem' :: (Eq a) => Rel ([a], a)
 elem' xs x :- elem x xs
 
 span _ [] [] []
@@ -22,8 +27,11 @@ span p (x:xs) ys zs :-
 
 takeWhile p xs ys :- span p xs ys _
 
+reverseDL :: (Eq a) => Rel ([a], [a], [a])
 reverseDL [] xs xs
 reverseDL (h:t) rest r :- reverseDL t (h:rest) r
+
+reverse :: (Eq a) => Rel ([a], [a])
 reverse s r :- reverseDL s [] r
 
 all _ []
@@ -32,7 +40,10 @@ all p (h:t) :- p h, all p t
 all' _ [] _
 all' p (h:t) r :- p h r, all' p t r
 
+multiple :: (Integral a) => Rel (a, a)
 multiple y x :- mod x y 0
+
+divisor :: (Integral a) => Rel (a, a)
 divisor x y :- mod x y 0
 
 {-# INLINE apply #-}
@@ -41,8 +52,10 @@ apply f p y :- p x, f x y
 {-# INLINE apply2 #-}
 apply2 f p q z :- p x, q y, f x y z
 
+read :: (Read a, Show a) => Rel (String, a)
 read s x :- show x s
 
+id :: (Eq a) => Rel (a, a)
 id x x
 
 {-# NUB euler1 #-}

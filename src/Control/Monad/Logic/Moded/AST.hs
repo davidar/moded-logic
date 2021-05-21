@@ -46,9 +46,10 @@ data Rule u v =
     }
   deriving (Eq)
 
-newtype Pragma =
-  Pragma [Name]
-  deriving (Eq)
+data Pragma
+  = Pragma [Name]
+  | TypeSig Name [Name] [Name]
+  deriving (Eq, Show)
 
 data Prog u v =
   Prog [Pragma] [Rule u v]
@@ -79,9 +80,6 @@ instance (Show v) => Show (Goal v) where
 instance (Show u, Show v) => Show (Rule u v) where
   show (Rule name vars g) =
     unwords (name : map show vars) ++ " :- " ++ show g ++ "."
-
-instance Show Pragma where
-  show (Pragma ws) = unwords ("#pragma" : ws) ++ "."
 
 instance (Show u, Show v) => Show (Prog u v) where
   show (Prog pragmas rules) = unlines $ map show pragmas ++ map show rules

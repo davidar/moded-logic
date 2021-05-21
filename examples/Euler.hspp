@@ -75,6 +75,7 @@ constraints:
 1
 -}
 
+oddNat :: (mode ∈ '[ '[ 'In ], '[ 'Out ] ], MonadLogic m, MonadFail m, Num a, Eq a) => Procedure m () '[ a ] mode
 oddNat = rget $ (procedure @'[ 'In ] oddNatI) :& (procedure @'[ 'Out ] oddNatO) :& RNil
   where
     oddNatI = \arg1 -> Logic.once $ do
@@ -121,6 +122,7 @@ constraints:
 1
 -}
 
+even :: (mode ∈ '[ '[ 'In ] ], MonadLogic m, MonadFail m, Integral a) => Procedure m () '[ a ] mode
 even = rget $ (procedure @'[ 'In ] evenI) :& RNil
   where
     evenI = \x -> Logic.once $ do
@@ -163,6 +165,7 @@ xs[1,0]
 1
 -}
 
+elem :: (mode ∈ '[ '[ 'In, 'In ], '[ 'Out, 'In ] ], MonadLogic m, MonadFail m, Eq a) => Procedure m () '[ a, [a] ] mode
 elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] elemOI) :& RNil
   where
     elemII = \arg1 arg2 -> Logic.once $ do
@@ -207,6 +210,7 @@ constraints:
 1
 -}
 
+elem' :: (mode ∈ '[ '[ 'In, 'In ], '[ 'In, 'Out ] ], MonadLogic m, MonadFail m, Eq a) => Procedure m () '[ [a], a ] mode
 elem' = rget $ (procedure @'[ 'In, 'In ] elem'II) :& (procedure @'[ 'In, 'Out ] elem'IO) :& RNil
   where
     elem'II = \xs x -> Logic.once $ do
@@ -515,6 +519,7 @@ constraints:
 1
 -}
 
+reverseDL :: (mode ∈ '[ '[ 'In, 'In, 'In ], '[ 'In, 'In, 'Out ], '[ 'In, 'Out, 'In ], '[ 'Out, 'Out, 'In ] ], MonadLogic m, MonadFail m, Eq a) => Procedure m () '[ [a], [a], [a] ] mode
 reverseDL = rget $ (procedure @'[ 'In, 'In, 'In ] reverseDLIII) :& (procedure @'[ 'In, 'In, 'Out ] reverseDLIIO) :& (procedure @'[ 'In, 'Out, 'In ] reverseDLIOI) :& (procedure @'[ 'Out, 'Out, 'In ] reverseDLOOI) :& RNil
   where
     reverseDLIII = \arg1 arg2 arg3 -> Logic.once $ do
@@ -607,6 +612,7 @@ constraints:
 1
 -}
 
+reverse :: (mode ∈ '[ '[ 'In, 'In ], '[ 'In, 'Out ], '[ 'Out, 'In ] ], MonadLogic m, MonadFail m, Eq a) => Procedure m () '[ [a], [a] ] mode
 reverse = rget $ (procedure @'[ 'In, 'In ] reverseII) :& (procedure @'[ 'In, 'Out ] reverseIO) :& (procedure @'[ 'Out, 'In ] reverseOI) :& RNil
   where
     reverseII = \s r -> Logic.once $ do
@@ -816,6 +822,7 @@ constraints:
 1
 -}
 
+multiple :: (mode ∈ '[ '[ 'In, 'In ] ], MonadLogic m, MonadFail m, Integral a) => Procedure m () '[ a, a ] mode
 multiple = rget $ (procedure @'[ 'In, 'In ] multipleII) :& RNil
   where
     multipleII = \y x -> Logic.once $ do
@@ -842,6 +849,7 @@ constraints:
 1
 -}
 
+divisor :: (mode ∈ '[ '[ 'In, 'In ] ], MonadLogic m, MonadFail m, Integral a) => Procedure m () '[ a, a ] mode
 divisor = rget $ (procedure @'[ 'In, 'In ] divisorII) :& RNil
   where
     divisorII = \x y -> Logic.once $ do
@@ -866,6 +874,7 @@ constraints:
 1
 -}
 
+read :: (mode ∈ '[ '[ 'In, 'In ], '[ 'In, 'Out ], '[ 'Out, 'In ] ], MonadLogic m, MonadFail m, Read a, Show a) => Procedure m () '[ String, a ] mode
 read = rget $ (procedure @'[ 'In, 'In ] readII) :& (procedure @'[ 'In, 'Out ] readIO) :& (procedure @'[ 'Out, 'In ] readOI) :& RNil
   where
     readII = \s x -> Logic.once $ do
@@ -909,6 +918,7 @@ constraints:
 1
 -}
 
+id :: (mode ∈ '[ '[ 'In, 'In ], '[ 'In, 'Out ], '[ 'Out, 'In ] ], MonadLogic m, MonadFail m, Eq a) => Procedure m () '[ a, a ] mode
 id = rget $ (procedure @'[ 'In, 'In ] idII) :& (procedure @'[ 'In, 'Out ] idIO) :& (procedure @'[ 'Out, 'In ] idOI) :& RNil
   where
     idII = \arg1 arg2 -> Logic.once $ do

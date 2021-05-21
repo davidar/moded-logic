@@ -54,6 +54,7 @@ import Prelude
   , Fractional(..)
   , Int
   , Integer
+  , Integral
   , Maybe(..)
   , Num(..)
   , Ord(..)
@@ -112,10 +113,7 @@ succ =
   RNil
 
 div ::
-     ( mode ∈ '[ '[ In, In, In], '[ In, In, Out]]
-     , Alternative m
-     , Prelude.Integral a
-     )
+     (mode ∈ '[ '[ In, In, In], '[ In, In, Out]], Alternative m, Integral a)
   => Procedure m () '[ a, a, a] mode
 div =
   rget $
@@ -124,10 +122,7 @@ div =
   RNil
 
 mod ::
-     ( mode ∈ '[ '[ In, In, In], '[ In, In, Out]]
-     , Alternative m
-     , Prelude.Integral a
-     )
+     (mode ∈ '[ '[ In, In, In], '[ In, In, Out]], Alternative m, Integral a)
   => Procedure m () '[ a, a, a] mode
 mod =
   rget $
@@ -138,7 +133,7 @@ mod =
 divMod ::
      ( mode ∈ '[ '[ In, In, In, In], '[ In, In, In, Out], '[ In, In, Out, In], '[ In, In, Out, Out]]
      , Alternative m
-     , Prelude.Integral a
+     , Integral a
      )
   => Procedure m () '[ a, a, a, a] mode
 divMod =
@@ -189,7 +184,7 @@ times =
 timesInt ::
      ( mode ∈ '[ '[ In, In, In], '[ In, In, Out], '[ In, Out, In], '[ Out, In, In]]
      , Alternative m
-     , Prelude.Integral a
+     , Integral a
      )
   => Procedure m () '[ a, a, a] mode
 timesInt =

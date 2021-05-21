@@ -253,16 +253,25 @@ compile (Prog pragmas rules) =
                   callMode ms <> " " <> T.pack name <> T.pack (show ms) <> ")"
             pragmaType =
               listToMaybe
-                [map T.pack ts | Pragma (f:"::":"Rel":ts) <- pragmas, f == name]
+                [ (T.pack <$> ctx, T.pack <$> params)
+                | TypeSig f ctx params <- pragmas
+                , f == name
+                ]
             sig =
               case pragmaType of
                 Nothing -> ""
-                Just ts ->
-                  T.pack name <>
-                  " :: (mode ∈ '[ " <>
-                  T.intercalate ", " modes <>
-                  " ], MonadLogic m, MonadFail m) => Procedure m () '[ " <>
-                  T.intercalate ", " ts <> " ] mode\n\n"
+                Just (ctx, params) ->
+                  let ctx' =
+                        [ "mode ∈ '[ " <> T.intercalate ", " modes <> " ]"
+                        , "MonadLogic m"
+                        , "MonadFail m"
+                        ] ++
+                        ctx
+                   in T.pack name <>
+                      " :: (" <>
+                      T.intercalate ", " ctx' <>
+                      ") => Procedure m () '[ " <>
+                      T.intercalate ", " params <> " ] mode\n\n"
             rel = T.pack name <> " = rget $ " <> fields <> " :& RNil"
             defs =
               T.unlines $ do

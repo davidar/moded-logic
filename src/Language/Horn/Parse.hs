@@ -274,6 +274,18 @@ rule = do
   body <- (symbol ":-" >> conj) <|> pure (Conj [])
   pure $ Rule name vars body
 
+between' :: String -> String -> Parser String -> Parser String
+between' open close p = do
+  symbol $ T.pack open
+  r <- p
+  symbol $ T.pack close
+  pure $ open ++ r ++ close
+
+typeP :: Parser String
+typeP =
+  (unwords <$> some identifier) <|> between' "(" ")" typeP <|>
+  between' "[" "]" typeP
+
 pragma :: Parser Pragma
 pragma =
   (do prefix <- rword "data" $> ["data"] <|> rword "module" $> ["module"]
@@ -283,10 +295,18 @@ pragma =
       (w:ws) <- someTill content $ symbol "#-}"
       pure . Pragma $ map toLower w : ws) <|>
   try
-    (do w <- identifier
+    (do f <- identifier
         symbol "::"
-        ws <- some content
-        pure . Pragma $ w : "::" : ws)
+        ctx <-
+          try
+            (symbol "(" *> (typeP `sepBy` symbol ",") <* symbol ")" <*
+             symbol "=>") <|>
+          pure []
+        symbol "Rel"
+        symbol "("
+        params <- typeP `sepBy` symbol ","
+        symbol ")"
+        pure $ TypeSig f ctx params)
   where
     content =
       identifier <|> operator <|> lexeme (some (oneOf ("()[]," :: [Char])))
