@@ -281,7 +281,12 @@ pragma =
       pure . Pragma $ prefix ++ ws) <|>
   (do symbol "{-#"
       (w:ws) <- someTill content $ symbol "#-}"
-      pure . Pragma $ map toLower w : ws)
+      pure . Pragma $ map toLower w : ws) <|>
+  try
+    (do w <- identifier
+        symbol "::"
+        ws <- some content
+        pure . Pragma $ w : "::" : ws)
   where
     content =
       identifier <|> operator <|> lexeme (some (oneOf ("()[]," :: [Char])))
@@ -304,7 +309,7 @@ definition = do
 
 parseLine :: Parser ParseResult
 parseLine =
-  try definition <|> (PRule <$> rule) <|> (PPragma <$> pragma) <|> pure PNil
+  (PPragma <$> pragma) <|> try definition <|> try (PRule <$> rule) <|> pure PNil
 
 parseProg ::
      String -> Text -> Either (ParseErrorBundle Text Void) (Prog Var Var)

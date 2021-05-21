@@ -48,7 +48,7 @@ compileTest name = do
   let program = either (error . errorBundlePretty) id $ parseProg "" src
   print program
   let code = compile program
-      file = "dump/" ++ name ++ ".hs"
+      file = "examples/" ++ name ++ ".hspp"
   code `shouldSatisfy` (not . T.null)
   updateCode <- isJust <$> lookupEnv "UPDATE_CODE"
   when updateCode $ do

@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
+{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications, TypeOperators #-}
 module Euler where
 
 import qualified Control.Monad.Logic as Logic
@@ -23,6 +23,7 @@ constraints:
 1
 -}
 
+nat :: (mode ∈ '[ '[ 'In ], '[ 'Out ] ], MonadLogic m, MonadFail m) => Procedure m () '[ Integer ] mode
 nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
   where
     natI = \arg1 -> Logic.once $ do
@@ -51,7 +52,7 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
         arg1 <- pure n'
         pure (arg1)
        )
-      pure (OneTuple (arg1 :: Integer))
+      pure (OneTuple (arg1))
     
 {- oddNat/1
 oddNat arg1 :- ((arg1 = 1); (oddNat n, plus n data0 n', data0 = 2, arg1 = n')).

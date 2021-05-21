@@ -58,6 +58,7 @@ executables:
     - -Werror
     dependencies:
     - moded-logic
+    - directory
 
 tests:
   moded-logic-test:

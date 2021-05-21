@@ -3,6 +3,7 @@ module Main where
 import qualified Data.Text.IO as TIO
 import Language.Horn.Codegen (compile)
 import Language.Horn.Parse (parseProg)
+import System.Directory (doesFileExist, getModificationTime)
 import System.Environment (getArgs)
 import Text.Megaparsec (errorBundlePretty)
 
@@ -21,4 +22,17 @@ runConvert original input output = do
   program <- either (fail . errorBundlePretty) pure $ parseProg original src
   if output == "-"
     then TIO.putStrLn $ compile program
-    else TIO.writeFile output $ compile program
+    else do
+      let pp = original ++ "pp"
+      ppExists <- doesFileExist pp
+      res <-
+        if ppExists
+          then do
+            ppMtime <- getModificationTime pp
+            originalMtime <- getModificationTime original
+            if originalMtime <= ppMtime
+              then TIO.readFile pp
+              else pure $ compile program
+          else pure $ compile program
+      TIO.writeFile pp res
+      TIO.writeFile output res

@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
 module Euler where
 
-{-# TYPE nat Integer #-}
+nat :: Rel Integer
 nat 0
 nat n' :- nat n, succ n n'
 

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2fe43ba8e2ceb32d9520517a5f49c7fd7bd42f0dad8303992edbbf682db80cd4
+-- hash: 93ef1b500a8a9e5d2183eb3f5d1115075c60c5075f30c1f575f5fef277480880
 
 name:           moded-logic
 version:        0.1.0.0
@@ -80,6 +80,7 @@ executable horn-preprocessor
     , base >=4.7 && <5
     , containers
     , data-ordlist
+    , directory
     , equivalence
     , extra
     , hspec

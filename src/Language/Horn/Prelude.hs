@@ -21,6 +21,8 @@ module Language.Horn.Prelude
   , nub
   , module Control.Applicative
   , module Control.Monad
+  , module Control.Monad.Fail
+  , module Control.Monad.Logic.Class
   , module Control.Monad.Logic.Moded.Mode
   , module Control.Monad.Logic.Moded.Procedure
   , module Data.MemoTrie
@@ -31,8 +33,10 @@ module Language.Horn.Prelude
 
 import Control.Applicative (Alternative(..), Applicative(..))
 import Control.Monad (guard)
+import Control.Monad.Fail (MonadFail)
 import Control.Monad.IO.Class (MonadIO(..))
 import qualified Control.Monad.Logic as Logic
+import Control.Monad.Logic.Class (MonadLogic)
 import Control.Monad.Logic.Moded.Mode (Mode(..))
 import Control.Monad.Logic.Moded.Procedure
   ( ConstructProcedure(..)

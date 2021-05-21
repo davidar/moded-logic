@@ -184,16 +184,8 @@ cgProcedure pragmas ms procedure =
           | v <- Set.elems $ nonlocals' [] r
           , MV v Out `elem` body
           ]
-      pragmaType = listToMaybe [ts | Pragma ("type":f:ts) <- pragmas, f == name]
       ins = [T.pack (show v) | MV v m <- vars, m /= Out]
-      out =
-        case pragmaType of
-          Nothing -> cgTuple [T.pack (show v) | MV v Out <- vars]
-          Just ts ->
-            cgTuple
-              [ T.pack (show v) <> " :: " <> T.pack t
-              | (MV v Out, t) <- zip vars ts
-              ]
+      out = cgTuple [T.pack (show v) | MV v Out <- vars]
       decorate
         | Pragma ["memo", name] `elem` pragmas =
           case length ins of
@@ -220,7 +212,7 @@ cgProcedure pragmas ms procedure =
 compile :: Prog Var Var -> Text
 compile (Prog pragmas rules) =
   [text|
-    {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
+    {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications, TypeOperators #-}
     module $moduleName where
 
     import qualified Control.Monad.Logic as Logic
@@ -252,12 +244,25 @@ compile (Prog pragmas rules) =
               ] ++
               map show (Set.elems $ modeConstraints c) ++ ["-}"]
             errs = T.unlines $ commentLine . T.pack <$> errors c
+            modes = callMode <$> Map.keys (procedures c)
             fields =
               T.intercalate " :& " $ do
                 ms <- Map.keys (procedures c)
                 pure $
                   "(procedure @" <>
                   callMode ms <> " " <> T.pack name <> T.pack (show ms) <> ")"
+            pragmaType =
+              listToMaybe
+                [map T.pack ts | Pragma (f:"::":"Rel":ts) <- pragmas, f == name]
+            sig =
+              case pragmaType of
+                Nothing -> ""
+                Just ts ->
+                  T.pack name <>
+                  " :: (mode ∈ '[ " <>
+                  T.intercalate ", " modes <>
+                  " ], MonadLogic m, MonadFail m) => Procedure m () '[ " <>
+                  T.intercalate ", " ts <> " ] mode\n\n"
             rel = T.pack name <> " = rget $ " <> fields <> " :& RNil"
             defs =
               T.unlines $ do
@@ -285,7 +290,7 @@ compile (Prog pragmas rules) =
           [text|
             $doc
             $errs
-            $rel
+            $sig$rel
               where
                 $defs
           |]
