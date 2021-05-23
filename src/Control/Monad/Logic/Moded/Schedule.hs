@@ -98,7 +98,8 @@ cost (Atom Unif {}) = 0
 cost g@(Atom Pred {}) = 1 + length [v | MV v Out <- toList g]
 cost g = sum $ cost <$> subgoals g
 
-mode :: Rule Var Var -> Solution -> Either (Cycle DepNode) (Rule ModedVar ModedVar)
+mode ::
+     Rule Var Var -> Solution -> Either (Cycle DepNode) (Rule ModedVar ModedVar)
 mode r@(Rule name vars body) soln =
   Rule name (annotate [] <$> vars) <$> walk [] body
   where
@@ -106,8 +107,7 @@ mode r@(Rule name vars body) soln =
     annotate p v =
       case Map.lookup (v, p) soln of
         Just m -> MV v m
-        Nothing ->
-          error "unused variable?"
+        Nothing -> error "unused variable?"
           {-
           show (v, p) ++
           " not in " ++ show soln ++ " (perhaps this variable is unused?)"

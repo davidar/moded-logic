@@ -183,10 +183,7 @@ cgGoal p r =
           rets =
             T.intercalate
               ","
-              [ var v
-              | v <- Set.elems $ nonlocals' p' r
-              , MV v Out `elem` body
-              ]
+              [var v | v <- Set.elems $ nonlocals' p' r, MV v Out `elem` body]
           ins = [var v | MV v m <- vars, m /= Out]
           out = cgTuple [var v | MV v Out <- vars]
           args
@@ -207,10 +204,7 @@ cgProcedure pragmas ms procedure =
       rets =
         T.intercalate
           ","
-          [ var v
-          | v <- Set.elems $ nonlocals' [] r
-          , MV v Out `elem` body
-          ]
+          [var v | v <- Set.elems $ nonlocals' [] r, MV v Out `elem` body]
       ins = [var v | MV v m <- vars, m /= Out]
       out = cgTuple [var v | MV v Out <- vars]
       decorate
@@ -269,7 +263,12 @@ compile (Prog pragmas rules) =
               , "constraints:"
               ] ++
               map (T.pack . show) (Set.elems $ modeConstraints c) ++ ["-}"]
-            errs = T.unlines $ commentLine . ("mode ordering failure, cyclic dependency: " <>) . T.intercalate ", " . map (showGoal . fmap stripMode) . toList <$> errors c
+            errs =
+              T.unlines $
+              commentLine .
+              ("mode ordering failure, cyclic dependency: " <>) .
+              T.intercalate ", " . map (showGoal . fmap stripMode) . toList <$>
+              errors c
             modes = callMode <$> Map.keys (procedures c)
             fields =
               T.intercalate " :& " $ do

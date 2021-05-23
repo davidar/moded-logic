@@ -6,6 +6,8 @@ module Parse
   , rule
   ) where
 
+import Preprocess (Val(..), combineDefs, distinctVars, superhomogeneous)
+
 import Control.Monad (forM)
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
@@ -26,12 +28,6 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Void (Void)
 import Language.Horn.Prelude (modesPrelude)
-import Preprocess
-  ( Val(..)
-  , combineDefs
-  , distinctVars
-  , superhomogeneous
-  )
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
