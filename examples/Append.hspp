@@ -5,7 +5,7 @@ import qualified Control.Monad.Logic as Logic
 import Language.Horn.Prelude
 
 {- append/3
-append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h:t, arg3 = h0:tb, h0 = h, append t b tb, arg2 = b)).
+append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h:t, arg3 = h0:tb, h0 = h, append t b tb, arg2 = b))
 constraints:
 ~append[1]
 ~(arg1[1,0] & h[1,0])
@@ -139,7 +139,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (arg1,arg2)
     
 {- append3/4
-append3 a b c abc :- ((append a b ab, append ab c abc)).
+append3 a b c abc :- ((append a b ab, append ab c abc))
 constraints:
 ~append[0]
 ~(ab[0,0] & ab[0,1])
@@ -250,7 +250,7 @@ append3 = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] append3IIII) :& (procedure 
       pure (a,b,c)
     
 {- reverse/2
-reverse arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h:t, reverse t r, append r data1 l, data0 = [], data1 = h0:data0, h0 = h, arg2 = l)).
+reverse arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h:t, reverse t r, append r data1 l, data0 = [], data1 = h0:data0, h0 = h, arg2 = l))
 constraints:
 ~append[1]
 ~reverse[1]
@@ -348,7 +348,7 @@ reverse = rget $ (procedure @'[ 'In, 'In ] reverseII) :& (procedure @'[ 'In, 'Ou
       pure (OneTuple (arg1))
     
 {- palindrome/1
-palindrome a :- ((reverse a a0, a0 = a)).
+palindrome a :- ((reverse a a0, a0 = a))
 constraints:
 ~reverse[0]
 ~(a[0,0] & a[0,1])
@@ -360,8 +360,8 @@ constraints:
 (a[0] <-> (a[0,0] | a[0,1]))
 1
 -}
---mode ordering failure, cyclic dependency: [0] reverse::I a::I a0::O -> [1] a0::I = a::O
---mode ordering failure, cyclic dependency: [0] reverse::I a::O a0::I -> [1] a0::O = a::I
+--mode ordering failure, cyclic dependency: reverse a a0, a0 = a
+--mode ordering failure, cyclic dependency: reverse a a0, a0 = a
 palindrome = rget $ (procedure @'[ 'In ] palindromeI) :& RNil
   where
     palindromeI = \a -> Logic.once $ do
@@ -375,7 +375,7 @@ palindrome = rget $ (procedure @'[ 'In ] palindromeI) :& RNil
       pure ()
     
 {- duplicate/2
-duplicate a b :- ((append a a0 b, a0 = a)).
+duplicate a b :- ((append a a0 b, a0 = a))
 constraints:
 ~append[0]
 ~(a[0,0] & a[0,1])
@@ -389,8 +389,8 @@ constraints:
 (b[0] <-> b[0,0])
 1
 -}
---mode ordering failure, cyclic dependency: [0] append::I a::I a0::O b::I -> [1] a0::I = a::O
---mode ordering failure, cyclic dependency: [0] append::I a::O a0::I b::I -> [1] a0::O = a::I
+--mode ordering failure, cyclic dependency: append a a0 b, a0 = a
+--mode ordering failure, cyclic dependency: append a a0 b, a0 = a
 duplicate = rget $ (procedure @'[ 'In, 'In ] duplicateII) :& (procedure @'[ 'In, 'Out ] duplicateIO) :& (procedure @'[ 'Out, 'In ] duplicateOI) :& RNil
   where
     duplicateII = \a b -> Logic.once $ do
@@ -424,7 +424,7 @@ duplicate = rget $ (procedure @'[ 'In, 'In ] duplicateII) :& (procedure @'[ 'In,
       pure (OneTuple (a))
     
 {- classify/2
-classify xs r :- ((if (palindrome xs) then (r = Just []) else (if (duplicate h xs) then (r = Just h) else (r = Nothing)))).
+classify xs r :- ((if (palindrome xs) then (r = Just []) else (if (duplicate h xs) then (r = Just h) else (r = Nothing))))
 constraints:
 h[0,0,2,0,0]
 ~duplicate[0,0,2,0,0]
@@ -517,7 +517,7 @@ classify = rget $ (procedure @'[ 'In, 'In ] classifyII) :& (procedure @'[ 'In, '
       pure (OneTuple (r))
     
 {- delete/3
-delete arg1 arg2 arg3 :- ((arg2 = h:t, arg1 = h, arg3 = t); (arg2 = h0:t, h0 = h, arg3 = h1:r, h1 = h, delete x t r, arg1 = x)).
+delete arg1 arg2 arg3 :- ((arg2 = h:t, arg1 = h, arg3 = t); (arg2 = h0:t, h0 = h, arg3 = h1:r, h1 = h, delete x t r, arg1 = x))
 constraints:
 ~delete[1]
 ~(arg1[0,1] & h[0,1])
@@ -663,7 +663,7 @@ delete = rget $ (procedure @'[ 'In, 'In, 'In ] deleteIII) :& (procedure @'[ 'In,
       pure (arg1,arg3)
     
 {- perm/2
-perm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h:t, delete h xs ys, perm ys t, arg1 = xs)).
+perm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h:t, delete h xs ys, perm ys t, arg1 = xs))
 constraints:
 ~delete[1]
 ~perm[1]
@@ -743,7 +743,7 @@ perm = rget $ (procedure @'[ 'In, 'In ] permII) :& (procedure @'[ 'In, 'Out ] pe
       pure (OneTuple (arg1))
     
 {- last/2
-last xs x :- ((append _ data1 xs, data0 = [], data1 = x:data0)).
+last xs x :- ((append _ data1 xs, data0 = [], data1 = x:data0))
 constraints:
 ~append[0]
 ~(data0[0,1] & data0[0,2])
@@ -785,7 +785,7 @@ last = rget $ (procedure @'[ 'In, 'In ] lastII) :& (procedure @'[ 'In, 'Out ] la
       pure (OneTuple (x))
     
 {- id/2
-id arg1 arg2 :- ((arg1 = x, arg2 = x)).
+id arg1 arg2 :- ((arg1 = x, arg2 = x))
 constraints:
 ~(arg1[0,0] & x[0,0])
 ~(arg2[0,1] & x[0,1])

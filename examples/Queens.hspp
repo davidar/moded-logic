@@ -5,7 +5,7 @@ import qualified Control.Monad.Logic as Logic
 import Language.Horn.Prelude
 
 {- qdelete/3
-qdelete arg1 arg2 arg3 :- ((arg2 = h:t, arg1 = h, arg3 = t); (arg2 = h0:t, h0 = h, arg3 = h1:r, h1 = h, qdelete x t r, arg1 = x)).
+qdelete arg1 arg2 arg3 :- ((arg2 = h:t, arg1 = h, arg3 = t); (arg2 = h0:t, h0 = h, arg3 = h1:r, h1 = h, qdelete x t r, arg1 = x))
 constraints:
 ~qdelete[1]
 ~(arg1[0,1] & h[0,1])
@@ -151,7 +151,7 @@ qdelete = rget $ (procedure @'[ 'In, 'In, 'In ] qdeleteIII) :& (procedure @'[ 'I
       pure (arg1,arg3)
     
 {- qperm/2
-qperm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h:t, qdelete h xs ys, qperm ys t, arg1 = xs)).
+qperm arg1 arg2 :- ((arg1 = [], arg2 = []); (arg2 = h:t, qdelete h xs ys, qperm ys t, arg1 = xs))
 constraints:
 ~qdelete[1]
 ~qperm[1]
@@ -231,7 +231,7 @@ qperm = rget $ (procedure @'[ 'In, 'In ] qpermII) :& (procedure @'[ 'In, 'Out ] 
       pure (OneTuple (arg1))
     
 {- nodiag/3
-nodiag arg1 arg2 arg3 :- ((arg3 = []); (arg3 = h:t, plus hmb b h, plus bmh h b, succ d d1, if (d = hmb) then (empty) else (if (d = bmh) then (empty) else (nodiag b d1 t)), arg1 = b, arg2 = d)).
+nodiag arg1 arg2 arg3 :- ((arg3 = []); (arg3 = h:t, plus hmb b h, plus bmh h b, succ d d1, if (d = hmb) then (empty) else (if (d = bmh) then (empty) else (nodiag b d1 t)), arg1 = b, arg2 = d))
 constraints:
 ~arg1[]
 ~arg2[]
@@ -364,7 +364,7 @@ nodiag = rget $ (procedure @'[ 'In, 'In, 'In ] nodiagIII) :& RNil
       pure ()
     
 {- safe/1
-safe arg1 :- ((arg1 = []); (arg1 = h:t, nodiag h data0 t, data0 = 1, safe t)).
+safe arg1 :- ((arg1 = []); (arg1 = h:t, nodiag h data0 t, data0 = 1, safe t))
 constraints:
 ~nodiag[1]
 ~safe[1]
@@ -405,7 +405,7 @@ safe = rget $ (procedure @'[ 'In ] safeI) :& RNil
       pure ()
     
 {- queens1/2
-queens1 dat out :- ((qperm dat out, safe out)).
+queens1 dat out :- ((qperm dat out, safe out))
 constraints:
 ~out[0,1]
 ~qperm[0]
@@ -452,7 +452,7 @@ queens1 = rget $ (procedure @'[ 'In, 'In ] queens1II) :& (procedure @'[ 'In, 'Ou
       pure (OneTuple (dat))
     
 {- cqueens/3
-cqueens arg1 arg2 arg3 :- ((arg1 = [], arg3 = []); (arg3 = q:m, xs = _:_, qdelete q xs r, nodiag q data0 history, data0 = 1, cqueens r data1 m, data1 = q0:history, q0 = q, arg1 = xs, arg2 = history)).
+cqueens arg1 arg2 arg3 :- ((arg1 = [], arg3 = []); (arg3 = q:m, xs = _:_, qdelete q xs r, nodiag q data0 history, data0 = 1, cqueens r data1 m, data1 = q0:history, q0 = q, arg1 = xs, arg2 = history))
 constraints:
 ~arg2[]
 ~cqueens[1]
@@ -578,7 +578,7 @@ cqueens = rget $ (procedure @'[ 'In, 'In, 'In ] cqueensIII) :& (procedure @'[ 'I
       pure (OneTuple (arg1))
     
 {- queens2/2
-queens2 dat out :- ((cqueens dat data0 out, data0 = [])).
+queens2 dat out :- ((cqueens dat data0 out, data0 = []))
 constraints:
 ~cqueens[0]
 ~(data0[0,0] & data0[0,1])

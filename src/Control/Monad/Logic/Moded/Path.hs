@@ -64,13 +64,13 @@ locals p r@(Rule _ vars body) = inside p r Set.\\ out
   where
     out = Set.fromList vars `Set.union` outside p body
 
-extract :: (Show v) => Path -> Goal v -> Goal v
+extract :: Path -> Goal v -> Goal v
 extract p g = foldl f g p
   where
     f :: Goal v -> Int -> Goal v
-    f Atom {} _ = error $ "invalid path " ++ show p ++ " for goal " ++ show g
+    f Atom {} _ = error $ "invalid path " ++ show p
     f g' i = subgoals g' !! i
 
-extendPath :: (Show v) => Path -> Rule u v -> [Path]
+extendPath :: Path -> Rule u v -> [Path]
 extendPath p r =
   [p ++ [i] | i <- take (length . subgoals . extract p $ ruleBody r) [0 ..]]

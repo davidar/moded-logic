@@ -5,7 +5,7 @@ import qualified Control.Monad.Logic as Logic
 import Language.Horn.Prelude
 
 {- even/1
-even n :- ((mod n data0 data1, data0 = 2, data1 = 0)).
+even n :- ((mod n data0 data1, data0 = 2, data1 = 0))
 constraints:
 ~mod[0]
 ~(data0[0,0] & data0[0,1])
@@ -32,7 +32,7 @@ even = rget $ (procedure @'[ 'In ] evenI) :& RNil
       pure ()
     
 {- map/3
-map arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = x:xs, arg3 = y:ys, p x y, map p xs ys, arg1 = p)).
+map arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = x:xs, arg3 = y:ys, p x y, map p xs ys, arg1 = p))
 constraints:
 ~arg1[]
 ~map[1]
@@ -142,7 +142,7 @@ map = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'In, 'In ] mapP2IIII) :& (p
       pure (arg2,arg3)
     
 {- succs/2
-succs xs ys :- ((map pred0 xs ys, (pred0 curry1 curry2 :- (succ curry1 curry2)))).
+succs xs ys :- ((map pred0 xs ys, (pred0 curry1 curry2 :- (succ curry1 curry2))))
 constraints:
 ~curry1[0]
 ~curry2[0]
@@ -214,7 +214,7 @@ succs = rget $ (procedure @'[ 'In, 'In ] succsII) :& (procedure @'[ 'In, 'Out ] 
       pure (OneTuple (xs))
     
 {- filter/3
-filter arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = h:t, if (p h) then (filter p t t', ts = h0:t', h0 = h) else (filter p t ts), arg1 = p, arg3 = ts)).
+filter arg1 arg2 arg3 :- ((arg2 = [], arg3 = []); (arg2 = h:t, if (p h) then (filter p t t', ts = h0:t', h0 = h) else (filter p t ts), arg1 = p, arg3 = ts))
 constraints:
 ~arg1[]
 ~filter[1,1,1]
@@ -333,7 +333,7 @@ filter = rget $ (procedure @'[ 'PredMode '[ 'In ], 'In, 'In ] filterP1III) :& (p
       pure (OneTuple (arg3))
     
 {- evens/2
-evens xs ys :- ((filter pred0 xs ys, (pred0 curry1 :- (even curry1)))).
+evens xs ys :- ((filter pred0 xs ys, (pred0 curry1 :- (even curry1))))
 constraints:
 ~curry1[0]
 ~curry1[0,1,0,0]
@@ -386,7 +386,7 @@ evens = rget $ (procedure @'[ 'In, 'In ] evensII) :& (procedure @'[ 'In, 'Out ] 
       pure (OneTuple (ys))
     
 {- foldl/4
-foldl arg1 arg2 arg3 arg4 :- ((arg2 = [], arg3 = a, arg4 = a); (arg2 = h:t, p h a a', foldl p t a' a'', arg1 = p, arg3 = a, arg4 = a'')).
+foldl arg1 arg2 arg3 arg4 :- ((arg2 = [], arg3 = a, arg4 = a); (arg2 = h:t, p h a a', foldl p t a' a'', arg1 = p, arg3 = a, arg4 = a''))
 constraints:
 ~arg1[]
 ~foldl[1]
@@ -631,7 +631,7 @@ foldl = rget $ (procedure @'[ 'PredMode '[ 'In, 'In, 'Out ], 'In, 'In, 'In ] fol
       pure (arg2,arg4)
     
 {- sum/3
-sum xs z r :- ((foldl pred0 xs z r, (pred0 curry1 curry2 curry3 :- (plus curry1 curry2 curry3)))).
+sum xs z r :- ((foldl pred0 xs z r, (pred0 curry1 curry2 curry3 :- (plus curry1 curry2 curry3))))
 constraints:
 ~curry1[0]
 ~curry2[0]
@@ -708,7 +708,7 @@ sum = rget $ (procedure @'[ 'In, 'In, 'In ] sumIII) :& (procedure @'[ 'In, 'In, 
       pure (OneTuple (z))
     
 {- split/3
-split xs z r :- ((foldl pred0 xs z r, (pred0 x a a' :- (a = x:a')))).
+split xs z r :- ((foldl pred0 xs z r, (pred0 x a a' :- (a = x:a'))))
 constraints:
 ~a[0]
 ~a'[0]
@@ -784,7 +784,7 @@ split = rget $ (procedure @'[ 'In, 'Out, 'In ] splitIOI) :& (procedure @'[ 'Out,
       pure (xs,r)
     
 {- splitr/3
-splitr xs z r :- ((foldl pred0 xs z r, (pred0 x a a' :- (a' = x:a)))).
+splitr xs z r :- ((foldl pred0 xs z r, (pred0 x a a' :- (a' = x:a))))
 constraints:
 ~a[0]
 ~a'[0]
@@ -860,7 +860,7 @@ splitr = rget $ (procedure @'[ 'In, 'In, 'In ] splitrIII) :& (procedure @'[ 'In,
       pure (xs,z)
     
 {- closure/3
-closure arg1 arg2 arg3 :- ((p x y, arg1 = p, arg2 = x, arg3 = y); (p x z, closure p z y, arg1 = p, arg2 = x, arg3 = y)).
+closure arg1 arg2 arg3 :- ((p x y, arg1 = p, arg2 = x, arg3 = y); (p x z, closure p z y, arg1 = p, arg2 = x, arg3 = y))
 constraints:
 p[0,1]
 ~closure[1]
@@ -1006,7 +1006,7 @@ closure = rget $ (procedure @'[ 'PredMode '[ 'In, 'Out ], 'In, 'In ] closureP2IO
       pure (OneTuple (arg3))
     
 {- smaller/2
-smaller arg1 arg2 :- ((arg1 = 1, arg2 = 2); (arg1 = 2, arg2 = 3)).
+smaller arg1 arg2 :- ((arg1 = 1, arg2 = 2); (arg1 = 2, arg2 = 3))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
@@ -1078,7 +1078,7 @@ smaller = rget $ (procedure @'[ 'In, 'In ] smallerII) :& (procedure @'[ 'In, 'Ou
       pure (arg1,arg2)
     
 {- smallerTransitive/2
-smallerTransitive x y :- ((closure pred0 x y, (pred0 curry1 curry2 :- (smaller curry1 curry2)))).
+smallerTransitive x y :- ((closure pred0 x y, (pred0 curry1 curry2 :- (smaller curry1 curry2))))
 constraints:
 ~closure[0]
 ~curry1[0]
@@ -1150,7 +1150,7 @@ smallerTransitive = rget $ (procedure @'[ 'In, 'In ] smallerTransitiveII) :& (pr
       pure (OneTuple (x))
     
 {- compose/4
-compose f g a z :- ((g a b, f b z)).
+compose f g a z :- ((g a b, f b z))
 constraints:
 ~f[0]
 ~g[0]
@@ -1252,7 +1252,7 @@ compose = rget $ (procedure @'[ 'PredMode '[ 'In, 'In ], 'PredMode '[ 'In, 'Out 
       pure (a,z)
     
 {- composeTest/2
-composeTest a z :- ((compose pred1 pred3 a z, (pred1 curry1 curry2 :- (times data0 curry1 curry2, data0 = 2)), (pred3 curry1 curry2 :- (plus data2 curry1 curry2, data2 = 1)))).
+composeTest a z :- ((compose pred1 pred3 a z, (pred1 curry1 curry2 :- (times data0 curry1 curry2, data0 = 2)), (pred3 curry1 curry2 :- (plus data2 curry1 curry2, data2 = 1))))
 constraints:
 ~compose[0]
 ~curry1[0]
@@ -1365,7 +1365,7 @@ composeTest = rget $ (procedure @'[ 'In, 'In ] composeTestII) :& (procedure @'[ 
       pure (OneTuple (a))
     
 {- inlineTest/1
-inlineTest y :- ((data0 = y, data0 = 7)).
+inlineTest y :- ((data0 = y, data0 = 7))
 constraints:
 ~(data0[0,0] & data0[0,1])
 ~(data0[0,0] & y[0,0])

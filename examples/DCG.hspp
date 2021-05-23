@@ -6,7 +6,7 @@ import Language.Horn.Prelude
 
 data Tree = S Tree Tree | NP String String | VP String Tree deriving (Eq, Ord, Read, Show)
 {- append/3
-append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h:t, arg3 = h0:tb, h0 = h, append t b tb, arg2 = b)).
+append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h:t, arg3 = h0:tb, h0 = h, append t b tb, arg2 = b))
 constraints:
 ~append[1]
 ~(arg1[1,0] & h[1,0])
@@ -140,7 +140,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (arg1,arg2)
     
 {- det/1
-det arg1 :- ((arg1 = "the"); (arg1 = "a")).
+det arg1 :- ((arg1 = "the"); (arg1 = "a"))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
@@ -175,7 +175,7 @@ det = rget $ (procedure @'[ 'In ] detI) :& (procedure @'[ 'Out ] detO) :& RNil
       pure (OneTuple (arg1))
     
 {- noun/1
-noun arg1 :- ((arg1 = "cat"); (arg1 = "bat")).
+noun arg1 :- ((arg1 = "cat"); (arg1 = "bat"))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
@@ -210,7 +210,7 @@ noun = rget $ (procedure @'[ 'In ] nounI) :& (procedure @'[ 'Out ] nounO) :& RNi
       pure (OneTuple (arg1))
     
 {- verb/1
-verb arg1 :- ((arg1 = "eats")).
+verb arg1 :- ((arg1 = "eats"))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,0])
@@ -237,7 +237,7 @@ verb = rget $ (procedure @'[ 'In ] verbI) :& (procedure @'[ 'Out ] verbO) :& RNi
       pure (OneTuple (arg1))
     
 {- np/3
-np arg1 arg2 arg3 :- ((append n carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", append d b_0 carg4, arg1 = NP d n, det d, noun n, arg2 = carg3, arg3 = carg4)).
+np arg1 arg2 arg3 :- ((append n carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", append d b_0 carg4, arg1 = NP d n, det d, noun n, arg2 = carg3, arg3 = carg4))
 constraints:
 ~append[0]
 ~det[0]
@@ -383,7 +383,7 @@ np = rget $ (procedure @'[ 'In, 'In, 'In ] npIII) :& (procedure @'[ 'In, 'In, 'O
       pure (arg1,arg2)
     
 {- vp/3
-vp arg1 arg2 arg3 :- ((np n carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", append v b_0 carg4, arg1 = VP v n, verb v, arg2 = carg3, arg3 = carg4)).
+vp arg1 arg2 arg3 :- ((np n carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", append v b_0 carg4, arg1 = VP v n, verb v, arg2 = carg3, arg3 = carg4))
 constraints:
 ~append[0]
 ~np[0]
@@ -520,7 +520,7 @@ vp = rget $ (procedure @'[ 'In, 'In, 'In ] vpIII) :& (procedure @'[ 'In, 'In, 'O
       pure (arg1,arg2)
     
 {- sentence/3
-sentence arg1 arg2 arg3 :- ((vp v carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", np n b_0 carg4, arg1 = S n v, arg2 = carg3, arg3 = carg4)).
+sentence arg1 arg2 arg3 :- ((vp v carg3 b_3, append data1_1_5 b_3 b_0, data1_1_5 = " ", np n b_0 carg4, arg1 = S n v, arg2 = carg3, arg3 = carg4))
 constraints:
 ~append[0]
 ~np[0]

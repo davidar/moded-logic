@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
 
-module Language.Horn.Codegen
+module Codegen
   ( compile
   ) where
 
@@ -36,8 +36,35 @@ nonlocals' :: Path -> Rule ModedVar ModedVar -> Set Var
 nonlocals' p (Rule name vars body) =
   nonlocals p (Rule name (stripMode <$> vars) (stripMode <$> body))
 
+var :: Var -> Text
+var (V v) = T.pack v
+
+showFunc :: Func Var -> Text
+showFunc (FVar v) = var v
+showFunc (Func ":" vs)
+  | length vs > 1 = T.intercalate ":" (map showFunc vs)
+showFunc (Func name vs) = T.unwords (T.pack name : map showFunc vs)
+
+showAtom :: Atom Var -> Text
+showAtom (Unif u v) = var u <> " = " <> showFunc v
+showAtom (Pred name []) = var name
+showAtom (Pred name vs) = T.unwords $ var <$> (name : vs)
+
+showGoal :: Goal Var -> Text
+showGoal (Atom a) = showAtom a
+showGoal (Conj gs) = "(" <> T.intercalate ", " (map showGoal gs) <> ")"
+showGoal (Disj gs) = "(" <> T.intercalate "; " (map showGoal gs) <> ")"
+showGoal (Ifte c t e) =
+  "if " <> showGoal c <> " then " <> showGoal t <> " else " <> showGoal e
+showGoal (Anon name vars g) =
+  "(" <> T.unwords (var <$> name : vars) <> " :- " <> showGoal g <> ")"
+
+showRule :: Rule Var Var -> Text
+showRule (Rule name vars g) =
+  T.unwords (T.pack name : map var vars) <> " :- " <> showGoal g
+
 mv :: ModedVar -> Text
-mv = T.pack . show . stripMode
+mv (MV (V v) _) = T.pack v
 
 callMode :: ModeString -> Text
 callMode (ModeString ms) = "'[ " <> T.intercalate ", " ms' <> " ]"
@@ -119,7 +146,7 @@ cgGoal p r =
                     "(" <>
                     T.intercalate
                       ","
-                      [ T.pack (show v)
+                      [ var v
                       | v <- Set.elems $ nonlocals' p' r
                       , MV v Out `elem` g
                       ] <>
@@ -127,7 +154,7 @@ cgGoal p r =
           ret =
             T.intercalate
               ","
-              [ T.pack (show v)
+              [ var v
               | v <- Set.elems $ nonlocals' p r
               , MV v Out `elem` Conj conj
               ]
@@ -146,7 +173,7 @@ cgGoal p r =
       where cret =
               T.intercalate
                 ","
-                [ T.pack (show v)
+                [ var v
                 | v <- Set.elems $ nonlocals' (p ++ [0]) r
                 , MV v Out `elem` c
                 ]
@@ -156,12 +183,12 @@ cgGoal p r =
           rets =
             T.intercalate
               ","
-              [ T.pack (show v)
+              [ var v
               | v <- Set.elems $ nonlocals' p' r
               , MV v Out `elem` body
               ]
-          ins = [T.pack (show v) | MV v m <- vars, m /= Out]
-          out = cgTuple [T.pack (show v) | MV v Out <- vars]
+          ins = [var v | MV v m <- vars, m /= Out]
+          out = cgTuple [var v | MV v Out <- vars]
           args
             | null ins = "do"
             | otherwise = "\\" <> T.unwords ins <> " -> do"
@@ -180,12 +207,12 @@ cgProcedure pragmas ms procedure =
       rets =
         T.intercalate
           ","
-          [ T.pack (show v)
+          [ var v
           | v <- Set.elems $ nonlocals' [] r
           , MV v Out `elem` body
           ]
-      ins = [T.pack (show v) | MV v m <- vars, m /= Out]
-      out = cgTuple [T.pack (show v) | MV v Out <- vars]
+      ins = [var v | MV v m <- vars, m /= Out]
+      out = cgTuple [var v | MV v Out <- vars]
       decorate
         | Pragma ["memo", name] `elem` pragmas =
           case length ins of
@@ -237,13 +264,12 @@ compile (Prog pragmas rules) =
         let arity = length . ruleArgs $ unmodedRule c
             doc =
               T.unlines $
-              T.pack <$>
-              [ "{- " ++ name ++ "/" ++ show arity
-              , show (unmodedRule c)
+              [ "{- " <> T.pack name <> "/" <> T.pack (show arity)
+              , showRule (unmodedRule c)
               , "constraints:"
               ] ++
-              map show (Set.elems $ modeConstraints c) ++ ["-}"]
-            errs = T.unlines $ commentLine . T.pack <$> errors c
+              map (T.pack . show) (Set.elems $ modeConstraints c) ++ ["-}"]
+            errs = T.unlines $ commentLine . ("mode ordering failure, cyclic dependency: " <>) . T.intercalate ", " . map (showGoal . fmap stripMode) . toList <$> errors c
             modes = callMode <$> Map.keys (procedures c)
             fields =
               T.intercalate " :& " $ do
@@ -283,7 +309,7 @@ compile (Prog pragmas rules) =
                             meta =
                               "  -- solution: " <>
                               T.unwords
-                                [ T.pack (show v ++ show p)
+                                [ var v <> T.pack (show p)
                                 | ((v, p), Out) <-
                                     Map.assocs (modeSolution procedure)
                                 ]

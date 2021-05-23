@@ -54,8 +54,8 @@ type Modes = Map Name [ModeString]
 type Solution = Map (Var, Path) Mode
 
 instance Show CAtom where
-  show (Produce v p) = show v ++ show p
-  show (ProduceArg v i) = show v ++ "(" ++ show i ++ ")"
+  show (Produce (V v) p) = v ++ show p
+  show (ProduceArg (V v) i) = v ++ "(" ++ show i ++ ")"
   show (TseitinVar i) = "ts*" ++ show i
 
 instance Sat.Tseitin CAtom where
@@ -206,7 +206,7 @@ cPred m p r name vars
   | otherwise =
     error $
     "unknown predicate " ++
-    name ++ "/" ++ show (length vars) ++ " in " ++ show r
+    name ++ "/" ++ show (length vars) ++ " in " ++ ruleName r
   where
     equivClasses :: EquivM s (Set Var) Var ()
     equivClasses =
@@ -231,7 +231,7 @@ constraints m rule = Set.map f cs
       case Sat.partEval env c of
         Sat.Bottom ->
           error $
-          show rule ++ "\n" ++ show c ++ " always fails with " ++ show env
+          ruleName rule ++ "\n" ++ show c ++ " always fails with " ++ show env
         e -> e
 
 convertSolution :: [Constraint] -> Solution

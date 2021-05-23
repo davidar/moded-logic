@@ -5,7 +5,7 @@ import qualified Control.Monad.Logic as Logic
 import Language.Horn.Prelude
 
 {- partition/4
-partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h:t, if ((<=) h p) then (partition t p lo1 hi, lo = h0:lo1, h0 = h) else (partition t p lo hi1, hi = h1:hi1, h1 = h), arg2 = p, arg3 = lo, arg4 = hi)).
+partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h:t, if ((<=) h p) then (partition t p lo1 hi, lo = h0:lo1, h0 = h) else (partition t p lo hi1, hi = h1:hi1, h1 = h), arg2 = p, arg3 = lo, arg4 = hi))
 constraints:
 ~(<=)[1,1,0]
 ~arg2[]
@@ -219,7 +219,7 @@ partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (proced
       pure (arg3,arg4)
     
 {- qsort/3
-qsort arg1 arg2 arg3 :- ((arg1 = [], arg2 = r, arg3 = r); (arg1 = x:xs, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x0:r1, x0 = x, arg2 = r, arg3 = r0)).
+qsort arg1 arg2 arg3 :- ((arg1 = [], arg2 = r, arg3 = r); (arg1 = x:xs, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x0:r1, x0 = x, arg2 = r, arg3 = r0))
 constraints:
 ~partition[1]
 ~qsort[1]
@@ -321,7 +321,7 @@ qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 
       pure (OneTuple (arg2))
     
 {- sort/2
-sort list sorted :- ((qsort list sorted data0, data0 = [])).
+sort list sorted :- ((qsort list sorted data0, data0 = []))
 constraints:
 ~qsort[0]
 ~(data0[0,0] & data0[0,1])

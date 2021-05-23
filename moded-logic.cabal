@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 93ef1b500a8a9e5d2183eb3f5d1115075c60c5075f30c1f575f5fef277480880
+-- hash: 111c5a3e81a4f2b02376caace0e91c56b93af06bb94bfb2fed6f7b326fb7309b
 
 name:           moded-logic
 version:        0.1.0.0
@@ -35,10 +35,7 @@ library
       Control.Monad.Logic.Moded.Procedure
       Control.Monad.Logic.Moded.Schedule
       Control.Monad.Logic.Moded.Solver
-      Language.Horn.Codegen
-      Language.Horn.Parse
       Language.Horn.Prelude
-      Language.Horn.Preprocess
   other-modules:
       Paths_moded_logic
   hs-source-dirs:
@@ -69,6 +66,9 @@ library
 executable horn-preprocessor
   main-is: Main.hs
   other-modules:
+      Codegen
+      Parse
+      Preprocess
       Paths_moded_logic
   hs-source-dirs:
       app

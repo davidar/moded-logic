@@ -35,7 +35,7 @@ import Control.Monad.Logic.Moded.Path (nonlocals)
 import Control.Monad.State (evalState)
 import Data.Either (partitionEithers)
 import Data.Foldable (Foldable(toList))
-import Data.List (intercalate, sortOn)
+import Data.List (sortOn)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
@@ -61,7 +61,7 @@ data CompiledPredicate =
     { unmodedRule :: Rule Var Var
     , modeConstraints :: Constraints
     , procedures :: Map ModeString [Procedure]
-    , errors :: [String]
+    , errors :: [Cycle (Goal ModedVar)]
     }
 
 data CompiledProgram =
@@ -69,9 +69,6 @@ data CompiledProgram =
     { predicates :: [(Name, CompiledPredicate)]
     , macros :: [(Name, Macro)]
     }
-
-instance Show ModedVar where
-  show (MV v m) = show v ++ "::" ++ show m
 
 instance Semigroup CompiledProgram where
   CompiledProgram p m <> CompiledProgram p' m' =
@@ -87,9 +84,6 @@ data DepNode =
     }
   deriving (Eq)
 
-instance Show DepNode where
-  show (DepNode i g) = "[" ++ show i ++ "] " ++ show g
-
 instance Ord DepNode where
   DepNode i g `compare` DepNode j g' =
     case cost g `compare` cost g' of
@@ -104,25 +98,20 @@ cost (Atom Unif {}) = 0
 cost g@(Atom Pred {}) = 1 + length [v | MV v Out <- toList g]
 cost g = sum $ cost <$> subgoals g
 
-mode :: Rule Var Var -> Solution -> Either String (Rule ModedVar ModedVar)
+mode :: Rule Var Var -> Solution -> Either (Cycle DepNode) (Rule ModedVar ModedVar)
 mode r@(Rule name vars body) soln =
-  case walk [] body of
-    Left cyc ->
-      Left $
-      "mode ordering failure, cyclic dependency: " ++
-      intercalate " -> " (show <$> toList cyc)
-    Right body' -> Right $ Rule name (annotate [] <$> vars) body'
+  Rule name (annotate [] <$> vars) <$> walk [] body
   where
     annotate _ (V "_") = MV (V "_") Out
     annotate p v =
       case Map.lookup (v, p) soln of
         Just m -> MV v m
         Nothing ->
-          error $
-          show r ++
-          "\n" ++
+          error "unused variable?"
+          {-
           show (v, p) ++
           " not in " ++ show soln ++ " (perhaps this variable is unused?)"
+          -}
     walk p (Disj disj) =
       Disj <$> sequence [walk (p ++ [d]) g | (d, g) <- zip [0 ..] disj]
     walk p (Conj conj) = do
@@ -178,7 +167,7 @@ compileRule envModes pragmas cp r
         then traceShowId $
              inferModes
                m
-               (trace ("inferring modes for rule " ++ show rule) rule)
+               (trace ("inferring modes for rule " ++ ruleName rule) rule)
         else userModes
     candidates ms = do
       soln <- take maxCandidates $ solveConstraintsMode m rule ms
@@ -205,7 +194,7 @@ compileRule envModes pragmas cp r
               if null v
                 then trace ("no candidates for mode " ++ show k) []
                 else pure (k, v)
-        , errors = fst =<< pairs
+        , errors = fmap unDepNode <$> (fst =<< pairs)
         }
     m =
       flip Map.union envModes . Map.fromList $ do

@@ -1,8 +1,9 @@
 module Main where
 
+import Codegen (compile)
+import Parse (parseProg)
+
 import qualified Data.Text.IO as TIO
-import Language.Horn.Codegen (compile)
-import Language.Horn.Parse (parseProg)
 import System.Directory (doesFileExist, getModificationTime)
 import System.Environment (getArgs)
 import Text.Megaparsec (errorBundlePretty)

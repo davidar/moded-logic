@@ -14,36 +14,26 @@ import qualified Queens
 import qualified Sort
 
 import Control.Applicative (Alternative(..))
-import Control.Exception (IOException, catch)
-import Control.Monad (forM_, guard, when)
+import Control.Monad (forM_, guard)
 import Control.Monad.IO.Class (liftIO)
 import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.Mode (Mode(..))
-import Control.Monad.Logic.Moded.Optimise (simp)
 import Control.Monad.Logic.Moded.Procedure (call)
-import Control.Monad.State (evalStateT)
 import qualified Control.Monad.Stream as Stream
 import Control.Monad.Stream (observe, observeMany, observeManyT, observeAll, observeAllT)
 import qualified Data.List as List
-import Data.Maybe (isJust)
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
-import Language.Horn.Codegen (compile)
-import Language.Horn.Parse (parseProg, rule)
 import qualified Language.Horn.Prelude as HornPrelude
-import Language.Horn.Preprocess (combineDefs, superhomogeneous)
-import System.Environment (lookupEnv)
 import Test.Hspec (describe, hspec, it)
-import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn, shouldSatisfy)
-import Text.Megaparsec (errorBundlePretty, parse)
+import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn)
 
 prime25 :: [Integer]
 prime25 =
   [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41
   , 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97 ]
 
+{-
 compileTest :: String -> IO ()
-compileTest name = do
+compileTest name = return () do
   src <- TIO.readFile $ "examples/" ++ name ++ ".hs"
   let program = either (error . errorBundlePretty) id $ parseProg "" src
   print program
@@ -57,10 +47,12 @@ compileTest name = do
       TIO.writeFile file code
   expect <- TIO.readFile file
   code `shouldBe` expect
+-}
 
 main :: IO ()
 main = do
   hspec $ do
+    {-
     describe "Parse" $ do
       it "apply" $ do
         let Right r0 = parse (evalStateT rule 0) "" "result n :- apply sum (observeAll p) n"
@@ -71,8 +63,8 @@ main = do
         show r1 `shouldBe` "result n :- (((apply sum (observeAll p) n)))."
         show r2 `shouldBe` "result n :- ((((apply pred0 pred2 n, (pred0 curry1 curry2 :- sum curry1 curry2), (pred2 curry1 :- (observeAll pred1 curry1, (pred1 curry1 :- p curry1)))))))."
         show r3 `shouldBe` "result n :- ((apply pred0 pred2 n, (pred0 curry1 curry2 :- sum curry1 curry2), (pred2 curry1 :- (observeAll pred1 curry1, (pred1 curry1 :- p curry1)))))."
+    -}
     describe "Append" $ do
-      it "compile" $ compileTest "Append"
       it "append" $ do
         observeAll (call @'[In, In, Out] Append.append [1 .. 3] [4 .. 6]) `shouldBe` [[1 .. 6]]
         observeAll (call @'[In, In, In] Append.append [1 .. 3] [4 .. 6] [1 .. 6]) `shouldBe` guard True
@@ -122,7 +114,6 @@ main = do
         observeAll (call @[In, In] Append.id 7 7) `shouldBe` guard True
         observeAll (call @[In, In] Append.id 7 8) `shouldBe` guard False
     describe "HigherOrder" $ do
-      it "compile" $ compileTest "HigherOrder"
       it "map" $ do
         observeAll (call @'[PredMode '[In, Out], In, Out] HigherOrder.map HornPrelude.succ [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (call @'[PredMode '[Out, In], Out, In] HigherOrder.map HornPrelude.succ [1 .. 10]) `shouldBe` [[0 .. 9]]
@@ -146,13 +137,11 @@ main = do
       it "inline" $ do
         observeAll (call @'[Out] HigherOrder.inlineTest) `shouldBe` [7]
     describe "Primes" $ do
-      it "compile" $ compileTest "Primes"
       it "primes" $ do
         observeAll (call @'[In, Out] Primes.primes 100) `shouldBe` [prime25]
         observeAll (call @'[In, In] Primes.primes 100 prime25) `shouldBe` guard True
         observeAll (call @'[In, In] Primes.primes 100 [2 .. 99]) `shouldBe` guard False
     describe "Sort" $ do
-      it "compile" $ compileTest "Sort"
       it "sort" $ do
         let xs = [27,74,17,33,94,18,46,83,65,2,32,53,28,85,99,47,28,82,6,11,55,29,39,81,
                   90,37,10,0,66,51,7,21,85,27,31,63,75,4,95,99,11,28,61,74,18,92,40,53,59,8]
@@ -160,7 +149,6 @@ main = do
         observeAll (call @'[In, In] Sort.sort xs (List.sort xs)) `shouldBe` guard True
         observeAll (call @'[In, In] Sort.sort xs xs) `shouldBe` guard False
     describe "Queens" $ do
-      it "compile" $ compileTest "Queens"
       it "queens1" $ do
         observeAll (call @'[In, Out] Queens.queens1 [1 .. 4]) `shouldBe` [[2, 4, 1, 3], [3, 1, 4, 2]]
       it "queens2" $ do
@@ -170,7 +158,6 @@ main = do
         List.sort (observeAll (call @'[In, Out] Queens.queens1 [1 .. n])) `shouldBe`
         List.sort (observeAll (call @'[In, Out] Queens.queens2 [1 .. n]))
     describe "Crypt" $ do
-      it "compile" $ compileTest "Crypt"
       it "crypt" $ do
         observeAll (call @'[Out] Crypt.crypt) `shouldBe` pure
           [   3,4,8 --    OEE
@@ -184,7 +171,6 @@ main = do
         348 * 28 `shouldBe` 2784 + 6960
         2784 + 6960 `shouldBe` 9744
     describe "Kiselyov" $ do
-      it "compile" $ compileTest "Kiselyov"
       it "elem" $ do
         observeAll (call @'[In, In] Kiselyov.elem 2 [1,2,3]) `shouldBe` guard True
       it "pythag" $ do
@@ -224,7 +210,6 @@ main = do
             twosen = liftIO . print =<< call @'[In, In, Out] Kiselyov.findI "or" =<< sentence1 <|> sentence2
         observeAllT twosen `shouldReturn` replicate 4 ()
     describe "DCG" $ do
-      it "compile" $ compileTest "DCG"
       it "sentence" $ do
         let dets = ["a", "the"]
             nouns = ["bat", "cat"]
@@ -235,7 +220,6 @@ main = do
         observeAll (call @'[Out, In, In] DCG.sentence [] sent) `shouldBe` [tree]
         observeAll (call @'[In, In, Out] DCG.sentence tree []) `shouldBe` [sent]
     describe "Euler" $ do
-      it "compile" $ compileTest "Euler"
       it "1" $ do
         observeAll (call @'[Out] Euler.euler1') `shouldBe` [233168]
       it "2" $ do
@@ -254,7 +238,6 @@ main = do
       it "5" $ do
         observe (call @'[Out] Euler.euler5) `shouldBe` 60
     describe "Cannibals" $ do
-      it "compile" $ compileTest "Cannibals"
       it "solve" $ do
         let s = Cannibals.State 3 3 1 0 0 0
             start = Cannibals.Search s [s] []
@@ -265,5 +248,3 @@ main = do
               ,[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 0 1,F 0 2]
               ,[F 1 1,B 1 0,F 0 2,B 0 1,F 2 0,B 1 1,F 2 0,B 0 1,F 0 2,B 1 0,F 1 1]]
         (List.sort <$> observeAllT (actions <$> call @'[In, Out] Cannibals.solve start)) `shouldReturn` expect
-    describe "TicTacToe" $ do
-      it "compile" $ compileTest "TicTacToe"

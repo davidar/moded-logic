@@ -1,4 +1,4 @@
-module Language.Horn.Preprocess
+module Preprocess
   ( Val(..)
   , combineDefs
   , superhomogeneous
@@ -35,12 +35,6 @@ data Val
   | Curry Name [Val]
   deriving (Eq, Ord)
 
-instance Show Val where
-  show (Var v) = show v
-  show (Cons name vs) = unwords (name : map show vs)
-  show (Lambda vs g) = unwords (map show vs) ++ " :- " ++ show g
-  show (Curry p vs) = "(" ++ unwords (p : map show vs) ++ ")"
-
 combineDefs :: [Rule Val Val] -> [Rule Var Val]
 combineDefs rules = do
   defs <-
@@ -64,8 +58,8 @@ combineDefs rules = do
           let unifs =
                 [ Atom $ Unif p (FVar v)
                 | (p, v) <- map Var params `zip` vars'
-                , show v /= "_"
-                , show p /= show v
+                , v /= Var (V "_")
+                , p /= v
                 ]
           pure . Conj $ unifs ++ [body]
   pure $ Rule (ruleName $ head defs) params body'
@@ -179,16 +173,16 @@ distinctVars r = r {ruleBody = evalState (tGoal [] $ ruleBody r) Map.empty}
     tVars :: [Var] -> [Var] -> State (Map Var Int) ([Var], [[Atom Var]])
     tVars dups vs = fmap unzip . forM vs $ tVar dups
     tVar :: [Var] -> Var -> State (Map Var Int) (Var, [Atom Var])
-    tVar dups v =
-      if v `elem` dups && show v /= "_"
+    tVar dups (V v) =
+      if V v `elem` dups && v /= "_"
         then do
-          count <- gets $ Map.lookup v
+          count <- gets $ Map.lookup (V v)
           case count of
             Nothing -> do
-              modify $ Map.insert v 0
-              return (v, [])
+              modify $ Map.insert (V v) 0
+              return (V v, [])
             Just c -> do
-              modify $ Map.insert v (c + 1)
-              let v' = V (show v ++ show c)
-              return (v', [Unif v' (FVar v)])
-        else return (v, [])
+              modify $ Map.insert (V v) (c + 1)
+              let v' = V (v ++ show c)
+              return (v', [Unif v' (FVar $ V v)])
+        else return (V v, [])

@@ -5,7 +5,7 @@ import qualified Control.Monad.Logic as Logic
 import Language.Horn.Prelude
 
 {- nat/1
-nat arg1 :- ((arg1 = 0); (nat n, succ n n', arg1 = n')).
+nat arg1 :- ((arg1 = 0); (nat n, succ n n', arg1 = n'))
 constraints:
 ~nat[1]
 ~succ[1]
@@ -54,7 +54,7 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
       pure (OneTuple (arg1))
     
 {- elem/2
-elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
+elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x))
 constraints:
 x[0,0]
 xs[1,0]
@@ -115,7 +115,7 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure (OneTuple (arg1))
     
 {- insert/3
-insert arg1 arg2 arg3 :- ((arg3 = e:l, arg1 = e, arg2 = l); (arg2 = h:t, arg3 = h0:t', h0 = h, insert e t t', arg1 = e)).
+insert arg1 arg2 arg3 :- ((arg3 = e:l, arg1 = e, arg2 = l); (arg2 = h:t, arg3 = h0:t', h0 = h, insert e t t', arg1 = e))
 constraints:
 ~insert[1]
 ~(arg1[0,1] & e[0,1])
@@ -253,7 +253,7 @@ insert = rget $ (procedure @'[ 'In, 'In, 'In ] insertIII) :& (procedure @'[ 'In,
       pure (arg1,arg2)
     
 {- permute/2
-permute arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h:t, permute t t', insert h t' r, arg2 = r)).
+permute arg1 arg2 :- ((arg1 = [], arg2 = []); (arg1 = h:t, permute t t', insert h t' r, arg2 = r))
 constraints:
 ~insert[1]
 ~permute[1]
@@ -333,7 +333,7 @@ permute = rget $ (procedure @'[ 'In, 'In ] permuteII) :& (procedure @'[ 'In, 'Ou
       pure (OneTuple (arg1))
     
 {- sorted/1
-sorted arg1 :- ((arg1 = []); (arg1 = _:[]); (arg1 = a:b:r, (<=) a b, sorted data0, data0 = b0:r0, b0 = b, r0 = r)).
+sorted arg1 :- ((arg1 = []); (arg1 = _:[]); (arg1 = a:b:r, (<=) a b, sorted data0, data0 = b0:r0, b0 = b, r0 = r))
 constraints:
 ~(<=)[2]
 ~arg1[1,0]
@@ -393,7 +393,7 @@ sorted = rget $ (procedure @'[ 'In ] sortedI) :& RNil
       pure ()
     
 {- suffix/2
-suffix arg1 arg2 :- ((arg1 = l, arg2 = l); (arg1 = _:t, suffix t r, arg2 = r)).
+suffix arg1 arg2 :- ((arg1 = l, arg2 = l); (arg1 = _:t, suffix t r, arg2 = r))
 constraints:
 t[1,0]
 ~arg1[1,0]
@@ -453,7 +453,7 @@ suffix = rget $ (procedure @'[ 'In, 'In ] suffixII) :& (procedure @'[ 'In, 'Out 
       pure (OneTuple (arg2))
     
 {- prefix/2
-prefix arg1 arg2 :- ((arg2 = []); (arg1 = h:t, arg2 = h0:t', h0 = h, prefix t t')).
+prefix arg1 arg2 :- ((arg2 = []); (arg1 = h:t, arg2 = h0:t', h0 = h, prefix t t'))
 constraints:
 ~arg1[]
 ~prefix[1]
@@ -514,7 +514,7 @@ prefix = rget $ (procedure @'[ 'In, 'In ] prefixII) :& (procedure @'[ 'In, 'Out 
       pure (OneTuple (arg2))
     
 {- length/2
-length arg1 arg2 :- ((arg1 = [], arg2 = 0); (arg1 = _:t, length t n, succ n n', arg2 = n')).
+length arg1 arg2 :- ((arg1 = [], arg2 = 0); (arg1 = _:t, length t n, succ n n', arg2 = n'))
 constraints:
 t[1,0]
 ~arg1[1,0]
@@ -576,7 +576,7 @@ length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out 
       pure (OneTuple (arg2))
     
 {- id/2
-id arg1 arg2 :- ((arg1 = x, arg2 = x)).
+id arg1 arg2 :- ((arg1 = x, arg2 = x))
 constraints:
 ~(arg1[0,0] & x[0,0])
 ~(arg2[0,1] & x[0,1])
@@ -622,7 +622,7 @@ id = rget $ (procedure @'[ 'In, 'In ] idII) :& (procedure @'[ 'In, 'Out ] idIO) 
       pure (OneTuple (arg1))
     
 {- pythag/3
-pythag i j k :- ((nat i, (>) i data0, data0 = 0, nat j, (>) j data1, data1 = 0, nat k, (>) k data2, data2 = 0, (<) i j, timesInt i i0 ii, i0 = i, timesInt j j0 jj, j0 = j, timesInt k k0 kk, k0 = k, plus ii jj kk)).
+pythag i j k :- ((nat i, (>) i data0, data0 = 0, nat j, (>) j data1, data1 = 0, nat k, (>) k data2, data2 = 0, (<) i j, timesInt i i0 ii, i0 = i, timesInt j j0 jj, j0 = j, timesInt k k0 kk, k0 = k, plus ii jj kk))
 constraints:
 ~(<)[0]
 ~(>)[0]
@@ -695,30 +695,30 @@ constraints:
 (k[0] <-> (k[0,6] | (k[0,7] | (k[0,14] | k[0,15]))))
 1
 -}
---mode ordering failure, cyclic dependency: [12] timesInt::I j::I j0::O jj::I -> [13] j0::I = j::O
---mode ordering failure, cyclic dependency: [12] timesInt::I j::O j0::I jj::I -> [13] j0::O = j::I
---mode ordering failure, cyclic dependency: [10] timesInt::I i::O i0::I ii::I -> [11] i0::O = i::I
---mode ordering failure, cyclic dependency: [10] timesInt::I i::I i0::O ii::I -> [11] i0::I = i::O
---mode ordering failure, cyclic dependency: [14] timesInt::I k::I k0::O kk::I -> [15] k0::I = k::O
---mode ordering failure, cyclic dependency: [14] timesInt::I k::O k0::I kk::I -> [15] k0::O = k::I
---mode ordering failure, cyclic dependency: [10] timesInt::I i::O i0::I ii::I -> [11] i0::O = i::I
---mode ordering failure, cyclic dependency: [10] timesInt::I i::I i0::O ii::I -> [11] i0::I = i::O
---mode ordering failure, cyclic dependency: [10] timesInt::I i::O i0::I ii::I -> [11] i0::O = i::I
---mode ordering failure, cyclic dependency: [10] timesInt::I i::I i0::O ii::I -> [11] i0::I = i::O
---mode ordering failure, cyclic dependency: [14] timesInt::I k::I k0::O kk::I -> [15] k0::I = k::O
---mode ordering failure, cyclic dependency: [14] timesInt::I k::O k0::I kk::I -> [15] k0::O = k::I
---mode ordering failure, cyclic dependency: [12] timesInt::I j::I j0::O jj::I -> [13] j0::I = j::O
---mode ordering failure, cyclic dependency: [12] timesInt::I j::O j0::I jj::I -> [13] j0::O = j::I
---mode ordering failure, cyclic dependency: [10] timesInt::I i::O i0::I ii::I -> [11] i0::O = i::I
---mode ordering failure, cyclic dependency: [10] timesInt::I i::I i0::O ii::I -> [11] i0::I = i::O
---mode ordering failure, cyclic dependency: [14] timesInt::I k::I k0::O kk::I -> [15] k0::I = k::O
---mode ordering failure, cyclic dependency: [14] timesInt::I k::O k0::I kk::I -> [15] k0::O = k::I
---mode ordering failure, cyclic dependency: [12] timesInt::I j::I j0::O jj::I -> [13] j0::I = j::O
---mode ordering failure, cyclic dependency: [12] timesInt::I j::O j0::I jj::I -> [13] j0::O = j::I
---mode ordering failure, cyclic dependency: [12] timesInt::I j::I j0::O jj::I -> [13] j0::I = j::O
---mode ordering failure, cyclic dependency: [12] timesInt::I j::O j0::I jj::I -> [13] j0::O = j::I
---mode ordering failure, cyclic dependency: [14] timesInt::I k::I k0::O kk::I -> [15] k0::I = k::O
---mode ordering failure, cyclic dependency: [14] timesInt::I k::O k0::I kk::I -> [15] k0::O = k::I
+--mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
+--mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
+--mode ordering failure, cyclic dependency: timesInt i i0 ii, i0 = i
+--mode ordering failure, cyclic dependency: timesInt i i0 ii, i0 = i
+--mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
+--mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
+--mode ordering failure, cyclic dependency: timesInt i i0 ii, i0 = i
+--mode ordering failure, cyclic dependency: timesInt i i0 ii, i0 = i
+--mode ordering failure, cyclic dependency: timesInt i i0 ii, i0 = i
+--mode ordering failure, cyclic dependency: timesInt i i0 ii, i0 = i
+--mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
+--mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
+--mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
+--mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
+--mode ordering failure, cyclic dependency: timesInt i i0 ii, i0 = i
+--mode ordering failure, cyclic dependency: timesInt i i0 ii, i0 = i
+--mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
+--mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
+--mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
+--mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
+--mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
+--mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
+--mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
+--mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
 pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In, 'In, 'Out ] pythagIIO) :& (procedure @'[ 'In, 'Out, 'In ] pythagIOI) :& (procedure @'[ 'In, 'Out, 'Out ] pythagIOO) :& (procedure @'[ 'Out, 'In, 'In ] pythagOII) :& (procedure @'[ 'Out, 'In, 'Out ] pythagOIO) :& (procedure @'[ 'Out, 'Out, 'In ] pythagOOI) :& (procedure @'[ 'Out, 'Out, 'Out ] pythagOOO) :& RNil
   where
     pythagIII = \i j k -> Logic.once $ do
@@ -922,7 +922,7 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
       pure (i,j,k)
     
 {- triang/2
-triang n r :- ((succ n n', timesInt n n' nn', div nn' data0 r, data0 = 2)).
+triang n r :- ((succ n n', timesInt n n' nn', div nn' data0 r, data0 = 2))
 constraints:
 ~div[0]
 ~succ[0]
@@ -971,7 +971,7 @@ triang = rget $ (procedure @'[ 'In, 'In ] triangII) :& (procedure @'[ 'In, 'Out 
       pure (OneTuple (r))
     
 {- ptriang/1
-ptriang k :- ((elem k data2, data0 = 1, data1 = 30, data2 = .. data0 data1, elem i data4, data3 = 1, data4 = .. data3 k, elem j data6, data5 = 1, data6 = .. data5 i, triang i ti, triang j tj, triang k tk, plus ti tj tk)).
+ptriang k :- ((elem k data2, data0 = 1, data1 = 30, data2 = .. data0 data1, elem i data4, data3 = 1, data4 = .. data3 k, elem j data6, data5 = 1, data6 = .. data5 i, triang i ti, triang j tj, triang k tk, plus ti tj tk))
 constraints:
 ~elem[0]
 ~plus[0]
@@ -1070,7 +1070,7 @@ ptriang = rget $ (procedure @'[ 'In ] ptriangI) :& (procedure @'[ 'Out ] ptriang
       pure (OneTuple (k))
     
 {- stepN/2
-stepN arg1 arg2 :- ((arg1 = 0, arg2 = 0); ((>) n' data0, data0 = 0, succ n n', stepN n i, succ i i', elem r data2, data1 = [], data2 = i:i':data1, arg1 = n', arg2 = r)).
+stepN arg1 arg2 :- ((arg1 = 0, arg2 = 0); ((>) n' data0, data0 = 0, succ n n', stepN n i, succ i i', elem r data2, data1 = [], data2 = i:i':data1, arg1 = n', arg2 = r))
 constraints:
 ~(>)[1]
 ~elem[1]
@@ -1165,7 +1165,7 @@ stepN = rget $ (procedure @'[ 'In, 'Out ] stepNIO) :& (procedure @'[ 'Out, 'Out 
       pure (arg1,arg2)
     
 {- test/1
-test arg1 :- ((arg1 = 10); (arg1 = 20); (arg1 = 30)).
+test arg1 :- ((arg1 = 10); (arg1 = 20); (arg1 = 30))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
@@ -1208,7 +1208,7 @@ test = rget $ (procedure @'[ 'In ] testI) :& (procedure @'[ 'Out ] testO) :& RNi
       pure (OneTuple (arg1))
     
 {- odds/1
-odds arg1 :- ((arg1 = 1); (odds m, plus data0 m n, data0 = 2, arg1 = n)).
+odds arg1 :- ((arg1 = 1); (odds m, plus data0 m n, data0 = 2, arg1 = n))
 constraints:
 ~odds[1]
 ~plus[1]
@@ -1261,7 +1261,7 @@ odds = rget $ (procedure @'[ 'In ] oddsI) :& (procedure @'[ 'Out ] oddsO) :& RNi
       pure (OneTuple (arg1))
     
 {- even/1
-even n :- ((mod n data0 data1, data0 = 2, data1 = 0)).
+even n :- ((mod n data0 data1, data0 = 2, data1 = 0))
 constraints:
 ~mod[0]
 ~(data0[0,0] & data0[0,1])
@@ -1288,7 +1288,7 @@ even = rget $ (procedure @'[ 'In ] evenI) :& RNil
       pure ()
     
 {- oddsTest/1
-oddsTest fresh1 :- ((fresh1 = fresh2, ((odds fresh2); (test fresh2)), even fresh1)).
+oddsTest fresh1 :- ((fresh1 = fresh2, ((odds fresh2); (test fresh2)), even fresh1))
 constraints:
 ~even[0]
 ~fresh1[0,2]
@@ -1348,7 +1348,7 @@ oddsTest = rget $ (procedure @'[ 'In ] oddsTestI) :& (procedure @'[ 'Out ] oddsT
       pure (OneTuple (fresh1))
     
 {- oddsPlus/2
-oddsPlus n x :- ((odds a, plus a n x)).
+oddsPlus n x :- ((odds a, plus a n x))
 constraints:
 ~odds[0]
 ~plus[0]
@@ -1396,7 +1396,7 @@ oddsPlus = rget $ (procedure @'[ 'In, 'In ] oddsPlusII) :& (procedure @'[ 'In, '
       pure (OneTuple (n))
     
 {- oddsPlusTest/1
-oddsPlusTest fresh1 :- ((oddsPlus x_0 fresh1, ((x_0 = 0); (x_0 = 1)), even fresh1)).
+oddsPlusTest fresh1 :- ((oddsPlus x_0 fresh1, ((x_0 = 0); (x_0 = 1)), even fresh1))
 constraints:
 ~even[0]
 ~fresh1[0,2]
@@ -1451,7 +1451,7 @@ oddsPlusTest = rget $ (procedure @'[ 'In ] oddsPlusTestI) :& (procedure @'[ 'Out
       pure (OneTuple (fresh1))
     
 {- oddsPrime/1
-oddsPrime n :- ((odds n, (>) n data0, data0 = 1, succ n' n, if (elem d data2, data1 = 1, data2 = .. data1 n', (>) d data3, data3 = 1, mod n d data4, data4 = 0) then (empty) else ())).
+oddsPrime n :- ((odds n, (>) n data0, data0 = 1, succ n' n, if (elem d data2, data1 = 1, data2 = .. data1 n', (>) d data3, data3 = 1, mod n d data4, data4 = 0) then (empty) else ()))
 constraints:
 d[0,4]
 data1[0,4]
@@ -1574,7 +1574,7 @@ oddsPrime = rget $ (procedure @'[ 'In ] oddsPrimeI) :& (procedure @'[ 'Out ] odd
       pure (OneTuple (n))
     
 {- nontrivialDivisor/2
-nontrivialDivisor n d :- ((succ n' n, elem d data1, data0 = 2, data1 = .. data0 n', mod n d data2, data2 = 0)).
+nontrivialDivisor n d :- ((succ n' n, elem d data1, data0 = 2, data1 = .. data0 n', mod n d data2, data2 = 0))
 constraints:
 ~elem[0]
 ~mod[0]
@@ -1632,7 +1632,7 @@ nontrivialDivisor = rget $ (procedure @'[ 'In, 'In ] nontrivialDivisorII) :& (pr
       pure (OneTuple (d))
     
 {- oddsPrimeIO/1
-oddsPrimeIO n :- ((odds n, (>) n data0, data0 = 1, if (nontrivialDivisor n d, print d) then (empty) else ())).
+oddsPrimeIO n :- ((odds n, (>) n data0, data0 = 1, if (nontrivialDivisor n d, print d) then (empty) else ()))
 constraints:
 d[0,3]
 ~(>)[0]
@@ -1712,7 +1712,7 @@ oddsPrimeIO = rget $ (procedure @'[ 'In ] oddsPrimeIOI) :& (procedure @'[ 'Out ]
       pure (OneTuple (n))
     
 {- bogosort/2
-bogosort l p :- ((permute l p, sorted p)).
+bogosort l p :- ((permute l p, sorted p))
 constraints:
 ~p[0,1]
 ~permute[0]
@@ -1759,7 +1759,7 @@ bogosort = rget $ (procedure @'[ 'In, 'In ] bogosortII) :& (procedure @'[ 'In, '
       pure (OneTuple (l))
     
 {- equal/3
-equal p q fresh1 :- ((p fresh1, q fresh1)).
+equal p q fresh1 :- ((p fresh1, q fresh1))
 constraints:
 ~p[0]
 ~q[0]
@@ -1806,7 +1806,7 @@ equal = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'In ] equa
       pure (OneTuple (fresh1))
     
 {- tcomp/4
-tcomp i j k carg3 :- ((equal pred0 pred1 carg3, (pred0 fresh1 :- ((i fresh1); (j fresh1); (k fresh1))), (pred1 fresh2 :- ((fresh2 = 0); (fresh2 = 1))))).
+tcomp i j k carg3 :- ((equal pred0 pred1 carg3, (pred0 fresh1 :- ((i fresh1); (j fresh1); (k fresh1))), (pred1 fresh2 :- ((fresh2 = 0); (fresh2 = 1)))))
 constraints:
 ~equal[0]
 ~fresh1[0]
@@ -1948,7 +1948,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
       pure (OneTuple (carg3))
     
 {- tcomp_ex1/1
-tcomp_ex1 r :- ((if (tcomp pred1 pred3 pred5 i, (pred1 curry1 :- (id data0 curry1, data0 = 2)), (pred3 curry1 :- (id data2 curry1, data2 = 1)), (pred5 curry1 :- (id data4 curry1, data4 = 3))) then (r = Just i) else (r = Nothing))).
+tcomp_ex1 r :- ((if (tcomp pred1 pred3 pred5 i, (pred1 curry1 :- (id data0 curry1, data0 = 2)), (pred3 curry1 :- (id data2 curry1, data2 = 1)), (pred5 curry1 :- (id data4 curry1, data4 = 3))) then (r = Just i) else (r = Nothing)))
 constraints:
 i[0,0,0]
 pred1[0,0]
@@ -2096,7 +2096,7 @@ tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tco
       pure (OneTuple (r))
     
 {- findI/3
-findI pat str i :- ((suffix str t, prefix t pat, length t m, length str n, plus i m n)).
+findI pat str i :- ((suffix str t, prefix t pat, length t m, length str n, plus i m n))
 constraints:
 ~length[0]
 ~plus[0]

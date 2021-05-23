@@ -8,7 +8,7 @@ data State = State Int Int Int Int Int Int deriving (Eq, Ord, Read, Show)
 data Action = F Int Int | B Int Int deriving (Eq, Ord, Read, Show)
 data Search = Search State [ State ] [ Action ] deriving (Eq, Ord, Read, Show)
 {- elem/2
-elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
+elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x))
 constraints:
 x[0,0]
 xs[1,0]
@@ -69,7 +69,7 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure (OneTuple (arg1))
     
 {- append/3
-append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h:t, arg3 = h0:tb, h0 = h, append t b tb, arg2 = b)).
+append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h:t, arg3 = h0:tb, h0 = h, append t b tb, arg2 = b))
 constraints:
 ~append[1]
 ~(arg1[1,0] & h[1,0])
@@ -203,7 +203,7 @@ append = rget $ (procedure @'[ 'In, 'In, 'In ] appendIII) :& (procedure @'[ 'In,
       pure (arg1,arg2)
     
 {- final/1
-final arg1 :- ((arg1 = State 0 0 _ _ _ _)).
+final arg1 :- ((arg1 = State 0 0 _ _ _ _))
 constraints:
 ~arg1[0,0]
 (arg1[] <-> arg1[0])
@@ -223,7 +223,7 @@ final = rget $ (procedure @'[ 'In ] finalI) :& RNil
       pure ()
     
 {- action/1
-action arg1 :- ((arg1 = F 1 0); (arg1 = F 0 1); (arg1 = F 2 0); (arg1 = F 0 2); (arg1 = F 1 1); (arg1 = B 1 0); (arg1 = B 0 1); (arg1 = B 2 0); (arg1 = B 0 2); (arg1 = B 1 1)).
+action arg1 :- ((arg1 = F 1 0); (arg1 = F 0 1); (arg1 = F 2 0); (arg1 = F 0 2); (arg1 = F 1 1); (arg1 = B 1 0); (arg1 = B 0 1); (arg1 = B 2 0); (arg1 = B 0 2); (arg1 = B 1 1))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
@@ -322,7 +322,7 @@ action = rget $ (procedure @'[ 'In ] actionI) :& (procedure @'[ 'Out ] actionO) 
       pure (OneTuple (arg1))
     
 {- check/1
-check arg1 :- ((arg1 = State m1 c1 _ m2 c2 _, (>=) m1 data0, data0 = 0, (>=) m2 data1, data1 = 0, (>=) c1 data2, data2 = 0, (>=) c2 data3, data3 = 0, fresh1 = m1, ((fresh1 = 0); ((>=) fresh2 c1, fresh1 = fresh2)), fresh3 = m2, ((fresh3 = 0); ((>=) fresh4 c2, fresh3 = fresh4)))).
+check arg1 :- ((arg1 = State m1 c1 _ m2 c2 _, (>=) m1 data0, data0 = 0, (>=) m2 data1, data1 = 0, (>=) c1 data2, data2 = 0, (>=) c2 data3, data3 = 0, fresh1 = m1, ((fresh1 = 0); ((>=) fresh2 c1, fresh1 = fresh2)), fresh3 = m2, ((fresh3 = 0); ((>=) fresh4 c2, fresh3 = fresh4))))
 constraints:
 m1[0,0]
 ~(>=)[0,10]
@@ -436,7 +436,7 @@ check = rget $ (procedure @'[ 'In ] checkI) :& RNil
       pure ()
     
 {- move/3
-move arg1 arg2 arg3 :- ((arg1 = State m1 c1 b1 m2 c2 b2, arg2 = F mm cm, (>) b1 data0, data0 = 0, plus mm m1' m1, plus cm c1' c1, succ b1' b1, plus mm m2 m2', plus cm c2 c2', succ b2 b2', s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s); (arg1 = State m1 c1 b1 m2 c2 b2, arg2 = B mm cm, (>) b2 data1, data1 = 0, plus mm m1 m1', plus cm c1 c1', succ b1 b1', plus mm m2' m2, plus cm c2' c2, succ b2' b2, s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s)).
+move arg1 arg2 arg3 :- ((arg1 = State m1 c1 b1 m2 c2 b2, arg2 = F mm cm, (>) b1 data0, data0 = 0, plus mm m1' m1, plus cm c1' c1, succ b1' b1, plus mm m2 m2', plus cm c2 c2', succ b2 b2', s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s); (arg1 = State m1 c1 b1 m2 c2 b2, arg2 = B mm cm, (>) b2 data1, data1 = 0, plus mm m1 m1', plus cm c1 c1', succ b1 b1', plus mm m2' m2, plus cm c2' c2, succ b2' b2, s = State m1' c1' b1' m2' c2' b2', check s, arg3 = s))
 constraints:
 ~(>)[0]
 ~(>)[1]
@@ -734,7 +734,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (OneTuple (arg1))
     
 {- appendShow/3
-appendShow x carg2 carg3 :- ((append s carg2 carg3, show x s)).
+appendShow x carg2 carg3 :- ((append s carg2 carg3, show x s))
 constraints:
 ~append[0]
 ~show[0]
@@ -804,7 +804,7 @@ appendShow = rget $ (procedure @'[ 'In, 'In, 'In ] appendShowIII) :& (procedure 
       pure (x,carg2)
     
 {- showMove/5
-showMove c a s carg3 carg4 :- ((appendShow s carg3 b_12, append data6_1_4_7_10_14 b_12 b_9, data6_1_4_7_10_14 = "-> ", appendShow a b_9 b_6, append data3_1_4_8 b_6 b_3, data3_1_4_8 = " -", appendShow c b_3 b_0, append data0_2 b_0 carg4, data0_2 = "Tentative move: ")).
+showMove c a s carg3 carg4 :- ((appendShow s carg3 b_12, append data6_1_4_7_10_14 b_12 b_9, data6_1_4_7_10_14 = "-> ", appendShow a b_9 b_6, append data3_1_4_8 b_6 b_3, data3_1_4_8 = " -", appendShow c b_3 b_0, append data0_2 b_0 carg4, data0_2 = "Tentative move: "))
 constraints:
 ~append[0]
 ~appendShow[0]
@@ -1135,7 +1135,7 @@ showMove = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In ] showMoveIIIII) :& (pr
       pure (c,a,s,carg3)
     
 {- solve/2
-solve arg1 arg2 :- ((arg1 = Search current seen actions, action a, move current a s, showMove current a s data0 msg, data0 = [], putStrLn msg, news = Search s s0:seen0 a:actions0, s0 = s, seen0 = seen, actions0 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r), arg2 = r)).
+solve arg1 arg2 :- ((arg1 = Search current seen actions, action a, move current a s, showMove current a s data0 msg, data0 = [], putStrLn msg, news = Search s s0:seen0 a:actions0, s0 = s, seen0 = seen, actions0 = actions, if (elem s seen) then (empty) else (), if (final s) then (r = news) else (solve news r), arg2 = r))
 constraints:
 ~action[0]
 ~elem[0,10,0]
@@ -1240,7 +1240,7 @@ constraints:
 (solve[0,11] <-> solve[0,11,2])
 1
 -}
---mode ordering failure, cyclic dependency: [11] if (final::I s::I) then (r::I = news::O) else (solve::I news::O r::I) -> [6] news::I = Search s::O s0::O:seen0::O a::O:actions0::O
+--mode ordering failure, cyclic dependency: if (final s) then (r = news) else (solve news r), news = Search s s0:seen0 a:actions0
 solve = rget $ (procedure @'[ 'In, 'In ] solveII) :& (procedure @'[ 'In, 'Out ] solveIO) :& RNil
   where
     solveII = \arg1 arg2 -> Logic.once $ do

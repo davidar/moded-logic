@@ -9,7 +9,7 @@ data Location = Loc Int Int deriving (Eq, Ord, Read, Show)
 data Entry = Entry Location Mark deriving (Eq, Ord, Read, Show)
 data Direction = N | NE | E | SE | S | SW | W | NW deriving (Eq, Ord, Read, Show)
 {- elem/2
-elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x)).
+elem arg1 arg2 :- ((arg2 = x:_, arg1 = x); (arg2 = _:xs, elem x xs, arg1 = x))
 constraints:
 x[0,0]
 xs[1,0]
@@ -70,7 +70,7 @@ elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] el
       pure (OneTuple (arg1))
     
 {- boardSize/1
-boardSize arg1 :- ((arg1 = 3)).
+boardSize arg1 :- ((arg1 = 3))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,0])
@@ -97,7 +97,7 @@ boardSize = rget $ (procedure @'[ 'In ] boardSizeI) :& (procedure @'[ 'Out ] boa
       pure (OneTuple (arg1))
     
 {- marksForWin/1
-marksForWin arg1 :- ((arg1 = 3)).
+marksForWin arg1 :- ((arg1 = 3))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[0] <-> arg1[0,0])
@@ -124,7 +124,7 @@ marksForWin = rget $ (procedure @'[ 'In ] marksForWinI) :& (procedure @'[ 'Out ]
       pure (OneTuple (arg1))
     
 {- direction/2
-direction arg1 arg2 :- ((arg1 = N, arg2 = S); (arg1 = NE, arg2 = SW); (arg1 = E, arg2 = W); (arg1 = SE, arg2 = NW)).
+direction arg1 arg2 :- ((arg1 = N, arg2 = S); (arg1 = NE, arg2 = SW); (arg1 = E, arg2 = W); (arg1 = SE, arg2 = NW))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
@@ -236,7 +236,7 @@ direction = rget $ (procedure @'[ 'In, 'In ] directionII) :& (procedure @'[ 'In,
       pure (arg1,arg2)
     
 {- move/3
-move arg1 arg2 arg3 :- ((arg1 = N, arg2 = Loc x y, arg3 = Loc x0 y', x0 = x, succ y y'); (arg1 = NE, arg2 = Loc x y, arg3 = Loc x' y', succ x x', succ y y'); (arg1 = E, arg2 = Loc x y, arg3 = Loc x' y0, y0 = y, succ x x'); (arg1 = SE, arg2 = Loc x y, arg3 = Loc x' y', succ x x', succ y' y); (arg1 = S, arg2 = Loc x1 y, x1 = x, arg3 = Loc x2 y', x2 = x, succ y' y); (arg1 = SW, arg2 = Loc x y, arg3 = Loc x' y', succ x' x, succ y' y); (arg1 = W, arg2 = Loc x y1, y1 = y, arg3 = Loc x' y2, y2 = y, succ x' x); (arg1 = NW, arg2 = Loc x y, arg3 = Loc x' y', succ x' x, succ y y')).
+move arg1 arg2 arg3 :- ((arg1 = N, arg2 = Loc x y, arg3 = Loc x0 y', x0 = x, succ y y'); (arg1 = NE, arg2 = Loc x y, arg3 = Loc x' y', succ x x', succ y y'); (arg1 = E, arg2 = Loc x y, arg3 = Loc x' y0, y0 = y, succ x x'); (arg1 = SE, arg2 = Loc x y, arg3 = Loc x' y', succ x x', succ y' y); (arg1 = S, arg2 = Loc x1 y, x1 = x, arg3 = Loc x2 y', x2 = x, succ y' y); (arg1 = SW, arg2 = Loc x y, arg3 = Loc x' y', succ x' x, succ y' y); (arg1 = W, arg2 = Loc x y1, y1 = y, arg3 = Loc x' y2, y2 = y, succ x' x); (arg1 = NW, arg2 = Loc x y, arg3 = Loc x' y', succ x' x, succ y y'))
 constraints:
 ~succ[0]
 ~succ[1]
@@ -802,7 +802,7 @@ move = rget $ (procedure @'[ 'In, 'In, 'In ] moveIII) :& (procedure @'[ 'In, 'In
       pure (arg1,arg2)
     
 {- location/1
-location arg1 :- ((arg1 = Loc x y, boardSize n, (>=) x data0, data0 = 0, (>=) y data1, data1 = 0, (<) x n, (<) y n)).
+location arg1 :- ((arg1 = Loc x y, boardSize n, (>=) x data0, data0 = 0, (>=) y data1, data1 = 0, (<) x n, (<) y n))
 constraints:
 ~(<)[0]
 ~(>=)[0]
@@ -854,7 +854,7 @@ location = rget $ (procedure @'[ 'In ] locationI) :& RNil
       pure ()
     
 {- loop/8
-loop board dir m n loc loc' rn rloc :- ((if (location loc', elem data0 board, data0 = Entry loc' m) then (succ n n', move dir loc' loc'', loop board dir m n' loc' loc'' rn rloc) else (rn = n, rloc = loc))).
+loop board dir m n loc loc' rn rloc :- ((if (location loc', elem data0 board, data0 = Entry loc' m) then (succ n n', move dir loc' loc'', loop board dir m n' loc' loc'' rn rloc) else (rn = n, rloc = loc)))
 constraints:
 data0[0,0]
 ~board[0,0]
@@ -1085,7 +1085,7 @@ loop = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In, 'In, 'In ] loopIIIIII
       pure (n,rloc)
     
 {- extendLocation/6
-extendLocation board dir m loc carg7 carg8 :- ((loop board dir m data0 loc loc' carg7 carg8, data0 = 0, move dir loc loc')).
+extendLocation board dir m loc carg7 carg8 :- ((loop board dir m data0 loc loc' carg7 carg8, data0 = 0, move dir loc loc'))
 constraints:
 ~loop[0]
 ~move[0]
@@ -1203,7 +1203,7 @@ extendLocation = rget $ (procedure @'[ 'In, 'In, 'In, 'In, 'In, 'In ] extendLoca
       pure (dir,carg7,carg8)
     
 {- cluster/7
-cluster board m loc dir1 dir2 n end :- ((extendLocation board dir1 m loc n1 end, extendLocation board dir2 m loc n2 _, plus n1 n2 n', succ n' n)).
+cluster board m loc dir1 dir2 n end :- ((extendLocation board dir1 m loc n1 end, extendLocation board dir2 m loc n2 _, plus n1 n2 n', succ n' n))
 constraints:
 ~extendLocation[0]
 ~plus[0]

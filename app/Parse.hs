@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-do-bind #-}
 
-module Language.Horn.Parse
+module Parse
   ( parseProg
   , rule
   ) where
@@ -26,7 +26,7 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Void (Void)
 import Language.Horn.Prelude (modesPrelude)
-import Language.Horn.Preprocess
+import Preprocess
   ( Val(..)
   , combineDefs
   , distinctVars
@@ -316,7 +316,6 @@ data ParseResult
   | PPragma Pragma
   | PDef String [Val] Val (Goal Val)
   | PNil
-  deriving (Show)
 
 definition :: Parser ParseResult
 definition = do
@@ -362,7 +361,7 @@ parseProg fn lp = do
         rs ++ [Rule name (vars ++ vs) (Conj [g, ctxt])]
       extractRule rs PPragma {} = rs
       extractRule rs PNil {} = rs
-      extractRule _ p = error (show p)
+      extractRule _ _ = undefined
       p' = foldl extractRule [] prs
   pure . Prog pragmas $
     simp . distinctVars . superhomogeneous (arities p') <$> combineDefs p'
