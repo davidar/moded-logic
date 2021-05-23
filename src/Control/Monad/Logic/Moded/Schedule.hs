@@ -24,7 +24,6 @@ import Control.Monad.Logic.Moded.AST
 import Control.Monad.Logic.Moded.Constraints
   ( Constraints
   , Mode(..)
-  , ModeString(..)
   , Solution
   , constraints
   , inferModes
@@ -60,7 +59,7 @@ data CompiledPredicate =
   CompiledPredicate
     { unmodedRule :: Rule Var Var
     , modeConstraints :: Constraints
-    , procedures :: Map ModeString [Procedure]
+    , procedures :: Map [Mode] [Procedure]
     , errors :: [Cycle (Goal ModedVar)]
     }
 
@@ -133,7 +132,7 @@ mode r@(Rule name vars body) soln =
     walk p (Atom a) = pure . Atom $ annotate p <$> a
 
 compileRule ::
-     Map Name [ModeString]
+     Map Name [[Mode]]
   -> [Pragma]
   -> CompiledProgram
   -> Rule Var Var
@@ -155,7 +154,7 @@ compileRule envModes pragmas cp r
     userModes = do
       Pragma ("mode":n:ms) <- pragmas
       guard $ n == ruleName r
-      pure . ModeString $ do
+      pure $ do
         io <- ms
         pure $
           case io of

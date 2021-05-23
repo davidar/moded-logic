@@ -23,7 +23,7 @@ constraints:
 1
 -}
 
-nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
+nat = rget $ (procedure @'[ In] natI) :& (procedure @'[ Out] natO) :& RNil
   where
     natI = \arg1 -> Logic.once $ do
       -- solution: n[1,1] n'[1,2]
@@ -33,7 +33,7 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
         pure ()
        ) <|> (do
         n' <- pure arg1
-        (OneTuple (n)) <- runProcedure @'[ 'Out, 'In ] succ n'
+        (OneTuple (n)) <- runProcedure @'[ Out,In] succ n'
         () <- natI n
         pure ()
        )
@@ -47,7 +47,7 @@ nat = rget $ (procedure @'[ 'In ] natI) :& (procedure @'[ 'Out ] natO) :& RNil
         pure (arg1)
        ) <|> (do
         (OneTuple (n)) <- natO 
-        (OneTuple (n')) <- runProcedure @'[ 'In, 'Out ] succ n
+        (OneTuple (n')) <- runProcedure @'[ In,Out] succ n
         arg1 <- pure n'
         pure (arg1)
        )
@@ -82,7 +82,7 @@ xs[1,0]
 1
 -}
 
-elem = rget $ (procedure @'[ 'In, 'In ] elemII) :& (procedure @'[ 'Out, 'In ] elemOI) :& RNil
+elem = rget $ (procedure @'[ In,In] elemII) :& (procedure @'[ Out,In] elemOI) :& RNil
   where
     elemII = \arg1 arg2 -> Logic.once $ do
       -- solution: x[0,0] x[1,2] xs[1,0]
@@ -160,7 +160,7 @@ constraints:
 1
 -}
 
-insert = rget $ (procedure @'[ 'In, 'In, 'In ] insertIII) :& (procedure @'[ 'In, 'In, 'Out ] insertIIO) :& (procedure @'[ 'In, 'Out, 'In ] insertIOI) :& (procedure @'[ 'Out, 'In, 'In ] insertOII) :& (procedure @'[ 'Out, 'Out, 'In ] insertOOI) :& RNil
+insert = rget $ (procedure @'[ In,In,In] insertIII) :& (procedure @'[ In,In,Out] insertIIO) :& (procedure @'[ In,Out,In] insertIOI) :& (procedure @'[ Out,In,In] insertOII) :& (procedure @'[ Out,Out,In] insertOOI) :& RNil
   where
     insertIII = \arg1 arg2 arg3 -> Logic.once $ do
       -- solution: e[0,0] e[1,4] h[1,0] h0[1,1] l[0,0] t[1,0] t'[1,1]
@@ -282,7 +282,7 @@ constraints:
 1
 -}
 
-permute = rget $ (procedure @'[ 'In, 'In ] permuteII) :& (procedure @'[ 'In, 'Out ] permuteIO) :& (procedure @'[ 'Out, 'In ] permuteOI) :& RNil
+permute = rget $ (procedure @'[ In,In] permuteII) :& (procedure @'[ In,Out] permuteIO) :& (procedure @'[ Out,In] permuteOI) :& RNil
   where
     permuteII = \arg1 arg2 -> Logic.once $ do
       -- solution: h[1,0] r[1,3] t[1,0] t'[1,2]
@@ -294,7 +294,7 @@ permute = rget $ (procedure @'[ 'In, 'In ] permuteII) :& (procedure @'[ 'In, 'Ou
        ) <|> (do
         (h:t) <- pure arg1
         r <- pure arg2
-        (OneTuple (t')) <- runProcedure @'[ 'In, 'Out, 'In ] insert h r
+        (OneTuple (t')) <- runProcedure @'[ In,Out,In] insert h r
         () <- permuteII t t'
         pure ()
        )
@@ -310,7 +310,7 @@ permute = rget $ (procedure @'[ 'In, 'In ] permuteII) :& (procedure @'[ 'In, 'Ou
        ) <|> (do
         (h:t) <- pure arg1
         (OneTuple (t')) <- permuteIO t
-        (OneTuple (r)) <- runProcedure @'[ 'In, 'In, 'Out ] insert h t'
+        (OneTuple (r)) <- runProcedure @'[ In,In,Out] insert h t'
         arg2 <- pure r
         pure (arg2)
        )
@@ -325,7 +325,7 @@ permute = rget $ (procedure @'[ 'In, 'In ] permuteII) :& (procedure @'[ 'In, 'Ou
         pure (arg1)
        ) <|> (do
         r <- pure arg2
-        (h,t') <- runProcedure @'[ 'Out, 'Out, 'In ] insert r
+        (h,t') <- runProcedure @'[ Out,Out,In] insert r
         (OneTuple (t)) <- permuteOI t'
         arg1 <- pure (h:t)
         pure (arg1)
@@ -370,7 +370,7 @@ constraints:
 1
 -}
 
-sorted = rget $ (procedure @'[ 'In ] sortedI) :& RNil
+sorted = rget $ (procedure @'[ In] sortedI) :& RNil
   where
     sortedI = \arg1 -> Logic.once $ do
       -- solution: a[2,0] b[2,0] b0[2,4] data0[2,3] r[2,0] r0[2,5]
@@ -420,7 +420,7 @@ t[1,0]
 1
 -}
 
-suffix = rget $ (procedure @'[ 'In, 'In ] suffixII) :& (procedure @'[ 'In, 'Out ] suffixIO) :& RNil
+suffix = rget $ (procedure @'[ In,In] suffixII) :& (procedure @'[ In,Out] suffixIO) :& RNil
   where
     suffixII = \arg1 arg2 -> Logic.once $ do
       -- solution: l[0,0] r[1,2] t[1,0]
@@ -481,7 +481,7 @@ constraints:
 1
 -}
 
-prefix = rget $ (procedure @'[ 'In, 'In ] prefixII) :& (procedure @'[ 'In, 'Out ] prefixIO) :& RNil
+prefix = rget $ (procedure @'[ In,In] prefixII) :& (procedure @'[ In,Out] prefixIO) :& RNil
   where
     prefixII = \arg1 arg2 -> Logic.once $ do
       -- solution: h[1,0] h0[1,1] t[1,0] t'[1,1]
@@ -541,7 +541,7 @@ t[1,0]
 1
 -}
 
-length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out ] lengthIO) :& RNil
+length = rget $ (procedure @'[ In,In] lengthII) :& (procedure @'[ In,Out] lengthIO) :& RNil
   where
     lengthII = \arg1 arg2 -> Logic.once $ do
       -- solution: n[1,2] n'[1,3] t[1,0]
@@ -553,7 +553,7 @@ length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out 
        ) <|> (do
         (_:t) <- pure arg1
         n' <- pure arg2
-        (OneTuple (n)) <- runProcedure @'[ 'Out, 'In ] succ n'
+        (OneTuple (n)) <- runProcedure @'[ Out,In] succ n'
         () <- lengthII t n
         pure ()
        )
@@ -569,7 +569,7 @@ length = rget $ (procedure @'[ 'In, 'In ] lengthII) :& (procedure @'[ 'In, 'Out 
        ) <|> (do
         (_:t) <- pure arg1
         (OneTuple (n)) <- lengthIO t
-        (OneTuple (n')) <- runProcedure @'[ 'In, 'Out ] succ n
+        (OneTuple (n')) <- runProcedure @'[ In,Out] succ n
         arg2 <- pure n'
         pure (arg2)
        )
@@ -589,7 +589,7 @@ constraints:
 1
 -}
 
-id = rget $ (procedure @'[ 'In, 'In ] idII) :& (procedure @'[ 'In, 'Out ] idIO) :& (procedure @'[ 'Out, 'In ] idOI) :& RNil
+id = rget $ (procedure @'[ In,In] idII) :& (procedure @'[ In,Out] idIO) :& (procedure @'[ Out,In] idOI) :& RNil
   where
     idII = \arg1 arg2 -> Logic.once $ do
       -- solution: x[0,0]
@@ -719,7 +719,7 @@ constraints:
 --mode ordering failure, cyclic dependency: timesInt j j0 jj, j0 = j
 --mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
 --mode ordering failure, cyclic dependency: timesInt k k0 kk, k0 = k
-pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In, 'In, 'Out ] pythagIIO) :& (procedure @'[ 'In, 'Out, 'In ] pythagIOI) :& (procedure @'[ 'In, 'Out, 'Out ] pythagIOO) :& (procedure @'[ 'Out, 'In, 'In ] pythagOII) :& (procedure @'[ 'Out, 'In, 'Out ] pythagOIO) :& (procedure @'[ 'Out, 'Out, 'In ] pythagOOI) :& (procedure @'[ 'Out, 'Out, 'Out ] pythagOOO) :& RNil
+pythag = rget $ (procedure @'[ In,In,In] pythagIII) :& (procedure @'[ In,In,Out] pythagIIO) :& (procedure @'[ In,Out,In] pythagIOI) :& (procedure @'[ In,Out,Out] pythagIOO) :& (procedure @'[ Out,In,In] pythagOII) :& (procedure @'[ Out,In,Out] pythagOIO) :& (procedure @'[ Out,Out,In] pythagOOI) :& (procedure @'[ Out,Out,Out] pythagOOO) :& RNil
   where
     pythagIII = \i j k -> Logic.once $ do
       -- solution: data0[0,2] data1[0,5] data2[0,8] i0[0,11] ii[0,16] j0[0,13] jj[0,12] k0[0,15] kk[0,14]
@@ -735,13 +735,13 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
         guard $ (>) i data0
         guard $ (>) j data1
         guard $ (>) k data2
-        () <- runProcedure @'[ 'In ] nat i
-        () <- runProcedure @'[ 'In ] nat j
-        () <- runProcedure @'[ 'In ] nat k
-        (OneTuple (jj)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt j j0
-        (OneTuple (kk)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt k k0
-        (OneTuple (ii)) <- runProcedure @'[ 'Out, 'In, 'In ] plus jj kk
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt i i0 ii
+        () <- runProcedure @'[ In] nat i
+        () <- runProcedure @'[ In] nat j
+        () <- runProcedure @'[ In] nat k
+        (OneTuple (jj)) <- runProcedure @'[ In,In,Out] timesInt j j0
+        (OneTuple (kk)) <- runProcedure @'[ In,In,Out] timesInt k k0
+        (OneTuple (ii)) <- runProcedure @'[ Out,In,In] plus jj kk
+        () <- runProcedure @'[ In,In,In] timesInt i i0 ii
         pure ()
        )
       pure ()
@@ -758,15 +758,15 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
         guard $ (<) i j
         guard $ (>) i data0
         guard $ (>) j data1
-        () <- runProcedure @'[ 'In ] nat i
-        () <- runProcedure @'[ 'In ] nat j
-        (OneTuple (k)) <- runProcedure @'[ 'Out ] nat 
+        () <- runProcedure @'[ In] nat i
+        () <- runProcedure @'[ In] nat j
+        (OneTuple (k)) <- runProcedure @'[ Out] nat 
         k0 <- pure k
         guard $ (>) k data2
-        (OneTuple (jj)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt j j0
-        (OneTuple (kk)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt k k0
-        (OneTuple (ii)) <- runProcedure @'[ 'Out, 'In, 'In ] plus jj kk
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt i i0 ii
+        (OneTuple (jj)) <- runProcedure @'[ In,In,Out] timesInt j j0
+        (OneTuple (kk)) <- runProcedure @'[ In,In,Out] timesInt k k0
+        (OneTuple (ii)) <- runProcedure @'[ Out,In,In] plus jj kk
+        () <- runProcedure @'[ In,In,In] timesInt i i0 ii
         pure (k)
        )
       pure (OneTuple (k))
@@ -782,16 +782,16 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
         k0 <- pure k
         guard $ (>) i data0
         guard $ (>) k data2
-        () <- runProcedure @'[ 'In ] nat i
-        () <- runProcedure @'[ 'In ] nat k
-        (OneTuple (j)) <- runProcedure @'[ 'Out ] nat 
+        () <- runProcedure @'[ In] nat i
+        () <- runProcedure @'[ In] nat k
+        (OneTuple (j)) <- runProcedure @'[ Out] nat 
         j0 <- pure j
         guard $ (<) i j
         guard $ (>) j data1
-        (OneTuple (jj)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt j j0
-        (OneTuple (kk)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt k k0
-        (OneTuple (ii)) <- runProcedure @'[ 'Out, 'In, 'In ] plus jj kk
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt i i0 ii
+        (OneTuple (jj)) <- runProcedure @'[ In,In,Out] timesInt j j0
+        (OneTuple (kk)) <- runProcedure @'[ In,In,Out] timesInt k k0
+        (OneTuple (ii)) <- runProcedure @'[ Out,In,In] plus jj kk
+        () <- runProcedure @'[ In,In,In] timesInt i i0 ii
         pure (j)
        )
       pure (OneTuple (j))
@@ -805,18 +805,18 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
         data2 <- pure 0
         i0 <- pure i
         guard $ (>) i data0
-        () <- runProcedure @'[ 'In ] nat i
-        (OneTuple (j)) <- runProcedure @'[ 'Out ] nat 
+        () <- runProcedure @'[ In] nat i
+        (OneTuple (j)) <- runProcedure @'[ Out] nat 
         j0 <- pure j
         guard $ (<) i j
         guard $ (>) j data1
-        (OneTuple (k)) <- runProcedure @'[ 'Out ] nat 
+        (OneTuple (k)) <- runProcedure @'[ Out] nat 
         k0 <- pure k
         guard $ (>) k data2
-        (OneTuple (jj)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt j j0
-        (OneTuple (kk)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt k k0
-        (OneTuple (ii)) <- runProcedure @'[ 'Out, 'In, 'In ] plus jj kk
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt i i0 ii
+        (OneTuple (jj)) <- runProcedure @'[ In,In,Out] timesInt j j0
+        (OneTuple (kk)) <- runProcedure @'[ In,In,Out] timesInt k k0
+        (OneTuple (ii)) <- runProcedure @'[ Out,In,In] plus jj kk
+        () <- runProcedure @'[ In,In,In] timesInt i i0 ii
         pure (j,k)
        )
       pure (j,k)
@@ -832,16 +832,16 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
         k0 <- pure k
         guard $ (>) j data1
         guard $ (>) k data2
-        () <- runProcedure @'[ 'In ] nat j
-        () <- runProcedure @'[ 'In ] nat k
-        (OneTuple (i)) <- runProcedure @'[ 'Out ] nat 
+        () <- runProcedure @'[ In] nat j
+        () <- runProcedure @'[ In] nat k
+        (OneTuple (i)) <- runProcedure @'[ Out] nat 
         i0 <- pure i
         guard $ (<) i j
         guard $ (>) i data0
-        (OneTuple (jj)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt j j0
-        (OneTuple (kk)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt k k0
-        (OneTuple (ii)) <- runProcedure @'[ 'Out, 'In, 'In ] plus jj kk
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt i i0 ii
+        (OneTuple (jj)) <- runProcedure @'[ In,In,Out] timesInt j j0
+        (OneTuple (kk)) <- runProcedure @'[ In,In,Out] timesInt k k0
+        (OneTuple (ii)) <- runProcedure @'[ Out,In,In] plus jj kk
+        () <- runProcedure @'[ In,In,In] timesInt i i0 ii
         pure (i)
        )
       pure (OneTuple (i))
@@ -855,18 +855,18 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
         data2 <- pure 0
         j0 <- pure j
         guard $ (>) j data1
-        () <- runProcedure @'[ 'In ] nat j
-        (OneTuple (i)) <- runProcedure @'[ 'Out ] nat 
+        () <- runProcedure @'[ In] nat j
+        (OneTuple (i)) <- runProcedure @'[ Out] nat 
         i0 <- pure i
         guard $ (<) i j
         guard $ (>) i data0
-        (OneTuple (k)) <- runProcedure @'[ 'Out ] nat 
+        (OneTuple (k)) <- runProcedure @'[ Out] nat 
         k0 <- pure k
         guard $ (>) k data2
-        (OneTuple (jj)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt j j0
-        (OneTuple (kk)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt k k0
-        (OneTuple (ii)) <- runProcedure @'[ 'Out, 'In, 'In ] plus jj kk
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt i i0 ii
+        (OneTuple (jj)) <- runProcedure @'[ In,In,Out] timesInt j j0
+        (OneTuple (kk)) <- runProcedure @'[ In,In,Out] timesInt k k0
+        (OneTuple (ii)) <- runProcedure @'[ Out,In,In] plus jj kk
+        () <- runProcedure @'[ In,In,In] timesInt i i0 ii
         pure (i,k)
        )
       pure (i,k)
@@ -880,18 +880,18 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
         data2 <- pure 0
         k0 <- pure k
         guard $ (>) k data2
-        () <- runProcedure @'[ 'In ] nat k
-        (OneTuple (i)) <- runProcedure @'[ 'Out ] nat 
+        () <- runProcedure @'[ In] nat k
+        (OneTuple (i)) <- runProcedure @'[ Out] nat 
         i0 <- pure i
         guard $ (>) i data0
-        (OneTuple (j)) <- runProcedure @'[ 'Out ] nat 
+        (OneTuple (j)) <- runProcedure @'[ Out] nat 
         j0 <- pure j
         guard $ (<) i j
         guard $ (>) j data1
-        (OneTuple (jj)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt j j0
-        (OneTuple (kk)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt k k0
-        (OneTuple (ii)) <- runProcedure @'[ 'Out, 'In, 'In ] plus jj kk
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt i i0 ii
+        (OneTuple (jj)) <- runProcedure @'[ In,In,Out] timesInt j j0
+        (OneTuple (kk)) <- runProcedure @'[ In,In,Out] timesInt k k0
+        (OneTuple (ii)) <- runProcedure @'[ Out,In,In] plus jj kk
+        () <- runProcedure @'[ In,In,In] timesInt i i0 ii
         pure (i,j)
        )
       pure (i,j)
@@ -903,20 +903,20 @@ pythag = rget $ (procedure @'[ 'In, 'In, 'In ] pythagIII) :& (procedure @'[ 'In,
         data0 <- pure 0
         data1 <- pure 0
         data2 <- pure 0
-        (OneTuple (i)) <- runProcedure @'[ 'Out ] nat 
+        (OneTuple (i)) <- runProcedure @'[ Out] nat 
         i0 <- pure i
         guard $ (>) i data0
-        (OneTuple (j)) <- runProcedure @'[ 'Out ] nat 
+        (OneTuple (j)) <- runProcedure @'[ Out] nat 
         j0 <- pure j
         guard $ (<) i j
         guard $ (>) j data1
-        (OneTuple (k)) <- runProcedure @'[ 'Out ] nat 
+        (OneTuple (k)) <- runProcedure @'[ Out] nat 
         k0 <- pure k
         guard $ (>) k data2
-        (OneTuple (jj)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt j j0
-        (OneTuple (kk)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt k k0
-        (OneTuple (ii)) <- runProcedure @'[ 'Out, 'In, 'In ] plus jj kk
-        () <- runProcedure @'[ 'In, 'In, 'In ] timesInt i i0 ii
+        (OneTuple (jj)) <- runProcedure @'[ In,In,Out] timesInt j j0
+        (OneTuple (kk)) <- runProcedure @'[ In,In,Out] timesInt k k0
+        (OneTuple (ii)) <- runProcedure @'[ Out,In,In] plus jj kk
+        () <- runProcedure @'[ In,In,In] timesInt i i0 ii
         pure (i,j,k)
        )
       pure (i,j,k)
@@ -944,16 +944,16 @@ constraints:
 1
 -}
 
-triang = rget $ (procedure @'[ 'In, 'In ] triangII) :& (procedure @'[ 'In, 'Out ] triangIO) :& RNil
+triang = rget $ (procedure @'[ In,In] triangII) :& (procedure @'[ In,Out] triangIO) :& RNil
   where
     triangII = \n r -> Logic.once $ do
       -- solution: data0[0,3] n'[0,0] nn'[0,1]
       -- cost: 5
       () <- (do
         data0 <- pure 2
-        (OneTuple (n')) <- runProcedure @'[ 'In, 'Out ] succ n
-        (OneTuple (nn')) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt n n'
-        () <- runProcedure @'[ 'In, 'In, 'In ] div nn' data0 r
+        (OneTuple (n')) <- runProcedure @'[ In,Out] succ n
+        (OneTuple (nn')) <- runProcedure @'[ In,In,Out] timesInt n n'
+        () <- runProcedure @'[ In,In,In] div nn' data0 r
         pure ()
        )
       pure ()
@@ -963,9 +963,9 @@ triang = rget $ (procedure @'[ 'In, 'In ] triangII) :& (procedure @'[ 'In, 'Out 
       -- cost: 6
       (r) <- (do
         data0 <- pure 2
-        (OneTuple (n')) <- runProcedure @'[ 'In, 'Out ] succ n
-        (OneTuple (nn')) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt n n'
-        (OneTuple (r)) <- runProcedure @'[ 'In, 'In, 'Out ] div nn' data0
+        (OneTuple (n')) <- runProcedure @'[ In,Out] succ n
+        (OneTuple (nn')) <- runProcedure @'[ In,In,Out] timesInt n n'
+        (OneTuple (r)) <- runProcedure @'[ In,In,Out] div nn' data0
         pure (r)
        )
       pure (OneTuple (r))
@@ -1023,7 +1023,7 @@ constraints:
 1
 -}
 
-ptriang = rget $ (procedure @'[ 'In ] ptriangI) :& (procedure @'[ 'Out ] ptriangO) :& RNil
+ptriang = rget $ (procedure @'[ In] ptriangI) :& (procedure @'[ Out] ptriangO) :& RNil
   where
     ptriangI = \k -> choose . nub . Logic.observeAll $ do
       -- solution: data0[0,1] data1[0,2] data2[0,3] data3[0,5] data4[0,6] data5[0,8] data6[0,9] i[0,4] j[0,7] ti[0,13] tj[0,11] tk[0,12]
@@ -1035,14 +1035,14 @@ ptriang = rget $ (procedure @'[ 'In ] ptriangI) :& (procedure @'[ 'Out ] ptriang
         data3 <- pure 1
         data4 <- pure [data3..k]
         data5 <- pure 1
-        () <- runProcedure @'[ 'In, 'In ] elem k data2
-        (OneTuple (i)) <- runProcedure @'[ 'Out, 'In ] elem data4
+        () <- runProcedure @'[ In,In] elem k data2
+        (OneTuple (i)) <- runProcedure @'[ Out,In] elem data4
         data6 <- pure [data5..i]
-        (OneTuple (j)) <- runProcedure @'[ 'Out, 'In ] elem data6
-        (OneTuple (tj)) <- runProcedure @'[ 'In, 'Out ] triang j
-        (OneTuple (tk)) <- runProcedure @'[ 'In, 'Out ] triang k
-        (OneTuple (ti)) <- runProcedure @'[ 'Out, 'In, 'In ] plus tj tk
-        () <- runProcedure @'[ 'In, 'In ] triang i ti
+        (OneTuple (j)) <- runProcedure @'[ Out,In] elem data6
+        (OneTuple (tj)) <- runProcedure @'[ In,Out] triang j
+        (OneTuple (tk)) <- runProcedure @'[ In,Out] triang k
+        (OneTuple (ti)) <- runProcedure @'[ Out,In,In] plus tj tk
+        () <- runProcedure @'[ In,In] triang i ti
         pure ()
        )
       pure ()
@@ -1056,15 +1056,15 @@ ptriang = rget $ (procedure @'[ 'In ] ptriangI) :& (procedure @'[ 'Out ] ptriang
         data2 <- pure [data0..data1]
         data3 <- pure 1
         data5 <- pure 1
-        (OneTuple (k)) <- runProcedure @'[ 'Out, 'In ] elem data2
+        (OneTuple (k)) <- runProcedure @'[ Out,In] elem data2
         data4 <- pure [data3..k]
-        (OneTuple (i)) <- runProcedure @'[ 'Out, 'In ] elem data4
+        (OneTuple (i)) <- runProcedure @'[ Out,In] elem data4
         data6 <- pure [data5..i]
-        (OneTuple (j)) <- runProcedure @'[ 'Out, 'In ] elem data6
-        (OneTuple (tj)) <- runProcedure @'[ 'In, 'Out ] triang j
-        (OneTuple (tk)) <- runProcedure @'[ 'In, 'Out ] triang k
-        (OneTuple (ti)) <- runProcedure @'[ 'Out, 'In, 'In ] plus tj tk
-        () <- runProcedure @'[ 'In, 'In ] triang i ti
+        (OneTuple (j)) <- runProcedure @'[ Out,In] elem data6
+        (OneTuple (tj)) <- runProcedure @'[ In,Out] triang j
+        (OneTuple (tk)) <- runProcedure @'[ In,Out] triang k
+        (OneTuple (ti)) <- runProcedure @'[ Out,In,In] plus tj tk
+        () <- runProcedure @'[ In,In] triang i ti
         pure (k)
        )
       pure (OneTuple (k))
@@ -1118,7 +1118,7 @@ constraints:
 1
 -}
 
-stepN = rget $ (procedure @'[ 'In, 'Out ] stepNIO) :& (procedure @'[ 'Out, 'Out ] stepNOO) :& RNil
+stepN = rget $ (procedure @'[ In,Out] stepNIO) :& (procedure @'[ Out,Out] stepNOO) :& RNil
   where
     stepNIO = \arg1 -> choose . nub . Logic.observeAll $ do
       -- solution: arg2[] arg2[0] arg2[0,1] arg2[1] arg2[1,9] data0[1,1] data1[1,6] data2[1,7] i[1,3] i'[1,4] n[1,2] n'[1,8] r[1,5]
@@ -1132,11 +1132,11 @@ stepN = rget $ (procedure @'[ 'In, 'Out ] stepNIO) :& (procedure @'[ 'Out, 'Out 
         data0 <- pure 0
         data1 <- pure []
         guard $ (>) n' data0
-        (OneTuple (n)) <- runProcedure @'[ 'Out, 'In ] succ n'
+        (OneTuple (n)) <- runProcedure @'[ Out,In] succ n'
         (OneTuple (i)) <- stepNIO n
-        (OneTuple (i')) <- runProcedure @'[ 'In, 'Out ] succ i
+        (OneTuple (i')) <- runProcedure @'[ In,Out] succ i
         data2 <- pure (i:i':data1)
-        (OneTuple (r)) <- runProcedure @'[ 'Out, 'In ] elem data2
+        (OneTuple (r)) <- runProcedure @'[ Out,In] elem data2
         arg2 <- pure r
         pure (arg2)
        )
@@ -1153,11 +1153,11 @@ stepN = rget $ (procedure @'[ 'In, 'Out ] stepNIO) :& (procedure @'[ 'Out, 'Out 
         data0 <- pure 0
         data1 <- pure []
         (n,i) <- stepNOO 
-        (OneTuple (i')) <- runProcedure @'[ 'In, 'Out ] succ i
+        (OneTuple (i')) <- runProcedure @'[ In,Out] succ i
         data2 <- pure (i:i':data1)
-        (OneTuple (r)) <- runProcedure @'[ 'Out, 'In ] elem data2
+        (OneTuple (r)) <- runProcedure @'[ Out,In] elem data2
         arg2 <- pure r
-        (OneTuple (n')) <- runProcedure @'[ 'In, 'Out ] succ n
+        (OneTuple (n')) <- runProcedure @'[ In,Out] succ n
         arg1 <- pure n'
         guard $ (>) n' data0
         pure (arg1,arg2)
@@ -1175,7 +1175,7 @@ constraints:
 (arg1[2] <-> arg1[2,0])
 -}
 
-test = rget $ (procedure @'[ 'In ] testI) :& (procedure @'[ 'Out ] testO) :& RNil
+test = rget $ (procedure @'[ In] testI) :& (procedure @'[ Out] testO) :& RNil
   where
     testI = \arg1 -> Logic.once $ do
       -- solution: 
@@ -1228,7 +1228,7 @@ constraints:
 1
 -}
 
-odds = rget $ (procedure @'[ 'In ] oddsI) :& (procedure @'[ 'Out ] oddsO) :& RNil
+odds = rget $ (procedure @'[ In] oddsI) :& (procedure @'[ Out] oddsO) :& RNil
   where
     oddsI = \arg1 -> Logic.once $ do
       -- solution: data0[1,2] m[1,1] n[1,3]
@@ -1239,7 +1239,7 @@ odds = rget $ (procedure @'[ 'In ] oddsI) :& (procedure @'[ 'Out ] oddsO) :& RNi
        ) <|> (do
         n <- pure arg1
         data0 <- pure 2
-        (OneTuple (m)) <- runProcedure @'[ 'In, 'Out, 'In ] plus data0 n
+        (OneTuple (m)) <- runProcedure @'[ In,Out,In] plus data0 n
         () <- oddsI m
         pure ()
        )
@@ -1254,7 +1254,7 @@ odds = rget $ (procedure @'[ 'In ] oddsI) :& (procedure @'[ 'Out ] oddsO) :& RNi
        ) <|> (do
         data0 <- pure 2
         (OneTuple (m)) <- oddsO 
-        (OneTuple (n)) <- runProcedure @'[ 'In, 'In, 'Out ] plus data0 m
+        (OneTuple (n)) <- runProcedure @'[ In,In,Out] plus data0 m
         arg1 <- pure n
         pure (arg1)
        )
@@ -1274,7 +1274,7 @@ constraints:
 1
 -}
 
-even = rget $ (procedure @'[ 'In ] evenI) :& RNil
+even = rget $ (procedure @'[ In] evenI) :& RNil
   where
     evenI = \n -> Logic.once $ do
       -- solution: data0[0,1] data1[0,2]
@@ -1282,7 +1282,7 @@ even = rget $ (procedure @'[ 'In ] evenI) :& RNil
       () <- (do
         data0 <- pure 2
         data1 <- pure 0
-        () <- runProcedure @'[ 'In, 'In, 'In ] mod n data0 data1
+        () <- runProcedure @'[ In,In,In] mod n data0 data1
         pure ()
        )
       pure ()
@@ -1311,19 +1311,19 @@ constraints:
 1
 -}
 
-oddsTest = rget $ (procedure @'[ 'In ] oddsTestI) :& (procedure @'[ 'Out ] oddsTestO) :& RNil
+oddsTest = rget $ (procedure @'[ In] oddsTestI) :& (procedure @'[ Out] oddsTestO) :& RNil
   where
     oddsTestI = \fresh1 -> Logic.once $ do
       -- solution: fresh2[0,0]
       -- cost: 3
       () <- (do
         fresh2 <- pure fresh1
-        () <- runProcedure @'[ 'In ] even fresh1
+        () <- runProcedure @'[ In] even fresh1
         () <- (do
-          () <- runProcedure @'[ 'In ] odds fresh2
+          () <- runProcedure @'[ In] odds fresh2
           pure ()
          ) <|> (do
-          () <- runProcedure @'[ 'In ] test fresh2
+          () <- runProcedure @'[ In] test fresh2
           pure ()
          )
         pure ()
@@ -1335,14 +1335,14 @@ oddsTest = rget $ (procedure @'[ 'In ] oddsTestI) :& (procedure @'[ 'Out ] oddsT
       -- cost: 5
       (fresh1) <- (do
         (fresh2) <- (do
-          (OneTuple (fresh2)) <- runProcedure @'[ 'Out ] odds 
+          (OneTuple (fresh2)) <- runProcedure @'[ Out] odds 
           pure (fresh2)
          ) <|> (do
-          (OneTuple (fresh2)) <- runProcedure @'[ 'Out ] test 
+          (OneTuple (fresh2)) <- runProcedure @'[ Out] test 
           pure (fresh2)
          )
         fresh1 <- pure fresh2
-        () <- runProcedure @'[ 'In ] even fresh1
+        () <- runProcedure @'[ In] even fresh1
         pure (fresh1)
        )
       pure (OneTuple (fresh1))
@@ -1363,14 +1363,14 @@ constraints:
 1
 -}
 
-oddsPlus = rget $ (procedure @'[ 'In, 'In ] oddsPlusII) :& (procedure @'[ 'In, 'Out ] oddsPlusIO) :& (procedure @'[ 'Out, 'In ] oddsPlusOI) :& RNil
+oddsPlus = rget $ (procedure @'[ In,In] oddsPlusII) :& (procedure @'[ In,Out] oddsPlusIO) :& (procedure @'[ Out,In] oddsPlusOI) :& RNil
   where
     oddsPlusII = \n x -> Logic.once $ do
       -- solution: a[0,1]
       -- cost: 3
       () <- (do
-        (OneTuple (a)) <- runProcedure @'[ 'Out, 'In, 'In ] plus n x
-        () <- runProcedure @'[ 'In ] odds a
+        (OneTuple (a)) <- runProcedure @'[ Out,In,In] plus n x
+        () <- runProcedure @'[ In] odds a
         pure ()
        )
       pure ()
@@ -1379,8 +1379,8 @@ oddsPlus = rget $ (procedure @'[ 'In, 'In ] oddsPlusII) :& (procedure @'[ 'In, '
       -- solution: a[0,0] x[] x[0] x[0,1]
       -- cost: 4
       (x) <- (do
-        (OneTuple (a)) <- runProcedure @'[ 'Out ] odds 
-        (OneTuple (x)) <- runProcedure @'[ 'In, 'In, 'Out ] plus a n
+        (OneTuple (a)) <- runProcedure @'[ Out] odds 
+        (OneTuple (x)) <- runProcedure @'[ In,In,Out] plus a n
         pure (x)
        )
       pure (OneTuple (x))
@@ -1389,8 +1389,8 @@ oddsPlus = rget $ (procedure @'[ 'In, 'In ] oddsPlusII) :& (procedure @'[ 'In, '
       -- solution: a[0,0] n[] n[0] n[0,1]
       -- cost: 4
       (n) <- (do
-        (OneTuple (a)) <- runProcedure @'[ 'Out ] odds 
-        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out, 'In ] plus a x
+        (OneTuple (a)) <- runProcedure @'[ Out] odds 
+        (OneTuple (n)) <- runProcedure @'[ In,Out,In] plus a x
         pure (n)
        )
       pure (OneTuple (n))
@@ -1414,7 +1414,7 @@ constraints:
 1
 -}
 
-oddsPlusTest = rget $ (procedure @'[ 'In ] oddsPlusTestI) :& (procedure @'[ 'Out ] oddsPlusTestO) :& RNil
+oddsPlusTest = rget $ (procedure @'[ In] oddsPlusTestI) :& (procedure @'[ Out] oddsPlusTestO) :& RNil
   where
     oddsPlusTestI = \fresh1 -> Logic.once $ do
       -- solution: x_0[0,1] x_0[0,1,0] x_0[0,1,0,0] x_0[0,1,1] x_0[0,1,1,0]
@@ -1427,8 +1427,8 @@ oddsPlusTest = rget $ (procedure @'[ 'In ] oddsPlusTestI) :& (procedure @'[ 'Out
           x_0 <- pure 1
           pure (x_0)
          )
-        () <- runProcedure @'[ 'In ] even fresh1
-        () <- runProcedure @'[ 'In, 'In ] oddsPlus x_0 fresh1
+        () <- runProcedure @'[ In] even fresh1
+        () <- runProcedure @'[ In,In] oddsPlus x_0 fresh1
         pure ()
        )
       pure ()
@@ -1444,8 +1444,8 @@ oddsPlusTest = rget $ (procedure @'[ 'In ] oddsPlusTestI) :& (procedure @'[ 'Out
           x_0 <- pure 1
           pure (x_0)
          )
-        (OneTuple (fresh1)) <- runProcedure @'[ 'In, 'Out ] oddsPlus x_0
-        () <- runProcedure @'[ 'In ] even fresh1
+        (OneTuple (fresh1)) <- runProcedure @'[ In,Out] oddsPlus x_0
+        () <- runProcedure @'[ In] even fresh1
         pure (fresh1)
        )
       pure (OneTuple (fresh1))
@@ -1515,7 +1515,7 @@ data4[0,4]
 1
 -}
 
-oddsPrime = rget $ (procedure @'[ 'In ] oddsPrimeI) :& (procedure @'[ 'Out ] oddsPrimeO) :& RNil
+oddsPrime = rget $ (procedure @'[ In] oddsPrimeI) :& (procedure @'[ Out] oddsPrimeO) :& RNil
   where
     oddsPrimeI = \n -> Logic.once $ do
       -- solution: d[0] d[0,4] d[0,4,0,0] data0[0,2] data1[0] data1[0,4] data1[0,4,0,1] data2[0] data2[0,4] data2[0,4,0,2] data3[0] data3[0,4] data3[0,4,0,4] data4[0] data4[0,4] data4[0,4,0,6] n'[0,3]
@@ -1523,16 +1523,16 @@ oddsPrime = rget $ (procedure @'[ 'In ] oddsPrimeI) :& (procedure @'[ 'Out ] odd
       () <- (do
         data0 <- pure 1
         guard $ (>) n data0
-        () <- runProcedure @'[ 'In ] odds n
-        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        () <- runProcedure @'[ In] odds n
+        (OneTuple (n')) <- runProcedure @'[ Out,In] succ n
         () <- Logic.ifte ((do
           data1 <- pure 1
           data2 <- pure [data1..n']
           data3 <- pure 1
           data4 <- pure 0
-          (OneTuple (d)) <- runProcedure @'[ 'Out, 'In ] elem data2
+          (OneTuple (d)) <- runProcedure @'[ Out,In] elem data2
           guard $ (>) d data3
-          () <- runProcedure @'[ 'In, 'In, 'In ] mod n d data4
+          () <- runProcedure @'[ In,In,In] mod n d data4
           pure ()
          )) (\() -> (do
           () <- empty 
@@ -1550,17 +1550,17 @@ oddsPrime = rget $ (procedure @'[ 'In ] oddsPrimeI) :& (procedure @'[ 'Out ] odd
       -- cost: 10
       (n) <- (do
         data0 <- pure 1
-        (OneTuple (n)) <- runProcedure @'[ 'Out ] odds 
+        (OneTuple (n)) <- runProcedure @'[ Out] odds 
         guard $ (>) n data0
-        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        (OneTuple (n')) <- runProcedure @'[ Out,In] succ n
         () <- Logic.ifte ((do
           data1 <- pure 1
           data2 <- pure [data1..n']
           data3 <- pure 1
           data4 <- pure 0
-          (OneTuple (d)) <- runProcedure @'[ 'Out, 'In ] elem data2
+          (OneTuple (d)) <- runProcedure @'[ Out,In] elem data2
           guard $ (>) d data3
-          () <- runProcedure @'[ 'In, 'In, 'In ] mod n d data4
+          () <- runProcedure @'[ In,In,In] mod n d data4
           pure ()
          )) (\() -> (do
           () <- empty 
@@ -1601,7 +1601,7 @@ constraints:
 1
 -}
 
-nontrivialDivisor = rget $ (procedure @'[ 'In, 'In ] nontrivialDivisorII) :& (procedure @'[ 'In, 'Out ] nontrivialDivisorIO) :& RNil
+nontrivialDivisor = rget $ (procedure @'[ In,In] nontrivialDivisorII) :& (procedure @'[ In,Out] nontrivialDivisorIO) :& RNil
   where
     nontrivialDivisorII = \n d -> Logic.once $ do
       -- solution: data0[0,2] data1[0,3] data2[0,5] n'[0,0]
@@ -1609,10 +1609,10 @@ nontrivialDivisor = rget $ (procedure @'[ 'In, 'In ] nontrivialDivisorII) :& (pr
       () <- (do
         data0 <- pure 2
         data2 <- pure 0
-        () <- runProcedure @'[ 'In, 'In, 'In ] mod n d data2
-        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        () <- runProcedure @'[ In,In,In] mod n d data2
+        (OneTuple (n')) <- runProcedure @'[ Out,In] succ n
         data1 <- pure [data0..n']
-        () <- runProcedure @'[ 'In, 'In ] elem d data1
+        () <- runProcedure @'[ In,In] elem d data1
         pure ()
        )
       pure ()
@@ -1623,10 +1623,10 @@ nontrivialDivisor = rget $ (procedure @'[ 'In, 'In ] nontrivialDivisorII) :& (pr
       (d) <- (do
         data0 <- pure 2
         data2 <- pure 0
-        (OneTuple (n')) <- runProcedure @'[ 'Out, 'In ] succ n
+        (OneTuple (n')) <- runProcedure @'[ Out,In] succ n
         data1 <- pure [data0..n']
-        (OneTuple (d)) <- runProcedure @'[ 'Out, 'In ] elem data1
-        () <- runProcedure @'[ 'In, 'In, 'In ] mod n d data2
+        (OneTuple (d)) <- runProcedure @'[ Out,In] elem data1
+        () <- runProcedure @'[ In,In,In] mod n d data2
         pure (d)
        )
       pure (OneTuple (d))
@@ -1665,7 +1665,7 @@ d[0,3]
 1
 -}
 
-oddsPrimeIO = rget $ (procedure @'[ 'In ] oddsPrimeIOI) :& (procedure @'[ 'Out ] oddsPrimeIOO) :& RNil
+oddsPrimeIO = rget $ (procedure @'[ In] oddsPrimeIOI) :& (procedure @'[ Out] oddsPrimeIOO) :& RNil
   where
     oddsPrimeIOI = \n -> Logic.once $ do
       -- solution: d[0] d[0,3] d[0,3,0,0] data0[0,2]
@@ -1673,10 +1673,10 @@ oddsPrimeIO = rget $ (procedure @'[ 'In ] oddsPrimeIOI) :& (procedure @'[ 'Out ]
       () <- (do
         data0 <- pure 1
         guard $ (>) n data0
-        () <- runProcedure @'[ 'In ] odds n
+        () <- runProcedure @'[ In] odds n
         () <- Logic.ifte ((do
-          (OneTuple (d)) <- runProcedure @'[ 'In, 'Out ] nontrivialDivisor n
-          () <- runProcedure @'[ 'In ] print d
+          (OneTuple (d)) <- runProcedure @'[ In,Out] nontrivialDivisor n
+          () <- runProcedure @'[ In] print d
           pure ()
          )) (\() -> (do
           () <- empty 
@@ -1694,11 +1694,11 @@ oddsPrimeIO = rget $ (procedure @'[ 'In ] oddsPrimeIOI) :& (procedure @'[ 'Out ]
       -- cost: 7
       (n) <- (do
         data0 <- pure 1
-        (OneTuple (n)) <- runProcedure @'[ 'Out ] odds 
+        (OneTuple (n)) <- runProcedure @'[ Out] odds 
         guard $ (>) n data0
         () <- Logic.ifte ((do
-          (OneTuple (d)) <- runProcedure @'[ 'In, 'Out ] nontrivialDivisor n
-          () <- runProcedure @'[ 'In ] print d
+          (OneTuple (d)) <- runProcedure @'[ In,Out] nontrivialDivisor n
+          () <- runProcedure @'[ In] print d
           pure ()
          )) (\() -> (do
           () <- empty 
@@ -1726,14 +1726,14 @@ constraints:
 1
 -}
 
-bogosort = rget $ (procedure @'[ 'In, 'In ] bogosortII) :& (procedure @'[ 'In, 'Out ] bogosortIO) :& (procedure @'[ 'Out, 'In ] bogosortOI) :& RNil
+bogosort = rget $ (procedure @'[ In,In] bogosortII) :& (procedure @'[ In,Out] bogosortIO) :& (procedure @'[ Out,In] bogosortOI) :& RNil
   where
     bogosortII = \l p -> Logic.once $ do
       -- solution: 
       -- cost: 2
       () <- (do
-        () <- runProcedure @'[ 'In, 'In ] permute l p
-        () <- runProcedure @'[ 'In ] sorted p
+        () <- runProcedure @'[ In,In] permute l p
+        () <- runProcedure @'[ In] sorted p
         pure ()
        )
       pure ()
@@ -1742,8 +1742,8 @@ bogosort = rget $ (procedure @'[ 'In, 'In ] bogosortII) :& (procedure @'[ 'In, '
       -- solution: p[] p[0] p[0,0]
       -- cost: 3
       (p) <- (do
-        (OneTuple (p)) <- runProcedure @'[ 'In, 'Out ] permute l
-        () <- runProcedure @'[ 'In ] sorted p
+        (OneTuple (p)) <- runProcedure @'[ In,Out] permute l
+        () <- runProcedure @'[ In] sorted p
         pure (p)
        )
       pure (OneTuple (p))
@@ -1752,8 +1752,8 @@ bogosort = rget $ (procedure @'[ 'In, 'In ] bogosortII) :& (procedure @'[ 'In, '
       -- solution: l[] l[0] l[0,0]
       -- cost: 3
       (l) <- (do
-        () <- runProcedure @'[ 'In ] sorted p
-        (OneTuple (l)) <- runProcedure @'[ 'Out, 'In ] permute p
+        () <- runProcedure @'[ In] sorted p
+        (OneTuple (l)) <- runProcedure @'[ Out,In] permute p
         pure (l)
        )
       pure (OneTuple (l))
@@ -1773,7 +1773,7 @@ constraints:
 1
 -}
 
-equal = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'In ] equalP1IP1II) :& (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'Out ], 'Out ] equalP1IP1OO) :& (procedure @'[ 'PredMode '[ 'Out ], 'PredMode '[ 'In ], 'Out ] equalP1OP1IO) :& RNil
+equal = rget $ (procedure @'[ PredMode '[ In],PredMode '[ In],In] equalP1IP1II) :& (procedure @'[ PredMode '[ In],PredMode '[ Out],Out] equalP1IP1OO) :& (procedure @'[ PredMode '[ Out],PredMode '[ In],Out] equalP1OP1IO) :& RNil
   where
     equalP1IP1II = \p q fresh1 -> Logic.once $ do
       -- solution: 
@@ -1849,13 +1849,13 @@ constraints:
 1
 -}
 
-tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'In ] tcompP1IP1IP1II) :& (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'Out ] tcompP1IP1IP1IO) :& (procedure @'[ 'PredMode '[ 'Out ], 'PredMode '[ 'Out ], 'PredMode '[ 'Out ], 'Out ] tcompP1OP1OP1OO) :& RNil
+tcomp = rget $ (procedure @'[ PredMode '[ In],PredMode '[ In],PredMode '[ In],In] tcompP1IP1IP1II) :& (procedure @'[ PredMode '[ In],PredMode '[ In],PredMode '[ In],Out] tcompP1IP1IP1IO) :& (procedure @'[ PredMode '[ Out],PredMode '[ Out],PredMode '[ Out],Out] tcompP1OP1OP1OO) :& RNil
   where
     tcompP1IP1IP1II = \i j k carg3 -> Logic.once $ do
       -- solution: 
       -- cost: 4
       () <- (do
-        let pred1 = procedure @'[ 'In ] $
+        let pred1 = procedure @'[ In] $
               \fresh2 -> do
                 () <- (do
                   guard $ fresh2 == 0
@@ -1865,7 +1865,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
                   pure ()
                  )
                 pure ()
-        let pred0 = procedure @'[ 'In ] $
+        let pred0 = procedure @'[ In] $
               \fresh1 -> do
                 () <- (do
                   () <- runProcedure i fresh1
@@ -1878,7 +1878,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
                   pure ()
                  )
                 pure ()
-        () <- runProcedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'In ] equal pred0 pred1 carg3
+        () <- runProcedure @'[ PredMode '[ In],PredMode '[ In],In] equal pred0 pred1 carg3
         pure ()
        )
       pure ()
@@ -1887,7 +1887,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
       -- solution: carg3[] carg3[0] carg3[0,0] fresh2[0,2,0] fresh2[0,2,0,0] fresh2[0,2,0,0,0] fresh2[0,2,0,1] fresh2[0,2,0,1,0]
       -- cost: 5
       (carg3) <- (do
-        let pred1 = procedure @'[ 'Out ] $
+        let pred1 = procedure @'[ Out] $
               do
                 (fresh2) <- (do
                   fresh2 <- pure 0
@@ -1897,7 +1897,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
                   pure (fresh2)
                  )
                 pure (OneTuple (fresh2))
-        let pred0 = procedure @'[ 'In ] $
+        let pred0 = procedure @'[ In] $
               \fresh1 -> do
                 () <- (do
                   () <- runProcedure i fresh1
@@ -1910,7 +1910,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
                   pure ()
                  )
                 pure ()
-        (OneTuple (carg3)) <- runProcedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'Out ], 'Out ] equal pred0 pred1
+        (OneTuple (carg3)) <- runProcedure @'[ PredMode '[ In],PredMode '[ Out],Out] equal pred0 pred1
         pure (carg3)
        )
       pure (OneTuple (carg3))
@@ -1919,7 +1919,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
       -- solution: carg3[] carg3[0] carg3[0,0] fresh1[0,1,0] fresh1[0,1,0,0] fresh1[0,1,0,0,0] fresh1[0,1,0,1] fresh1[0,1,0,1,0] fresh1[0,1,0,2] fresh1[0,1,0,2,0]
       -- cost: 8
       (carg3) <- (do
-        let pred1 = procedure @'[ 'In ] $
+        let pred1 = procedure @'[ In] $
               \fresh2 -> do
                 () <- (do
                   guard $ fresh2 == 0
@@ -1929,7 +1929,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
                   pure ()
                  )
                 pure ()
-        let pred0 = procedure @'[ 'Out ] $
+        let pred0 = procedure @'[ Out] $
               do
                 (fresh1) <- (do
                   (OneTuple (fresh1)) <- runProcedure i 
@@ -1942,7 +1942,7 @@ tcomp = rget $ (procedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode 
                   pure (fresh1)
                  )
                 pure (OneTuple (fresh1))
-        (OneTuple (carg3)) <- runProcedure @'[ 'PredMode '[ 'Out ], 'PredMode '[ 'In ], 'Out ] equal pred0 pred1
+        (OneTuple (carg3)) <- runProcedure @'[ PredMode '[ Out],PredMode '[ In],Out] equal pred0 pred1
         pure (carg3)
        )
       pure (OneTuple (carg3))
@@ -2009,38 +2009,38 @@ pred5[0,0]
 1
 -}
 
-tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tcomp_ex1O) :& RNil
+tcomp_ex1 = rget $ (procedure @'[ In] tcomp_ex1I) :& (procedure @'[ Out] tcomp_ex1O) :& RNil
   where
     tcomp_ex1I = \r -> Logic.once $ do
       -- solution: data0[0,0,0,1,0,1] data2[0,0,0,2,0,1] data4[0,0,0,3,0,1] i[0,0,0] i[0,0,0,0] pred1[0] pred1[0,0] pred3[0] pred3[0,0] pred5[0] pred5[0,0]
       -- cost: 5
       () <- (do
         () <- Logic.ifte ((do
-          let pred1 = procedure @'[ 'In ] $
+          let pred1 = procedure @'[ In] $
                 \curry1 -> do
                   () <- (do
                     data0 <- pure 2
-                    () <- runProcedure @'[ 'In, 'In ] id data0 curry1
+                    () <- runProcedure @'[ In,In] id data0 curry1
                     pure ()
                    )
                   pure ()
-          let pred3 = procedure @'[ 'In ] $
+          let pred3 = procedure @'[ In] $
                 \curry1 -> do
                   () <- (do
                     data2 <- pure 1
-                    () <- runProcedure @'[ 'In, 'In ] id data2 curry1
+                    () <- runProcedure @'[ In,In] id data2 curry1
                     pure ()
                    )
                   pure ()
-          let pred5 = procedure @'[ 'In ] $
+          let pred5 = procedure @'[ In] $
                 \curry1 -> do
                   () <- (do
                     data4 <- pure 3
-                    () <- runProcedure @'[ 'In, 'In ] id data4 curry1
+                    () <- runProcedure @'[ In,In] id data4 curry1
                     pure ()
                    )
                   pure ()
-          (OneTuple (i)) <- runProcedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'Out ] tcomp pred1 pred3 pred5
+          (OneTuple (i)) <- runProcedure @'[ PredMode '[ In],PredMode '[ In],PredMode '[ In],Out] tcomp pred1 pred3 pred5
           pure (i)
          )) (\(i) -> (do
           guard $ r == (Just i)
@@ -2058,31 +2058,31 @@ tcomp_ex1 = rget $ (procedure @'[ 'In ] tcomp_ex1I) :& (procedure @'[ 'Out ] tco
       -- cost: 5
       (r) <- (do
         (r) <- Logic.ifte ((do
-          let pred1 = procedure @'[ 'In ] $
+          let pred1 = procedure @'[ In] $
                 \curry1 -> do
                   () <- (do
                     data0 <- pure 2
-                    () <- runProcedure @'[ 'In, 'In ] id data0 curry1
+                    () <- runProcedure @'[ In,In] id data0 curry1
                     pure ()
                    )
                   pure ()
-          let pred3 = procedure @'[ 'In ] $
+          let pred3 = procedure @'[ In] $
                 \curry1 -> do
                   () <- (do
                     data2 <- pure 1
-                    () <- runProcedure @'[ 'In, 'In ] id data2 curry1
+                    () <- runProcedure @'[ In,In] id data2 curry1
                     pure ()
                    )
                   pure ()
-          let pred5 = procedure @'[ 'In ] $
+          let pred5 = procedure @'[ In] $
                 \curry1 -> do
                   () <- (do
                     data4 <- pure 3
-                    () <- runProcedure @'[ 'In, 'In ] id data4 curry1
+                    () <- runProcedure @'[ In,In] id data4 curry1
                     pure ()
                    )
                   pure ()
-          (OneTuple (i)) <- runProcedure @'[ 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'PredMode '[ 'In ], 'Out ] tcomp pred1 pred3 pred5
+          (OneTuple (i)) <- runProcedure @'[ PredMode '[ In],PredMode '[ In],PredMode '[ In],Out] tcomp pred1 pred3 pred5
           pure (i)
          )) (\(i) -> (do
           r <- pure (Just i)
@@ -2125,17 +2125,17 @@ constraints:
 1
 -}
 
-findI = rget $ (procedure @'[ 'In, 'In, 'In ] findIIII) :& (procedure @'[ 'In, 'In, 'Out ] findIIIO) :& (procedure @'[ 'Out, 'In, 'In ] findIOII) :& (procedure @'[ 'Out, 'In, 'Out ] findIOIO) :& RNil
+findI = rget $ (procedure @'[ In,In,In] findIIII) :& (procedure @'[ In,In,Out] findIIIO) :& (procedure @'[ Out,In,In] findIOII) :& (procedure @'[ Out,In,Out] findIOIO) :& RNil
   where
     findIIII = \pat str i -> Logic.once $ do
       -- solution: m[0,4] n[0,3] t[0,0]
       -- cost: 8
       () <- (do
-        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] length str
-        (OneTuple (m)) <- runProcedure @'[ 'In, 'Out, 'In ] plus i n
-        (OneTuple (t)) <- runProcedure @'[ 'In, 'Out ] suffix str
-        () <- runProcedure @'[ 'In, 'In ] length t m
-        () <- runProcedure @'[ 'In, 'In ] prefix t pat
+        (OneTuple (n)) <- runProcedure @'[ In,Out] length str
+        (OneTuple (m)) <- runProcedure @'[ In,Out,In] plus i n
+        (OneTuple (t)) <- runProcedure @'[ In,Out] suffix str
+        () <- runProcedure @'[ In,In] length t m
+        () <- runProcedure @'[ In,In] prefix t pat
         pure ()
        )
       pure ()
@@ -2144,11 +2144,11 @@ findI = rget $ (procedure @'[ 'In, 'In, 'In ] findIIII) :& (procedure @'[ 'In, '
       -- solution: i[] i[0] i[0,4] m[0,2] n[0,3] t[0,0]
       -- cost: 9
       (i) <- (do
-        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] length str
-        (OneTuple (t)) <- runProcedure @'[ 'In, 'Out ] suffix str
-        () <- runProcedure @'[ 'In, 'In ] prefix t pat
-        (OneTuple (m)) <- runProcedure @'[ 'In, 'Out ] length t
-        (OneTuple (i)) <- runProcedure @'[ 'Out, 'In, 'In ] plus m n
+        (OneTuple (n)) <- runProcedure @'[ In,Out] length str
+        (OneTuple (t)) <- runProcedure @'[ In,Out] suffix str
+        () <- runProcedure @'[ In,In] prefix t pat
+        (OneTuple (m)) <- runProcedure @'[ In,Out] length t
+        (OneTuple (i)) <- runProcedure @'[ Out,In,In] plus m n
         pure (i)
        )
       pure (OneTuple (i))
@@ -2157,11 +2157,11 @@ findI = rget $ (procedure @'[ 'In, 'In, 'In ] findIIII) :& (procedure @'[ 'In, '
       -- solution: m[0,4] n[0,3] pat[] pat[0] pat[0,1] t[0,0]
       -- cost: 9
       (pat) <- (do
-        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] length str
-        (OneTuple (m)) <- runProcedure @'[ 'In, 'Out, 'In ] plus i n
-        (OneTuple (t)) <- runProcedure @'[ 'In, 'Out ] suffix str
-        () <- runProcedure @'[ 'In, 'In ] length t m
-        (OneTuple (pat)) <- runProcedure @'[ 'In, 'Out ] prefix t
+        (OneTuple (n)) <- runProcedure @'[ In,Out] length str
+        (OneTuple (m)) <- runProcedure @'[ In,Out,In] plus i n
+        (OneTuple (t)) <- runProcedure @'[ In,Out] suffix str
+        () <- runProcedure @'[ In,In] length t m
+        (OneTuple (pat)) <- runProcedure @'[ In,Out] prefix t
         pure (pat)
        )
       pure (OneTuple (pat))
@@ -2170,11 +2170,11 @@ findI = rget $ (procedure @'[ 'In, 'In, 'In ] findIIII) :& (procedure @'[ 'In, '
       -- solution: i[] i[0] i[0,4] m[0,2] n[0,3] pat[] pat[0] pat[0,1] t[0,0]
       -- cost: 10
       (i,pat) <- (do
-        (OneTuple (n)) <- runProcedure @'[ 'In, 'Out ] length str
-        (OneTuple (t)) <- runProcedure @'[ 'In, 'Out ] suffix str
-        (OneTuple (m)) <- runProcedure @'[ 'In, 'Out ] length t
-        (OneTuple (i)) <- runProcedure @'[ 'Out, 'In, 'In ] plus m n
-        (OneTuple (pat)) <- runProcedure @'[ 'In, 'Out ] prefix t
+        (OneTuple (n)) <- runProcedure @'[ In,Out] length str
+        (OneTuple (t)) <- runProcedure @'[ In,Out] suffix str
+        (OneTuple (m)) <- runProcedure @'[ In,Out] length t
+        (OneTuple (i)) <- runProcedure @'[ Out,In,In] plus m n
+        (OneTuple (pat)) <- runProcedure @'[ In,Out] prefix t
         pure (i,pat)
        )
       pure (pat,i)

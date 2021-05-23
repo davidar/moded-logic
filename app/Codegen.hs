@@ -13,7 +13,7 @@ import Control.Monad.Logic.Moded.AST
   , Rule(..)
   , Var(..)
   )
-import Control.Monad.Logic.Moded.Constraints (Mode(..), ModeString(..))
+import Control.Monad.Logic.Moded.Constraints (Mode(..))
 import Control.Monad.Logic.Moded.Path (Path, extract, nonlocals)
 import Control.Monad.Logic.Moded.Schedule
   ( CompiledPredicate(..)
@@ -66,16 +66,15 @@ showRule (Rule name vars g) =
 mv :: ModedVar -> Text
 mv (MV (V v) _) = T.pack v
 
-callMode :: ModeString -> Text
-callMode (ModeString ms) = "'[ " <> T.intercalate ", " ms' <> " ]"
+callMode :: [Mode] -> Text
+callMode ms = T.replace "[" "'[ " . T.pack $ show ms
+
+showModeString :: [Mode] -> Text
+showModeString = T.concat . map f
   where
-    ms' = do
-      m <- ms
-      pure $
-        case m of
-          Out -> "'Out"
-          In -> "'In"
-          PredMode pm -> "'PredMode " <> callMode (ModeString pm)
+    f In = "I"
+    f Out = "O"
+    f (PredMode ms) = "P" <> T.pack (show $ length ms) <> showModeString ms
 
 cgTuple :: [Text] -> Text
 cgTuple [] = "()"
@@ -109,13 +108,11 @@ cgAtom p r =
               case varMode <$> vs of
                 [] -> T.pack name
                 ms
-                  | name == ruleName r ->
-                    T.pack name <> T.pack (show (ModeString ms))
+                  | name == ruleName r -> T.pack name <> showModeString ms
                   | V name `elem` map stripMode (ruleArgs r) ->
                     "runProcedure " <> T.pack name
                   | otherwise ->
-                    "runProcedure @" <>
-                    callMode (ModeString ms) <> " " <> T.pack name
+                    "runProcedure @" <> callMode ms <> " " <> T.pack name
   where
     Atom a = extract p $ ruleBody r
 
@@ -136,7 +133,7 @@ cgGoal p r =
                   Atom _ -> cgAtom p' r
                   Anon (MV (V name) _) vs _ ->
                     let tname = T.pack name
-                        field = callMode . ModeString $ varMode <$> vs
+                        field = callMode $ varMode <$> vs
                         lam = cgGoal p' r
                      in [text|
                           let $tname = procedure @$field $
@@ -196,10 +193,10 @@ cgGoal p r =
         |]
     Atom _ -> cgAtom p r
 
-cgProcedure :: [Pragma] -> ModeString -> Procedure -> Text
+cgProcedure :: [Pragma] -> [Mode] -> Procedure -> Text
 cgProcedure pragmas ms procedure =
   let r@(Rule name vars body) = modedRule procedure
-      nameMode = T.pack name <> T.pack (show ms)
+      nameMode = T.pack name <> showModeString ms
       code = cgGoal [] r
       rets =
         T.intercalate
@@ -250,11 +247,7 @@ compile (Prog pragmas rules) =
       , head d == "data"
       ] ++ do
         (name, c) <-
-          predicates $
-          foldl
-            (compileRule (Map.map (map ModeString) modesPrelude) pragmas)
-            mempty
-            rules
+          predicates $ foldl (compileRule modesPrelude pragmas) mempty rules
         let arity = length . ruleArgs $ unmodedRule c
             doc =
               T.unlines $
@@ -275,7 +268,7 @@ compile (Prog pragmas rules) =
                 ms <- Map.keys (procedures c)
                 pure $
                   "(procedure @" <>
-                  callMode ms <> " " <> T.pack name <> T.pack (show ms) <> ")"
+                  callMode ms <> " " <> T.pack name <> showModeString ms <> ")"
             pragmaType =
               listToMaybe
                 [ (T.pack <$> ctx, T.pack <$> params)

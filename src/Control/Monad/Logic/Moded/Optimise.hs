@@ -12,7 +12,7 @@ import Control.Monad.Logic.Moded.AST
   , Rule(..)
   , Var(..)
   )
-import Control.Monad.Logic.Moded.Mode (ModeString)
+import Control.Monad.Logic.Moded.Mode (Mode)
 import Control.Monad.Logic.Moded.Path (Path, nonlocals)
 import Control.Monad.State (MonadState(..), State)
 import Data.Foldable (toList)
@@ -44,7 +44,7 @@ simp :: Rule u Var -> Rule u Var
 simp r = r {ruleBody = simplify (ruleBody r)}
 
 inlinePreds ::
-     Map Name [ModeString]
+     Map Name [[Mode]]
   -> [(Name, Macro)]
   -> Rule Var Var
   -> State Int (Rule Var Var)

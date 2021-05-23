@@ -3,7 +3,6 @@
 module Control.Monad.Logic.Moded.Constraints
   ( Constraints
   , Mode(..)
-  , ModeString(..)
   , Solution
   , constraints
   , inferModes
@@ -19,7 +18,7 @@ import Control.Monad.Logic.Moded.AST
   , Var(..)
   , subgoals
   )
-import Control.Monad.Logic.Moded.Mode (Mode(..), ModeString(..))
+import Control.Monad.Logic.Moded.Mode (Mode(..))
 import Control.Monad.Logic.Moded.Path
   ( Path
   , extendPath
@@ -49,7 +48,7 @@ data CAtom
   | TseitinVar Int
   deriving (Eq, Ord)
 
-type Modes = Map Name [ModeString]
+type Modes = Map Name [[Mode]]
 
 type Solution = Map (Var, Path) Mode
 
@@ -170,8 +169,8 @@ cAtom m p r =
     Pred (V name) vars ->
       Sat.Neg (term p (V name)) `Set.insert` cPred m p r name vars
 
-cModeString :: Path -> [Var] -> ModeString -> [Constraint]
-cModeString p vars (ModeString modes) = do
+cModeString :: Path -> [Var] -> [Mode] -> [Constraint]
+cModeString p vars modes = do
   (v, mode) <- zip vars modes
   let t = term p v
   case mode of
@@ -258,13 +257,13 @@ convertSolution soln =
           where
             t = Sat.Var $ ProduceArg name i
 
-extractModeString :: Rule Var Var -> Solution -> ModeString
-extractModeString rule soln = ModeString $ f <$> ruleArgs rule
+extractModeString :: Rule Var Var -> Solution -> [Mode]
+extractModeString rule soln = f <$> ruleArgs rule
   where
     f (V "_") = Out
     f v = fromMaybe undefined $ Map.lookup (v, []) soln
 
-inferModes :: Modes -> Rule Var Var -> [ModeString]
+inferModes :: Modes -> Rule Var Var -> [[Mode]]
 inferModes m rule = go []
   where
     go mss =
@@ -277,7 +276,7 @@ inferModes m rule = go []
             Sat.Solutions (soln:_) ->
               go (extractModeString rule (convertSolution soln) : mss)
 
-solveConstraintsMode :: Modes -> Rule Var Var -> ModeString -> [Solution]
+solveConstraintsMode :: Modes -> Rule Var Var -> [Mode] -> [Solution]
 solveConstraintsMode m rule ms = convertSolution <$> solutions
   where
     Sat.Solutions solutions =
