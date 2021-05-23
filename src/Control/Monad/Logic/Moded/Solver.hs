@@ -37,8 +37,6 @@ data Expr v
   | Disj (Expr v) (Expr v)
     -- | Logical biconditional
   | Iff (Expr v) (Expr v)
-    -- | Material implication
-  | Implies (Expr v) (Expr v)
     -- | Constant true
   | Top
     -- | Constant false
@@ -54,7 +52,6 @@ instance Show v => Show (Expr v) where
       Neg expr -> "~" ++ show expr
       Conj e1 e2 -> "(" ++ show e1 ++ " & " ++ show e2 ++ ")"
       Disj e1 e2 -> "(" ++ show e1 ++ " | " ++ show e2 ++ ")"
-      Implies e1 e2 -> "(" ++ show e1 ++ " -> " ++ show e2 ++ ")"
       Iff e1 e2 -> "(" ++ show e1 ++ " <-> " ++ show e2 ++ ")"
       Top -> "1"
       Bottom -> "0"
@@ -67,7 +64,6 @@ transformUp f =
     Conj e1 e2 -> f $ Conj (transformUp f e1) (transformUp f e2)
     Disj e1 e2 -> f $ Disj (transformUp f e1) (transformUp f e2)
     Iff e1 e2 -> f $ Iff (transformUp f e1) (transformUp f e2)
-    Implies e1 e2 -> f $ Implies (transformUp f e1) (transformUp f e2)
     e -> f e
 
 -- | Propagate constants (to simplify expression).
@@ -95,10 +91,6 @@ propConst1 =
     Iff Bottom e2 -> Neg e2
     Iff e1 Top -> e1
     Iff e1 Bottom -> Neg e1
-    Implies Top e2 -> e2
-    Implies Bottom _ -> Top
-    Implies _ Top -> Top
-    Implies e1 Bottom -> Neg e1
     e -> e
 
 -- | Substitute expressions for variables. This doesn't resolve any potential variable name conflicts.
@@ -231,18 +223,6 @@ tseitin (Neg (Disj x y)) = do
   b <- tseitin y
   c <- var
   tell [or [a, b, c], or [neg a, neg c], or [neg b, neg c]]
-  return c
-tseitin (Implies x y) = do
-  a <- tseitin x
-  b <- tseitin y
-  c <- var
-  tell [or [neg a, b, neg c], or [a, c], or [neg b, c]]
-  return c
-tseitin (Neg (Implies x y)) = do
-  a <- tseitin x
-  b <- tseitin y
-  c <- var
-  tell [or [a, neg c], or [neg b, neg c], or [neg a, b, c]]
   return c
 tseitin (Iff x y) = do
   a <- tseitin x
