@@ -41,8 +41,7 @@ packages:
 #
 extra-deps:
 - picosat-0.1.6
-- git: https://github.com/davidar/streamt.git
-  commit: f9d1767645160e593d1003b2bec8feae98f1ac11
+- streamt-0.5.0.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
