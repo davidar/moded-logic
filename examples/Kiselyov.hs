@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+{-# OPTIONS_GHC -F -pgmF=moded-logic-pp #-}
 module Kiselyov where
 
 nat 0

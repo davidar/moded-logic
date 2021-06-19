@@ -2,7 +2,7 @@
 module Sort where
 
 import qualified Control.Monad.Logic as Logic
-import Language.Horn.Prelude
+import Control.Monad.Logic.Moded.Prelude
 
 {- partition/4
 partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h:t, if ((<=) h p) then (partition t p lo1 hi, lo = h0:lo1, h0 = h) else (partition t p lo hi1, hi = h1:hi1, h1 = h), arg2 = p, arg3 = lo, arg4 = hi))

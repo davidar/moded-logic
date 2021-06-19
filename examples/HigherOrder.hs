@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -F -pgmF=horn-preprocessor #-}
+{-# OPTIONS_GHC -F -pgmF=moded-logic-pp #-}
 module HigherOrder where
 
 even n :- mod n 2 0

@@ -22,7 +22,7 @@ import Control.Monad.Logic.Moded.Procedure (call)
 import qualified Control.Monad.Stream as Stream
 import Control.Monad.Stream (observe, observeMany, observeManyT, observeAll, observeAllT)
 import qualified Data.List as List
-import qualified Language.Horn.Prelude as HornPrelude
+import qualified Control.Monad.Logic.Moded.Prelude as MLPrelude
 import Test.Hspec (describe, hspec, it)
 import Test.Hspec.Expectations.Pretty (shouldBe, shouldReturn)
 
@@ -115,8 +115,8 @@ main = do
         observeAll (call @[In, In] Append.id 7 8) `shouldBe` guard False
     describe "HigherOrder" $ do
       it "map" $ do
-        observeAll (call @'[PredMode '[In, Out], In, Out] HigherOrder.map HornPrelude.succ [0 .. 9]) `shouldBe` [[1 .. 10]]
-        observeAll (call @'[PredMode '[Out, In], Out, In] HigherOrder.map HornPrelude.succ [1 .. 10]) `shouldBe` [[0 .. 9]]
+        observeAll (call @'[PredMode '[In, Out], In, Out] HigherOrder.map MLPrelude.succ [0 .. 9]) `shouldBe` [[1 .. 10]]
+        observeAll (call @'[PredMode '[Out, In], Out, In] HigherOrder.map MLPrelude.succ [1 .. 10]) `shouldBe` [[0 .. 9]]
         observeAll (call @'[In, Out] HigherOrder.succs [0 .. 9]) `shouldBe` [[1 .. 10]]
         observeAll (call @'[Out, In] HigherOrder.succs [1 .. 10]) `shouldBe` [[0 .. 9]]
       it "filter" $ do

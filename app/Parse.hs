@@ -27,7 +27,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Void (Void)
-import Language.Horn.Prelude (modesPrelude)
+import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 
 import Text.Megaparsec
 import Text.Megaparsec.Char

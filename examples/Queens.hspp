@@ -2,7 +2,7 @@
 module Queens where
 
 import qualified Control.Monad.Logic as Logic
-import Language.Horn.Prelude
+import Control.Monad.Logic.Moded.Prelude
 
 {- qdelete/3
 qdelete arg1 arg2 arg3 :- ((arg2 = h:t, arg1 = h, arg3 = t); (arg2 = h0:t, h0 = h, arg3 = h1:r, h1 = h, qdelete x t r, arg1 = x))

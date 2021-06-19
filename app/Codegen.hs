@@ -29,7 +29,7 @@ import qualified Data.Set as Set
 import Data.Set (Set)
 import qualified Data.Text as T
 import Data.Text (Text)
-import Language.Horn.Prelude (modesPrelude)
+import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 import NeatInterpolation (text)
 
 nonlocals' :: Path -> Rule ModedVar ModedVar -> Set Var
@@ -234,7 +234,7 @@ compile (Prog pragmas rules) =
     module $moduleName where
 
     import qualified Control.Monad.Logic as Logic
-    import Language.Horn.Prelude
+    import Control.Monad.Logic.Moded.Prelude
 
     $code
   |]

@@ -2,7 +2,7 @@
 module Append where
 
 import qualified Control.Monad.Logic as Logic
-import Language.Horn.Prelude
+import Control.Monad.Logic.Moded.Prelude
 
 {- append/3
 append arg1 arg2 arg3 :- ((arg1 = [], arg2 = b, arg3 = b); (arg1 = h:t, arg3 = h0:tb, h0 = h, append t b tb, arg2 = b))

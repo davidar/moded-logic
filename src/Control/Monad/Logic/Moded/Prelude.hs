@@ -2,7 +2,7 @@
   FlexibleContexts, TypeApplications, BlockArguments #-}
 {-# OPTIONS_GHC -Wwarn -Wno-unticked-promoted-constructors #-}
 
-module Language.Horn.Prelude
+module Control.Monad.Logic.Moded.Prelude
   ( choose
   , modesPrelude
   , succ

@@ -47,7 +47,7 @@ library:
   - -Werror
 
 executables:
-  horn-preprocessor:
+  moded-logic-pp:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -74,4 +74,4 @@ tests:
     dependencies:
     - moded-logic
     build-tools:
-    - horn-preprocessor
+    - moded-logic-pp

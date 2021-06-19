@@ -2,7 +2,7 @@
 module Crypt where
 
 import qualified Control.Monad.Logic as Logic
-import Language.Horn.Prelude
+import Control.Monad.Logic.Moded.Prelude
 
 {- sumDigits/4
 sumDigits arg1 arg2 arg3 arg4 :- ((arg1 = [], arg2 = [], if (carry = 0) then (cs = []) else (cs = carry:[]), arg3 = carry, arg4 = cs); (arg1 = [], arg2 = b:bs, arg4 = c:cs, if (carry = 0) then (c = b, cs = bs) else (plus b carry x, divMod x data0 carry' c, data0 = 10, sumDigits data1 bs carry' cs, data1 = []), arg3 = carry); (arg1 = a:as, arg2 = [], arg4 = c:cs, if (carry = 0) then (c = a, cs = as) else (plus a carry x, divMod x data2 carry' c, data2 = 10, sumDigits data3 as carry' cs, data3 = []), arg3 = carry); (arg1 = a0:as, a0 = a, arg2 = b0:bs, b0 = b, arg4 = c:cs, sum data5 x, data4 = [], data5 = a1:b1:carry0:data4, a1 = a, b1 = b, carry0 = carry, divMod x data6 carry' c, data6 = 10, sumDigits as bs carry' cs, arg3 = carry))
