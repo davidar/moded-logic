@@ -47,24 +47,33 @@ library:
   - -Werror
 
 executables:
-  moded-logic-exe:
+  moded-logic-pp:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Werror
     dependencies:
     - moded-logic
+    - directory
 
 tests:
   moded-logic-test:
     main:                Spec.hs
-    source-dirs:         test
+    source-dirs:
+    - examples
+    - test
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     - -Wall
+    - -Wno-type-defaults
+    - -Wno-unticked-promoted-constructors
     dependencies:
     - moded-logic
+    build-tools:
+    - moded-logic-pp

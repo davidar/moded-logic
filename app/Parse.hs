@@ -1,11 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-do-bind #-}
 
-module Control.Monad.Logic.Moded.Parse
+module Parse
   ( parseProg
   , rule
   ) where
 
+import Preprocess (Val(..), combineDefs, distinctVars, superhomogeneous)
+
+import Control.Monad (forM)
 import Control.Monad.Logic.Moded.AST
   ( Atom(..)
   , Func(..)
@@ -15,23 +18,16 @@ import Control.Monad.Logic.Moded.AST
   , Rule(..)
   , Var(..)
   )
-import Control.Monad.Logic.Moded.Preprocess
-  ( Val(..)
-  , combineDefs
-  , distinctVars
-  , simp
-  , superhomogeneous
-  )
-
-import Control.Monad (forM, void)
-import Control.Monad.Logic.Moded.Prelude (modesPrelude)
+import Control.Monad.Logic.Moded.Optimise (simp)
 import Control.Monad.State (MonadState(..), StateT, evalStateT)
-import Data.Char (isSpace, isUpper)
+import Data.Char (isSpace, isUpper, toLower)
+import Data.Functor (($>), void)
 import Data.List (groupBy)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Void (Void)
+import Control.Monad.Logic.Moded.Prelude (modesPrelude)
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -49,7 +45,10 @@ lineComment :: Parser ()
 lineComment = L.skipLineComment "--"
 
 blockComment :: Parser ()
-blockComment = L.skipBlockComment "{-" "-}"
+blockComment = do
+  try $ string "{-" *> notFollowedBy (string "#")
+  manyTill anySingle $ string "-}"
+  pure ()
 
 spaceConsumer :: Parser ()
 spaceConsumer = L.space (void $ oneOf [' ', '\t']) lineComment blockComment
@@ -76,7 +75,7 @@ rword :: Text -> Parser ()
 rword w = string w *> notFollowedBy alphaNumChar *> spaceConsumer
 
 rws :: [String] -- list of reserved words
-rws = ["if", "then", "else", "not"]
+rws = ["if", "then", "else", "not", "module", "data"]
 
 identifier :: Parser String
 identifier = (lexeme . try) (p >>= check)
@@ -271,19 +270,48 @@ rule = do
   body <- (symbol ":-" >> conj) <|> pure (Conj [])
   pure $ Rule name vars body
 
+between' :: String -> String -> Parser String -> Parser String
+between' open close p = do
+  symbol $ T.pack open
+  r <- p
+  symbol $ T.pack close
+  pure $ open ++ r ++ close
+
+typeP :: Parser String
+typeP =
+  (unwords <$> some identifier) <|> between' "(" ")" typeP <|>
+  between' "[" "]" typeP
+
 pragma :: Parser Pragma
-pragma = do
-  symbol "#"
-  ws <-
-    some (identifier <|> operator <|> lexeme (some (oneOf ("()[]," :: [Char]))))
-  pure $ Pragma ws
+pragma =
+  (do prefix <- rword "data" $> ["data"] <|> rword "module" $> ["module"]
+      ws <- some content
+      pure . Pragma $ prefix ++ ws) <|>
+  (do symbol "{-#"
+      (w:ws) <- someTill content $ symbol "#-}"
+      pure . Pragma $ map toLower w : ws) <|>
+  try
+    (do f <- identifier
+        symbol "::"
+        ctx <-
+          try
+            (symbol "(" *> (typeP `sepBy` symbol ",") <* symbol ")" <*
+             symbol "=>") <|>
+          pure []
+        symbol "Rel"
+        symbol "("
+        params <- typeP `sepBy` symbol ","
+        symbol ")"
+        pure $ TypeSig f ctx params)
+  where
+    content =
+      identifier <|> operator <|> lexeme (some (oneOf ("()[]," :: [Char])))
 
 data ParseResult
   = PRule (Rule Val Val)
   | PPragma Pragma
   | PDef String [Val] Val (Goal Val)
   | PNil
-  deriving (Show)
 
 definition :: Parser ParseResult
 definition = do
@@ -296,7 +324,7 @@ definition = do
 
 parseLine :: Parser ParseResult
 parseLine =
-  try definition <|> (PRule <$> rule) <|> (PPragma <$> pragma) <|> pure PNil
+  (PPragma <$> pragma) <|> try definition <|> try (PRule <$> rule) <|> pure PNil
 
 parseProg ::
      String -> Text -> Either (ParseErrorBundle Text Void) (Prog Var Var)
@@ -329,7 +357,7 @@ parseProg fn lp = do
         rs ++ [Rule name (vars ++ vs) (Conj [g, ctxt])]
       extractRule rs PPragma {} = rs
       extractRule rs PNil {} = rs
-      extractRule _ p = error (show p)
+      extractRule _ _ = undefined
       p' = foldl extractRule [] prs
   pure . Prog pragmas $
     simp . distinctVars . superhomogeneous (arities p') <$> combineDefs p'

@@ -1,11 +1,11 @@
-{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
+{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications, TypeOperators #-}
 module Sort where
 
 import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.Prelude
 
 {- partition/4
-partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h:t, if ((<=) h p) then (partition t p lo1 hi, lo = h0:lo1, h0 = h) else (partition t p lo hi1, hi = h1:hi1, h1 = h), arg2 = p, arg3 = lo, arg4 = hi)).
+partition arg1 arg2 arg3 arg4 :- ((arg1 = [], arg3 = [], arg4 = []); (arg1 = h:t, if ((<=) h p) then (partition t p lo1 hi, lo = h0:lo1, h0 = h) else (partition t p lo hi1, hi = h1:hi1, h1 = h), arg2 = p, arg3 = lo, arg4 = hi))
 constraints:
 ~(<=)[1,1,0]
 ~arg2[]
@@ -92,7 +92,7 @@ constraints:
 1
 -}
 
-partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (procedure @'[ 'In, 'In, 'In, 'Out ] partitionIIIO) :& (procedure @'[ 'In, 'In, 'Out, 'In ] partitionIIOI) :& (procedure @'[ 'In, 'In, 'Out, 'Out ] partitionIIOO) :& RNil
+partition = rget $ (procedure @'[ In,In,In,In] partitionIIII) :& (procedure @'[ In,In,In,Out] partitionIIIO) :& (procedure @'[ In,In,Out,In] partitionIIOI) :& (procedure @'[ In,In,Out,Out] partitionIIOO) :& RNil
   where
     partitionIIII = \arg1 arg2 arg3 arg4 -> Logic.once $ do
       -- solution: h[1,0] h0[1,1,1,1] h1[1,1,2,1] hi[1,4] hi1[1,1,2,1] lo[1,3] lo1[1,1,1,1] p[1,2] t[1,0]
@@ -219,7 +219,7 @@ partition = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] partitionIIII) :& (proced
       pure (arg3,arg4)
     
 {- qsort/3
-qsort arg1 arg2 arg3 :- ((arg1 = [], arg2 = r, arg3 = r); (arg1 = x:xs, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x0:r1, x0 = x, arg2 = r, arg3 = r0)).
+qsort arg1 arg2 arg3 :- ((arg1 = [], arg2 = r, arg3 = r); (arg1 = x:xs, partition xs x ys zs, qsort zs r1 r0, qsort ys r data0, data0 = x0:r1, x0 = x, arg2 = r, arg3 = r0))
 constraints:
 ~partition[1]
 ~qsort[1]
@@ -276,7 +276,7 @@ constraints:
 1
 -}
 
-qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 'Out, 'In ] qsortIOI) :& RNil
+qsort = rget $ (procedure @'[ In,In,Out] qsortIIO) :& (procedure @'[ In,Out,In] qsortIOI) :& RNil
   where
     qsortIIO = \arg1 arg2 -> do
       -- solution: arg3[] arg3[0] arg3[0,2] arg3[1] arg3[1,7] data0[1,3] r[0,1] r[1,6] r0[1,2] r1[1,4] x[1,0] x0[1,4] xs[1,0] ys[1,1] zs[1,1]
@@ -289,7 +289,7 @@ qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 
        ) <|> (do
         (x:xs) <- pure arg1
         r <- pure arg2
-        (ys,zs) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] partition xs x
+        (ys,zs) <- runProcedure @'[ In,In,Out,Out] partition xs x
         (OneTuple (data0)) <- qsortIIO ys r
         (x0:r1) <- pure data0
         guard $ x0 == x
@@ -311,7 +311,7 @@ qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 
         (x:xs) <- pure arg1
         r0 <- pure arg3
         x0 <- pure x
-        (ys,zs) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] partition xs x
+        (ys,zs) <- runProcedure @'[ In,In,Out,Out] partition xs x
         (OneTuple (r1)) <- qsortIOI zs r0
         data0 <- pure (x0:r1)
         (OneTuple (r)) <- qsortIOI ys data0
@@ -321,7 +321,7 @@ qsort = rget $ (procedure @'[ 'In, 'In, 'Out ] qsortIIO) :& (procedure @'[ 'In, 
       pure (OneTuple (arg2))
     
 {- sort/2
-sort list sorted :- ((qsort list sorted data0, data0 = [])).
+sort list sorted :- ((qsort list sorted data0, data0 = []))
 constraints:
 ~qsort[0]
 ~(data0[0,0] & data0[0,1])
@@ -334,13 +334,13 @@ constraints:
 1
 -}
 
-sort = rget $ (procedure @'[ 'In, 'In ] sortII) :& (procedure @'[ 'In, 'Out ] sortIO) :& RNil
+sort = rget $ (procedure @'[ In,In] sortII) :& (procedure @'[ In,Out] sortIO) :& RNil
   where
     sortII = \list sorted -> Logic.once $ do
       -- solution: data0[0,0]
       -- cost: 2
       () <- (do
-        (OneTuple (data0)) <- runProcedure @'[ 'In, 'In, 'Out ] qsort list sorted
+        (OneTuple (data0)) <- runProcedure @'[ In,In,Out] qsort list sorted
         guard $ data0 == []
         pure ()
        )
@@ -351,7 +351,7 @@ sort = rget $ (procedure @'[ 'In, 'In ] sortII) :& (procedure @'[ 'In, 'Out ] so
       -- cost: 2
       (sorted) <- (do
         data0 <- pure []
-        (OneTuple (sorted)) <- runProcedure @'[ 'In, 'Out, 'In ] qsort list data0
+        (OneTuple (sorted)) <- runProcedure @'[ In,Out,In] qsort list data0
         pure (sorted)
        )
       pure (OneTuple (sorted))

@@ -1,11 +1,11 @@
-{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications #-}
+{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction, TypeApplications, TypeOperators #-}
 module Crypt where
 
 import qualified Control.Monad.Logic as Logic
 import Control.Monad.Logic.Moded.Prelude
 
 {- sumDigits/4
-sumDigits arg1 arg2 arg3 arg4 :- ((arg1 = [], arg2 = [], if (carry = 0) then (cs = []) else (cs = carry:[]), arg3 = carry, arg4 = cs); (arg1 = [], arg2 = b:bs, arg4 = c:cs, if (carry = 0) then (c = b, cs = bs) else (plus b carry x, divMod x data0 carry' c, data0 = 10, sumDigits data1 bs carry' cs, data1 = []), arg3 = carry); (arg1 = a:as, arg2 = [], arg4 = c:cs, if (carry = 0) then (c = a, cs = as) else (plus a carry x, divMod x data2 carry' c, data2 = 10, sumDigits data3 as carry' cs, data3 = []), arg3 = carry); (arg1 = a0:as, a0 = a, arg2 = b0:bs, b0 = b, arg4 = c:cs, sum data5 x, data4 = [], data5 = a1:b1:carry0:data4, a1 = a, b1 = b, carry0 = carry, divMod x data6 carry' c, data6 = 10, sumDigits as bs carry' cs, arg3 = carry)).
+sumDigits arg1 arg2 arg3 arg4 :- ((arg1 = [], arg2 = [], if (carry = 0) then (cs = []) else (cs = carry:[]), arg3 = carry, arg4 = cs); (arg1 = [], arg2 = b:bs, arg4 = c:cs, if (carry = 0) then (c = b, cs = bs) else (plus b carry x, divMod x data0 carry' c, data0 = 10, sumDigits data1 bs carry' cs, data1 = []), arg3 = carry); (arg1 = a:as, arg2 = [], arg4 = c:cs, if (carry = 0) then (c = a, cs = as) else (plus a carry x, divMod x data2 carry' c, data2 = 10, sumDigits data3 as carry' cs, data3 = []), arg3 = carry); (arg1 = a0:as, a0 = a, arg2 = b0:bs, b0 = b, arg4 = c:cs, sum data5 x, data4 = [], data5 = a1:b1:carry0:data4, a1 = a, b1 = b, carry0 = carry, divMod x data6 carry' c, data6 = 10, sumDigits as bs carry' cs, arg3 = carry))
 constraints:
 ~carry[0,2,0,0]
 ~carry[0,2,2]
@@ -236,7 +236,7 @@ constraints:
 1
 -}
 
-sumDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] sumDigitsIIII) :& (procedure @'[ 'In, 'In, 'In, 'Out ] sumDigitsIIIO) :& RNil
+sumDigits = rget $ (procedure @'[ In,In,In,In] sumDigitsIIII) :& (procedure @'[ In,In,In,Out] sumDigitsIIIO) :& RNil
   where
     sumDigitsIIII = \arg1 arg2 arg3 arg4 -> Logic.once $ do
       -- solution: a[2,0] a[3,1] a0[3,0] a1[3,8] as[2,0] as[3,0] b[1,1] b[3,3] b0[3,2] b1[3,9] bs[1,1] bs[3,2] c[1,2] c[2,2] c[3,4] carry[0,3] carry[1,4] carry[2,4] carry[3,14] carry'[1,3,2,1] carry'[2,3,2,1] carry'[3,11] carry0[3,10] cs[0,4] cs[1,2] cs[2,2] cs[3,4] data0[1,3,2,2] data1[1,3,2,4] data2[2,3,2,2] data3[2,3,2,4] data4[3,6] data5[3,7] data6[3,12] x[1,3,2,0] x[2,3,2,0] x[3,5]
@@ -272,8 +272,8 @@ sumDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] sumDigitsIIII) :& (proced
          )) ((do
           data0 <- pure 10
           data1 <- pure []
-          (OneTuple (x)) <- runProcedure @'[ 'In, 'In, 'Out ] plus b carry
-          (OneTuple (carry')) <- runProcedure @'[ 'In, 'In, 'Out, 'In ] divMod x data0 c
+          (OneTuple (x)) <- runProcedure @'[ In,In,Out] plus b carry
+          (OneTuple (carry')) <- runProcedure @'[ In,In,Out,In] divMod x data0 c
           () <- sumDigitsIIII data1 bs carry' cs
           pure ()
          ))
@@ -293,8 +293,8 @@ sumDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] sumDigitsIIII) :& (proced
          )) ((do
           data2 <- pure 10
           data3 <- pure []
-          (OneTuple (x)) <- runProcedure @'[ 'In, 'In, 'Out ] plus a carry
-          (OneTuple (carry')) <- runProcedure @'[ 'In, 'In, 'Out, 'In ] divMod x data2 c
+          (OneTuple (x)) <- runProcedure @'[ In,In,Out] plus a carry
+          (OneTuple (carry')) <- runProcedure @'[ In,In,Out,In] divMod x data2 c
           () <- sumDigitsIIII data3 as carry' cs
           pure ()
          ))
@@ -312,8 +312,8 @@ sumDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] sumDigitsIIII) :& (proced
         data4 <- pure []
         data5 <- pure (a1:b1:carry0:data4)
         data6 <- pure 10
-        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] sum data5
-        (OneTuple (carry')) <- runProcedure @'[ 'In, 'In, 'Out, 'In ] divMod x data6 c
+        (OneTuple (x)) <- runProcedure @'[ In,Out] sum data5
+        (OneTuple (carry')) <- runProcedure @'[ In,In,Out,In] divMod x data6 c
         () <- sumDigitsIIII as bs carry' cs
         pure ()
        )
@@ -352,8 +352,8 @@ sumDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] sumDigitsIIII) :& (proced
          )) ((do
           data0 <- pure 10
           data1 <- pure []
-          (OneTuple (x)) <- runProcedure @'[ 'In, 'In, 'Out ] plus b carry
-          (carry',c) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] divMod x data0
+          (OneTuple (x)) <- runProcedure @'[ In,In,Out] plus b carry
+          (carry',c) <- runProcedure @'[ In,In,Out,Out] divMod x data0
           (OneTuple (cs)) <- sumDigitsIIIO data1 bs carry'
           pure (c,cs)
          ))
@@ -373,8 +373,8 @@ sumDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] sumDigitsIIII) :& (proced
          )) ((do
           data2 <- pure 10
           data3 <- pure []
-          (OneTuple (x)) <- runProcedure @'[ 'In, 'In, 'Out ] plus a carry
-          (carry',c) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] divMod x data2
+          (OneTuple (x)) <- runProcedure @'[ In,In,Out] plus a carry
+          (carry',c) <- runProcedure @'[ In,In,Out,Out] divMod x data2
           (OneTuple (cs)) <- sumDigitsIIIO data3 as carry'
           pure (c,cs)
          ))
@@ -392,8 +392,8 @@ sumDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] sumDigitsIIII) :& (proced
         data4 <- pure []
         data5 <- pure (a1:b1:carry0:data4)
         data6 <- pure 10
-        (OneTuple (x)) <- runProcedure @'[ 'In, 'Out ] sum data5
-        (carry',c) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] divMod x data6
+        (OneTuple (x)) <- runProcedure @'[ In,Out] sum data5
+        (carry',c) <- runProcedure @'[ In,In,Out,Out] divMod x data6
         (OneTuple (cs)) <- sumDigitsIIIO as bs carry'
         arg4 <- pure (c:cs)
         pure (arg4)
@@ -401,7 +401,7 @@ sumDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] sumDigitsIIII) :& (proced
       pure (OneTuple (arg4))
     
 {- mulDigits/4
-mulDigits arg1 arg2 arg3 arg4 :- ((arg1 = a:as, arg4 = b:bs, timesInt a d ad, plus ad carry x, divMod x data0 carry' b, data0 = 10, mulDigits as d carry' bs, arg2 = d, arg3 = carry); (arg1 = [], arg4 = c:c':[], divMod carry data1 c' c, data1 = 10, arg3 = carry)).
+mulDigits arg1 arg2 arg3 arg4 :- ((arg1 = a:as, arg4 = b:bs, timesInt a d ad, plus ad carry x, divMod x data0 carry' b, data0 = 10, mulDigits as d carry' bs, arg2 = d, arg3 = carry); (arg1 = [], arg4 = c:c':[], divMod carry data1 c' c, data1 = 10, arg3 = carry))
 constraints:
 ~arg2[]
 ~divMod[0]
@@ -473,7 +473,7 @@ constraints:
 1
 -}
 
-mulDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] mulDigitsIIII) :& (procedure @'[ 'In, 'In, 'In, 'Out ] mulDigitsIIIO) :& RNil
+mulDigits = rget $ (procedure @'[ In,In,In,In] mulDigitsIIII) :& (procedure @'[ In,In,In,Out] mulDigitsIIIO) :& RNil
   where
     mulDigitsIIII = \arg1 arg2 arg3 arg4 -> Logic.once $ do
       -- solution: a[0,0] ad[0,2] as[0,0] b[0,1] bs[0,1] c[1,1] c'[1,1] carry[0,8] carry[1,4] carry'[0,4] d[0,7] data0[0,5] data1[1,3] x[0,3]
@@ -484,9 +484,9 @@ mulDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] mulDigitsIIII) :& (proced
         carry <- pure arg3
         (b:bs) <- pure arg4
         data0 <- pure 10
-        (OneTuple (ad)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt a d
-        (OneTuple (x)) <- runProcedure @'[ 'In, 'In, 'Out ] plus ad carry
-        (OneTuple (carry')) <- runProcedure @'[ 'In, 'In, 'Out, 'In ] divMod x data0 b
+        (OneTuple (ad)) <- runProcedure @'[ In,In,Out] timesInt a d
+        (OneTuple (x)) <- runProcedure @'[ In,In,Out] plus ad carry
+        (OneTuple (carry')) <- runProcedure @'[ In,In,Out,In] divMod x data0 b
         () <- mulDigitsIIII as d carry' bs
         pure ()
        ) <|> (do
@@ -494,7 +494,7 @@ mulDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] mulDigitsIIII) :& (proced
         carry <- pure arg3
         (c:c':[]) <- pure arg4
         data1 <- pure 10
-        () <- runProcedure @'[ 'In, 'In, 'In, 'In ] divMod carry data1 c' c
+        () <- runProcedure @'[ In,In,In,In] divMod carry data1 c' c
         pure ()
        )
       pure ()
@@ -507,9 +507,9 @@ mulDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] mulDigitsIIII) :& (proced
         d <- pure arg2
         carry <- pure arg3
         data0 <- pure 10
-        (OneTuple (ad)) <- runProcedure @'[ 'In, 'In, 'Out ] timesInt a d
-        (OneTuple (x)) <- runProcedure @'[ 'In, 'In, 'Out ] plus ad carry
-        (carry',b) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] divMod x data0
+        (OneTuple (ad)) <- runProcedure @'[ In,In,Out] timesInt a d
+        (OneTuple (x)) <- runProcedure @'[ In,In,Out] plus ad carry
+        (carry',b) <- runProcedure @'[ In,In,Out,Out] divMod x data0
         (OneTuple (bs)) <- mulDigitsIIIO as d carry'
         arg4 <- pure (b:bs)
         pure (arg4)
@@ -517,14 +517,14 @@ mulDigits = rget $ (procedure @'[ 'In, 'In, 'In, 'In ] mulDigitsIIII) :& (proced
         guard $ arg1 == []
         carry <- pure arg3
         data1 <- pure 10
-        (c',c) <- runProcedure @'[ 'In, 'In, 'Out, 'Out ] divMod carry data1
+        (c',c) <- runProcedure @'[ In,In,Out,Out] divMod carry data1
         arg4 <- pure (c:c':[])
         pure (arg4)
        )
       pure (OneTuple (arg4))
     
 {- zeros/1
-zeros arg1 :- ((arg1 = []); (arg1 = z:zs, z = 0, zeros zs)).
+zeros arg1 :- ((arg1 = []); (arg1 = z:zs, z = 0, zeros zs))
 constraints:
 ~zeros[1]
 ~(arg1[1,0] & z[1,0])
@@ -541,7 +541,7 @@ constraints:
 1
 -}
 
-zeros = rget $ (procedure @'[ 'In ] zerosI) :& (procedure @'[ 'Out ] zerosO) :& RNil
+zeros = rget $ (procedure @'[ In] zerosI) :& (procedure @'[ Out] zerosO) :& RNil
   where
     zerosI = \arg1 -> Logic.once $ do
       -- solution: z[1,0] zs[1,0]
@@ -572,7 +572,7 @@ zeros = rget $ (procedure @'[ 'In ] zerosI) :& (procedure @'[ 'Out ] zerosO) :& 
       pure (OneTuple (arg1))
     
 {- oddDigit/1
-oddDigit arg1 :- ((arg1 = 1); (arg1 = 3); (arg1 = 5); (arg1 = 7); (arg1 = 9)).
+oddDigit arg1 :- ((arg1 = 1); (arg1 = 3); (arg1 = 5); (arg1 = 7); (arg1 = 9))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
@@ -586,7 +586,7 @@ constraints:
 (arg1[4] <-> arg1[4,0])
 -}
 
-oddDigit = rget $ (procedure @'[ 'In ] oddDigitI) :& (procedure @'[ 'Out ] oddDigitO) :& RNil
+oddDigit = rget $ (procedure @'[ In] oddDigitI) :& (procedure @'[ Out] oddDigitO) :& RNil
   where
     oddDigitI = \arg1 -> Logic.once $ do
       -- solution: 
@@ -631,7 +631,7 @@ oddDigit = rget $ (procedure @'[ 'In ] oddDigitI) :& (procedure @'[ 'Out ] oddDi
       pure (OneTuple (arg1))
     
 {- evenDigit/1
-evenDigit arg1 :- ((arg1 = 0); (arg1 = 2); (arg1 = 4); (arg1 = 6); (arg1 = 8)).
+evenDigit arg1 :- ((arg1 = 0); (arg1 = 2); (arg1 = 4); (arg1 = 6); (arg1 = 8))
 constraints:
 (arg1[] <-> arg1[0])
 (arg1[] <-> arg1[1])
@@ -645,7 +645,7 @@ constraints:
 (arg1[4] <-> arg1[4,0])
 -}
 
-evenDigit = rget $ (procedure @'[ 'In ] evenDigitI) :& (procedure @'[ 'Out ] evenDigitO) :& RNil
+evenDigit = rget $ (procedure @'[ In] evenDigitI) :& (procedure @'[ Out] evenDigitO) :& RNil
   where
     evenDigitI = \arg1 -> Logic.once $ do
       -- solution: 
@@ -690,7 +690,7 @@ evenDigit = rget $ (procedure @'[ 'In ] evenDigitI) :& (procedure @'[ 'Out ] eve
       pure (OneTuple (arg1))
     
 {- crypt/1
-crypt arg1 :- ((arg1 = a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:[], oddDigit a, evenDigit b, evenDigit c, evenDigit d, (>) d data0, data0 = 0, evenDigit e, mulDigits data2 e data3 data4, data1 = [], data2 = c0:b0:a0:data1, c0 = c, b0 = b, a0 = a, data3 = 0, data4 = i0:h0:g0:f0:x, i0 = i, h0 = h, g0 = g, f0 = f, evenDigit f, (>) f data5, data5 = 0, oddDigit g, evenDigit h, evenDigit i, zeros x, mulDigits data7 d data8 data9, data6 = [], data7 = c1:b1:a1:data6, c1 = c, b1 = b, a1 = a, data8 = 0, data9 = l0:k0:j0:y, l0 = l, k0 = k, j0 = j, evenDigit j, (>) j data10, data10 = 0, oddDigit k, evenDigit l, zeros y, sumDigits data12 data15 data16 data17, data11 = [], data12 = i1:h1:g1:f1:data11, i1 = i, h1 = h, g1 = g, f1 = f, data13 = 0, data14 = [], data15 = data13:l1:k1:j1:data14, l1 = l, k1 = k, j1 = j, data16 = 0, data17 = p0:o0:n0:m0:z, p0 = p, o0 = o, n0 = n, m0 = m, oddDigit m, oddDigit n, evenDigit o, evenDigit p, zeros z)).
+crypt arg1 :- ((arg1 = a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:[], oddDigit a, evenDigit b, evenDigit c, evenDigit d, (>) d data0, data0 = 0, evenDigit e, mulDigits data2 e data3 data4, data1 = [], data2 = c0:b0:a0:data1, c0 = c, b0 = b, a0 = a, data3 = 0, data4 = i0:h0:g0:f0:x, i0 = i, h0 = h, g0 = g, f0 = f, evenDigit f, (>) f data5, data5 = 0, oddDigit g, evenDigit h, evenDigit i, zeros x, mulDigits data7 d data8 data9, data6 = [], data7 = c1:b1:a1:data6, c1 = c, b1 = b, a1 = a, data8 = 0, data9 = l0:k0:j0:y, l0 = l, k0 = k, j0 = j, evenDigit j, (>) j data10, data10 = 0, oddDigit k, evenDigit l, zeros y, sumDigits data12 data15 data16 data17, data11 = [], data12 = i1:h1:g1:f1:data11, i1 = i, h1 = h, g1 = g, f1 = f, data13 = 0, data14 = [], data15 = data13:l1:k1:j1:data14, l1 = l, k1 = k, j1 = j, data16 = 0, data17 = p0:o0:n0:m0:z, p0 = p, o0 = o, n0 = n, m0 = m, oddDigit m, oddDigit n, evenDigit o, evenDigit p, zeros z))
 constraints:
 ~(>)[0]
 ~evenDigit[0]
@@ -995,7 +995,7 @@ constraints:
 1
 -}
 
-crypt = rget $ (procedure @'[ 'In ] cryptI) :& (procedure @'[ 'Out ] cryptO) :& RNil
+crypt = rget $ (procedure @'[ In] cryptI) :& (procedure @'[ Out] cryptO) :& RNil
   where
     cryptI = \arg1 -> Logic.once $ do
       -- solution: a[0,0] a0[0,13] a1[0,32] b[0,0] b0[0,12] b1[0,31] c[0,0] c0[0,11] c1[0,30] d[0,0] data0[0,6] data1[0,9] data10[0,40] data11[0,45] data12[0,46] data13[0,51] data14[0,52] data15[0,53] data16[0,57] data17[0,58] data2[0,10] data3[0,14] data4[0,15] data5[0,22] data6[0,28] data7[0,29] data8[0,33] data9[0,34] e[0,0] f[0,0] f0[0,19] f1[0,50] g[0,0] g0[0,18] g1[0,49] h[0,0] h0[0,17] h1[0,48] i[0,0] i0[0,16] i1[0,47] j[0,0] j0[0,37] j1[0,56] k[0,0] k0[0,36] k1[0,55] l[0,0] l0[0,35] l1[0,54] m[0,0] m0[0,62] n[0,0] n0[0,61] o[0,0] o0[0,60] p[0,0] p0[0,59] x[0,26] y[0,43] z[0,67]
@@ -1044,31 +1044,31 @@ crypt = rget $ (procedure @'[ 'In ] cryptI) :& (procedure @'[ 'Out ] cryptO) :& 
         guard $ (>) d data0
         guard $ (>) f data5
         guard $ (>) j data10
-        () <- runProcedure @'[ 'In ] evenDigit b
-        () <- runProcedure @'[ 'In ] evenDigit c
-        () <- runProcedure @'[ 'In ] evenDigit d
-        () <- runProcedure @'[ 'In ] evenDigit e
-        () <- runProcedure @'[ 'In ] evenDigit f
-        () <- runProcedure @'[ 'In ] evenDigit h
-        () <- runProcedure @'[ 'In ] evenDigit i
-        () <- runProcedure @'[ 'In ] evenDigit j
-        () <- runProcedure @'[ 'In ] evenDigit l
-        () <- runProcedure @'[ 'In ] evenDigit o
-        () <- runProcedure @'[ 'In ] evenDigit p
-        () <- runProcedure @'[ 'In ] oddDigit a
-        () <- runProcedure @'[ 'In ] oddDigit g
-        () <- runProcedure @'[ 'In ] oddDigit k
-        () <- runProcedure @'[ 'In ] oddDigit m
-        () <- runProcedure @'[ 'In ] oddDigit n
-        (OneTuple (x)) <- runProcedure @'[ 'Out ] zeros 
+        () <- runProcedure @'[ In] evenDigit b
+        () <- runProcedure @'[ In] evenDigit c
+        () <- runProcedure @'[ In] evenDigit d
+        () <- runProcedure @'[ In] evenDigit e
+        () <- runProcedure @'[ In] evenDigit f
+        () <- runProcedure @'[ In] evenDigit h
+        () <- runProcedure @'[ In] evenDigit i
+        () <- runProcedure @'[ In] evenDigit j
+        () <- runProcedure @'[ In] evenDigit l
+        () <- runProcedure @'[ In] evenDigit o
+        () <- runProcedure @'[ In] evenDigit p
+        () <- runProcedure @'[ In] oddDigit a
+        () <- runProcedure @'[ In] oddDigit g
+        () <- runProcedure @'[ In] oddDigit k
+        () <- runProcedure @'[ In] oddDigit m
+        () <- runProcedure @'[ In] oddDigit n
+        (OneTuple (x)) <- runProcedure @'[ Out] zeros 
         data4 <- pure (i0:h0:g0:f0:x)
-        () <- runProcedure @'[ 'In, 'In, 'In, 'In ] mulDigits data2 e data3 data4
-        (OneTuple (y)) <- runProcedure @'[ 'Out ] zeros 
+        () <- runProcedure @'[ In,In,In,In] mulDigits data2 e data3 data4
+        (OneTuple (y)) <- runProcedure @'[ Out] zeros 
         data9 <- pure (l0:k0:j0:y)
-        () <- runProcedure @'[ 'In, 'In, 'In, 'In ] mulDigits data7 d data8 data9
-        (OneTuple (z)) <- runProcedure @'[ 'Out ] zeros 
+        () <- runProcedure @'[ In,In,In,In] mulDigits data7 d data8 data9
+        (OneTuple (z)) <- runProcedure @'[ Out] zeros 
         data17 <- pure (p0:o0:n0:m0:z)
-        () <- runProcedure @'[ 'In, 'In, 'In, 'In ] sumDigits data12 data15 data16 data17
+        () <- runProcedure @'[ In,In,In,In] sumDigits data12 data15 data16 data17
         pure ()
        )
       pure ()
@@ -1088,63 +1088,63 @@ crypt = rget $ (procedure @'[ 'In ] cryptI) :& (procedure @'[ 'Out ] cryptO) :& 
         data5 <- pure 0
         data6 <- pure []
         data8 <- pure 0
-        (OneTuple (b)) <- runProcedure @'[ 'Out ] evenDigit 
+        (OneTuple (b)) <- runProcedure @'[ Out] evenDigit 
         b0 <- pure b
         b1 <- pure b
-        (OneTuple (c)) <- runProcedure @'[ 'Out ] evenDigit 
+        (OneTuple (c)) <- runProcedure @'[ Out] evenDigit 
         c0 <- pure c
         c1 <- pure c
-        (OneTuple (d)) <- runProcedure @'[ 'Out ] evenDigit 
+        (OneTuple (d)) <- runProcedure @'[ Out] evenDigit 
         guard $ (>) d data0
-        (OneTuple (e)) <- runProcedure @'[ 'Out ] evenDigit 
-        (OneTuple (a)) <- runProcedure @'[ 'Out ] oddDigit 
+        (OneTuple (e)) <- runProcedure @'[ Out] evenDigit 
+        (OneTuple (a)) <- runProcedure @'[ Out] oddDigit 
         a0 <- pure a
         data2 <- pure (c0:b0:a0:data1)
-        (OneTuple (data4)) <- runProcedure @'[ 'In, 'In, 'In, 'Out ] mulDigits data2 e data3
+        (OneTuple (data4)) <- runProcedure @'[ In,In,In,Out] mulDigits data2 e data3
         (i0:h0:g0:f0:x) <- pure data4
         f <- pure f0
         f1 <- pure f
         guard $ (>) f data5
-        () <- runProcedure @'[ 'In ] evenDigit f
+        () <- runProcedure @'[ In] evenDigit f
         g <- pure g0
         g1 <- pure g
-        () <- runProcedure @'[ 'In ] oddDigit g
+        () <- runProcedure @'[ In] oddDigit g
         h <- pure h0
         h1 <- pure h
-        () <- runProcedure @'[ 'In ] evenDigit h
+        () <- runProcedure @'[ In] evenDigit h
         i <- pure i0
         i1 <- pure i
         data12 <- pure (i1:h1:g1:f1:data11)
-        () <- runProcedure @'[ 'In ] evenDigit i
-        () <- runProcedure @'[ 'In ] zeros x
+        () <- runProcedure @'[ In] evenDigit i
+        () <- runProcedure @'[ In] zeros x
         a1 <- pure a
         data7 <- pure (c1:b1:a1:data6)
-        (OneTuple (data9)) <- runProcedure @'[ 'In, 'In, 'In, 'Out ] mulDigits data7 d data8
+        (OneTuple (data9)) <- runProcedure @'[ In,In,In,Out] mulDigits data7 d data8
         (l0:k0:j0:y) <- pure data9
         j <- pure j0
         j1 <- pure j
         guard $ (>) j data10
-        () <- runProcedure @'[ 'In ] evenDigit j
+        () <- runProcedure @'[ In] evenDigit j
         k <- pure k0
         k1 <- pure k
-        () <- runProcedure @'[ 'In ] oddDigit k
+        () <- runProcedure @'[ In] oddDigit k
         l <- pure l0
         l1 <- pure l
         data15 <- pure (data13:l1:k1:j1:data14)
-        () <- runProcedure @'[ 'In ] evenDigit l
-        () <- runProcedure @'[ 'In ] zeros y
-        (OneTuple (data17)) <- runProcedure @'[ 'In, 'In, 'In, 'Out ] sumDigits data12 data15 data16
+        () <- runProcedure @'[ In] evenDigit l
+        () <- runProcedure @'[ In] zeros y
+        (OneTuple (data17)) <- runProcedure @'[ In,In,In,Out] sumDigits data12 data15 data16
         (p0:o0:n0:m0:z) <- pure data17
         m <- pure m0
-        () <- runProcedure @'[ 'In ] oddDigit m
+        () <- runProcedure @'[ In] oddDigit m
         n <- pure n0
-        () <- runProcedure @'[ 'In ] oddDigit n
+        () <- runProcedure @'[ In] oddDigit n
         o <- pure o0
-        () <- runProcedure @'[ 'In ] evenDigit o
+        () <- runProcedure @'[ In] evenDigit o
         p <- pure p0
         arg1 <- pure (a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:[])
-        () <- runProcedure @'[ 'In ] evenDigit p
-        () <- runProcedure @'[ 'In ] zeros z
+        () <- runProcedure @'[ In] evenDigit p
+        () <- runProcedure @'[ In] zeros z
         pure (arg1)
        )
       pure (OneTuple (arg1))

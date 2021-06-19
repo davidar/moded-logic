@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f86b14aa9b3b6fc7724b678d89d425390157d554ef63dd34fc61919d4949941f
+-- hash: 1378865a4d9f87dd6868d11f0a6274a9f10106e02884d8a7a85c5358f12f60a4
 
 name:           moded-logic
 version:        0.1.0.0
@@ -28,13 +28,11 @@ source-repository head
 library
   exposed-modules:
       Control.Monad.Logic.Moded.AST
-      Control.Monad.Logic.Moded.Codegen
       Control.Monad.Logic.Moded.Constraints
       Control.Monad.Logic.Moded.Mode
-      Control.Monad.Logic.Moded.Parse
+      Control.Monad.Logic.Moded.Optimise
       Control.Monad.Logic.Moded.Path
       Control.Monad.Logic.Moded.Prelude
-      Control.Monad.Logic.Moded.Preprocess
       Control.Monad.Logic.Moded.Procedure
       Control.Monad.Logic.Moded.Schedule
       Control.Monad.Logic.Moded.Solver
@@ -65,13 +63,16 @@ library
     , vinyl
   default-language: Haskell2010
 
-executable moded-logic-exe
+executable moded-logic-pp
   main-is: Main.hs
   other-modules:
+      Codegen
+      Parse
+      Preprocess
       Paths_moded_logic
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   build-depends:
       MemoTrie
     , OneTuple
@@ -79,6 +80,7 @@ executable moded-logic-exe
     , base >=4.7 && <5
     , containers
     , data-ordlist
+    , directory
     , equivalence
     , extra
     , hspec
@@ -112,8 +114,11 @@ test-suite moded-logic-test
       TicTacToe
       Paths_moded_logic
   hs-source-dirs:
+      examples
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wno-type-defaults -Wno-unticked-promoted-constructors
+  build-tools:
+      moded-logic-pp
   build-depends:
       MemoTrie
     , OneTuple

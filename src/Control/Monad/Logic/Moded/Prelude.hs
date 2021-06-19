@@ -21,6 +21,8 @@ module Control.Monad.Logic.Moded.Prelude
   , nub
   , module Control.Applicative
   , module Control.Monad
+  , module Control.Monad.Fail
+  , module Control.Monad.Logic.Class
   , module Control.Monad.Logic.Moded.Mode
   , module Control.Monad.Logic.Moded.Procedure
   , module Data.MemoTrie
@@ -31,8 +33,10 @@ module Control.Monad.Logic.Moded.Prelude
 
 import Control.Applicative (Alternative(..), Applicative(..))
 import Control.Monad (guard)
+import Control.Monad.Fail (MonadFail)
 import Control.Monad.IO.Class (MonadIO(..))
 import qualified Control.Monad.Logic as Logic
+import Control.Monad.Logic.Class (MonadLogic)
 import Control.Monad.Logic.Moded.Mode (Mode(..))
 import Control.Monad.Logic.Moded.Procedure
   ( ConstructProcedure(..)
@@ -50,6 +54,7 @@ import Prelude
   , Fractional(..)
   , Int
   , Integer
+  , Integral
   , Maybe(..)
   , Num(..)
   , Ord(..)
@@ -108,10 +113,7 @@ succ =
   RNil
 
 div ::
-     ( mode ∈ '[ '[ In, In, In], '[ In, In, Out]]
-     , Alternative m
-     , Prelude.Integral a
-     )
+     (mode ∈ '[ '[ In, In, In], '[ In, In, Out]], Alternative m, Integral a)
   => Procedure m () '[ a, a, a] mode
 div =
   rget $
@@ -120,10 +122,7 @@ div =
   RNil
 
 mod ::
-     ( mode ∈ '[ '[ In, In, In], '[ In, In, Out]]
-     , Alternative m
-     , Prelude.Integral a
-     )
+     (mode ∈ '[ '[ In, In, In], '[ In, In, Out]], Alternative m, Integral a)
   => Procedure m () '[ a, a, a] mode
 mod =
   rget $
@@ -134,7 +133,7 @@ mod =
 divMod ::
      ( mode ∈ '[ '[ In, In, In, In], '[ In, In, In, Out], '[ In, In, Out, In], '[ In, In, Out, Out]]
      , Alternative m
-     , Prelude.Integral a
+     , Integral a
      )
   => Procedure m () '[ a, a, a, a] mode
 divMod =
@@ -185,7 +184,7 @@ times =
 timesInt ::
      ( mode ∈ '[ '[ In, In, In], '[ In, In, Out], '[ In, Out, In], '[ Out, In, In]]
      , Alternative m
-     , Prelude.Integral a
+     , Integral a
      )
   => Procedure m () '[ a, a, a] mode
 timesInt =
