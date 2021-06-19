@@ -1,7 +1,5 @@
 {-# LANGUAGE QuasiQuotes, OverloadedStrings, TypeApplications,
   DataKinds, ScopedTypeVariables #-}
-{-# OPTIONS_GHC
-  -Wno-type-defaults -Wno-unticked-promoted-constructors #-}
 
 import qualified Append
 import qualified Cannibals

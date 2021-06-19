@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 847375175128eb19b282cef22db1b5fed0540b113baecc154323c05669eb2379
+-- hash: 1378865a4d9f87dd6868d11f0a6274a9f10106e02884d8a7a85c5358f12f60a4
 
 name:           moded-logic
 version:        0.1.0.0
@@ -116,7 +116,7 @@ test-suite moded-logic-test
   hs-source-dirs:
       examples
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wno-type-defaults -Wno-unticked-promoted-constructors
   build-tools:
       moded-logic-pp
   build-depends:

@@ -71,6 +71,8 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     - -Wall
+    - -Wno-type-defaults
+    - -Wno-unticked-promoted-constructors
     dependencies:
     - moded-logic
     build-tools:
